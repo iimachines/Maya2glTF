@@ -109,16 +109,20 @@ xcopy /y "$(OutputPath)$(TargetName).pdb" "$(userprofile)\Documents\Maya\2018\pl
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\MayaException.cpp" />
+    <ClCompile Include="src\Maya2glTF.cpp" />
+    <ClCompile Include="src\plugin.cpp" />
     <ClCompile Include="src\externals.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2018-Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2018-Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="src\plug-in.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Readme.md" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\MayaException.h" />
+    <ClInclude Include="src\Maya2glTF.h" />
     <ClInclude Include="src\externals.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
