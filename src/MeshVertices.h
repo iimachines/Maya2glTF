@@ -8,19 +8,19 @@ public:
 	MeshVertices(MFnMesh& mesh, MSpace::Space space = MSpace::kObject);
 	virtual ~MeshVertices();
 
-	const gsl::span<const float> floatSpan(const Semantic semantic) const
+	gsl::span<const float> floatSpan(const Semantic::Kind semantic) const
 	{
 		switch (semantic)
 		{
-		case POSITION:
+		case Semantic::POSITION:
 			return reinterpret_span<float>(span(m_Positions));
-		case NORMAL:
+		case Semantic::NORMAL:
 			return reinterpret_span<float>(span(m_Normals));
-		case TANGENT:
+		case Semantic::TANGENT:
 			return reinterpret_span<float>(span(m_Tangents));
-		case COLOR:
+		case Semantic::COLOR:
 			return reinterpret_span<float>(span(m_Colors));
-		case TEXCOORD:
+		case Semantic::TEXCOORD:
 			return reinterpret_span<float>(span(m_TexCoords));
 		default:
 			assert(false);
@@ -33,6 +33,8 @@ public:
 	const Float2Vector&			texCoords() const { return m_TexCoords; }
 	const MFloatVectorArray&	tangents() const { return m_Tangents; }
 	const MColorArray&			colors() const { return m_Colors; }
+
+	void dump(std::string name, std::string indent) const;
 
 private:
 	MFloatPointArray			m_Positions;

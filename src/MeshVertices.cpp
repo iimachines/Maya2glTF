@@ -33,3 +33,19 @@ MeshVertices::~MeshVertices()
 {
 }
 
+void MeshVertices::dump(const std::string name, const std::string indent) const
+{
+	cout << indent << name << ": {" << endl;
+	const auto subIndent = indent + "\t";
+	dump_span<float>("POSITION", span(m_Positions), subIndent);
+	cout << subIndent << "," << endl;
+	dump_span<float>("NORMAL", span(m_Normals), subIndent);
+	cout << subIndent << "," << endl;
+	dump_span<float>("TEXCOORD", span(m_TexCoords), subIndent);
+	cout << subIndent << "," << endl;
+	dump_span<float>("TANGENT", span(m_Tangents), subIndent);
+	cout << subIndent << "," << endl;
+	dump_span<float>("COLOR", span(m_Colors), subIndent);
+	cout << "}" << endl;
+}
+

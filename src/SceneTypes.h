@@ -2,7 +2,7 @@
 #include "BasicTypes.h"
 
 // <0 means an invalid index
-typedef int Index;
+typedef __int32 Index;
 
 typedef Float4 Position;
 typedef Float3 Normal;
@@ -29,28 +29,48 @@ enum Limitations
 	MAX_SKIN_INFLUENCES_PER_VERTEX = 4,
 };
 
-enum Semantic
+namespace Semantic
 {
-	POSITION,
-	NORMAL,
-	TANGENT,
-	COLOR,
-	TEXCOORD,
-	NUM_SEMANTICS,
-};
-
-// Get the number of components per semantic 
-// (e.g. the "dimension" of the semantic. bad terminology?)
-inline size_t dimensionOf(Semantic s)
-{
-	switch (s)
+	enum Kind
 	{
-	case POSITION:	return array_size<Position>::size;
-	case NORMAL:	return array_size<Normal>::size;
-	case TANGENT:	return array_size<Tangent>::size;
-	case COLOR:		return array_size<Color>::size;
-	case TEXCOORD:	return array_size<TexCoord>::size;
-	default: assert(false); return 0;
+		POSITION,
+		NORMAL,
+		TANGENT,
+		COLOR,
+		TEXCOORD,
+		COUNT,
+	};
+
+	inline Kind from(int s)
+	{
+		assert(s >= 0 && s < COUNT);
+		return static_cast<Kind>(s);
+	}
+
+	// Get the number of components per semantic 
+	inline size_t components(const Kind s)
+	{
+		switch (s)
+		{
+		case POSITION:	return array_size<Position>::size;
+		case NORMAL:	return array_size<Normal>::size;
+		case TANGENT:	return array_size<Tangent>::size;
+		case COLOR:		return array_size<Color>::size;
+		case TEXCOORD:	return array_size<TexCoord>::size;
+		default: assert(false); return 0;
+		}
+	}
+
+	inline const char* name(const Kind s)
+	{
+		switch (s)
+		{
+		case POSITION:	return "POSITION";
+		case NORMAL:	return "NORMAL";
+		case TANGENT:	return "TANGENT";
+		case COLOR:		return "COLOR";
+		case TEXCOORD:	return "TEXCOORD";
+		default: assert(false); return "";
+		}
 	}
 }
-
