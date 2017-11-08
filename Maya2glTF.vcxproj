@@ -123,6 +123,7 @@ if errorlevel 1 (exit /b 100)
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\MeshIndices.cpp" />
     <ClCompile Include="src\Arguments.cpp" />
     <ClCompile Include="src\MayaException.cpp" />
     <ClCompile Include="src\Exporter.cpp" />
@@ -139,11 +140,14 @@ if errorlevel 1 (exit /b 100)
     <None Include="test-iteration.mel" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\BasicTypes.h" />
+    <ClInclude Include="src\MeshIndices.h" />
     <ClInclude Include="src\OutputStreamsPatch.h" />
     <ClInclude Include="src\Arguments.h" />
     <ClInclude Include="src\MayaException.h" />
     <ClInclude Include="src\Exporter.h" />
     <ClInclude Include="src\externals.h" />
+    <ClInclude Include="src\SceneTypes.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

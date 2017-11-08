@@ -20,10 +20,10 @@ MStatus Exporter::doIt(const MArgList& args)
 {
 	try
 	{
-		std::cout << "maya2glTF: parsing arguments..." << endl;
+		std::cout << "maya2glTF: Parsing arguments..." << endl;
 		const Arguments arguments(args, syntax());
 
-		std::cout << "maya2glTF: starting export..." << endl;
+		std::cout << "maya2glTF: Starting export..." << endl;
 		exportScene(arguments);
 
 		return MStatus::kSuccess;
@@ -38,7 +38,7 @@ MStatus Exporter::doIt(const MArgList& args)
 	}
 	catch (...)
 	{
-		return MayaException::printError("maya2glTF: unexpected fatal error!");
+		return MayaException::printError("maya2glTF: Unexpected fatal error!");
 	}
 }
 
@@ -54,5 +54,6 @@ bool Exporter::hasSyntax() const
 
 void Exporter::exportScene(const Arguments& args)
 {
+
 }
 

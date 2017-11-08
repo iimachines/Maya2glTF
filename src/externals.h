@@ -5,6 +5,7 @@
 #include <cassert>
 #include <vector>
 #include <algorithm>
+#include <array>
 
 #include <maya/MPxCommand.h>
 #include <maya/MFnPlugin.h>
@@ -17,4 +18,5 @@
 #include <maya/MFileObject.h>
 #include <maya/MFileIO.h>
 #include <maya/MSelectionList.h>
-
+#include <maya/MFnMesh.h>
+#include <maya/MItMeshPolygon.h>
