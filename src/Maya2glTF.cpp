@@ -19,23 +19,22 @@ MStatus Maya2glTF::doIt(const MArgList& args)
 {
 	try
 	{
+		THROW_ON_FAILURE(MStatus::kInsufficientMemory);
+
 		cout << "Hello from Maya2glTF" << endl;
 		return MStatus::kSuccess;
 	}
 	catch (const MayaException &ex)
 	{
-		cerr << ex.what() << endl;
-		return ex.status;
+		return fail(ex.what(),ex.status);
 	}
 	catch (const std::exception &ex)
 	{
-		cerr << ex.what() << endl;
-		return MStatus::kFailure;
+		return fail(ex.what());
 	}
 	catch (...)
 	{
-		cerr << "Maya2glTF: unexpected error!" << endl;
-		return MStatus::kFailure;
+		return fail("Maya2glTF: unexpected fatal error!");
 	}
 }
 
@@ -43,3 +42,11 @@ bool Maya2glTF::isUndoable() const
 {
 	return false;
 }
+
+MStatus Maya2glTF::fail(const char* message, MStatus status) const
+{
+	MGlobal::executeCommand(MString("error \"") + message + "\"");
+	cerr << message << endl;
+	return status;
+}
+

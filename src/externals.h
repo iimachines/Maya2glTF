@@ -3,6 +3,8 @@
 #include <iostream>
 #include <sstream>
 
-#include <maya/MSimple.h>
+#include <maya/MPxCommand.h>
+#include <maya/MFnPlugin.h>
 #include <maya/MIOStream.h>
+#include <maya/MGlobal.h>
 

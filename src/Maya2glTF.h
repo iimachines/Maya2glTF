@@ -11,5 +11,8 @@ public:
 	MStatus doIt(const MArgList& args) override;
 
 	bool isUndoable() const override;
+
+private:
+	MStatus fail(const char* message, MStatus error = MStatus::kFailure) const;
 };
 
