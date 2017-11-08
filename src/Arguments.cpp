@@ -1,6 +1,7 @@
 #include "externals.h"
 #include "Arguments.h"
 #include "MayaException.h"
+#include <fstream>
 
 namespace flag
 {
@@ -50,13 +51,20 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	}
 	else
 	{
+		// Use filename without extension of current scene file.
 		MFileIO fileIO;
 		const auto currentFilePath = fileIO.currentFile();
+		
 		MFileObject fileObj;
 		fileObj.setFullName(currentFilePath);
-		sceneName = fileObj.name();
+
+		// Remove extension from filename. I really miss C#!
+		std::string fileName(fileObj.name().asChar());
+		const auto lastindex = fileName.find_last_of(".");
+		sceneName = fileName.substr(0, lastindex).c_str();
 	}
 
+	// For debugging, print the arguments again
 	MStringArray selectedObjects;
 	status = selection.getSelectionStrings(selectedObjects);
 	THROW_ON_FAILURE(status);
