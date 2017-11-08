@@ -7,6 +7,9 @@
 #include <algorithm>
 #include <array>
 
+#include <gsl/span>
+
+#include <experimental/vector>
 #include <maya/MPxCommand.h>
 #include <maya/MFnPlugin.h>
 #include <maya/MIOStream.h>
@@ -20,3 +23,5 @@
 #include <maya/MSelectionList.h>
 #include <maya/MFnMesh.h>
 #include <maya/MItMeshPolygon.h>
+#include <maya/MFloatPointArray.h>
+#include <maya/MFloatVectorArray.h>

@@ -53,3 +53,4 @@ inline size_t dimensionOf(Semantic s)
 	default: assert(false); return 0;
 	}
 }
+

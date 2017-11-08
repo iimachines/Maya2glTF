@@ -58,7 +58,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <AdditionalIncludeDirectories>$(MAYA_2018_SDK)\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MAYA_2018_SDK)\include;$(ProjectDir)dependencies\GSL\include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WIN64;_WINDOWS;_USRDLL;NT_PLUGIN;REQUIRE_IOSTREAM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>externals.h</PrecompiledHeaderFile>
@@ -93,7 +93,7 @@ if errorlevel 1 (exit /b 100)
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <AdditionalIncludeDirectories>$(MAYA_2018_SDK)\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MAYA_2018_SDK)\include;$(ProjectDir)dependencies\GSL\include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WIN64;_WINDOWS;_USRDLL;NT_PLUGIN;REQUIRE_IOSTREAM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>externals.h</PrecompiledHeaderFile>
@@ -123,6 +123,7 @@ if errorlevel 1 (exit /b 100)
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\MeshVertices.cpp" />
     <ClCompile Include="src\MeshIndices.cpp" />
     <ClCompile Include="src\Arguments.cpp" />
     <ClCompile Include="src\MayaException.cpp" />
@@ -140,6 +141,7 @@ if errorlevel 1 (exit /b 100)
     <None Include="test-iteration.mel" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\MeshVertices.h" />
     <ClInclude Include="src\BasicTypes.h" />
     <ClInclude Include="src\MeshIndices.h" />
     <ClInclude Include="src\OutputStreamsPatch.h" />
@@ -148,6 +150,7 @@ if errorlevel 1 (exit /b 100)
     <ClInclude Include="src\Exporter.h" />
     <ClInclude Include="src\externals.h" />
     <ClInclude Include="src\SceneTypes.h" />
+    <ClInclude Include="src\Spans.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

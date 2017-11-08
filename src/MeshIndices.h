@@ -27,5 +27,7 @@ private:
 
 	// Some primitives don't have shaders attached (e.g. primitives from blend-shape)
 	std::vector<bool> m_isShaderUsed; 
+
+	DISALLOW_COPY_AND_ASSIGN(MeshIndices);
 };
 
