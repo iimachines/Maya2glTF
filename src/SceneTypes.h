@@ -4,6 +4,9 @@
 // <0 means an invalid index
 typedef __int32 Index;
 
+/** Maya uses strings to identify color and texture-coordinate sets. We use indices */
+typedef int SetIndex;
+
 typedef Float4 Position;
 typedef Float3 Normal;
 typedef Float3 Tangent;
@@ -35,7 +38,6 @@ namespace Semantic
 	{
 		POSITION,
 		NORMAL,
-		TANGENT,
 		COLOR,
 		TEXCOORD,
 		COUNT,
@@ -54,7 +56,6 @@ namespace Semantic
 		{
 		case POSITION:	return array_size<Position>::size;
 		case NORMAL:	return array_size<Normal>::size;
-		case TANGENT:	return array_size<Tangent>::size;
 		case COLOR:		return array_size<Color>::size;
 		case TEXCOORD:	return array_size<TexCoord>::size;
 		default: assert(false); return 0;
@@ -67,7 +68,6 @@ namespace Semantic
 		{
 		case POSITION:	return "POSITION";
 		case NORMAL:	return "NORMAL";
-		case TANGENT:	return "TANGENT";
 		case COLOR:		return "COLOR";
 		case TEXCOORD:	return "TEXCOORD";
 		default: assert(false); return "";

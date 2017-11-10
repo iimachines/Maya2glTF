@@ -1,6 +1,6 @@
 //Maya ASCII 2018 scene
 //Name: three_faces_pbs.ma
-//Last modified: Wed, Nov 08, 2017 04:49:11 PM
+//Last modified: Wed, Nov 08, 2017 08:24:44 PM
 //Codeset: 1252
 requires maya "2018";
 requires -nodeType "StingrayPBS" "shaderFXPlugin" "1.0";
@@ -13,8 +13,8 @@ fileInfo "osv" "Microsoft Windows 8 Business Edition, 64-bit  (Build 9200)\n";
 createNode transform -s -n "persp";
 	rename -uid "0487526E-4A59-9BD9-555F-71A4F483932B";
 	setAttr ".v" no;
-	setAttr ".t" -type "double3" 1.7212979311026673 2.0863354368210949 2.4951633975315626 ;
-	setAttr ".r" -type "double3" -34.53835272961301 34.599999999999874 1.931973123193639e-15 ;
+	setAttr ".t" -type "double3" 1.6477809311959015 1.4105037881063327 2.9726754901031329 ;
+	setAttr ".r" -type "double3" -22.538352729613131 28.999999999999861 -9.0912503328620949e-16 ;
 createNode camera -s -n "perspShape" -p "persp";
 	rename -uid "190DA949-4C56-F353-629D-5585645226C4";
 	setAttr -k off ".v" no;

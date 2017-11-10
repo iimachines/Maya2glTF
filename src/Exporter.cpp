@@ -2,6 +2,7 @@
 #include "Exporter.h"
 #include "MayaException.h"
 #include "Arguments.h"
+#include "Mesh.h"
 
 Exporter::Exporter()
 {
@@ -54,6 +55,25 @@ bool Exporter::hasSyntax() const
 
 void Exporter::exportScene(const Arguments& args)
 {
+	MStatus status;
+
+	auto& selection = args.selection;
+
+	// TODO: Support all kinds of nodes
+	std::vector<std::unique_ptr<Mesh>> meshes(selection.length());
+
+	for (uint selectionIndex = 0; selectionIndex < selection.length(); ++selectionIndex)
+	{
+		MDagPath dagPath;
+		THROW_ON_FAILURE(selection.getDagPath(selectionIndex, dagPath));
+
+		MString meshName = dagPath.partialPathName(&status);
+		THROW_ON_FAILURE(status);
+
+		const auto meshPtr = new Mesh(dagPath);
+		meshes[selectionIndex].reset(meshPtr);
+		meshPtr->dump(meshName.asChar(), "");
+	}
 
 }
 

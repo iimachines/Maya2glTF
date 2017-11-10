@@ -123,6 +123,9 @@ if errorlevel 1 (exit /b 100)
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Mesh.cpp" />
+    <ClCompile Include="src\dump.cpp" />
+    <ClCompile Include="src\MeshSetNames.cpp" />
     <ClCompile Include="src\MeshVertices.cpp" />
     <ClCompile Include="src\MeshIndices.cpp" />
     <ClCompile Include="src\Arguments.cpp" />
@@ -141,16 +144,19 @@ if errorlevel 1 (exit /b 100)
     <None Include="test-iteration.mel" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Mesh.h" />
+    <ClInclude Include="src\dump.h" />
+    <ClInclude Include="src\MeshSetNames.h" />
     <ClInclude Include="src\MeshVertices.h" />
-    <ClInclude Include="src\BasicTypes.h" />
+    <ClInclude Include="src\basicTypes.h" />
     <ClInclude Include="src\MeshIndices.h" />
     <ClInclude Include="src\OutputStreamsPatch.h" />
     <ClInclude Include="src\Arguments.h" />
     <ClInclude Include="src\MayaException.h" />
     <ClInclude Include="src\Exporter.h" />
     <ClInclude Include="src\externals.h" />
-    <ClInclude Include="src\SceneTypes.h" />
-    <ClInclude Include="src\Spans.h" />
+    <ClInclude Include="src\sceneTypes.h" />
+    <ClInclude Include="src\spans.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

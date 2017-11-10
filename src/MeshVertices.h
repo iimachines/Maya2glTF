@@ -1,47 +1,49 @@
 #pragma once
+
 #include "SceneTypes.h"
 #include "Spans.h"
+#include "MeshSetNames.h"
 
+/** The vertices of a single Maya mesh */
 class MeshVertices
 {
 public:
-	MeshVertices(MFnMesh& mesh, MSpace::Space space = MSpace::kObject);
+	MeshVertices(const MeshSetNames& names, const MFnMesh& mesh, MSpace::Space space = MSpace::kObject);
 	virtual ~MeshVertices();
 
-	gsl::span<const float> floatSpan(const Semantic::Kind semantic) const
+	gsl::span<const float> floatSpan(const Semantic::Kind semantic, SetIndex setIndex) const
 	{
 		switch (semantic)
 		{
 		case Semantic::POSITION:
-			return reinterpret_span<float>(span(m_Positions));
+			assert(setIndex == 0);
+			return reinterpret_span<float>(span(m_positions));
 		case Semantic::NORMAL:
-			return reinterpret_span<float>(span(m_Normals));
-		case Semantic::TANGENT:
-			return reinterpret_span<float>(span(m_Tangents));
+			assert(setIndex == 0);
+			return reinterpret_span<float>(span(m_normals));
 		case Semantic::COLOR:
-			return reinterpret_span<float>(span(m_Colors));
+			return reinterpret_span<float>(span(m_colorSets.at(setIndex)));
 		case Semantic::TEXCOORD:
-			return reinterpret_span<float>(span(m_TexCoords));
+			return reinterpret_span<float>(span(m_uvSets.at(setIndex)));
 		default:
 			assert(false);
 			return gsl::span<float>();
 		}
 	}
 
-	const MFloatPointArray&		positions() const { return m_Positions; }
-	const MFloatVectorArray&	normals() const { return m_Normals; }
-	const Float2Vector&			texCoords() const { return m_TexCoords; }
-	const MFloatVectorArray&	tangents() const { return m_Tangents; }
-	const MColorArray&			colors() const { return m_Colors; }
+	const MFloatPointArray&		positions() const { return m_positions; }
+	const MFloatVectorArray&	normals() const { return m_normals; }
 
-	void dump(std::string name, std::string indent) const;
+	const std::map<SetIndex, Float2Vector>&	uvSets() const { return m_uvSets; }
+	const std::map<SetIndex, MColorArray>&	colorSets() const { return m_colorSets; }
+
+	void dump(const std::string& name, const std::string& indent) const;
 
 private:
-	MFloatPointArray			m_Positions;
-	MFloatVectorArray			m_Normals;
-	Float2Vector				m_TexCoords;
-	MFloatVectorArray			m_Tangents;
-	MColorArray					m_Colors;
+	MFloatPointArray m_positions;
+	MFloatVectorArray m_normals;
+	std::map<SetIndex, Float2Vector> m_uvSets;
+	std::map<SetIndex, MColorArray> m_colorSets;
 
 	DISALLOW_COPY_AND_ASSIGN(MeshVertices);
 };

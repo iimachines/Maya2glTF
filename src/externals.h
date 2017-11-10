@@ -25,3 +25,5 @@
 #include <maya/MItMeshPolygon.h>
 #include <maya/MFloatPointArray.h>
 #include <maya/MFloatVectorArray.h>
+#include <maya/MDagPath.h>
+

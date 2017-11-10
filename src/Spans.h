@@ -24,6 +24,8 @@ static gsl::span<const MColor> span(const MColorArray& marray)
 template<typename T, typename S>
 static gsl::span<const T> reinterpret_span(const gsl::span<S>& span)
 {
+	assert(sizeof(S) % sizeof(T) == 0);
+
 	if (span.empty())
 		return gsl::span<T>();
 
@@ -33,44 +35,3 @@ static gsl::span<const T> reinterpret_span(const gsl::span<S>& span)
 	return gsl::make_span(reinterpret_cast<const T*>(&bgn), reinterpret_cast<const T*>(&end));
 }
 
-template<typename T, typename S>
-static void dump_span(const std::string name, gsl::span<S> span, const std::string indent)
-{
-	auto components = reinterpret_span<T>(span);
-	const size_t groupSize = sizeof(S) / sizeof(T);
-
-	cout << indent << name << ": [ ";
-
-	if (groupSize == 1)
-	{
-		auto separator = "";
-
-		for (auto i = 0; i<components.size(); ++i)
-		{
-			cout << separator;
-			cout << components[i];
-			separator = ", ";
-		}
-	}
-	else
-	{
-		auto groupSeparator = "";
-
-		for (auto i = 0; i<components.size(); i += groupSize)
-		{
-			cout << groupSeparator;
-
-			auto separator = "";
-			for (auto j = 0; j<groupSize; ++j)
-			{
-				cout << separator;
-				cout << components[i+j];
-				separator = ",";
-			}
-
-			groupSeparator = ",  ";
-		}
-	}
-
-	cout << "]";
-}
