@@ -1,6 +1,6 @@
-[submodule "dependencies\\GSL"]
-	path = dependencies\\GSL
-	url = https://github.com/Microsoft/GSL
+[submodule "dependencies/GSL"]
+	path = dependencies/GSL
+	url = https://github.com/Microsoft/GSL.git
 [submodule "dependencies/COLLADA2GLTF"]
 	path = dependencies/COLLADA2GLTF
 	url = https://github.com/KhronosGroup/COLLADA2GLTF.git
