@@ -1,7 +1,7 @@
 #pragma once
 
 #include "SceneTypes.h"
-#include "MeshSetNames.h"
+#include "MeshSemantics.h"
 
 /** 
  * The indices to points, normals, etc for a single Maya mesh
@@ -10,7 +10,7 @@
 class MeshIndices
 {
 public:
-	MeshIndices(const MeshSetNames& setNames, const MFnMesh& fnMesh);
+	MeshIndices(const MeshSemantics& setNames, const MFnMesh& fnMesh);
 	~MeshIndices();
 
 	const auto& indices(const Semantic::Kind semantic, const SetIndex setIndex ) const

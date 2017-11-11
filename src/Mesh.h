@@ -1,5 +1,5 @@
 #pragma once
-#include "MeshSetNames.h"
+#include "MeshSemantics.h"
 #include "MeshVertices.h"
 #include "MeshIndices.h"
 
@@ -14,7 +14,7 @@ public:
 private:
 	MDagPath m_dagPath;
 
-	std::unique_ptr<MeshSetNames> m_setNames;
+	std::unique_ptr<MeshSemantics> m_semantics;
 	std::unique_ptr<MeshVertices> m_vertices;
 	std::unique_ptr<MeshIndices> m_indices;
 };

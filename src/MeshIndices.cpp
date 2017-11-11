@@ -4,7 +4,7 @@
 #include "spans.h"
 #include "dump.h"
 
-MeshIndices::MeshIndices(const MeshSetNames& setNames, const MFnMesh& fnMesh)
+MeshIndices::MeshIndices(const MeshSemantics& semantics, const MFnMesh& fnMesh)
 {
 	MStatus status;
 	MObjectArray shaders;
@@ -22,10 +22,10 @@ MeshIndices::MeshIndices(const MeshSetNames& setNames, const MFnMesh& fnMesh)
 	m_primitiveToShaderIndexMap.reserve(numPolygons * 2);
 
 	// Reserve space for the indices, we assume every polygon is a quad.
-	for (auto semantic = 0; semantic<Semantic::COUNT; ++semantic)
+	for (auto kind = 0; kind<Semantic::COUNT; ++kind)
 	{
-		auto& indexSet = m_indexSets.at(semantic);
-		const auto n = setNames.numSetsOf(Semantic::from(semantic));
+		auto& indexSet = m_indexSets.at(kind);
+		const auto n = semantics.at(Semantic::from(kind)).size();
 		for (auto set = 0; set<n; ++set)
 		{
 			indexSet[set].reserve(numPolygons * 6);
@@ -37,11 +37,11 @@ MeshIndices::MeshIndices(const MeshSetNames& setNames, const MFnMesh& fnMesh)
 	auto& uvSets = m_indexSets.at(Semantic::TEXCOORD);
 	auto& colorSets = m_indexSets.at(Semantic::COLOR);
 
-	auto& colorSetNames = setNames.colors();
-	auto& uvSetNames = setNames.texCoords();
+	auto& colorSemantics = semantics.at(Semantic::COLOR);
+	auto& uvSetSemantics = semantics.at(Semantic::TEXCOORD);
 
-	const int colorSetCount = colorSetNames.length();
-	const int uvSetCount = uvSetNames.length();
+	const auto colorSetCount = colorSemantics.size();
+	const auto uvSetCount = uvSetSemantics.size();
 
 	auto polygonIndex = 0;
 	for (MItMeshPolygon itPoly(fnMesh.object()); !itPoly.isDone(); itPoly.next(), ++polygonIndex)
@@ -76,7 +76,7 @@ MeshIndices::MeshIndices(const MeshSetNames& setNames, const MFnMesh& fnMesh)
 				for (auto setIndex=0; setIndex<colorSetCount; ++setIndex)
 				{
 					int colorIndex;
-					auto colorSetName = colorSetNames[setIndex];
+					auto colorSetName = colorSemantics[setIndex].setName;
 					status = itPoly.getColorIndex(localVertexIndex, colorIndex, &colorSetName);
 					THROW_ON_FAILURE(status);
 					colorSets.at(setIndex).push_back(colorIndex);
@@ -85,7 +85,7 @@ MeshIndices::MeshIndices(const MeshSetNames& setNames, const MFnMesh& fnMesh)
 				for (auto setIndex = 0; setIndex<uvSetCount; ++setIndex)
 				{
 					int uvIndex;
-					auto uvSetName = uvSetNames[setIndex];
+					auto uvSetName = uvSetSemantics[setIndex].setName;
 					status = itPoly.getUVIndex(localVertexIndex, uvIndex, &uvSetName);
 					THROW_ON_FAILURE(status);
 					uvSets.at(setIndex).push_back(uvIndex);

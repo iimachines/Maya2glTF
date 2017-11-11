@@ -2,13 +2,13 @@
 
 #include "SceneTypes.h"
 #include "Spans.h"
-#include "MeshSetNames.h"
+#include "MeshSemantics.h"
 
 /** The vertices of a single Maya mesh */
 class MeshVertices
 {
 public:
-	MeshVertices(const MeshSetNames& names, const MFnMesh& mesh, MSpace::Space space = MSpace::kObject);
+	MeshVertices(const MeshSemantics& names, const MFnMesh& mesh, MSpace::Space space = MSpace::kObject);
 	virtual ~MeshVertices();
 
 	gsl::span<const float> floatSpan(const Semantic::Kind semantic, SetIndex setIndex) const

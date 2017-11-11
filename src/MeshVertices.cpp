@@ -3,36 +3,29 @@
 #include "MayaException.h"
 #include "Dump.h"
 
-MeshVertices::MeshVertices(const MeshSetNames& names, const MFnMesh& mesh, const MSpace::Space space)
+MeshVertices::MeshVertices(const MeshSemantics& semantics, const MFnMesh& mesh, const MSpace::Space space)
 {
 	mesh.getPoints(m_positions, space);
 	mesh.getNormals(m_normals, space);
 
 	// Get color sets.
-	const auto& colorSetNames = names.colors();
-	const int colorSetCount = colorSetNames.length();
-	for (auto index = 0; index < colorSetCount; ++index)
+	for (auto&& semantic: semantics.at(Semantic::COLOR))
 	{
-		auto colorSetName = colorSetNames[index];
-		THROW_ON_FAILURE(mesh.getColors(m_colorSets[index], &colorSetName));
+		THROW_ON_FAILURE(mesh.getColors(m_colorSets[semantic.setIndex], &semantic.setName));
 	}
 
 	// Get UV sets.
 	// These are not interleaved in Maya, so we have to do it ourselves...
-	const auto& uvSetNames = names.texCoords();
-	const int uvSetCount = uvSetNames.length();
-	for (auto index = 0; index < uvSetCount; ++index)
+	for (auto&& semantic : semantics.at(Semantic::TEXCOORD))
 	{
-		auto uvSetName = uvSetNames[index];
-
 		MFloatArray uArray;
 		MFloatArray vArray;
-		THROW_ON_FAILURE(mesh.getUVs(uArray, vArray, &uvSetName));
+		THROW_ON_FAILURE(mesh.getUVs(uArray, vArray, &semantic.setName));
 
 		assert(uArray.length() == vArray.length());
 		const int uCount = uArray.length();
 
-		auto& uvSet = m_uvSets[index] = Float2Vector(uCount);
+		auto& uvSet = m_uvSets[semantic.setIndex] = Float2Vector(uCount);
 		for (auto uIndex = 0; uIndex < uCount; uIndex++)
 		{
 			auto& uvArray = uvSet[uIndex];

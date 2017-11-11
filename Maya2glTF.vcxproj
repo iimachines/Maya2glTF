@@ -126,7 +126,7 @@ if errorlevel 1 (exit /b 100)
     <ClCompile Include="src\SignalHandlers.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\dump.cpp" />
-    <ClCompile Include="src\MeshSetNames.cpp" />
+    <ClCompile Include="src\MeshSemantics.cpp" />
     <ClCompile Include="src\MeshVertices.cpp" />
     <ClCompile Include="src\MeshIndices.cpp" />
     <ClCompile Include="src\Arguments.cpp" />
@@ -148,7 +148,7 @@ if errorlevel 1 (exit /b 100)
     <ClInclude Include="src\SignalHandlers.h" />
     <ClInclude Include="src\Mesh.h" />
     <ClInclude Include="src\dump.h" />
-    <ClInclude Include="src\MeshSetNames.h" />
+    <ClInclude Include="src\MeshSemantics.h" />
     <ClInclude Include="src\MeshVertices.h" />
     <ClInclude Include="src\basicTypes.h" />
     <ClInclude Include="src\MeshIndices.h" />
