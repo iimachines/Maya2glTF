@@ -19,7 +19,7 @@ Mesh::~Mesh()
 
 void Mesh::dump(const std::string& name, const std::string& indent) const
 {
-	cout << indent << name << ": {" << endl;
+	cout << indent << quoted(name) << ": {" << endl;
 	const auto subIndent = indent + "\t";
 	m_setNames->dump("setNames", subIndent);
 	cout << "," << endl;

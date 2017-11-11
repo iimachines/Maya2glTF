@@ -1,4 +1,5 @@
 #pragma once
+#include <signal.h>
 
 class MayaException : public std::runtime_error
 {

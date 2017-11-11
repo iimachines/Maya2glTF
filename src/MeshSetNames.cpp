@@ -16,7 +16,7 @@ MeshSetNames::~MeshSetNames()
 
 void MeshSetNames::dump(const std::string& name, const std::string& indent) const
 {
-	cout << indent << name << ": {" << endl;
+	cout << indent << quoted(name) << ": {" << endl;
 
 	const auto subIndent = indent + "\t";
 	
@@ -26,5 +26,5 @@ void MeshSetNames::dump(const std::string& name, const std::string& indent) cons
 	dump_array("texCoords", m_texCoords, subIndent);
 	cout << endl;
 
-	cout << indent << "}" << endl;
+	cout << indent << "}";
 }

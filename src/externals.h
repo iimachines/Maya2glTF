@@ -1,11 +1,14 @@
 #pragma once
 
+#include <csignal>
 #include <iostream>
 #include <sstream>
 #include <cassert>
 #include <vector>
 #include <algorithm>
 #include <array>
+#include <memory>
+#include <iomanip>
 
 #include <gsl/span>
 

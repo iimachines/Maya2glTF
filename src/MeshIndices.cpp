@@ -24,7 +24,7 @@ MeshIndices::MeshIndices(const MeshSetNames& setNames, const MFnMesh& fnMesh)
 	// Reserve space for the indices, we assume every polygon is a quad.
 	for (auto semantic = 0; semantic<Semantic::COUNT; ++semantic)
 	{
-		auto indexSet = m_indexSets.at(semantic);
+		auto& indexSet = m_indexSets.at(semantic);
 		const auto n = setNames.numSetsOf(Semantic::from(semantic));
 		for (auto set = 0; set<n; ++set)
 		{
@@ -106,27 +106,27 @@ void MeshIndices::dump(const std::string& name, const std::string& indent) const
 	auto& uvSets = m_indexSets[Semantic::TEXCOORD];
 	auto& colorSets = m_indexSets[Semantic::COLOR];
 
-	cout << indent << name << ": {" << endl;
+	cout << indent << std::quoted(name) << ": {" << endl;
 	const auto subIndent = indent + "\t";
 	
 	dump_span<float>("POSITION", span(positions), subIndent);
-	cout << subIndent << "," << endl;
+	cout << "," << endl;
 	
 	dump_span<float>("NORMAL", span(normals), subIndent);
-	cout << subIndent << "," << endl;
+	cout << "," << endl;
 	
-	for (const auto pair : uvSets)
-		dump_span<float>("TEXCOORD_" + pair.first, span(pair.second), subIndent);
+	for (const auto& pair : uvSets)
+		dump_span<float>("TEXCOORD_" + std::to_string(pair.first), span(pair.second), subIndent);
 
 	if (!uvSets.empty())
-		cout << subIndent << "," << endl;
+		cout << "," << endl;
 
-	for (const auto pair : colorSets)
-		dump_span<float>("COLOR_" + pair.first, span(pair.second), subIndent);
+	for (const auto& pair : colorSets)
+		dump_span<float>("COLOR_" + std::to_string(pair.first), span(pair.second), subIndent);
 
 	if (!colorSets.empty())
 		cout << endl;
 
-	cout << indent << "}" << endl;
+	cout << indent << "}";
 }
 

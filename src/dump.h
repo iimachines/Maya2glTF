@@ -4,14 +4,14 @@
 
 namespace dump {}
 template<typename T, typename S>
-static void dump_span(const std::string name, gsl::span<S> span, const std::string indent)
+static void dump_span(const std::string& name, const gsl::span<S>& span, const std::string& indent)
 {
 	assert(sizeof(S) % sizeof(T) == 0);
 
 	auto components = reinterpret_span<T>(span);
 	const size_t groupSize = sizeof(S) / sizeof(T);
 
-	cout << indent << name << ": [ ";
+	cout << indent << quoted(name) << ": [";
 
 	if (groupSize == 1)
 	{
@@ -19,8 +19,7 @@ static void dump_span(const std::string name, gsl::span<S> span, const std::stri
 
 		for (auto i = 0; i<components.size(); ++i)
 		{
-			cout << separator;
-			cout << components[i];
+			cout << separator << components[i];
 			separator = ", ";
 		}
 	}
@@ -35,8 +34,7 @@ static void dump_span(const std::string name, gsl::span<S> span, const std::stri
 			auto separator = "";
 			for (auto j = 0; j<groupSize; ++j)
 			{
-				cout << separator;
-				cout << components[i+j];
+				cout << separator << components[i+j];
 				separator = ",";
 			}
 
@@ -47,4 +45,4 @@ static void dump_span(const std::string name, gsl::span<S> span, const std::stri
 	cout << "]";
 }
 
-void dump_array(const std::string name, MStringArray items, const std::string indent);
+void dump_array(const std::string& name, const MStringArray& items, const std::string& indent);

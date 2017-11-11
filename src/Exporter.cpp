@@ -3,6 +3,7 @@
 #include "MayaException.h"
 #include "Arguments.h"
 #include "Mesh.h"
+#include "SignalHandlers.h"
 
 Exporter::Exporter()
 {
@@ -19,6 +20,8 @@ void* Exporter::createInstance()
 
 MStatus Exporter::doIt(const MArgList& args)
 {
+	SignalHandlers signalHandlers;
+
 	try
 	{
 		std::cout << "maya2glTF: Parsing arguments..." << endl;

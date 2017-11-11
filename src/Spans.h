@@ -29,9 +29,9 @@ static gsl::span<const T> reinterpret_span(const gsl::span<S>& span)
 	if (span.empty())
 		return gsl::span<T>();
 
-	const S& bgn = *span.begin();
-	const S& end = *span.end();
+	const S* bgn_ptr = &span[0];
+	const S* end_ptr = bgn_ptr + span.size();
 
-	return gsl::make_span(reinterpret_cast<const T*>(&bgn), reinterpret_cast<const T*>(&end));
+	return gsl::make_span(reinterpret_cast<const T*>(bgn_ptr), reinterpret_cast<const T*>(end_ptr));
 }
 
