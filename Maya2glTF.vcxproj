@@ -137,6 +137,7 @@ if errorlevel 1 (exit /b 100)
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2018-Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2018-Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="src\MeshDrawable.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
@@ -159,6 +160,7 @@ if errorlevel 1 (exit /b 100)
     <ClInclude Include="src\externals.h" />
     <ClInclude Include="src\sceneTypes.h" />
     <ClInclude Include="src\spans.h" />
+    <ClInclude Include="src\MeshDrawable.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

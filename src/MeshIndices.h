@@ -4,23 +4,27 @@
 #include "MeshSemantics.h"
 
 /** 
- * The indices to points, normals, etc for a single Maya mesh
+ * The per-primitive (e.g. triangle) indices to points, normals, etc for a single Maya mesh
  * Unlike a typical GPU mesh, DCC software like Maya has separate indices for each element semantic, e.g. to allow sharing points of sharp corners.
  */
+
+typedef std::vector<IndexVector> ComponentIndicesPerSetIndex;
+typedef std::array<ComponentIndicesPerSetIndex, Semantic::COUNT> ComponentIndicesPerSetIndexTable;
+
 class MeshIndices
 {
 public:
 	MeshIndices(const MeshSemantics& setNames, const MFnMesh& fnMesh);
 	~MeshIndices();
 
-	const auto& indices(const Semantic::Kind semantic, const SetIndex setIndex ) const
+	const ComponentIndicesPerSetIndexTable& table() const
 	{
-		return m_indexSets[semantic].at(setIndex);
+		return m_table;
 	}
 
 	// TODO: Support other primitives
 	auto primitiveKind() const { return TRIANGLE_LIST; }
-	size_t primitiveCount(const SetIndex setIndex) const { return indices(Semantic::POSITION, 0).size() / 3; }
+	size_t primitiveCount(const SetIndex setIndex) const { return m_table.at(Semantic::POSITION).at(0).size() / 3; }
 
 	size_t shaderCount() const { return m_isShaderUsed.size(); }
 	
@@ -33,7 +37,7 @@ public:
 	void dump(const std::string& name, const std::string& indent) const;
 
 private:
-	std::array<std::map<SetIndex, IndexVector>, Semantic::COUNT> m_indexSets;
+	ComponentIndicesPerSetIndexTable m_table;
 
 	IndexVector	m_primitiveToShaderIndexMap;
 

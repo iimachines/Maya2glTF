@@ -2,21 +2,35 @@
 #include "MeshVertices.h"
 #include "MayaException.h"
 #include "Dump.h"
+#include "spans.h"
 
 MeshVertices::MeshVertices(const MeshSemantics& semantics, const MFnMesh& mesh, const MSpace::Space space)
 {
+	// Get points
 	mesh.getPoints(m_positions, space);
+
+	const auto positionsSpan = reinterpret_span<float>(span(m_positions));
+	m_table.at(Semantic::POSITION).push_back(positionsSpan);
+
+	// Get normals
 	mesh.getNormals(m_normals, space);
 
+	const auto normalsSpan = reinterpret_span<float>(span(m_normals));
+	m_table.at(Semantic::NORMAL).push_back(normalsSpan);
+
 	// Get color sets.
-	for (auto&& semantic: semantics.at(Semantic::COLOR))
+	for (auto&& semantic: semantics.descriptions(Semantic::COLOR))
 	{
-		THROW_ON_FAILURE(mesh.getColors(m_colorSets[semantic.setIndex], &semantic.setName));
+		auto& colors = m_colorSets[semantic.setIndex];
+		THROW_ON_FAILURE(mesh.getColors(colors, &semantic.setName));
+		
+		const auto colorsSpan = reinterpret_span<float>(span(colors));
+		m_table.at(Semantic::COLOR).push_back(colorsSpan);
 	}
 
 	// Get UV sets.
 	// These are not interleaved in Maya, so we have to do it ourselves...
-	for (auto&& semantic : semantics.at(Semantic::TEXCOORD))
+	for (auto&& semantic : semantics.descriptions(Semantic::TEXCOORD))
 	{
 		MFloatArray uArray;
 		MFloatArray vArray;
@@ -32,6 +46,9 @@ MeshVertices::MeshVertices(const MeshSemantics& semantics, const MFnMesh& mesh, 
 			uvArray[0] = uArray[uIndex];
 			uvArray[1] = 1.0f - vArray[uIndex];
 		}
+
+		const auto uvSpan = reinterpret_span<float>(span(uvSet));
+		m_table.at(Semantic::TEXCOORD).push_back(uvSpan);
 	}
 }
 
@@ -41,25 +58,6 @@ MeshVertices::~MeshVertices()
 
 void MeshVertices::dump(const std::string& name, const std::string& indent) const
 {
-	cout << indent << quoted(name) << ": {" << endl;
-
-	const auto subIndent = indent + "\t";
-
-	dump_span<float>("POSITION", span(m_positions), subIndent);
-	cout << "," << endl;
-
-	dump_span<float>("NORMAL", span(m_normals), subIndent);
-	cout << "," << endl;
-
-	for (const auto& pair : m_uvSets)
-		dump_span<float>("TEXCOORD_" + std::to_string(pair.first), span(pair.second), subIndent);
-
-	if (!m_uvSets.empty()) 
-		cout << "," << endl;
-
-	for (const auto& pair : m_colorSets)
-		dump_span<float>("COLOR_" + std::to_string(pair.first), span(pair.second), subIndent);
-
-	cout << indent << "}";
+	dump_table(name, m_table, indent);
 }
 

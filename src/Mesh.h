@@ -6,10 +6,14 @@
 class Mesh
 {
 public:
-	Mesh(MDagPath dagPath);
+	Mesh(const MDagPath& dagPath);
 	virtual ~Mesh();
 
 	void dump(const std::string& name, const std::string& indent) const;
+
+	const MeshSemantics& semantics() const { return *m_semantics; }
+	const MeshVertices& vertices() const { return *m_vertices; }
+	const MeshIndices& indices() const { return *m_indices; }
 
 private:
 	MDagPath m_dagPath;

@@ -2,11 +2,11 @@
 #include "MeshSemantics.h"
 #include "MayaException.h"
 
-void MeshSemantic::dump(const std::string& indent) const
+void SetDescription::dump(const std::string& name, const std::string& indent) const
 {
 	const auto subIndent = indent + "\t";
 
-	cout << indent << std::quoted(Semantic::name(kind)) << ": {" << endl;
+	cout << indent << std::quoted(name) << ": {" << endl;
 
 	cout << subIndent << std::quoted("setName") << ": " << std::quoted(setName.asChar()) << "," << endl;
 	cout << subIndent << std::quoted("setIndex") << ": " << setIndex << "," << endl;
@@ -19,12 +19,12 @@ MeshSemantics::MeshSemantics(const MFnMesh& mesh)
 {
 	MStatus status;
 
-	m_items[Semantic::POSITION].push_back(
-		MeshSemantic(Semantic::POSITION, 0, "", mesh.numVertices(&status)));
+	m_table[Semantic::POSITION].push_back(
+		SetDescription(0, "", mesh.numVertices(&status)));
 	THROW_ON_FAILURE(status);
 
-	m_items[Semantic::NORMAL].push_back(
-		MeshSemantic(Semantic::NORMAL, 0, "", mesh.numNormals(&status)));
+	m_table[Semantic::NORMAL].push_back(
+		SetDescription(0, "", mesh.numNormals(&status)));
 	THROW_ON_FAILURE(status);
 
 	MStringArray colorSetNames;
@@ -32,8 +32,8 @@ MeshSemantics::MeshSemantics(const MFnMesh& mesh)
 
 	for (unsigned i = 0; i < colorSetNames.length(); ++i)
 	{
-		m_items[Semantic::COLOR].push_back(
-			MeshSemantic(Semantic::COLOR, i, colorSetNames[i].asChar(), mesh.numColors(colorSetNames[i], &status)));
+		m_table[Semantic::COLOR].push_back(
+			SetDescription(i, colorSetNames[i].asChar(), mesh.numColors(colorSetNames[i], &status)));
 		THROW_ON_FAILURE(status);
 	}
 
@@ -42,8 +42,8 @@ MeshSemantics::MeshSemantics(const MFnMesh& mesh)
 
 	for (unsigned  i = 0; i < uvSetNames.length(); ++i)
 	{
-		m_items[Semantic::TEXCOORD].push_back(
-			MeshSemantic(Semantic::TEXCOORD, i, uvSetNames[i].asChar(), mesh.numUVs(uvSetNames[i], &status)));
+		m_table[Semantic::TEXCOORD].push_back(
+			SetDescription(i, uvSetNames[i].asChar(), mesh.numUVs(uvSetNames[i], &status)));
 		THROW_ON_FAILURE(status);
 	}
 }
@@ -53,17 +53,31 @@ MeshSemantics::~MeshSemantics()
 {
 }
 
+size_t MeshSemantics::totalSetCount() const
+{
+	size_t count = 0;
+
+	for (int semanticIndex = 0; semanticIndex < Semantic::COUNT; ++semanticIndex)
+	{
+		count += m_table.at(semanticIndex).size();
+	}
+
+	return count;
+}
+
 void MeshSemantics::dump(const std::string& name, const std::string& indent) const
 {
 	const auto subIndent = indent + "\t";
 
 	cout << indent << quoted(name) << ": {" << endl;
 
-	for (auto&& semantics : m_items)
+	for (int semanticIndex = 0; semanticIndex < Semantic::COUNT; ++semanticIndex)
 	{
-		for (auto&& semantic : semantics)
+		const auto semanticKind = Semantic::from(semanticIndex);
+
+		for (auto&& semantic : m_table.at(semanticKind))
 		{
-			semantic.dump(subIndent);
+			semantic.dump(Semantic::name(semanticKind), subIndent);
 			cout << "," << endl;
 		}
 	}

@@ -34,6 +34,7 @@ typedef std::array<Float4, 4> Matrix4x4;
 typedef std::vector<float> FloatVector;
 typedef std::vector<Float2> Float2Vector;
 typedef std::vector<Float3> Float3Vector;
+typedef std::vector<Float4> Float4Vector;
 typedef std::vector<unsigned int> UIntVector;
 typedef std::vector<Matrix4x4> Matrix4x4Vector;
 

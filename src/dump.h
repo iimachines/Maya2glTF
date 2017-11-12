@@ -1,48 +1,44 @@
 #pragma once
 
-#include "spans.h"
+#include "SceneTypes.h"
 
-namespace dump {}
-template<typename T, typename S>
-static void dump_span(const std::string& name, const gsl::span<S>& span, const std::string& indent)
+template<typename T>
+static void dump_iterable(const std::string& name, const T& iterable, const std::string& indent, const size_t precision = 3)
 {
-	assert(sizeof(S) % sizeof(T) == 0);
+	cout << std::fixed;
 
-	auto components = reinterpret_span<T>(span);
-	const size_t groupSize = sizeof(S) / sizeof(T);
+	cout << indent << quoted(name) << ":\t[";
 
-	cout << indent << quoted(name) << ": [";
+	auto separator = "";
 
-	if (groupSize == 1)
+	for(auto it=iterable.begin(); it!=iterable.end(); ++it)
 	{
-		auto separator = "";
-
-		for (auto i = 0; i<components.size(); ++i)
-		{
-			cout << separator << components[i];
-			separator = ", ";
-		}
-	}
-	else
-	{
-		auto groupSeparator = "";
-
-		for (auto i = 0; i<components.size(); i += groupSize)
-		{
-			cout << groupSeparator;
-
-			auto separator = "";
-			for (auto j = 0; j<groupSize; ++j)
-			{
-				cout << separator << components[i+j];
-				separator = ",";
-			}
-
-			groupSeparator = ",  ";
-		}
+		cout << separator << std::setprecision(precision) << *it;
+		separator = ", ";
 	}
 
 	cout << "]";
+}
+
+template<typename T>
+static void dump_table(const std::string& name, const T& table, const std::string& indent, const size_t precision = 3)
+{
+	cout << indent << quoted(name) << ": {" << endl;
+
+	const auto subIndent = indent + "\t";
+
+	for (int semanticIndex = 0; semanticIndex < Semantic::COUNT; ++semanticIndex)
+	{
+		const auto semanticKind = Semantic::from(semanticIndex);
+
+		for (auto&& components : table.at(semanticKind))
+		{
+			dump_iterable(Semantic::name(semanticKind), components, subIndent, precision);
+			cout << "," << endl;
+		}
+	}
+
+	cout << indent << "}";
 }
 
 void dump_array(const std::string& name, const MStringArray& items, const std::string& indent);

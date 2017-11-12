@@ -4,6 +4,7 @@
 #include "Arguments.h"
 #include "Mesh.h"
 #include "SignalHandlers.h"
+#include "MeshDrawable.h"
 
 Exporter::Exporter()
 {
@@ -76,6 +77,13 @@ void Exporter::exportScene(const Arguments& args)
 		const auto meshPtr = new Mesh(dagPath);
 		meshes[selectionIndex].reset(meshPtr);
 		meshPtr->dump(meshName.asChar(), "");
+
+		cout << endl;
+
+		MeshDrawable drawable(*meshPtr);
+		drawable.dump("drawable", "");
+
+		cout << endl;
 	}
 
 }

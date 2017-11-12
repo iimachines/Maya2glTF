@@ -24,21 +24,23 @@ MeshIndices::MeshIndices(const MeshSemantics& semantics, const MFnMesh& fnMesh)
 	// Reserve space for the indices, we assume every polygon is a quad.
 	for (auto kind = 0; kind<Semantic::COUNT; ++kind)
 	{
-		auto& indexSet = m_indexSets.at(kind);
-		const auto n = semantics.at(Semantic::from(kind)).size();
+		auto& indexSet = m_table.at(kind);
+		const auto n = semantics.descriptions(Semantic::from(kind)).size();
 		for (auto set = 0; set<n; ++set)
 		{
-			indexSet[set].reserve(numPolygons * 6);
+			IndexVector indices;
+			indices.reserve(numPolygons * 6);
+			indexSet.push_back(indices);
 		}
 	}
 
-	auto& positions = m_indexSets.at(Semantic::POSITION).at(0);
-	auto& normals = m_indexSets.at(Semantic::NORMAL).at(0);
-	auto& uvSets = m_indexSets.at(Semantic::TEXCOORD);
-	auto& colorSets = m_indexSets.at(Semantic::COLOR);
+	auto& positions = m_table.at(Semantic::POSITION).at(0);
+	auto& normals = m_table.at(Semantic::NORMAL).at(0);
+	auto& uvSets = m_table.at(Semantic::TEXCOORD);
+	auto& colorSets = m_table.at(Semantic::COLOR);
 
-	auto& colorSemantics = semantics.at(Semantic::COLOR);
-	auto& uvSetSemantics = semantics.at(Semantic::TEXCOORD);
+	auto& colorSemantics = semantics.descriptions(Semantic::COLOR);
+	auto& uvSetSemantics = semantics.descriptions(Semantic::TEXCOORD);
 
 	const auto colorSetCount = colorSemantics.size();
 	const auto uvSetCount = uvSetSemantics.size();
@@ -101,32 +103,7 @@ MeshIndices::~MeshIndices()
 
 void MeshIndices::dump(const std::string& name, const std::string& indent) const
 {
-	auto& positions = m_indexSets[Semantic::POSITION].at(0);
-	auto& normals = m_indexSets[Semantic::NORMAL].at(0);
-	auto& uvSets = m_indexSets[Semantic::TEXCOORD];
-	auto& colorSets = m_indexSets[Semantic::COLOR];
-
-	cout << indent << std::quoted(name) << ": {" << endl;
-	const auto subIndent = indent + "\t";
-	
-	dump_span<float>("POSITION", span(positions), subIndent);
-	cout << "," << endl;
-	
-	dump_span<float>("NORMAL", span(normals), subIndent);
-	cout << "," << endl;
-	
-	for (const auto& pair : uvSets)
-		dump_span<float>("TEXCOORD_" + std::to_string(pair.first), span(pair.second), subIndent);
-
-	if (!uvSets.empty())
-		cout << "," << endl;
-
-	for (const auto& pair : colorSets)
-		dump_span<float>("COLOR_" + std::to_string(pair.first), span(pair.second), subIndent);
-
-	if (!colorSets.empty())
-		cout << endl;
-
-	cout << indent << "}";
+	dump_table(name, m_table, indent);
 }
+
 

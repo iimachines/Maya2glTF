@@ -2,34 +2,31 @@
 
 #include "SceneTypes.h"
 
-struct MeshSemantic
+struct SetDescription
 {
-	MeshSemantic(const Semantic::Kind kind, const SetIndex setIndex, const MString& setName, const int elementCount)
-		: kind(kind)
-		, setName(setName)
+	SetDescription(const SetIndex setIndex, const MString& setName, const int elementCount)
+		: setName(setName)
 		, setIndex(setIndex)
 		, elementCount(elementCount)
 	{
 	}
 
-	MeshSemantic(const MeshSemantic& from)
-		: kind(from.kind)
-		, setName(from.setName)
+	SetDescription(const SetDescription& from)
+		: setName(from.setName)
 		, setIndex(from.setIndex)
 		, elementCount(from.elementCount)
 	{
 	}
 
-	void dump(const std::string& indent) const;
+	void dump(const std::string& name, const std::string& indent) const;
 
-	const Semantic::Kind kind;
 	const MString setName;
 	const SetIndex setIndex;
 	const int elementCount;
 };
 
-typedef std::vector<MeshSemantic> MeshSemanticVector;
-typedef std::array<MeshSemanticVector, Semantic::COUNT> MeshSemanticsArray;
+typedef std::vector<SetDescription> SetDescriptionPerSetIndex;
+typedef std::array<SetDescriptionPerSetIndex, Semantic::COUNT> SetDescriptionPerSetIndexTable;
 
 class MeshSemantics
 {
@@ -37,13 +34,15 @@ public:
 	MeshSemantics(const MFnMesh& mesh);
 	virtual ~MeshSemantics();
 
-	const MeshSemanticsArray& items() const { return m_items; }
+	const SetDescriptionPerSetIndexTable& table() const { return m_table; }
 
-	const MeshSemanticVector& at(const Semantic::Kind kind) const { return m_items.at(kind); }
+	const SetDescriptionPerSetIndex& descriptions(const Semantic::Kind kind) const { return m_table.at(kind); }
+
+	size_t totalSetCount() const;
 
 	void dump(const std::string& name, const std::string& indent) const;
 
 private:
-	std::array<std::vector<MeshSemantic>, Semantic::COUNT> m_items;
+	SetDescriptionPerSetIndexTable m_table;
 };
 

@@ -2,9 +2,10 @@
 #include "Mesh.h"
 #include "MayaException.h"
 
-Mesh::Mesh(MDagPath dagPath):m_dagPath(dagPath)
+Mesh::Mesh(const MDagPath& dagPath) : m_dagPath(dagPath)
 {
 	MStatus status;
+
 	MFnMesh fnMesh(dagPath, &status);
 	THROW_ON_FAILURE(status);
 
