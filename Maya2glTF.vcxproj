@@ -58,15 +58,16 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <AdditionalIncludeDirectories>$(MAYA_2018_SDK)\include;$(ProjectDir)dependencies\GSL\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MAYA_2018_SDK)\include;$(ProjectDir)dependencies\GSL\include;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\include;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\dependencies\draco\src;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\dependencies\rapidjson\include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WIN64;_WINDOWS;_USRDLL;NT_PLUGIN;REQUIRE_IOSTREAM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>externals.h</PrecompiledHeaderFile>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(MAYA_2018_SDK)\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Foundation.lib;OpenMaya.lib;OpenMayaUI.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(MAYA_2018_SDK)\lib;$(ProjectDir)dependencies\COLLADA2GLTF\build\GLTF\Debug;$(ProjectDir)dependencies\COLLADA2GLTF\build\GLTF\dependencies\draco\Debug</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Foundation.lib;OpenMaya.lib;OpenMayaUI.lib;glTF.lib;draco.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/export:initializePlugin /export:uninitializePlugin %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>
@@ -93,17 +94,18 @@ if errorlevel 1 (exit /b 100)
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <AdditionalIncludeDirectories>$(MAYA_2018_SDK)\include;$(ProjectDir)dependencies\GSL\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MAYA_2018_SDK)\include;$(ProjectDir)dependencies\GSL\include;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\include;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\dependencies\draco\src;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\dependencies\rapidjson\include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WIN64;_WINDOWS;_USRDLL;NT_PLUGIN;REQUIRE_IOSTREAM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>externals.h</PrecompiledHeaderFile>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(MAYA_2018_SDK)\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Foundation.lib;OpenMaya.lib;OpenMayaUI.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(MAYA_2018_SDK)\lib;$(ProjectDir)dependencies\COLLADA2GLTF\build\GLTF\Release;$(ProjectDir)dependencies\COLLADA2GLTF\build\GLTF\dependencies\draco\Release</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Foundation.lib;OpenMaya.lib;OpenMayaUI.lib;glTF.lib;draco.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/export:initializePlugin /export:uninitializePlugin %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>
@@ -123,6 +125,9 @@ if errorlevel 1 (exit /b 100)
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\ExportableItem.cpp" />
+    <ClCompile Include="src\ExportableMesh.cpp" />
+    <ClCompile Include="src\ExportablePrimitive.cpp" />
     <ClCompile Include="src\SignalHandlers.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\dump.cpp" />
@@ -137,7 +142,7 @@ if errorlevel 1 (exit /b 100)
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2018-Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2018-Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="src\MeshDrawable.cpp" />
+    <ClCompile Include="src\MeshRenderable.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
@@ -146,6 +151,9 @@ if errorlevel 1 (exit /b 100)
     <None Include="test-iteration.mel" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\ExportableItem.h" />
+    <ClInclude Include="src\ExportableMesh.h" />
+    <ClInclude Include="src\ExportablePrimitive.h" />
     <ClInclude Include="src\SignalHandlers.h" />
     <ClInclude Include="src\Mesh.h" />
     <ClInclude Include="src\dump.h" />
@@ -160,7 +168,7 @@ if errorlevel 1 (exit /b 100)
     <ClInclude Include="src\externals.h" />
     <ClInclude Include="src\sceneTypes.h" />
     <ClInclude Include="src\spans.h" />
-    <ClInclude Include="src\MeshDrawable.h" />
+    <ClInclude Include="src\MeshRenderable.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

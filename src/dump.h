@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SceneTypes.h"
+#include "sceneTypes.h"
 
 template<typename T>
 static void dump_iterable(const std::string& name, const T& iterable, const std::string& indent, const size_t precision = 3)

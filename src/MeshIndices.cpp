@@ -7,14 +7,13 @@
 MeshIndices::MeshIndices(const MeshSemantics& semantics, const MFnMesh& fnMesh)
 {
 	MStatus status;
-	MObjectArray shaders;
 	MIntArray mapPolygonToShader;
 
 	// TODO: Deal with instances?
 	const auto instanceNumber = 0;
-	THROW_ON_FAILURE(fnMesh.getConnectedShaders(instanceNumber, shaders, mapPolygonToShader));
+	THROW_ON_FAILURE(fnMesh.getConnectedShaders(instanceNumber, m_shaders, mapPolygonToShader));
 
-	const auto shaderCount = shaders.length();
+	const auto shaderCount = m_shaders.length();
 	m_isShaderUsed.resize(shaderCount, false);
 
 	const auto numPolygons = fnMesh.numPolygons();

@@ -70,7 +70,19 @@ namespace Semantic
 		case NORMAL:	return "NORMAL";
 		case COLOR:		return "COLOR";
 		case TEXCOORD:	return "TEXCOORD";
-		default: assert(false); return "";
+		default: assert(false); return "UNKNOWN";
+		}
+	}
+
+	inline std::string attributeName(const Kind s, const int setIndex)
+	{
+		switch (s)
+		{
+		case POSITION:	return std::string("POSITION");
+		case NORMAL:	return std::string("NORMAL");
+		case COLOR:		return std::string("COLOR_") + std::to_string(setIndex);
+		case TEXCOORD:	return std::string("TEXCOORD_") + std::to_string(setIndex);
+		default: assert(false); return "UNKNOWN";
 		}
 	}
 }

@@ -1,4 +1,5 @@
 #pragma once
+#include "MeshSemantics.h"
 
 class Arguments;
 
@@ -17,5 +18,8 @@ public:
 	bool hasSyntax() const override;
 
 	void exportScene(const Arguments& args);
-};
 
+private:
+	class ExportableMesh* exportMesh(const MDagPath& dagPath);
+
+};

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SceneTypes.h"
+#include "sceneTypes.h"
 
 struct SetDescription
 {

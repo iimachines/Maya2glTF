@@ -10,6 +10,28 @@
 #include <memory>
 #include <iomanip>
 
+#ifdef _MSC_VER
+#	pragma  warning(disable:4267)
+#endif
+
+#include <GLTFAsset.h>
+#include <GLTFScene.h>
+#include <GLTFBuffer.h>
+#include <GLTFBufferView.h>
+#include <GLTFAccessor.h>
+#include <GLTFMesh.h>
+#include <GLTFPrimitive.h>
+
+
+#ifdef _MSC_VER
+#	pragma  warning(default:4267)
+#endif
+
+#include "rapidjson/document.h"
+#include "rapidjson/prettywriter.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
+
 #include <gsl/span>
 
 #include <experimental/vector>
@@ -29,4 +51,3 @@
 #include <maya/MFloatPointArray.h>
 #include <maya/MFloatVectorArray.h>
 #include <maya/MDagPath.h>
-

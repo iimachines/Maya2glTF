@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SceneTypes.h"
+#include "sceneTypes.h"
 #include "MeshSemantics.h"
 
 /** 
@@ -10,6 +10,7 @@
 
 typedef std::vector<IndexVector> ComponentIndicesPerSetIndex;
 typedef std::array<ComponentIndicesPerSetIndex, Semantic::COUNT> ComponentIndicesPerSetIndexTable;
+typedef std::vector<bool> ShaderUsageVector;
 
 class MeshIndices
 {
@@ -32,13 +33,16 @@ public:
 	const auto& primitiveToShaderIndexMap() const { return m_primitiveToShaderIndexMap; }
 
 	// Some primitives don't have a shader attached (e.g. primitives from blend-shape)
-	bool isShaderUsedByAnyPrimitive(const int index) const { return m_isShaderUsed[index]; }
+	const ShaderUsageVector& shaderUsages() const { return m_isShaderUsed; }
+
+	const MObjectArray& shaderObjects() const { return m_shaders; }
 
 	void dump(const std::string& name, const std::string& indent) const;
 
 private:
 	ComponentIndicesPerSetIndexTable m_table;
 
+	MObjectArray m_shaders;
 	IndexVector	m_primitiveToShaderIndexMap;
 
 	std::vector<bool> m_isShaderUsed; 

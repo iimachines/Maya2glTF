@@ -1,16 +1,19 @@
 #include "externals.h"
-#include "MeshDrawable.h"
+#include "MeshRenderable.h"
+#include "MeshIndices.h"
+#include "MeshVertices.h"
 #include "dump.h"
 
-
-MeshDrawable::MeshDrawable(const Mesh& mesh)
+MeshRenderable::MeshRenderable(
+	const int shaderIndex, 
+	const MeshSemantics& meshSemantics,
+	const MeshVertices& meshVertices, 
+	const MeshIndices& meshIndices)
+	: shaderIndex(shaderIndex)
 {
 	std::map<IndexVector, Index> drawableComponentIndexMap;
 
-	const auto& meshSemantics = mesh.semantics();
-	const auto& meshVertices = mesh.vertices();
-	const auto& meshIndices = mesh.indices();
-
+	const auto& shaderMap = meshIndices.primitiveToShaderIndexMap();
 	const auto& indicesTable = meshIndices.table();
 	const auto& componentsTable = meshVertices.table();
 
@@ -43,6 +46,9 @@ MeshDrawable::MeshDrawable(const Mesh& mesh)
 	// Merge components
 	for (int primitiveComponentIndex = 0; primitiveComponentIndex < primitiveComponentCount; ++primitiveComponentIndex)
 	{
+		if (shaderMap[primitiveComponentIndex] != shaderIndex)
+			continue;
+
 		key.clear();
 
 		for (auto && indicesPerSet : indicesTable)
@@ -96,14 +102,15 @@ MeshDrawable::MeshDrawable(const Mesh& mesh)
 }
 
 
-MeshDrawable::~MeshDrawable()
+MeshRenderable::~MeshRenderable()
 {
 }
 
-void MeshDrawable::dump(const std::string& name, const std::string& indent) const
+void MeshRenderable::dump(const std::string& name, const std::string& indent) const
 {
 	const auto subIndent = indent + "\t";
 	cout << indent << quoted(name) << ": {" << endl;
+	cout << subIndent << std::quoted("shaderIndex") << ":" << std::to_string(shaderIndex) << "," << endl;
 	dump_table("vertices", m_table, subIndent);
 	cout << "," << endl;
 	dump_iterable("indices", m_indices, subIndent);

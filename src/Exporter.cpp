@@ -2,9 +2,8 @@
 #include "Exporter.h"
 #include "MayaException.h"
 #include "Arguments.h"
-#include "Mesh.h"
 #include "SignalHandlers.h"
-#include "MeshDrawable.h"
+#include "ExportableMesh.h"
 
 Exporter::Exporter()
 {
@@ -35,7 +34,7 @@ MStatus Exporter::doIt(const MArgList& args)
 	}
 	catch (const MayaException &ex)
 	{
-		return MayaException::printError(ex.what(),ex.status);
+		return MayaException::printError(ex.what(), ex.status);
 	}
 	catch (const std::exception &ex)
 	{
@@ -63,28 +62,51 @@ void Exporter::exportScene(const Arguments& args)
 
 	auto& selection = args.selection;
 
-	// TODO: Support all kinds of nodes
-	std::vector<std::unique_ptr<Mesh>> meshes(selection.length());
+	GLTF::Asset glAsset;
+	GLTF::Scene glScene;
+
+	glAsset.scenes.push_back(&glScene);
+	glAsset.scene = 0;
+
+	std::vector<std::unique_ptr<ExportableItem>> exportables;
 
 	for (uint selectionIndex = 0; selectionIndex < selection.length(); ++selectionIndex)
 	{
 		MDagPath dagPath;
 		THROW_ON_FAILURE(selection.getDagPath(selectionIndex, dagPath));
 
-		MString meshName = dagPath.partialPathName(&status);
+		MString name = dagPath.partialPathName(&status);
 		THROW_ON_FAILURE(status);
 
-		const auto meshPtr = new Mesh(dagPath);
-		meshes[selectionIndex].reset(meshPtr);
-		meshPtr->dump(meshName.asChar(), "");
+		MObject node = dagPath.node(&status);
+		if (node.isNull() || status.error())
+		{
+			cerr << "glTF2Maya: skipping '" << name.asChar() << "' as it is not a node" << endl;
+			continue;
+		}
 
-		cout << endl;
+		GLTF::Node glNode;
 
-		MeshDrawable drawable(*meshPtr);
-		drawable.dump("drawable", "");
+		switch (dagPath.apiType(&status))
+		{
+		case MFn::kMesh:
+			exportables.push_back(std::make_unique<ExportableMesh>(dagPath, glNode));
+			break;
+		default:
+			cerr << "glTF2Maya: skipping '" << name.asChar() << "', it is not supported" << endl;
+			break;
+		}
 
-		cout << endl;
+		// Generate JSON file
+		rapidjson::StringBuffer s;
+		rapidjson::Writer<rapidjson::StringBuffer> jsonWriter = rapidjson::Writer<rapidjson::StringBuffer>(s);
+		jsonWriter.StartObject();
+
+		GLTF::Options options;
+		glAsset.writeJSON(&jsonWriter, &options);
+		jsonWriter.EndObject();
+
 	}
 
-}
 
+}
