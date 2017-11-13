@@ -5,10 +5,10 @@
 class ExportableMesh : public ExportableItem
 {
 public:
-	ExportableMesh(const MDagPath& dagPath, GLTF::Node& node);
+	ExportableMesh(const MDagPath& dagPath);
 	virtual ~ExportableMesh();
 
-	GLTF::Mesh mesh;
+	GLTF::Mesh glMesh;
 
 private:
 	std::vector<std::unique_ptr<ExportablePrimitive>> m_primitives;

@@ -125,6 +125,7 @@ if errorlevel 1 (exit /b 100)
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\ExportableNode.cpp" />
     <ClCompile Include="src\ExportableItem.cpp" />
     <ClCompile Include="src\ExportableMesh.cpp" />
     <ClCompile Include="src\ExportablePrimitive.cpp" />
@@ -151,6 +152,7 @@ if errorlevel 1 (exit /b 100)
     <None Include="test-iteration.mel" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\ExportableNode.h" />
     <ClInclude Include="src\ExportableItem.h" />
     <ClInclude Include="src\ExportableMesh.h" />
     <ClInclude Include="src\ExportablePrimitive.h" />

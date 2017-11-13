@@ -12,14 +12,14 @@ public:
 	ExportablePrimitive(const MeshRenderable& renderable);
 	virtual ~ExportablePrimitive();
 
-	GLTF::Primitive primitive;
-	GLTF::Buffer buffer;
-	GLTF::BufferView view;
-	std::unique_ptr<GLTF::Accessor> indices;
-	MeshAccessorPerSetIndexTable accessorTable;
+	GLTF::Primitive glPrimitive;
+	GLTF::Buffer glBuffer;
+	GLTF::BufferView glView;
+	std::unique_ptr<GLTF::Accessor> glIndices;
+	MeshAccessorPerSetIndexTable glAccessorTable;
 
 private:
 	std::vector<uint8> m_data;
 
-	GLTF::Accessor* createAccessor(const Semantic::Kind semantic, const int offset, const int count);
+	std::unique_ptr<GLTF::Accessor> createAccessor(const Semantic::Kind semantic, const int offset, const int count);
 };

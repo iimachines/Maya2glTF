@@ -6,24 +6,22 @@
 #include "spans.h"
 
 ExportablePrimitive::ExportablePrimitive(const MeshRenderable& renderable)
-	: buffer(nullptr, 0)
-	, view(0, 0, &buffer)
+	: glBuffer(nullptr, 0)
+	, glView(0, 0, &glBuffer)
 {
-	primitive.mode = GLTF::Primitive::TRIANGLES;
+	glPrimitive.mode = GLTF::Primitive::TRIANGLES;
 
 	auto& renderableIndices = renderable.indices();
 	auto& renderableTable = renderable.table();
 
-	MeshAccessorPerSetIndexTable tableOffsets;
-
 	auto spanIndices = reinterpret_span<uint8>(span(renderableIndices));
 	m_data.insert(m_data.end(), spanIndices.begin(), spanIndices.end());
 
-	indices = std::make_unique<GLTF::Accessor>(
+	glIndices = std::make_unique<GLTF::Accessor>(
 		GLTF::Accessor::Type::SCALAR, GLTF::Constants::WebGL::UNSIGNED_INT, 0, 
-		static_cast<int>(renderableIndices.size()), &view);
+		static_cast<int>(renderableIndices.size()), &glView);
 
-	primitive.indices = indices.get();
+	glPrimitive.indices = glIndices.get();
 
 	for (int semanticIndex = 0; semanticIndex < Semantic::COUNT; ++semanticIndex)
 	{
@@ -35,9 +33,8 @@ ExportablePrimitive::ExportablePrimitive(const MeshRenderable& renderable)
 			const auto& renderableComponents = componentsPerSetIndex.at(setIndex);
 
 			auto accessor = createAccessor(semanticKind, static_cast<int>(m_data.size()), static_cast<int>(renderableComponents.size()));
-			primitive.attributes[attributeName(semanticKind, setIndex)] = accessor;
-
-			tableOffsets[semanticIndex].emplace_back(accessor);
+			glPrimitive.attributes[attributeName(semanticKind, setIndex)] = accessor.get();
+			glAccessorTable[semanticIndex].emplace_back(move(accessor));
 
 			auto spanComponents = reinterpret_span<uint8>(span(renderableComponents));
 			m_data.insert(m_data.end(), spanComponents.begin(), spanComponents.end());
@@ -46,26 +43,27 @@ ExportablePrimitive::ExportablePrimitive(const MeshRenderable& renderable)
 		}
 	}
 
-	buffer.data = &m_data[0];
-	buffer.byteLength = static_cast<int>(m_data.size());
-	view.byteLength = buffer.byteLength;
+	glBuffer.data = &m_data[0];
+	glBuffer.byteLength = static_cast<int>(m_data.size());
+	glView.byteLength = glBuffer.byteLength;
 }
 
 ExportablePrimitive::~ExportablePrimitive()
 {
 }
-GLTF::Accessor* ExportablePrimitive::createAccessor(const Semantic::Kind semantic, const int offset, const int count)
+
+std::unique_ptr<GLTF::Accessor> ExportablePrimitive::createAccessor(const Semantic::Kind semantic, const int offset, const int count)
 {
 	switch (semantic)
 	{
 	case Semantic::POSITION:
-		return new GLTF::Accessor(GLTF::Accessor::Type::VEC4, GLTF::Constants::WebGL::FLOAT_VEC4, offset, count, &view);
+		return std::make_unique<GLTF::Accessor>(GLTF::Accessor::Type::VEC4, GLTF::Constants::WebGL::FLOAT, offset, count, &glView);
 	case Semantic::NORMAL:
-		return new GLTF::Accessor(GLTF::Accessor::Type::VEC3, GLTF::Constants::WebGL::FLOAT_VEC3, offset, count, &view);
+		return std::make_unique<GLTF::Accessor>(GLTF::Accessor::Type::VEC3, GLTF::Constants::WebGL::FLOAT, offset, count, &glView);
 	case Semantic::COLOR:
-		return new GLTF::Accessor(GLTF::Accessor::Type::VEC4, GLTF::Constants::WebGL::FLOAT_VEC4, offset, count, &view);
+		return std::make_unique<GLTF::Accessor>(GLTF::Accessor::Type::VEC4, GLTF::Constants::WebGL::FLOAT, offset, count, &glView);
 	case Semantic::TEXCOORD:
-		return new GLTF::Accessor(GLTF::Accessor::Type::VEC2, GLTF::Constants::WebGL::FLOAT_VEC2, offset, count, &view);
+		return std::make_unique<GLTF::Accessor>(GLTF::Accessor::Type::VEC2, GLTF::Constants::WebGL::FLOAT, offset, count, &glView);
 	default:
 		assert(false);
 		return nullptr;

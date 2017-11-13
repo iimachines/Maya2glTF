@@ -4,6 +4,7 @@
 #include "Arguments.h"
 #include "SignalHandlers.h"
 #include "ExportableMesh.h"
+#include "ExportableNode.h"
 
 Exporter::Exporter()
 {
@@ -75,38 +76,23 @@ void Exporter::exportScene(const Arguments& args)
 		MDagPath dagPath;
 		THROW_ON_FAILURE(selection.getDagPath(selectionIndex, dagPath));
 
-		MString name = dagPath.partialPathName(&status);
-		THROW_ON_FAILURE(status);
+		auto exportableNode = ExportableNode::from(dagPath);
 
-		MObject node = dagPath.node(&status);
-		if (node.isNull() || status.error())
+		if (exportableNode)
 		{
-			cerr << "glTF2Maya: skipping '" << name.asChar() << "' as it is not a node" << endl;
-			continue;
+			glScene.nodes.push_back(&exportableNode->glNode);
+			exportables.push_back(std::move(exportableNode));
 		}
-
-		GLTF::Node glNode;
-
-		switch (dagPath.apiType(&status))
-		{
-		case MFn::kMesh:
-			exportables.push_back(std::make_unique<ExportableMesh>(dagPath, glNode));
-			break;
-		default:
-			cerr << "glTF2Maya: skipping '" << name.asChar() << "', it is not supported" << endl;
-			break;
-		}
-
-		// Generate JSON file
-		rapidjson::StringBuffer s;
-		rapidjson::Writer<rapidjson::StringBuffer> jsonWriter = rapidjson::Writer<rapidjson::StringBuffer>(s);
-		jsonWriter.StartObject();
-
-		GLTF::Options options;
-		glAsset.writeJSON(&jsonWriter, &options);
-		jsonWriter.EndObject();
-
 	}
 
+	// Generate JSON file
+	rapidjson::StringBuffer s;
+	rapidjson::Writer<rapidjson::StringBuffer> jsonWriter(s);
+	jsonWriter.StartObject();
 
+	GLTF::Options options;
+	glAsset.writeJSON(&jsonWriter, &options);
+	jsonWriter.EndObject();
+
+	cout << s.GetString() << endl;
 }

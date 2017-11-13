@@ -5,9 +5,9 @@
 #include "dump.h"
 
 MeshRenderable::MeshRenderable(
-	const int shaderIndex, 
+	const int shaderIndex,
 	const MeshSemantics& meshSemantics,
-	const MeshVertices& meshVertices, 
+	const MeshVertices& meshVertices,
 	const MeshIndices& meshIndices)
 	: shaderIndex(shaderIndex)
 {
@@ -17,7 +17,7 @@ MeshRenderable::MeshRenderable(
 	const auto& indicesTable = meshIndices.table();
 	const auto& componentsTable = meshVertices.table();
 
-	const auto primitiveComponentCount = indicesTable.at(Semantic::POSITION).at(0).size();
+	const auto primitiveCount = meshIndices.primitiveToShaderIndexMap().size();
 
 	const auto keySize = meshSemantics.totalSetCount();
 
@@ -44,60 +44,71 @@ MeshRenderable::MeshRenderable(
 	}
 
 	// Merge components
-	for (int primitiveComponentIndex = 0; primitiveComponentIndex < primitiveComponentCount; ++primitiveComponentIndex)
+	int componentIndex = 0;
+	const int componentsPerPrimitive = 3;
+
+	for (int primitiveIndex = 0; primitiveIndex < primitiveCount; ++primitiveIndex)
 	{
-		if (shaderMap[primitiveComponentIndex] != shaderIndex)
+		if (shaderMap[primitiveIndex] != shaderIndex)
+		{
+			// This primitive does not belong to the shader, skip it.
+			componentIndex += componentsPerPrimitive;
 			continue;
-
-		key.clear();
-
-		for (auto && indicesPerSet : indicesTable)
-		{
-			for (auto && indices : indicesPerSet)
-			{
-				key.push_back(indices[primitiveComponentIndex]);
-			}
 		}
 
-		int vertexIndex;
-
-		const auto foundIt = drawableComponentIndexMap.find(key);
-
-		if (foundIt != drawableComponentIndexMap.end())
+		// Add each component of  the primitive.
+		for (int counter = componentsPerPrimitive; --counter >= 0; ++componentIndex)
 		{
-			// Reuse the vertex
-			vertexIndex = foundIt->second;
-		}
-		else
-		{
-			// Create a new vertex
-			vertexIndex = ++lastVertexIndex;
+			key.clear();
 
-			drawableComponentIndexMap[key] = vertexIndex;
-
-			auto keyIndex = 0;
-			for (auto semanticIndex = 0; semanticIndex < Semantic::COUNT; ++semanticIndex)
+			for (auto && indicesPerSet : indicesTable)
 			{
-				const auto semanticKind = Semantic::from(semanticIndex);
-				const auto groupSize = Semantic::components(semanticKind);
-				const auto& sourceComponentsPerSet = componentsTable.at(semanticKind);
-				auto& targetComponentsPerSet = m_table.at(semanticKind);
-
-				for (auto setIndex = 0; setIndex < sourceComponentsPerSet.size(); ++setIndex)
+				for (auto && indices : indicesPerSet)
 				{
-					const auto& source = sourceComponentsPerSet[setIndex];
-					auto& target = targetComponentsPerSet[setIndex];
-
-					const auto sourceIndex = key[keyIndex++];
-
-					target.insert(target.end(),
-						source.begin() + groupSize * sourceIndex,
-						source.begin() + groupSize * (sourceIndex + 1));
+					key.push_back(indices[componentIndex]);
 				}
 			}
-		}
 
-		m_indices.push_back(vertexIndex);
+			int vertexIndex;
+
+			const auto foundIt = drawableComponentIndexMap.find(key);
+
+			if (foundIt != drawableComponentIndexMap.end())
+			{
+				// Reuse the vertex
+				vertexIndex = foundIt->second;
+			}
+			else
+			{
+				// Create a new vertex
+				vertexIndex = ++lastVertexIndex;
+
+				drawableComponentIndexMap[key] = vertexIndex;
+
+				auto keyIndex = 0;
+				for (auto semanticIndex = 0; semanticIndex < Semantic::COUNT; ++semanticIndex)
+				{
+					const auto semanticKind = Semantic::from(semanticIndex);
+					const auto groupSize = Semantic::components(semanticKind);
+					const auto& sourceComponentsPerSet = componentsTable.at(semanticKind);
+					auto& targetComponentsPerSet = m_table.at(semanticKind);
+
+					for (auto setIndex = 0; setIndex < sourceComponentsPerSet.size(); ++setIndex)
+					{
+						const auto& source = sourceComponentsPerSet[setIndex];
+						auto& target = targetComponentsPerSet[setIndex];
+
+						const auto sourceIndex = key[keyIndex++];
+
+						target.insert(target.end(),
+							source.begin() + groupSize * sourceIndex,
+							source.begin() + groupSize * (sourceIndex + 1));
+					}
+				}
+			}
+
+			m_indices.push_back(vertexIndex);
+		}
 	}
 }
 
