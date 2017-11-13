@@ -17,12 +17,13 @@ public:
 	static MStatus printError(const char* message, MStatus error = MStatus::kFailure);
 };
 
-#define THROW_ON_FAILURE(__expression__) { \
-	MStatus __status__ = (__expression__); \
-	if (MStatus::kSuccess != __status__) \
-		MayaException::throwIt(__status__, __FILE__, __LINE__, __FUNCTION__); \
-}
 
 #define ASSERT_SUCCESS(__expression__) \
 	assert(MStatus::kSuccess == (__expression__));
 
+#define THROW_ON_FAILURE(__expression__) { \
+	MStatus __status__ = (__expression__); \
+	ASSERT_SUCCESS(__status__); \
+	if (MStatus::kSuccess != __status__) \
+		MayaException::throwIt(__status__, __FILE__, __LINE__, __FUNCTION__); \
+}

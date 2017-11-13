@@ -5,7 +5,7 @@
 ExportableMesh::ExportableMesh(const MDagPath& dagPath)
 {
 	const Mesh mayaMesh(dagPath);
-	mayaMesh.dump("maya-mesh", "");
+	//mayaMesh.dump("maya-mesh", "");
 
 	for (auto&& pair : mayaMesh.renderables())
 	{

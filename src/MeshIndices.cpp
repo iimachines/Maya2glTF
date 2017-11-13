@@ -73,7 +73,7 @@ MeshIndices::MeshIndices(const MeshSemantics& semantics, const MFnMesh& fnMesh)
 		// TODO: Figure out what Maya API does this for us;
 		// we just need the triangles using face-vertex-indices
 		THROW_ON_FAILURE(itPoly.getVertices(polygonVertexIndices));
-		const auto numPolygonVertices = polygonVertexIndices.length();
+		const int numPolygonVertices = polygonVertexIndices.length();
 		for (auto polygonVertexIndex = 0; polygonVertexIndex<numPolygonVertices; ++polygonVertexIndex)
 		{
 			const auto meshVertexIndex = polygonVertexIndices[polygonVertexIndex];
@@ -108,19 +108,36 @@ MeshIndices::MeshIndices(const MeshSemantics& semantics, const MFnMesh& fnMesh)
 				for (auto setIndex=0; setIndex<colorSetCount; ++setIndex)
 				{
 					int colorIndex;
-					auto colorSetName = colorSemantics[setIndex].setName;
-					status = itPoly.getColorIndex(localVertexIndex, colorIndex, &colorSetName);
-					THROW_ON_FAILURE(status);
-					colorSets.at(setIndex).push_back(colorIndex);
+					auto& colorSetName = colorSemantics[setIndex].setName;
+
+					if (itPoly.hasColor(localVertexIndex))
+					{
+						status = itPoly.getColorIndex(localVertexIndex, colorIndex, &colorSetName);
+						THROW_ON_FAILURE(status);
+						colorSets.at(setIndex).push_back(colorIndex);
+					}
+					else
+					{
+						// TODO: This polygon has no associated colors, but the mesh has. What should we do here?
+						colorSets.at(setIndex).push_back(0);
+					}
 				}
 
 				for (auto setIndex = 0; setIndex<uvSetCount; ++setIndex)
 				{
 					int uvIndex;
-					auto uvSetName = uvSetSemantics[setIndex].setName;
-					status = itPoly.getUVIndex(localVertexIndex, uvIndex, &uvSetName);
-					THROW_ON_FAILURE(status);
-					uvSets.at(setIndex).push_back(uvIndex);
+					auto& uvSetName = uvSetSemantics[setIndex].setName;
+					if (itPoly.hasUVs(uvSetName))
+					{
+						status = itPoly.getUVIndex(localVertexIndex, uvIndex, &uvSetName);
+						THROW_ON_FAILURE(status);
+						uvSets.at(setIndex).push_back(uvIndex);
+					}
+					else
+					{
+						// TODO: This polygon has no associated UVs, but the mesh has. What should we do here?
+						uvSets.at(setIndex).push_back(0);
+					}
 				}
 			}
 		}

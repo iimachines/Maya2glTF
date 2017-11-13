@@ -85,6 +85,9 @@ void Exporter::exportScene(const Arguments& args)
 		}
 	}
 
+
+	glAsset.packAccessors();
+
 	// Generate glTF JSON file
 	rapidjson::StringBuffer jsonStringBuffer;
 	rapidjson::Writer<rapidjson::StringBuffer> jsonWriter(jsonStringBuffer);
@@ -111,7 +114,7 @@ void Exporter::exportScene(const Arguments& args)
 	const auto outputPath = outputFolder / outputFilename;
 
 	const auto prettyString = jsonPrettyBuffer.GetString();
-	cout << prettyString << endl;
+	//cout << prettyString << endl;
 
 	std::ofstream file(outputPath);
 	if (file.is_open()) 
