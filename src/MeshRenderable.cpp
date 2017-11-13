@@ -26,6 +26,8 @@ MeshRenderable::MeshRenderable(
 
 	int lastVertexIndex = -1;
 
+	uint64 vertexMask = 0;
+
 	// Allocate drawable component vectors
 	for (auto semanticIndex = 0; semanticIndex < Semantic::COUNT; ++semanticIndex)
 	{
@@ -56,18 +58,29 @@ MeshRenderable::MeshRenderable(
 			continue;
 		}
 
-		// Add each component of  the primitive.
+		// Add each component of the primitive.
 		for (int counter = componentsPerPrimitive; --counter >= 0; ++componentIndex)
 		{
 			key.clear();
+
+			uint64 keyMask = 0;
 
 			for (auto && indicesPerSet : indicesTable)
 			{
 				for (auto && indices : indicesPerSet)
 				{
-					key.push_back(indices[componentIndex]);
+					const auto index = indices[componentIndex];
+					key.push_back(index);
+
+					keyMask <<= 1;
+					keyMask |= index >= 0;
 				}
 			}
+
+			if (vertexMask && vertexMask != keyMask)
+				throw std::exception("Mesh seems to have invalid set assignments");
+
+			vertexMask = keyMask;
 
 			int vertexIndex;
 
@@ -100,16 +113,21 @@ MeshRenderable::MeshRenderable(
 
 						const auto sourceIndex = key[keyIndex++];
 
-						target.insert(target.end(),
-							source.begin() + groupSize * sourceIndex,
-							source.begin() + groupSize * (sourceIndex + 1));
+						if (sourceIndex >= 0)
+						{
+							target.insert(target.end(),
+								source.begin() + groupSize * sourceIndex,
+								source.begin() + groupSize * (sourceIndex + 1));
+						}
 					}
 				}
 			}
 
+
 			m_indices.push_back(vertexIndex);
 		}
 	}
+
 }
 
 

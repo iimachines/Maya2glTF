@@ -118,8 +118,8 @@ MeshIndices::MeshIndices(const MeshSemantics& semantics, const MFnMesh& fnMesh)
 					}
 					else
 					{
-						// TODO: This polygon has no associated colors, but the mesh has. What should we do here?
-						colorSets.at(setIndex).push_back(0);
+						// This polygon has no associated colors.
+						colorSets.at(setIndex).push_back(NoIndex);
 					}
 				}
 
@@ -135,8 +135,8 @@ MeshIndices::MeshIndices(const MeshSemantics& semantics, const MFnMesh& fnMesh)
 					}
 					else
 					{
-						// TODO: This polygon has no associated UVs, but the mesh has. What should we do here?
-						uvSets.at(setIndex).push_back(0);
+						// This polygon has no associated UV.
+						uvSets.at(setIndex).push_back(NoIndex);
 					}
 				}
 			}

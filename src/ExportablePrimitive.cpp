@@ -34,17 +34,18 @@ ExportablePrimitive::ExportablePrimitive(const MeshRenderable& renderable)
 		{
 			const auto& renderableComponents = componentsPerSetIndex.at(setIndex);
 
-			const int offset = static_cast<int>(m_data.size());
-			const int count = static_cast<int>(renderableComponents.size() / componentDimension);
+			if (renderableComponents.size())
+			{
+				const int offset = static_cast<int>(m_data.size());
+				const int count = static_cast<int>(renderableComponents.size() / componentDimension);
 
-			auto spanComponents = reinterpret_span<uint8>(span(renderableComponents));
-			m_data.insert(m_data.end(), spanComponents.begin(), spanComponents.end());
+				auto spanComponents = reinterpret_span<uint8>(span(renderableComponents));
+				m_data.insert(m_data.end(), spanComponents.begin(), spanComponents.end());
 
-			auto accessor = createAccessor(semanticKind, offset, count);
-			glPrimitive.attributes[attributeName(semanticKind, setIndex)] = accessor.get();
-			glAccessorTable[semanticIndex].emplace_back(move(accessor));
-
-			++setIndex;
+				auto accessor = createAccessor(semanticKind, offset, count);
+				glPrimitive.attributes[attributeName(semanticKind, setIndex)] = accessor.get();
+				glAccessorTable[semanticIndex].emplace_back(move(accessor));
+			}
 		}
 	}
 }

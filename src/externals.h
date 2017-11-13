@@ -24,7 +24,6 @@
 #include <GLTFMesh.h>
 #include <GLTFPrimitive.h>
 
-
 #ifdef _MSC_VER
 #	pragma  warning(default:4267)
 #endif
