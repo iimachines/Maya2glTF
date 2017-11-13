@@ -11,5 +11,8 @@ public:
 	MString sceneName;
 	MString outputFolder;
 	MSelectionList selection;
+	bool glb = false;
+	bool print = false;
+	bool separate = false;
 };
 

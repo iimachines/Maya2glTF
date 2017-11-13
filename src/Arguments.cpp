@@ -7,8 +7,11 @@ namespace flag
 {
 	const auto outputFolder = "of";
 	const auto sceneName = "sn";
-
+	const auto glb = "glb";
+	const auto print = "pr";
+	const auto separate = "sep";
 }
+
 MSyntax Arguments::createSyntax()
 {
 	MStatus status;
@@ -21,6 +24,15 @@ MSyntax Arguments::createSyntax()
 	ASSERT_SUCCESS(status);
 
 	status = syntax.addFlag(flag::sceneName, "sceneName", MSyntax::MArgType::kString);
+	ASSERT_SUCCESS(status);
+
+	status = syntax.addFlag(flag::glb, "binary", MSyntax::MArgType::kNoArg);
+	ASSERT_SUCCESS(status);
+
+	status = syntax.addFlag(flag::print, "print", MSyntax::MArgType::kNoArg);
+	ASSERT_SUCCESS(status);
+
+	status = syntax.addFlag(flag::separate, "separate", MSyntax::MArgType::kNoArg);
 	ASSERT_SUCCESS(status);
 
 	syntax.useSelectionAsDefault(true);
@@ -43,6 +55,10 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 
 	status = adb.getFlagArgument(flag::outputFolder, 0, outputFolder);
 	THROW_ON_FAILURE(status);
+
+	glb = adb.isFlagSet(flag::glb);
+	print = adb.isFlagSet(flag::print);
+	separate = adb.isFlagSet(flag::separate);
 
 	if (adb.isFlagSet(flag::sceneName))
 	{
