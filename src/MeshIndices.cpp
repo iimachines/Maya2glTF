@@ -44,9 +44,21 @@ MeshIndices::MeshIndices(const MeshSemantics& semantics, const MFnMesh& fnMesh)
 	const auto colorSetCount = colorSemantics.size();
 	const auto uvSetCount = uvSetSemantics.size();
 
-	auto polygonIndex = 0;
-	for (MItMeshPolygon itPoly(fnMesh.object()); !itPoly.isDone(); itPoly.next(), ++polygonIndex)
+
+	const auto numVertices = fnMesh.numVertices(&status);
+	THROW_ON_FAILURE(status);
+
+	std::vector<int> localPolygonVertices(numVertices);
+
+	MPointArray triangleVertexPoints;
+	MIntArray triangleVertexIndices;
+	MIntArray polygonVertexIndices;
+
+	for (MItMeshPolygon itPoly(fnMesh.object()); !itPoly.isDone(); itPoly.next())
 	{
+		const auto polygonIndex = itPoly.index(&status);
+		THROW_ON_FAILURE(status);
+
 		auto numTrianglesInPolygon = 0;
 		THROW_ON_FAILURE(itPoly.numTriangles(numTrianglesInPolygon));
 
@@ -57,14 +69,33 @@ MeshIndices::MeshIndices(const MeshSemantics& semantics, const MFnMesh& fnMesh)
 			m_isShaderUsed[shaderIndex] = true;
 		}
 
+		// Map mesh-vertex-indices to face-vertex-indices.
+		// TODO: Figure out what Maya API does this for us;
+		// we just need the triangles using face-vertex-indices
+		THROW_ON_FAILURE(itPoly.getVertices(polygonVertexIndices));
+		const auto numPolygonVertices = polygonVertexIndices.length();
+		for (auto polygonVertexIndex = 0; polygonVertexIndex<numPolygonVertices; ++polygonVertexIndex)
+		{
+			const auto meshVertexIndex = polygonVertexIndices[polygonVertexIndex];
+			localPolygonVertices[meshVertexIndex] = polygonVertexIndex;
+		}
+
+		THROW_ON_FAILURE(itPoly.getTriangles(triangleVertexPoints, triangleVertexIndices));
+
+		const auto numLocalVertices = numTrianglesInPolygon * 3;
+		assert(triangleVertexPoints.length() == numLocalVertices);
+		assert(triangleVertexIndices.length() == numLocalVertices);
+
+		int triangleVertexIndex = 0;
+
 		for (auto localTriangleIndex = 0; localTriangleIndex < numTrianglesInPolygon; ++localTriangleIndex)
 		{
 			m_primitiveToShaderIndexMap.push_back(shaderIndex);
 
-			// TODO: Use Maya's triangulation here, and figure out how to look up the normal properly
-			for (auto i = 0; i<3; ++i)
+			for (auto i = 0; i<3; ++i, ++triangleVertexIndex)
 			{
-				const auto localVertexIndex = i == 0 ? 0 : i + localTriangleIndex;
+				const auto meshVertexIndex = triangleVertexIndices[triangleVertexIndex];
+				const auto localVertexIndex = localPolygonVertices[meshVertexIndex];
 
 				int positionIndex = itPoly.vertexIndex(localVertexIndex, &status);
 				THROW_ON_FAILURE(status);

@@ -9,6 +9,8 @@
 #include <array>
 #include <memory>
 #include <iomanip>
+#include <fstream>
+#include <filesystem>
 
 #ifdef _MSC_VER
 #	pragma  warning(disable:4267)

@@ -60,6 +60,7 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 
 		// Remove extension from filename. I really miss C#!
 		std::string fileName(fileObj.name().asChar());
+
 		const auto lastindex = fileName.find_last_of(".");
 		sceneName = fileName.substr(0, lastindex).c_str();
 	}

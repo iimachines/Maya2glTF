@@ -85,14 +85,45 @@ void Exporter::exportScene(const Arguments& args)
 		}
 	}
 
-	// Generate JSON file
-	rapidjson::StringBuffer s;
-	rapidjson::Writer<rapidjson::StringBuffer> jsonWriter(s);
+	// Generate glTF JSON file
+	rapidjson::StringBuffer jsonStringBuffer;
+	rapidjson::Writer<rapidjson::StringBuffer> jsonWriter(jsonStringBuffer);
 	jsonWriter.StartObject();
 
 	GLTF::Options options;
 	glAsset.writeJSON(&jsonWriter, &options);
 	jsonWriter.EndObject();
 
-	cout << s.GetString() << endl;
+	std::string jsonString = jsonStringBuffer.GetString();
+
+	// Pretty format the JSON
+	rapidjson::Document jsonDocument;
+	jsonDocument.Parse(jsonString.c_str());
+
+	rapidjson::StringBuffer jsonPrettyBuffer;
+	rapidjson::PrettyWriter<rapidjson::StringBuffer> jsonPrettyWriter(jsonPrettyBuffer);
+	jsonDocument.Accept(jsonPrettyWriter);
+
+	const auto outputFolder = path(args.outputFolder.asChar());
+	create_directories(outputFolder);
+
+	const auto outputFilename = std::string(args.sceneName.asChar()) + ".glTF";
+	const auto outputPath = outputFolder / outputFilename;
+
+	const auto prettyString = jsonPrettyBuffer.GetString();
+	cout << prettyString << endl;
+
+	std::ofstream file(outputPath);
+	if (file.is_open()) 
+	{
+		file << prettyString << endl;
+		file.close();
+	}
+	else {
+		std::ostringstream ss;
+		ss << "Couldn't write glTF to path '";
+		ss << outputPath;
+		ss << "'";
+		throw std::exception(ss.str().c_str());
+	}
 }
