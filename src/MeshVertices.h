@@ -19,10 +19,10 @@ public:
 	void dump(const std::string& name, const std::string& indent) const;
 
 private:
-	MFloatPointArray m_positions;
-	MFloatVectorArray m_normals;
-	std::map<SetIndex, Float2Vector> m_uvSets;
-	std::map<SetIndex, MColorArray> m_colorSets;
+	PositionVector m_positions;
+	NormalVector m_normals;
+	std::map<SetIndex, TexCoordVector> m_uvSets;
+	std::map<SetIndex, ColorVector> m_colorSets;
 
 	MeshComponentsPerSetIndexTable m_table;
 

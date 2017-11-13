@@ -51,3 +51,4 @@
 #include <maya/MFloatPointArray.h>
 #include <maya/MFloatVectorArray.h>
 #include <maya/MDagPath.h>
+#include <maya/MPointArray.h>

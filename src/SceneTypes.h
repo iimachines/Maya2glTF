@@ -7,15 +7,13 @@ typedef __int32 Index;
 /** Maya uses strings to identify color and texture-coordinate sets. We use indices */
 typedef int SetIndex;
 
-typedef Float4 Position;
+typedef Float3 Position;
 typedef Float3 Normal;
-typedef Float3 Tangent;
 typedef Float2 TexCoord;
 typedef Float4 Color;
 
 typedef std::vector<Position> PositionVector;
 typedef std::vector<Normal> NormalVector;
-typedef std::vector<Tangent> TangentVector;
 typedef std::vector<TexCoord> TexCoordVector;
 typedef std::vector<Color> ColorVector;
 typedef std::vector<Index> IndexVector;
@@ -50,7 +48,7 @@ namespace Semantic
 	}
 
 	// Get the number of components per semantic 
-	inline size_t components(const Kind s)
+	inline size_t dimension(const Kind s)
 	{
 		switch (s)
 		{

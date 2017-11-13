@@ -89,7 +89,7 @@ MeshRenderable::MeshRenderable(
 				for (auto semanticIndex = 0; semanticIndex < Semantic::COUNT; ++semanticIndex)
 				{
 					const auto semanticKind = Semantic::from(semanticIndex);
-					const auto groupSize = Semantic::components(semanticKind);
+					const auto groupSize = Semantic::dimension(semanticKind);
 					const auto& sourceComponentsPerSet = componentsTable.at(semanticKind);
 					auto& targetComponentsPerSet = m_table.at(semanticKind);
 
