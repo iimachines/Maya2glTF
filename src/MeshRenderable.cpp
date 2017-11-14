@@ -10,6 +10,8 @@ MeshRenderable::MeshRenderable(
 	const MeshVertices& meshVertices,
 	const MeshIndices& meshIndices)
 	: shaderIndex(shaderIndex)
+	, shaderNode(meshIndices.shaderObjects()[shaderIndex])
+	, shaderName(shaderNode.absoluteName().asChar())
 {
 	std::map<IndexVector, Index> drawableComponentIndexMap;
 
@@ -135,11 +137,12 @@ MeshRenderable::~MeshRenderable()
 {
 }
 
-void MeshRenderable::dump(const std::string& name, const std::string& indent) const
+void MeshRenderable::dump(const std::string& indent) const
 {
 	const auto subIndent = indent + "\t";
-	cout << indent << quoted(name) << ": {" << endl;
+	cout << indent << "{" << endl;
 	cout << subIndent << std::quoted("shaderIndex") << ":" << std::to_string(shaderIndex) << "," << endl;
+	cout << subIndent << std::quoted("shaderName") << ":" << std::quoted(shaderName) << "," << endl;
 	dump_table("vertices", m_table, subIndent);
 	cout << "," << endl;
 	dump_iterable("indices", m_indices, subIndent);

@@ -2,14 +2,11 @@
 #include "Mesh.h"
 #include "ExportableMesh.h"
 
-ExportableMesh::ExportableMesh(const MDagPath& dagPath)
+ExportableMesh::ExportableMesh(const Mesh& mayaMesh)
 {
-	const Mesh mayaMesh(dagPath);
-	//mayaMesh.dump("maya-mesh", "");
-
-	for (auto&& pair : mayaMesh.renderables())
+	for (auto&& renderable : mayaMesh.renderables())
 	{
-		auto exportablePrimitive = new ExportablePrimitive(*pair.second);
+		auto exportablePrimitive = new ExportablePrimitive(*renderable);
 		m_primitives.emplace_back(exportablePrimitive);
 		glMesh.primitives.push_back(&exportablePrimitive->glPrimitive);
 	}

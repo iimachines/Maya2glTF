@@ -4,8 +4,7 @@
 #include "MeshIndices.h"
 #include "MeshRenderable.h"
 
-typedef int ShaderIndex;
-typedef std::map<ShaderIndex, std::unique_ptr<MeshRenderable>> MeshRenderables;
+typedef std::vector<std::unique_ptr<MeshRenderable>> MeshRenderables;
 
 class Mesh
 {
@@ -19,7 +18,6 @@ public:
 	const MeshVertices& vertices() const { return *m_vertices; }
 	const MeshIndices& indices() const { return *m_indices; }
 	const MeshRenderables& renderables() const { return m_renderables; }
-
 
 private:
 	MDagPath m_dagPath;

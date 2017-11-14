@@ -3,13 +3,15 @@
 #include "ExportableItem.h"	
 #include "ExportableMesh.h"
 
+class Arguments;
+
 class ExportableNode : public ExportableItem
 {
 public:
-	ExportableNode(MDagPath dagPath, MString name);
+	ExportableNode(MDagPath dagPath, MString name, const Arguments& args);
 	~ExportableNode();
 
-	static std::unique_ptr<ExportableNode> from(MDagPath dagPath);
+	static std::unique_ptr<ExportableNode> from(MDagPath dagPath, const Arguments& args);
 
 	GLTF::Node glNode;
 

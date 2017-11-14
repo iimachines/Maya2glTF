@@ -1,9 +1,10 @@
 #include "externals.h"
 #include "ExportableNode.h"
 #include "MayaException.h"
+#include "Mesh.h"
+#include "Arguments.h"
 
-
-ExportableNode::ExportableNode(MDagPath dagPath, MString name)
+ExportableNode::ExportableNode(MDagPath dagPath, MString name, const Arguments& args)
 {
 	MStatus status;
 
@@ -11,9 +12,18 @@ ExportableNode::ExportableNode(MDagPath dagPath, MString name)
 	switch (dagPath.apiType(&status))
 	{
 	case MFn::kMesh:
-		m_mesh = std::make_unique<ExportableMesh>(dagPath);
+	{
+		Mesh mayaMesh(dagPath);
+
+		if (args.dumpMaya)
+		{
+			mayaMesh.dump(dagPath.fullPathName().asChar(), "");
+		}
+
+		m_mesh = std::make_unique<ExportableMesh>(mayaMesh);
 		glNode.mesh = &m_mesh->glMesh;
-		break;
+	}
+	break;
 	default:
 		cerr << "glTF2Maya: skipping '" << name.asChar() << "', it is not supported" << endl;
 		break;
@@ -24,7 +34,7 @@ ExportableNode::~ExportableNode()
 {
 }
 
-std::unique_ptr<ExportableNode> ExportableNode::from(MDagPath dagPath)
+std::unique_ptr<ExportableNode> ExportableNode::from(MDagPath dagPath, const Arguments& args)
 {
 	MStatus status;
 
@@ -40,5 +50,5 @@ std::unique_ptr<ExportableNode> ExportableNode::from(MDagPath dagPath)
 		return nullptr;
 	}
 
-	return std::make_unique<ExportableNode>(dagPath, name);
+	return std::make_unique<ExportableNode>(dagPath, name, args);
 }

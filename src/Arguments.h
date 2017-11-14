@@ -12,7 +12,8 @@ public:
 	MString outputFolder;
 	MSelectionList selection;
 	bool glb = false;
-	bool print = false;
+	bool dumpMaya = false;
+	bool dumpGLTF = false;
 	bool separate = false;
 };
 

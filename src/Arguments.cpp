@@ -8,7 +8,8 @@ namespace flag
 	const auto outputFolder = "of";
 	const auto sceneName = "sn";
 	const auto glb = "glb";
-	const auto print = "pr";
+	const auto dumpMaya = "dm";
+	const auto dumpGLTF = "dg";
 	const auto separate = "sep";
 }
 
@@ -29,7 +30,10 @@ MSyntax Arguments::createSyntax()
 	status = syntax.addFlag(flag::glb, "binary", MSyntax::MArgType::kNoArg);
 	ASSERT_SUCCESS(status);
 
-	status = syntax.addFlag(flag::print, "print", MSyntax::MArgType::kNoArg);
+	status = syntax.addFlag(flag::dumpGLTF, "dumpGTLF", MSyntax::MArgType::kNoArg);
+	ASSERT_SUCCESS(status);
+
+	status = syntax.addFlag(flag::dumpMaya, "dumpMaya", MSyntax::MArgType::kNoArg);
 	ASSERT_SUCCESS(status);
 
 	status = syntax.addFlag(flag::separate, "separate", MSyntax::MArgType::kNoArg);
@@ -57,7 +61,8 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	THROW_ON_FAILURE(status);
 
 	glb = adb.isFlagSet(flag::glb);
-	print = adb.isFlagSet(flag::print);
+	dumpMaya = adb.isFlagSet(flag::dumpMaya);
+	dumpGLTF = adb.isFlagSet(flag::dumpGLTF);
 	separate = adb.isFlagSet(flag::separate);
 
 	if (adb.isFlagSet(flag::sceneName))
@@ -81,7 +86,7 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 		sceneName = fileName.substr(0, lastindex).c_str();
 	}
 
-	// For debugging, print the arguments again
+	// For debugging, dump the arguments again
 	MStringArray selectedObjects;
 	status = selection.getSelectionStrings(selectedObjects);
 	THROW_ON_FAILURE(status);

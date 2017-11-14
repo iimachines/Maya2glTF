@@ -2,10 +2,13 @@
 #include "ExportableItem.h"
 #include "ExportablePrimitive.h"
 
+class Arguments;
+class Mesh;
+
 class ExportableMesh : public ExportableItem
 {
 public:
-	ExportableMesh(const MDagPath& dagPath);
+	ExportableMesh(const Mesh& mayaMesh);
 	virtual ~ExportableMesh();
 
 	GLTF::Mesh glMesh;
