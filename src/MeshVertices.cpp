@@ -9,13 +9,14 @@ MeshVertices::MeshVertices(const MeshSemantics& semantics, const MFnMesh& mesh, 
 	MStatus status;
 
 	// Get points
-	const int numPoints = mesh.numVertices(&status);
-	THROW_ON_FAILURE(status);
+	MPointArray mPoints;
+	THROW_ON_FAILURE(mesh.getPoints(mPoints, space));
+	const int numPoints = mPoints.length();
 	m_positions.reserve(numPoints);
+
 	for (int i = 0; i < numPoints; ++i)
 	{
-		MPoint p;
-		mesh.getPoint(i, p, space);
+		const auto& p = mPoints[i];
 		m_positions.push_back({ static_cast<float>(p.x), static_cast<float>(p.y), static_cast<float>(p.z) });
 	}
 
@@ -23,13 +24,13 @@ MeshVertices::MeshVertices(const MeshSemantics& semantics, const MFnMesh& mesh, 
 	m_table.at(Semantic::POSITION).push_back(positionsSpan);
 
 	// Get normals
-	MFloatVectorArray normals;
-	THROW_ON_FAILURE(mesh.getNormals(normals));
-	const int numNormals = normals.length();
+	MFloatVectorArray mNormals;
+	THROW_ON_FAILURE(mesh.getNormals(mNormals, space));
+	const int numNormals = mNormals.length();
 	m_normals.reserve(numNormals);
 	for (int i = 0; i < numNormals; ++i)
 	{
-		const auto& n = normals[i];
+		const auto& n = mNormals[i];
 		m_normals.push_back({ n.x, n.y, n.z });
 	}
 
@@ -39,15 +40,17 @@ MeshVertices::MeshVertices(const MeshSemantics& semantics, const MFnMesh& mesh, 
 	// Get color sets.
 	for (auto&& semantic : semantics.descriptions(Semantic::COLOR))
 	{
-		const int numColors = mesh.numColors(semantic.setName, &status);
+		MColorArray mColors;
+		THROW_ON_FAILURE(mesh.getColors(mColors, &semantic.setName));
+
+		const int numColors = mColors.length();
 		THROW_ON_FAILURE(status);
 
 		auto& colors = m_colorSets[semantic.setIndex];
 		colors.reserve(numColors);
 		for (int i = 0; i < numColors; ++i)
 		{
-			MColor c;
-			mesh.getColor(i, c, &semantic.setName);
+			const auto& c = mColors[i];;
 			colors.push_back({ c.r, c.g, c.b, c.a });
 		}
 
@@ -55,7 +58,7 @@ MeshVertices::MeshVertices(const MeshSemantics& semantics, const MFnMesh& mesh, 
 		m_table.at(Semantic::COLOR).push_back(colorsSpan);
 	}
 
-	// Get UV sets.
+	// Get UV sets 
 	// These are not interleaved in Maya, so we have to do it ourselves...
 	for (auto&& semantic : semantics.descriptions(Semantic::TEXCOORD))
 	{
@@ -76,6 +79,29 @@ MeshVertices::MeshVertices(const MeshSemantics& semantics, const MFnMesh& mesh, 
 
 		const auto uvSpan = reinterpret_span<float>(span(uvSet));
 		m_table.at(Semantic::TEXCOORD).push_back(uvSpan);
+	}
+
+	// Get tangent sets
+	for (auto&& semantic : semantics.descriptions(Semantic::TANGENT))
+	{
+		MFloatVectorArray mTangents;
+		THROW_ON_FAILURE(mesh.getTangents(mTangents, space, &semantic.setName));
+
+		const int numTangents = mTangents.length();
+
+		auto& tangentSet = m_tangentSets[semantic.setIndex];
+		tangentSet.reserve(numTangents);
+
+		for (int i = 0; i < numTangents; ++i)
+		{
+			const auto& t = mTangents[i];
+			const auto rht = 2 * mesh.isRightHandedTangent(i, &semantic.setName, &status) - 1.0f;
+			THROW_ON_FAILURE(status);
+			tangentSet.push_back({ t.x, t.y, t.z, rht ? 1.0f : -1.0f });
+		}
+
+		const auto tangentSpan = reinterpret_span<float>(span(tangentSet));
+		m_table.at(Semantic::TANGENT).push_back(tangentSpan);
 	}
 }
 

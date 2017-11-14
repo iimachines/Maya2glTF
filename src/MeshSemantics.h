@@ -28,6 +28,7 @@ struct SetDescription
 typedef std::vector<SetDescription> SetDescriptionPerSetIndex;
 typedef std::array<SetDescriptionPerSetIndex, Semantic::COUNT> SetDescriptionPerSetIndexTable;
 
+
 class MeshSemantics
 {
 public:

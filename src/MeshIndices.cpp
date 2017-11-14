@@ -36,6 +36,7 @@ MeshIndices::MeshIndices(const MeshSemantics& semantics, const MFnMesh& fnMesh)
 	auto& positions = m_table.at(Semantic::POSITION).at(0);
 	auto& normals = m_table.at(Semantic::NORMAL).at(0);
 	auto& uvSets = m_table.at(Semantic::TEXCOORD);
+	auto& tangentSets = m_table.at(Semantic::TANGENT);
 	auto& colorSets = m_table.at(Semantic::COLOR);
 
 	auto& colorSemantics = semantics.descriptions(Semantic::COLOR);
@@ -43,8 +44,7 @@ MeshIndices::MeshIndices(const MeshSemantics& semantics, const MFnMesh& fnMesh)
 
 	const auto colorSetCount = colorSemantics.size();
 	const auto uvSetCount = uvSetSemantics.size();
-
-
+	
 	const auto numVertices = fnMesh.numVertices(&status);
 	THROW_ON_FAILURE(status);
 
@@ -53,7 +53,7 @@ MeshIndices::MeshIndices(const MeshSemantics& semantics, const MFnMesh& fnMesh)
 	MPointArray triangleVertexPoints;
 	MIntArray triangleVertexIndices;
 	MIntArray polygonVertexIndices;
-
+	
 	for (MItMeshPolygon itPoly(fnMesh.object()); !itPoly.isDone(); itPoly.next())
 	{
 		const auto polygonIndex = itPoly.index(&status);
@@ -132,11 +132,18 @@ MeshIndices::MeshIndices(const MeshSemantics& semantics, const MFnMesh& fnMesh)
 						status = itPoly.getUVIndex(localVertexIndex, uvIndex, &uvSetName);
 						THROW_ON_FAILURE(status);
 						uvSets.at(setIndex).push_back(uvIndex);
+
+						// TODO: Not sure why Maya doesn't allow use to pass the uvSetName here?
+						// Maybe a polygon vertex can only have a single tangent assigned to it?
+						const auto tangentIndex = itPoly.tangentIndex(localVertexIndex, &status);
+						THROW_ON_FAILURE(status);
+						tangentSets.at(setIndex).push_back(tangentIndex);
 					}
 					else
 					{
 						// This polygon has no associated UV.
 						uvSets.at(setIndex).push_back(NoIndex);
+						tangentSets.at(setIndex).push_back(NoIndex);
 					}
 				}
 			}

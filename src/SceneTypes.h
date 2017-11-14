@@ -10,11 +10,13 @@ typedef int SetIndex;
 typedef Float3 Position;
 typedef Float3 Normal;
 typedef Float2 TexCoord;
+typedef Float4 Tangent;
 typedef Float4 Color;
 
 typedef std::vector<Position> PositionVector;
 typedef std::vector<Normal> NormalVector;
 typedef std::vector<TexCoord> TexCoordVector;
+typedef std::vector<Tangent> TangentVector;
 typedef std::vector<Color> ColorVector;
 typedef std::vector<Index> IndexVector;
 
@@ -38,6 +40,7 @@ namespace Semantic
 		NORMAL,
 		COLOR,
 		TEXCOORD,
+		TANGENT,
 		COUNT,
 	};
 
@@ -56,6 +59,7 @@ namespace Semantic
 		case NORMAL:	return array_size<Normal>::size;
 		case COLOR:		return array_size<Color>::size;
 		case TEXCOORD:	return array_size<TexCoord>::size;
+		case TANGENT:	return array_size<Tangent>::size;
 		default: assert(false); return 0;
 		}
 	}
@@ -68,18 +72,7 @@ namespace Semantic
 		case NORMAL:	return "NORMAL";
 		case COLOR:		return "COLOR";
 		case TEXCOORD:	return "TEXCOORD";
-		default: assert(false); return "UNKNOWN";
-		}
-	}
-
-	inline std::string attributeName(const Kind s, const int setIndex)
-	{
-		switch (s)
-		{
-		case POSITION:	return std::string("POSITION");
-		case NORMAL:	return std::string("NORMAL");
-		case COLOR:		return std::string("COLOR_") + std::to_string(setIndex);
-		case TEXCOORD:	return std::string("TEXCOORD_") + std::to_string(setIndex);
+		case TANGENT:	return "TANGENT";
 		default: assert(false); return "UNKNOWN";
 		}
 	}

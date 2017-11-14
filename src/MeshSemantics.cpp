@@ -42,9 +42,9 @@ MeshSemantics::MeshSemantics(const MFnMesh& mesh)
 
 	for (unsigned  i = 0; i < uvSetNames.length(); ++i)
 	{
-		m_table[Semantic::TEXCOORD].push_back(
-			SetDescription(i, uvSetNames[i].asChar(), mesh.numUVs(uvSetNames[i], &status)));
-		THROW_ON_FAILURE(status);
+		const auto description = SetDescription(i, uvSetNames[i].asChar(), mesh.numUVs(uvSetNames[i], &status));
+		m_table[Semantic::TEXCOORD].push_back(description);
+		m_table[Semantic::TANGENT].push_back(description);
 	}
 }
 

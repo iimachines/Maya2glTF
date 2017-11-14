@@ -7,6 +7,24 @@
 
 using namespace GLTF::Constants;
 
+namespace Semantic
+{
+	inline std::string glTFattributeName(const Kind s, const int setIndex)
+	{
+		// NOTE: Although Maya has multiple tangent sets, glTW only accepts one. 
+		// Need to dig deeper to understand this correctly.
+		switch (s)
+		{
+		case POSITION:	return std::string("POSITION");
+		case NORMAL:	return std::string("NORMAL");
+		case TANGENT:	return std::string("TANGENT");
+		case COLOR:		return std::string("COLOR_") + std::to_string(setIndex);
+		case TEXCOORD:	return std::string("TEXCOORD_") + std::to_string(setIndex);
+		default: assert(false); return "UNKNOWN";
+		}
+	}
+}
+
 ExportablePrimitive::ExportablePrimitive(const MeshRenderable& renderable)
 {
 	glPrimitive.mode = GLTF::Primitive::TRIANGLES;
@@ -43,7 +61,7 @@ ExportablePrimitive::ExportablePrimitive(const MeshRenderable& renderable)
 				m_data.insert(m_data.end(), spanComponents.begin(), spanComponents.end());
 
 				auto accessor = createAccessor(semanticKind, offset, count);
-				glPrimitive.attributes[attributeName(semanticKind, setIndex)] = accessor.get();
+				glPrimitive.attributes[glTFattributeName(semanticKind, setIndex)] = accessor.get();
 				glAccessorTable[semanticIndex].emplace_back(move(accessor));
 			}
 		}
@@ -58,19 +76,31 @@ std::unique_ptr<GLTF::Accessor> ExportablePrimitive::createAccessor(const Semant
 {
 	auto data = &m_data[offset];
 
+	GLTF::Accessor::Type type;
+
 	switch (semantic)
 	{
 	case Semantic::POSITION:
-		return std::make_unique<GLTF::Accessor>(GLTF::Accessor::Type::VEC3, WebGL::FLOAT, data, count, WebGL::ARRAY_BUFFER);
+		type = GLTF::Accessor::Type::VEC3;
+		break;
 	case Semantic::NORMAL:
-		return std::make_unique<GLTF::Accessor>(GLTF::Accessor::Type::VEC3, WebGL::FLOAT, data, count, WebGL::ARRAY_BUFFER);
-	case Semantic::COLOR:
-		return std::make_unique<GLTF::Accessor>(GLTF::Accessor::Type::VEC4, WebGL::FLOAT, data, count, WebGL::ARRAY_BUFFER);
+		type = GLTF::Accessor::Type::VEC3;
+		break;
 	case Semantic::TEXCOORD:
-		return std::make_unique<GLTF::Accessor>(GLTF::Accessor::Type::VEC2, WebGL::FLOAT, data, count, WebGL::ARRAY_BUFFER);
+		type = GLTF::Accessor::Type::VEC2;
+		break;
+	case Semantic::TANGENT:
+		// TODO: For exporting morph targets, use VEC3
+		type = GLTF::Accessor::Type::VEC4;
+		break;
+	case Semantic::COLOR:
+		type = GLTF::Accessor::Type::VEC4;
+		break;
 	default:
 		assert(false);
 		return nullptr;
 	}
+
+	return std::make_unique<GLTF::Accessor>(type, WebGL::FLOAT, data, count, WebGL::ARRAY_BUFFER);
 }
 

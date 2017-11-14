@@ -21,6 +21,7 @@ public:
 private:
 	PositionVector m_positions;
 	NormalVector m_normals;
+	std::map<SetIndex, TangentVector> m_tangentSets;
 	std::map<SetIndex, TexCoordVector> m_uvSets;
 	std::map<SetIndex, ColorVector> m_colorSets;
 
