@@ -7,10 +7,10 @@ ExportableMaterial::~ExportableMaterial()
 {
 }
 
-std::unique_ptr<ExportableMaterial> ExportableMaterial::from(const MFnDependencyNode& shaderNode)
+std::unique_ptr<ExportableMaterial> ExportableMaterial::from(ExportableResources& resources, const MFnDependencyNode& shaderNode)
 {
 	if (shaderNode.typeName() == "StingrayPBS")
-		return std::make_unique<ExportableMaterialPBR>(shaderNode);
+		return std::make_unique<ExportableMaterialPBR>(resources, shaderNode);
 
 	cerr << "maya2GLTF: unsupported shader node type: " << std::setw(24) << shaderNode.typeName().asChar() << endl;
 
@@ -32,7 +32,7 @@ bool ExportableMaterial::getColor(const MObject& shaderObject, const char* attri
 	return true;
 }
 
-ExportableMaterialPBR::ExportableMaterialPBR(const MFnDependencyNode& shaderNode)
+ExportableMaterialPBR::ExportableMaterialPBR(ExportableResources& resources, const MFnDependencyNode& shaderNode)
 {
 	MStatus status;
 
@@ -70,7 +70,9 @@ ExportableMaterialPBR::ExportableMaterialPBR(const MFnDependencyNode& shaderNode
 		m_pbrMaterial.emissiveFactor = &m_pbrEmissiveFactor[0];
 	}
 
-	return;
+	// Copy texture maps
+
+
 	// Dump attributes for debugging.
 	const auto attributeCount = shaderNode.attributeCount(&status);
 	THROW_ON_FAILURE(status);
@@ -90,21 +92,22 @@ ExportableMaterialPBR::ExportableMaterialPBR(const MFnDependencyNode& shaderNode
 		MObject obj;
 		plug.getValue(obj);
 
-		//MObject connectedNode = DagHelper::findNodeConnectedTo(plug);
-
-		//if (connectedNode.isNull())
-		//	continue;
+		MObject connectedNode = DagHelper::findNodeConnectedTo(plug);
 
 		cout << "attr: " << std::setw(24) << name.asChar()
 			<< " type: " << std::setw(18) << obj.apiTypeStr();
-		//	<< " connected to type: " << std::setw(18) << connectedNode.apiTypeStr();
 
-		//if (connectedNode.apiType() == MFn::kFileTexture)
-		//{
-		//	MString filename;
-		//	DagHelper::getPlugValue(connectedNode, "fileTextureName", filename);
-		//	cout << " texture filename:" << filename;
-		//}
+		if (!connectedNode.isNull())
+		{
+			cout << " connected to type: " << std::setw(18) << connectedNode.apiTypeStr();
+
+			if (connectedNode.apiType() == MFn::kFileTexture)
+			{
+				MString filename;
+				DagHelper::getPlugValue(connectedNode, "fileTextureName", filename);
+				cout << " texture filename: " << filename;
+			}
+		}
 
 		cout << endl;
 		cout.flush();

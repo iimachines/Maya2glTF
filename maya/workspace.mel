@@ -1,8 +1,8 @@
 //Maya 2018 Project Definition
 
 workspace -fr "fluidCache" "cache/nCache/fluid";
-workspace -fr "JT_ATF" "data";
 workspace -fr "images" "images";
+workspace -fr "JT_ATF" "data";
 workspace -fr "offlineEdit" "scenes/edits";
 workspace -fr "STEP_ATF Export" "data";
 workspace -fr "furShadowMap" "renderData/fur/furShadowMap";
@@ -23,9 +23,9 @@ workspace -fr "DAE_FBX export" "data";
 workspace -fr "CATIAV5_ATF" "data";
 workspace -fr "SAT_ATF Export" "data";
 workspace -fr "movie" "movies";
+workspace -fr "autoSave" "autosave";
 workspace -fr "move" "data";
 workspace -fr "mayaAscii" "scenes";
-workspace -fr "autoSave" "autosave";
 workspace -fr "NX_ATF Export" "data";
 workspace -fr "sound" "sound";
 workspace -fr "mayaBinary" "scenes";
@@ -38,10 +38,10 @@ workspace -fr "renderData" "renderData";
 workspace -fr "CATIAV4_ATF" "data";
 workspace -fr "fileCache" "cache/nCache";
 workspace -fr "eps" "data";
-workspace -fr "3dPaintTextures" "sourceimages/3dPaintTextures";
 workspace -fr "STL_ATF Export" "data";
-workspace -fr "mel" "scripts";
+workspace -fr "3dPaintTextures" "sourceimages/3dPaintTextures";
 workspace -fr "translatorData" "data";
+workspace -fr "mel" "scripts";
 workspace -fr "particles" "cache/particles";
 workspace -fr "scene" "scenes";
 workspace -fr "SAT_ATF" "data";

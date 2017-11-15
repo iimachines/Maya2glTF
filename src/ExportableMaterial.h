@@ -1,4 +1,5 @@
 #pragma once
+#include "sceneTypes.h"
 #include "ExportableResources.h"
 
 class ExportableMaterial
@@ -8,7 +9,7 @@ public:
 
 	virtual GLTF::Material* glMaterial() = 0;
 
-	static std::unique_ptr<ExportableMaterial> from(const MFnDependencyNode& shaderNode);
+	static std::unique_ptr<ExportableMaterial> from(ExportableResources& resources, const MFnDependencyNode& shaderNode);
 
 protected:
 	static bool getScalar(const MObject& shaderObject, const char* attributeName, float& scalar);
@@ -18,7 +19,7 @@ protected:
 class ExportableMaterialPBR : public ExportableMaterial
 {
 public:
-	ExportableMaterialPBR(const MFnDependencyNode& shaderNode);
+	ExportableMaterialPBR(ExportableResources& resources, const MFnDependencyNode& shaderNode);
 	~ExportableMaterialPBR();
 
 	GLTF::Material* glMaterial() override { return &m_pbrMaterial; }

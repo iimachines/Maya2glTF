@@ -33,7 +33,7 @@ ExportableMaterial* ExportableResources::getMaterial(const MObject& shaderGroup)
 	if (!materialPtr)
 	{
 		// Create new material.
-		materialPtr = ExportableMaterial::from(shaderNode);
+		materialPtr = ExportableMaterial::from(*this, shaderNode);
 	}
 
 	return materialPtr.get();
