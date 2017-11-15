@@ -32,7 +32,7 @@ Mesh::~Mesh()
 
 void Mesh::dump(const std::string& name, const std::string& indent) const
 {
-	const auto& shaders = m_indices->shaderObjects();
+	const auto& shaders = m_indices->shaderGroups();
 
 	cout << indent << quoted(name) << ": {" << endl;
 	const auto subIndent = indent + "\t";

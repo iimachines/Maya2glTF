@@ -41,14 +41,14 @@ public:
 	// Some primitives don't have a shader attached (e.g. primitives from blend-shape)
 	const ShaderUsageVector& shaderUsages() const { return m_isShaderUsed; }
 
-	const MObjectArray& shaderObjects() const { return m_shaders; }
+	const MObjectArray& shaderGroups() const { return m_shaderGroups; }
 
 	void dump(const std::string& name, const std::string& indent) const;
 
 private:
 	ComponentIndicesPerSetIndexTable m_table;
 
-	MObjectArray m_shaders;
+	MObjectArray m_shaderGroups;
 	IndexVector	m_primitiveToShaderIndexMap;
 
 	std::vector<bool> m_isShaderUsed; 

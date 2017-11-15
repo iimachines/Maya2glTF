@@ -2,14 +2,17 @@
 
 #include "sceneTypes.h"
 #include "MeshRenderable.h"
+#include "ExportableMesh.h"
 
 typedef std::vector<std::unique_ptr<GLTF::Accessor>> MeshAccessorPerSetIndex;
 typedef std::array<MeshAccessorPerSetIndex, Semantic::COUNT> MeshAccessorPerSetIndexTable;
 
+class ExportableResources;
+
 class ExportablePrimitive
 {
 public:
-	ExportablePrimitive(const MeshRenderable& renderable);
+	ExportablePrimitive(const MeshRenderable& renderable, ExportableResources& resources);
 	virtual ~ExportablePrimitive();
 
 	GLTF::Primitive glPrimitive;

@@ -3,16 +3,20 @@
 #include "MeshIndices.h"
 #include "MeshVertices.h"
 #include "dump.h"
+#include "MayaException.h"
+#include "DagHelper.h"
 
 MeshRenderable::MeshRenderable(
-	const int shaderIndex,
+	const int meshShaderIndex,
 	const MeshSemantics& meshSemantics,
 	const MeshVertices& meshVertices,
 	const MeshIndices& meshIndices)
-	: shaderIndex(shaderIndex)
-	, shaderNode(meshIndices.shaderObjects()[shaderIndex])
-	, shaderName(shaderNode.absoluteName().asChar())
+	: meshShaderIndex(meshShaderIndex)
 {
+	MStatus status;
+
+	m_shaderGroup = meshIndices.shaderGroups()[meshShaderIndex];
+
 	std::map<IndexVector, Index> drawableComponentIndexMap;
 
 	const auto& shaderMap = meshIndices.primitiveToShaderIndexMap();
@@ -53,7 +57,7 @@ MeshRenderable::MeshRenderable(
 
 	for (int primitiveIndex = 0; primitiveIndex < primitiveCount; ++primitiveIndex)
 	{
-		if (shaderMap[primitiveIndex] != shaderIndex)
+		if (shaderMap[primitiveIndex] != meshShaderIndex)
 		{
 			// This primitive does not belong to the shader, skip it.
 			componentIndex += componentsPerPrimitive;
@@ -141,11 +145,11 @@ void MeshRenderable::dump(const std::string& indent) const
 {
 	const auto subIndent = indent + "\t";
 	cout << indent << "{" << endl;
-	cout << subIndent << std::quoted("shaderIndex") << ":" << std::to_string(shaderIndex) << "," << endl;
-	cout << subIndent << std::quoted("shaderName") << ":" << std::quoted(shaderName) << "," << endl;
+	cout << subIndent << std::quoted("meshShaderIndex") << ":" << std::to_string(meshShaderIndex) << "," << endl;
 	dump_table("vertices", m_table, subIndent);
 	cout << "," << endl;
 	dump_iterable("indices", m_indices, subIndent);
 	cout << "," << endl;
 	cout << indent << "}";
 }
+

@@ -127,11 +127,15 @@ if errorlevel 1 (exit /b 100)
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\ExportableMaterial.cpp" />
+    <ClCompile Include="src\DagHelper.cpp" />
     <ClCompile Include="src\ExportableAsset.cpp" />
     <ClCompile Include="src\ExportableNode.cpp" />
     <ClCompile Include="src\ExportableItem.cpp" />
     <ClCompile Include="src\ExportableMesh.cpp" />
     <ClCompile Include="src\ExportablePrimitive.cpp" />
+    <ClCompile Include="src\ExportableResources.cpp" />
+    <ClCompile Include="src\MayaUtils.cpp" />
     <ClCompile Include="src\SignalHandlers.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\dump.cpp" />
@@ -152,14 +156,19 @@ if errorlevel 1 (exit /b 100)
     <None Include=".gitignore" />
     <None Include="LICENSE" />
     <None Include="Readme.md" />
-    <None Include="test-iteration.mel" />
+    <None Include="mel\create-PBR-spheres.mel" />
+    <None Include="mel\test-iteration.mel" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\DagHelper.h" />
     <ClInclude Include="src\ExportableAsset.h" />
+    <ClInclude Include="src\ExportableMaterial.h" />
     <ClInclude Include="src\ExportableNode.h" />
     <ClInclude Include="src\ExportableItem.h" />
     <ClInclude Include="src\ExportableMesh.h" />
     <ClInclude Include="src\ExportablePrimitive.h" />
+    <ClInclude Include="src\ExportableResources.h" />
+    <ClInclude Include="src\MayaUtils.h" />
     <ClInclude Include="src\SignalHandlers.h" />
     <ClInclude Include="src\Mesh.h" />
     <ClInclude Include="src\dump.h" />

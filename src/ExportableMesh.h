@@ -1,14 +1,15 @@
 #pragma once
 #include "ExportableItem.h"
-#include "ExportablePrimitive.h"
 
+class ExportableResources;
+class ExportablePrimitive;
 class Arguments;
 class Mesh;
 
 class ExportableMesh : public ExportableItem
 {
 public:
-	ExportableMesh(const Mesh& mayaMesh);
+	ExportableMesh(const Mesh& mayaMesh, ExportableResources& resources);
 	virtual ~ExportableMesh();
 
 	GLTF::Mesh glMesh;

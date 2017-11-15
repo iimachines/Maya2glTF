@@ -1,8 +1,9 @@
 #include "externals.h"
 #include "MayaException.h"
-#include "Mesh.h"
 #include "MeshRenderable.h"
 #include "ExportablePrimitive.h"
+#include "ExportableResources.h"
+#include "ExportableMaterial.h"
 #include "spans.h"
 
 using namespace GLTF::Constants;
@@ -25,7 +26,7 @@ namespace Semantic
 	}
 }
 
-ExportablePrimitive::ExportablePrimitive(const MeshRenderable& renderable)
+ExportablePrimitive::ExportablePrimitive(const MeshRenderable& renderable, ExportableResources& resources)
 {
 	glPrimitive.mode = GLTF::Primitive::TRIANGLES;
 
@@ -65,6 +66,13 @@ ExportablePrimitive::ExportablePrimitive(const MeshRenderable& renderable)
 				glAccessorTable[semanticIndex].emplace_back(move(accessor));
 			}
 		}
+	}
+
+	// Link material
+	const auto material = resources.getMaterial(renderable.shaderGroup());
+	if (material)
+	{
+		glPrimitive.material = material->glMaterial();
 	}
 }
 

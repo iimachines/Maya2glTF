@@ -6,6 +6,7 @@
 #include "ExportableMesh.h"
 #include "ExportableNode.h"
 #include "ExportableAsset.h"
+#include "ExportableResources.h"
 
 Exporter::Exporter()
 {
@@ -70,6 +71,8 @@ void Exporter::exportScene(const Arguments& args)
 	glAsset.scenes.push_back(&glScene);
 	glAsset.scene = 0;
 
+	ExportableResources resources;
+
 	std::vector<std::unique_ptr<ExportableItem>> exportables;
 
 	for (uint selectionIndex = 0; selectionIndex < selection.length(); ++selectionIndex)
@@ -77,7 +80,7 @@ void Exporter::exportScene(const Arguments& args)
 		MDagPath dagPath;
 		THROW_ON_FAILURE(selection.getDagPath(selectionIndex, dagPath));
 
-		auto exportableNode = ExportableNode::from(dagPath, args);
+		auto exportableNode = ExportableNode::from(dagPath, resources, args);
 
 		if (exportableNode)
 		{

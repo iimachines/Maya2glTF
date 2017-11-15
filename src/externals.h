@@ -53,3 +53,22 @@
 #include <maya/MFloatVectorArray.h>
 #include <maya/MDagPath.h>
 #include <maya/MPointArray.h>
+#include <maya/MFnAttribute.h>
+#include <maya/MFnStringArrayData.h>
+#include <maya/MFnMessageAttribute.h>
+#include <maya/MFnNumericAttribute.h>
+#include <maya/MFnTypedAttribute.h>
+#include <maya/MDagPathArray.h>
+#include <maya/MFnSet.h>
+#include <maya/MFnSingleIndexedComponent.h>
+#include <maya/MFnComponentListData.h>
+#include <maya/MDagModifier.h>
+#include <maya/MMatrix.h>
+#include <maya/MFnMatrixData.h>
+#include <maya/MFnTransform.h>
+
+
+
+
+
+
