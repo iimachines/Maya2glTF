@@ -1,4 +1,4 @@
 .vs
 build
-.bck
-.swatch
+*.bck
+*.swatch
