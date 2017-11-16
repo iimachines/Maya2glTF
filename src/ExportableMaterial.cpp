@@ -70,8 +70,8 @@ ExportableMaterialPBR::ExportableMaterialPBR(ExportableResources& resources, con
 		m_pbrMaterial.emissiveFactor = &m_pbrEmissiveFactor[0];
 	}
 
-	// Copy texture maps
-
+	// TODO: Copy texture maps
+	return;
 
 	// Dump attributes for debugging.
 	const auto attributeCount = shaderNode.attributeCount(&status);

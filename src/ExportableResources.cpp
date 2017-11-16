@@ -3,8 +3,11 @@
 #include "DagHelper.h"
 #include "MayaException.h"
 #include "ExportableMaterial.h"
+#include "Mesh.h"
+#include "ExportableMesh.h"
 
-ExportableResources::ExportableResources()
+ExportableResources::ExportableResources(const bool dumpMayaMesh)
+	:m_dumpMayaMesh(dumpMayaMesh)
 {
 }
 
@@ -30,7 +33,11 @@ ExportableMaterial* ExportableResources::getMaterial(const MObject& shaderGroup)
 	const std::string key(mayaName.asChar());
 
 	auto& materialPtr = materialMap[key];
-	if (!materialPtr)
+	if (materialPtr)
+	{
+		cout << "maya2glTF: Reusing material instance " <<key << endl;
+	}
+	else
 	{
 		// Create new material.
 		materialPtr = ExportableMaterial::from(*this, shaderNode);

@@ -5,7 +5,7 @@ polySphere -r 0.5 -sx 20 -sy 20 -ax 0 1 0 -cuv 2 -ch 1 -name "pSphere0";
 for ($m=0; $m<=4; ++$m) {
     for ($r=0; $r<=4; ++$r) {
         select "pSphere0";
-        string $nns[] = `duplicate -rr`;
+        string $nns[] = `instance`;
         string $nn = $nns[0];
         move -a -xy ($m-2) ($r-2);
         string $sn = `shadingNode -asShader StingrayPBS`;
@@ -16,7 +16,7 @@ for ($m=0; $m<=4; ++$m) {
         sets -e -forceElement $sg;
         setAttr ($sn+".metallic") ($m/4.0);        
         setAttr ($sn+".roughness") ($r/4.0);       
-        setAttr ($sn+".emissive") 1 0 0;       
+        setAttr ($sn+".emissive") ($m/4.0) ($r/4.0) 0;       
         setAttr ($sn+".emissive_intensity") 0.25;       
     }
 }

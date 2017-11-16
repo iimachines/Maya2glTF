@@ -17,7 +17,9 @@ typedef std::array<DrawableComponentsPerSetIndex, Semantic::COUNT> DrawableCompo
 class MeshRenderable
 {
 public:
-	MeshRenderable(const int meshShaderIndex,
+	MeshRenderable(
+		const int meshInstanceIndex,
+		const int meshShaderIndex,
 		const MeshSemantics& meshSemantics,
 		const MeshVertices& meshVertices,
 		const MeshIndices& meshIndices);
@@ -31,6 +33,7 @@ public:
 
 	MObject shaderGroup() const { return m_shaderGroup; }
 
+	const int meshInstanceIndex;
 	const int meshShaderIndex;
 
 private:

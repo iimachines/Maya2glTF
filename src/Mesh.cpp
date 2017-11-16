@@ -6,22 +6,30 @@ Mesh::Mesh(const MDagPath& dagPath) : m_dagPath(dagPath)
 {
 	MStatus status;
 
-	MFnMesh fnMesh(dagPath, &status);
+	const MFnMesh fnMesh(dagPath, &status);
+	THROW_ON_FAILURE(status);
+
+	auto instanceNumber = dagPath.instanceNumber(&status);
 	THROW_ON_FAILURE(status);
 
 	m_semantics.reset(new MeshSemantics(fnMesh));
 	m_vertices.reset(new MeshVertices(*m_semantics, fnMesh));
 	m_indices.reset(new MeshIndices(*m_semantics, fnMesh));
 
-	auto& shaderUsages = m_indices->shaderUsages();
+	auto& shadingPerInstance = m_indices->shadingPerInstance();
 
-	for (auto shaderIndex=0; shaderIndex<shaderUsages.size(); ++shaderIndex)
+	auto& shading = shadingPerInstance.at(instanceNumber);
+	const auto shaderCount = shading.shaderCount();
+	for (auto shaderIndex = 0; shaderIndex < shaderCount; ++shaderIndex)
 	{
 		// If the shader is not used by any primitive, skip it
-		if (shaderUsages[shaderIndex])
+		if (shading.isShaderUsed[shaderIndex])
 		{
-			m_renderables.emplace_back(
-				std::make_unique<MeshRenderable>(shaderIndex, *m_semantics, *m_vertices, *m_indices));
+			auto renderable = std::make_unique<MeshRenderable>(instanceNumber, shaderIndex, *m_semantics, *m_vertices, *m_indices);
+			if (renderable->indices().size())
+			{
+				m_renderables.emplace_back(move(renderable));
+			}
 		}
 	}
 }
@@ -32,8 +40,6 @@ Mesh::~Mesh()
 
 void Mesh::dump(const std::string& name, const std::string& indent) const
 {
-	const auto& shaders = m_indices->shaderGroups();
-
 	cout << indent << quoted(name) << ": {" << endl;
 	const auto subIndent = indent + "\t";
 	m_semantics->dump("semantics", subIndent);

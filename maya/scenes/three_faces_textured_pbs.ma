@@ -1,6 +1,6 @@
 //Maya ASCII 2018 scene
 //Name: three_faces_textured_pbs.ma
-//Last modified: Thu, Nov 16, 2017 12:40:24 AM
+//Last modified: Thu, Nov 16, 2017 12:44:29 AM
 //Codeset: 1252
 requires maya "2018";
 requires -nodeType "StingrayPBS" "shaderFXPlugin" "1.0";
@@ -199,6 +199,7 @@ createNode StingrayPBS -n "glTF_shader";
 		-at "float";
 	setAttr ".vpar" -type "stringArray" 0  ;
 	setAttr ".upar" -type "stringArray" 0  ;
+	setAttr ".ss" no;
 	setAttr ".sg" -type "string" (
 		"SFB_WIN = {  /*\nVersion=28\nGroupVersion=-1.000000\nAdvanced=0\nHelpID=0\nParentMaterial=0\nNumberOfNodes=33\n#NT=20176 0\n\tPC=3\n\tposx=1 v=2003 139.667160\n\tposy=1 v=2003 238.626648\n\tnormalspace=2 e=0 v=5012 1\n\tgroup=-1\n\tISC=13\n\t\tSVT=5022 3002 1 0 0 \n\t\tSVT=5022 3002 2 0 1 \n\t\tSCS=rgb\n\t\tSVT=5022 2003 3 0 1 \n\t\tSCS=w\n\t\tSVT=5022 2003 4 0 0 \n\t\tSVT=5022 3002 5 0 0 \n\t\tSVT=5022 2003 6 0 1 \n\t\tSCS=b\n\t\tSVT=5022 2003 7 0 1 \n\t\tSCS=g\n\t\tSVT=5022 3002 8 0 1 \n\t\tSCS=rgb\n\t\tSVT=5022 2003 9 0 1 \n\t\tSCS=r\n\t\tSVT=5022 2003 10 0 0 \n\t\tSVT=5022 2003 11 0 0 \n\t\tSVT=5022 2003 14 0 0 \n\t\tSVT=5022 2003 15 0 0 \n\tOSC=0\n#NT=20177 0\n\tPC=8\n\tname=1 v=5000 base_color_map\n\tposx=1 v=2003 -748.980347\n\tposy=1 v=2003 -62.926815\n\tcollapsed=1 v=2001 1\n\ttexturepath=2 e=1 v=5000 C:/dev/glTF/Maya2glTF/maya/images/6 digits.png\n\tencoding=2 e=0 v=5012 0\n\tfilter=2 e=0 v=5012 2\n\tuiorder=2 e=0 v=2002 2\n\tgroup=-1\n\tISC=2\n\t\tSVT=5022 3001 1 0 0 \n\t\tSVT=5022 2003 2 0 0 \n\tOSC=1\n\t\tSVT=5022 3003 3 \n\t\tCC=1\n\t\t\tC=1 0 3 11 1 2 0\n\t\t\tCPC=0\n#NT=20178 0\n\tPC=3\n\tposx=1 v=2003 -936.862244\n\tposy=1 v=2003 -61.033253\n"
 		+ "\tcollapsed=1 v=2001 1\n\tgroup=-1\n\tISC=0\n\tOSC=1\n\t\tSVT=5022 3001 1 \n\t\tCC=1\n\t\t\tC=2 0 1 1 0 1 0\n\t\t\tCPC=0\n#NT=20185 0\n\tPC=6\n\tname=1 v=5000 base_color_factor\n\tposx=1 v=2003 -496.348358\n\tposy=1 v=2003 -248.597626\n\ttype=2 e=0 v=5012 3\n\tdefaultvector=2 e=0 v=3003 0.561000,0.561000,0.561000,1.000000\n\tuiorder=2 e=0 v=2002 2\n\tgroup=-1\n\tISC=0\n\tOSC=1\n\t\tSVT=5022 3003 1 \n\t\tCC=1\n\t\t\tC=3 0 1 12 0 1 0\n\t\t\tCPC=0\n#NT=20185 0\n\tPC=8\n\tname=1 v=5000 use_base_color_map\n\tposx=1 v=2003 -731.653442\n\tposy=1 v=2003 43.715950\n\tcollapsed=1 v=2001 1\n\ttype=2 e=0 v=5012 0\n\tdefaultscalar=2 e=0 v=2003 1.000000\n\tuitype=2 e=0 v=5012 1\n\tuiorder=2 e=0 v=2002 3\n\tgroup=-1\n\tISC=0\n\tOSC=1\n\t\tSVT=5022 2003 1 \n\t\tCC=1\n\t\t\tC=4 0 1 11 2 3 0\n\t\t\tCPC=0\n#NT=20201 0\n\tPC=4\n\tname=1 v=5000 white\n\tposx=1 v=2003 -733.178345\n\tposy=1 v=2003 -155.752563\n\tcollapsed=1 v=2001 1\n\tgroup=-1\n\tISC=1\n\t\tSVT=5022 3003 1 1 0 \n\t\tSDV=1.000000 1.000000 1.000000 1.000000\n\tOSC=1\n\t\tSVT=5022 3003 2 \n\t\tCC=1\n\t\t\tC=5 0 2 11 0 1 0\n\t\t\tCPC=0\n#NT=20177 0\n\tPC=6\n\tname=1 v=5000 emissive_map\n\tposx=1 v=2003 -731.703064\n"

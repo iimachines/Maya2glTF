@@ -7,23 +7,27 @@
 #include "DagHelper.h"
 
 MeshRenderable::MeshRenderable(
+	const int meshInstanceIndex,
 	const int meshShaderIndex,
 	const MeshSemantics& meshSemantics,
 	const MeshVertices& meshVertices,
 	const MeshIndices& meshIndices)
-	: meshShaderIndex(meshShaderIndex)
+	: meshInstanceIndex(meshInstanceIndex)
+	, meshShaderIndex(meshShaderIndex)
 {
 	MStatus status;
 
-	m_shaderGroup = meshIndices.shaderGroups()[meshShaderIndex];
+	const MeshShading& shading = meshIndices.shadingPerInstance().at(meshInstanceIndex);
+
+	m_shaderGroup = shading.shaderGroups[meshShaderIndex];
 
 	std::map<IndexVector, Index> drawableComponentIndexMap;
 
-	const auto& shaderMap = meshIndices.primitiveToShaderIndexMap();
+	const auto& shaderMap = shading.primitiveToShaderIndexMap;
 	const auto& indicesTable = meshIndices.table();
 	const auto& componentsTable = meshVertices.table();
 
-	const auto primitiveCount = meshIndices.primitiveToShaderIndexMap().size();
+	const auto primitiveCount = shaderMap.size();
 
 	const auto keySize = meshSemantics.totalSetCount();
 

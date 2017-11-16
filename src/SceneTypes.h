@@ -20,6 +20,8 @@ typedef std::vector<Tangent> TangentVector;
 typedef std::vector<Color> ColorVector;
 typedef std::vector<Index> IndexVector;
 
+typedef size_t Hash;
+
 enum PrimitiveKind
 {
 	// TODO: Support other primitives

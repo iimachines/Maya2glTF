@@ -7,18 +7,23 @@
 MeshIndices::MeshIndices(const MeshSemantics& semantics, const MFnMesh& fnMesh)
 {
 	MStatus status;
-	MIntArray mapPolygonToShader;
 
-	// TODO: Deal with instances?
-	const auto instanceNumber = 0;
-	THROW_ON_FAILURE(fnMesh.getConnectedShaders(instanceNumber, m_shaderGroups, mapPolygonToShader));
+	const auto instanceCount = fnMesh.instanceCount(false);
 
-	const auto shaderCount = m_shaderGroups.length();
-	m_isShaderUsed.resize(shaderCount, false);
+	std::vector<MIntArray> mapPolygonToShaderPerInstance(instanceCount);
 
 	const auto numPolygons = fnMesh.numPolygons();
 
-	m_primitiveToShaderIndexMap.reserve(numPolygons * 2);
+	for (unsigned instanceIndex=0; instanceIndex<instanceCount; ++instanceIndex)
+	{
+		auto& shading = m_shadingPerInstance[instanceIndex];
+		THROW_ON_FAILURE(fnMesh.getConnectedShaders(instanceIndex, shading.shaderGroups, mapPolygonToShaderPerInstance[instanceIndex]));
+
+		const auto shaderCount = shading.shaderGroups.length();
+		shading.isShaderUsed.resize(shaderCount, false);
+		shading.primitiveToShaderIndexMap.reserve(numPolygons * 2);
+	}
+
 
 	// Reserve space for the indices, we assume every polygon is a quad.
 	for (auto kind = 0; kind<Semantic::COUNT; ++kind)
@@ -63,10 +68,14 @@ MeshIndices::MeshIndices(const MeshSemantics& semantics, const MFnMesh& fnMesh)
 		THROW_ON_FAILURE(itPoly.numTriangles(numTrianglesInPolygon));
 
 		// NOTE: This can be negative when no shader is attached (e.g. blend shapes)
-		int shaderIndex = mapPolygonToShader[polygonIndex];
-		if (shaderIndex >= 0)
+		for (unsigned instanceIndex = 0; instanceIndex < instanceCount; ++instanceIndex)
 		{
-			m_isShaderUsed[shaderIndex] = true;
+			auto& shading = m_shadingPerInstance[instanceIndex];
+			const auto shaderIndex = mapPolygonToShaderPerInstance.at(instanceIndex)[polygonIndex];
+			if (shaderIndex >= 0)
+			{
+				shading.isShaderUsed[shaderIndex] = true;
+			}
 		}
 
 		// Map mesh-vertex-indices to face-vertex-indices.
@@ -90,7 +99,12 @@ MeshIndices::MeshIndices(const MeshSemantics& semantics, const MFnMesh& fnMesh)
 
 		for (auto localTriangleIndex = 0; localTriangleIndex < numTrianglesInPolygon; ++localTriangleIndex)
 		{
-			m_primitiveToShaderIndexMap.push_back(shaderIndex);
+			for (unsigned instanceIndex = 0; instanceIndex<instanceCount; ++instanceIndex)
+			{
+				auto& shading = m_shadingPerInstance[instanceIndex];
+				const auto shaderIndex = mapPolygonToShaderPerInstance.at(instanceIndex)[polygonIndex];
+				shading.primitiveToShaderIndexMap.push_back(shaderIndex);
+			}
 
 			for (auto i = 0; i<3; ++i, ++triangleVertexIndex)
 			{

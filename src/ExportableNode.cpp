@@ -1,7 +1,7 @@
 #include "externals.h"
 #include "ExportableNode.h"
 #include "MayaException.h"
-#include "Mesh.h"
+#include "ExportableResources.h"
 #include "Arguments.h"
 
 ExportableNode::ExportableNode(MDagPath dagPath, MString name, ExportableResources& resources, const Arguments& args)
@@ -10,15 +10,10 @@ ExportableNode::ExportableNode(MDagPath dagPath, MString name, ExportableResourc
 
 	glNode.transform = &m_matrix;
 
-	// We assume the shape is selected here, so we need to take the transform of the parent
-	MFnDagNode fnShapeNode(dagPath);
-	MObject parentNode = fnShapeNode.parent(0, &status);
+	MFnDagNode fnDagNode(dagPath, &status);
 	THROW_ON_FAILURE(status);
 
-	MFnDagNode fnParentnode(parentNode, &status);
-	THROW_ON_FAILURE(status);
-
-	auto transform = fnParentnode.transformationMatrix(&status);
+	auto transform = fnDagNode.transformationMatrix(&status);
 	THROW_ON_FAILURE(status);
 
 	float m[4][4];
@@ -30,19 +25,13 @@ ExportableNode::ExportableNode(MDagPath dagPath, MString name, ExportableResourc
 		m[0][2], m[1][2], m[2][2], m[3][2],
 		m[0][3], m[1][3], m[2][3], m[3][3]);
 
-	// TODO: Initialize transform.
+	dagPath.extendToShape();
+
 	switch (dagPath.apiType(&status))
 	{
 	case MFn::kMesh:
 	{
-		Mesh mayaMesh(dagPath);
-
-		if (args.dumpMaya)
-		{
-			mayaMesh.dump(dagPath.fullPathName().asChar(), "");
-		}
-
-		m_mesh = std::make_unique<ExportableMesh>(mayaMesh, resources);
+		m_mesh = std::make_unique<ExportableMesh>(dagPath, resources);
 		glNode.mesh = &m_mesh->glMesh;
 	}
 	break;
@@ -62,8 +51,6 @@ std::unique_ptr<ExportableNode> ExportableNode::from(MDagPath dagPath, Exportabl
 
 	MString name = dagPath.partialPathName(&status);
 	THROW_ON_FAILURE(status);
-
-	dagPath.extendToShape();
 
 	MObject mayaNode = dagPath.node(&status);
 	if (mayaNode.isNull() || status.error())

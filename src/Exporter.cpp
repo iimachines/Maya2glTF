@@ -71,7 +71,7 @@ void Exporter::exportScene(const Arguments& args)
 	glAsset.scenes.push_back(&glScene);
 	glAsset.scene = 0;
 
-	ExportableResources resources;
+	ExportableResources resources(args.dumpMaya);
 
 	std::vector<std::unique_ptr<ExportableItem>> exportables;
 
@@ -79,6 +79,8 @@ void Exporter::exportScene(const Arguments& args)
 	{
 		MDagPath dagPath;
 		THROW_ON_FAILURE(selection.getDagPath(selectionIndex, dagPath));
+
+		cout << "maya2glTF: Processing " << dagPath.partialPathName() << "..." << endl;
 
 		auto exportableNode = ExportableNode::from(dagPath, resources, args);
 

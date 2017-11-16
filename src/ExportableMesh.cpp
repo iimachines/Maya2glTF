@@ -3,8 +3,10 @@
 #include "ExportableMesh.h"
 #include "ExportablePrimitive.h"
 
-ExportableMesh::ExportableMesh(const Mesh& mayaMesh, ExportableResources& resources)
+ExportableMesh::ExportableMesh(const MDagPath& shapeDagPath, ExportableResources& resources)
 {
+	Mesh mayaMesh(shapeDagPath);
+
 	for (auto&& renderable : mayaMesh.renderables())
 	{
 		auto exportablePrimitive = new ExportablePrimitive(*renderable, resources);
