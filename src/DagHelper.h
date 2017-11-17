@@ -51,9 +51,16 @@ struct DagHelper
 	static bool			getPlugValue(const MPlug& plug, float& x, float& y);
 	static bool			getPlugValue(const MPlug& plug, float& x, float& y, float& z);
 	static bool			getPlugValue(const MPlug& plug, MVector& value);
-	static void			getPlugValue(const MObject& node, const char* attributeName, MStringArray& output, MStatus* ReturnStatus = NULL);
-	static void			getPlugValue(const MPlug& plug, MStringArray& output, MStatus* ReturnStatus = NULL);
+	static void			getPlugValue(const MObject& node, const char* attributeName, MStringArray& output, MStatus* ReturnStatus = nullptr);
+	static void			getPlugValue(const MPlug& plug, MStringArray& output, MStatus* ReturnStatus = nullptr);
 
+	/** Find a child plug. Returns a null plug when not found. Throws an error on failures */
+	static MPlug		getChildPlug(const MPlug& parent, const MString& name);
+
+	/** Find a child plug index. Returns -1 when not found or on failure. Useful for performance reasons when iterating over many plugs */
+	static int			getChildPlugIndex(const MPlug& parent, const MString& name);
+
+	static bool			hasConnection(const MPlug& plug, bool asSource = true, bool asDestination = true);
 
 	/*
 	static bool			getPlugConnectedTo(const MPlug& inPlug, MPlug& plug);
@@ -64,9 +71,8 @@ struct DagHelper
 	static bool			Connect(const MObject& source, const MString& sourceAttribute, const MPlug& destination);
 	static bool			Connect(const MPlug& source, const MObject& destination, const MString& destinationAttribute);
 	static bool			Connect(const MPlug& source, const MPlug& destination);
-	static bool			ConnectToList(const MObject& source, const MString& sourceAttribute, const MObject& destination, const MString& destinationAttribute, int* index = NULL);
-	static bool			ConnectToList(const MPlug& source, const MObject& destination, const MString& destinationAttribute, int* index = NULL);
-	static bool			HasConnection(const MPlug& plug, bool asSource = true, bool asDestination = true);
+	static bool			ConnectToList(const MObject& source, const MString& sourceAttribute, const MObject& destination, const MString& destinationAttribute, int* index = nullptr);
+	static bool			ConnectToList(const MPlug& source, const MObject& destination, const MString& destinationAttribute, int* index = nullptr);
 	static bool			Disconnect(const MPlug& source, const MPlug& destination);
 	static bool			Disconnect(const MPlug& plug, bool sources = true, bool destinations = true);
 
@@ -77,9 +83,6 @@ struct DagHelper
 	//static MMatrix		GetBindPoseInverse(const MObject& controller, const MObject& influence);
 	//static MStatus		SetBindPoseInverse(const MObject& node, const MMatrix& bindPoseInverse);
 
-	// Find a child plug
-	static MPlug		GetChildPlug(const MPlug& parent, const MString& name, MStatus* rc = NULL);
-	static int			GetChildPlugIndex(const MPlug& parent, const MString& name, MStatus* rc = NULL); // Useful for performance reasons when iterating over many plugs
 
 																										 // Get/set a plug's value
 	static bool			SetPlugValue(MPlug& plug, const MVector& value);

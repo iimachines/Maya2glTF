@@ -2,6 +2,16 @@
 
 #include "sceneTypes.h"
 
+template<typename ... Args>
+std::string formatted(const char* format, Args ... args)
+{
+	// https://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
+	const size_t size = snprintf(nullptr, 0, format, args ...) + 1; // Extra space for '\0'
+	std::unique_ptr<char[]> buf(new char[size]);
+	snprintf(buf.get(), size, format, args ...);
+	return std::string(buf.get(), buf.get() + size - 1); // We don't want the '\0' inside
+}
+
 template<typename T>
 static void dump_iterable(const std::string& name, const T& iterable, const std::string& indent, const size_t precision = 3)
 {

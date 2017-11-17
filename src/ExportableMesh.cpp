@@ -2,10 +2,16 @@
 #include "Mesh.h"
 #include "ExportableMesh.h"
 #include "ExportablePrimitive.h"
+#include "Arguments.h"
 
-ExportableMesh::ExportableMesh(const MDagPath& shapeDagPath, ExportableResources& resources)
+ExportableMesh::ExportableMesh(const MDagPath& shapeDagPath, ExportableResources& resources, const Arguments& args)
 {
 	Mesh mayaMesh(shapeDagPath);
+
+	if (args.dumpMaya)
+	{
+		mayaMesh.dump(shapeDagPath.fullPathName().asChar(), "");
+	}
 
 	for (auto&& renderable : mayaMesh.renderables())
 	{

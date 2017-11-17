@@ -52,11 +52,15 @@ bool DagHelper::getPlugConnectedTo(const MObject& node, const MString& attribute
 	MStatus status;
 	MFnDependencyNode dgFn(node);
 	auto plug = dgFn.findPlug(attribute, &status);
-	if (status == MS::kSuccess && plug.isConnected())
+	THROW_ON_FAILURE(status);
+	
+	if (plug.isConnected())
 	{
 		// Get the connection - there can be at most one input to a plug
 		MPlugArray connections;
-		plug.connectedTo(connections, true, true);
+		plug.connectedTo(connections, true, true, &status);
+		THROW_ON_FAILURE(status);
+
 		assert(connections.length() <= 1);
 		if (connections.length() > 0)
 		{
@@ -70,13 +74,19 @@ bool DagHelper::getPlugConnectedTo(const MObject& node, const MString& attribute
 MObject	DagHelper::findSourceNodeConnectedTo(const MObject& node, const MString& attribute)
 {
 	MStatus status;
-	MFnDependencyNode dgFn(node);
+	MFnDependencyNode dgFn(node, &status);
+	THROW_ON_FAILURE(status);
+
 	auto plug = dgFn.findPlug(attribute, &status);
-	if (status == MS::kSuccess && plug.isConnected())
+	THROW_ON_FAILURE(status);
+
+	if (plug.isConnected())
 	{
 		// Get the connection - there can be at most one input to a plug
 		MPlugArray connections;
-		plug.connectedTo(connections, true, false);
+		plug.connectedTo(connections, true, false, &status);
+		THROW_ON_FAILURE(status);
+
 		assert(connections.length() <= 1);
 		if (connections.length() > 0)
 			return connections[0].node();
@@ -87,8 +97,11 @@ MObject	DagHelper::findSourceNodeConnectedTo(const MObject& node, const MString&
 
 MObject DagHelper::findSourceNodeConnectedTo(const MPlug& inPlug)
 {
+	MStatus status;
 	MPlugArray connections;
-	inPlug.connectedTo(connections, true, false);
+	inPlug.connectedTo(connections, true, false, &status);
+	THROW_ON_FAILURE(status);
+
 	return connections.length() > 0
 		? connections[0].node()
 		: MObject::kNullObj;
@@ -290,6 +303,96 @@ bool DagHelper::getPlugValue(const MPlug& plug, MVector& value)
 	return true;
 }
 
+MPlug DagHelper::getChildPlug(const MPlug& parent, const MString& name)
+{
+	MStatus status;
+
+	const auto childCount = parent.numChildren(&status);
+	THROW_ON_FAILURE(status);
+
+	// Check shortNames first
+	for (unsigned i = 0; i < childCount; ++i)
+	{
+		auto child = parent.child(i, &status);
+		THROW_ON_FAILURE(status);
+
+		MFnAttribute attributeFn(child.attribute(&status));
+		THROW_ON_FAILURE(status);
+
+		const auto n = attributeFn.shortName(&status);
+		THROW_ON_FAILURE(status);
+
+		if (n == name)
+			return child;
+	}
+
+	// Check longNames second, use shortNames!
+	for (unsigned i = 0; i < childCount; ++i)
+	{
+		auto child = parent.child(i, &status);
+		THROW_ON_FAILURE(status);
+
+		MFnAttribute attributeFn(child.attribute(&status));
+		THROW_ON_FAILURE(status);
+
+		const auto n = attributeFn.name(&status);
+		THROW_ON_FAILURE(status);
+
+		if (n == name)
+			return child;
+	}
+
+	return MPlug();
+}
+
+int DagHelper::getChildPlugIndex(const MPlug& parent, const MString& name)
+{
+	MStatus status;
+	const auto childCount = parent.numChildren(&status);
+	CHECK_MSTATUS_AND_RETURN(status, -1);
+
+	// Check shortNames first
+	for (unsigned i = 0; i < childCount; ++i)
+	{
+		auto child = parent.child(i, &status);
+		CHECK_MSTATUS_AND_RETURN(status, -1);
+
+		MFnAttribute attributeFn(child.attribute());
+		const auto n = attributeFn.shortName();
+		if (n == name)
+			return i;
+	}
+
+	// Check longNames second, use shortNames!
+	for (unsigned i = 0; i < childCount; ++i)
+	{
+		auto child = parent.child(i, &status);
+		CHECK_MSTATUS_AND_RETURN(status, -1);
+
+		MFnAttribute attributeFn(child.attribute());
+		const auto n = attributeFn.name();
+		if (n == name)
+			return i;
+	}
+
+	return -1;
+}
+
+bool DagHelper::hasConnection(const MPlug& plug, const bool asSource, const bool asDestination)
+{
+	MStatus status;
+
+	MPlugArray plugs;
+	plug.connectedTo(plugs, asDestination, asSource, &status);
+	THROW_ON_FAILURE(status);
+
+	if (plugs.length() > 0) 
+		return true;
+
+	return plug.numConnectedChildren() > 0;
+}
+
+
 #if 0
 bool DagHelper::getPlugConnectedTo(const MPlug& inPlug, MPlug& plug)
 {
@@ -423,11 +526,11 @@ bool DagHelper::ConnectToList(const MPlug& source, const MObject& destination, c
 	if (status != MStatus::kSuccess) return false;
 	if (!dest.isArray()) return false;
 
-	int index = (_index != NULL) ? *_index : -1;
+	int index = (_index != nullptr) ? *_index : -1;
 	if (index < 0)
 	{
 		index = GetNextAvailableIndex(dest, (int)dest.evaluateNumElements());
-		if (_index != NULL) *_index = index;
+		if (_index != nullptr) *_index = index;
 	}
 
 	MPlug d = dest.elementByLogicalIndex(index);
@@ -458,15 +561,6 @@ int DagHelper::GetNextAvailableIndex(const MPlug& p, int startIndex)
 		}
 	}
 	return -1;
-}
-
-bool DagHelper::HasConnection(const MPlug& plug, bool asSource, bool asDestination)
-{
-	MPlugArray plugs;
-	plug.connectedTo(plugs, asDestination, asSource);
-	if (plugs.length() > 0) return true;
-
-	return plug.numConnectedChildren() > 0;
 }
 
 /*
@@ -558,86 +652,6 @@ it.next();
 return status;
 }
 */
-
-MPlug DagHelper::GetChildPlug(const MPlug& parent, const MString& name, MStatus* rc)
-{
-	MStatus st;
-	uint childCount = parent.numChildren(&st);
-	if (st != MStatus::kSuccess) { if (rc != NULL) *rc = st; return parent; }
-
-	// Check shortNames first
-	for (uint i = 0; i < childCount; ++i)
-	{
-		MPlug child = parent.child(i, &st);
-		if (st != MStatus::kSuccess) { if (rc != NULL) *rc = st; return parent; }
-
-		MFnAttribute attributeFn(child.attribute());
-		MString n = attributeFn.shortName();
-		if (n == name)
-		{
-			if (rc != NULL) *rc = MStatus::kSuccess;
-			return child;
-		}
-	}
-
-	// Check longNames second, use shortNames!
-	for (uint i = 0; i < childCount; ++i)
-	{
-		MPlug child = parent.child(i, &st);
-		if (st != MStatus::kSuccess) { if (rc != NULL) *rc = st; return parent; }
-
-		MFnAttribute attributeFn(child.attribute());
-		MString n = attributeFn.name();
-		if (n == name)
-		{
-			if (rc != NULL) *rc = MStatus::kSuccess;
-			return child;
-		}
-	}
-
-	if (rc != NULL) *rc = MStatus::kNotFound;
-	return parent;
-}
-
-int DagHelper::GetChildPlugIndex(const MPlug& parent, const MString& name, MStatus* rc)
-{
-	MStatus st;
-	uint childCount = parent.numChildren(&st);
-	CHECK_MSTATUS_AND_RETURN(st, -1);
-
-	// Check shortNames first
-	for (uint i = 0; i < childCount; ++i)
-	{
-		MPlug child = parent.child(i, &st);
-		CHECK_MSTATUS_AND_RETURN(st, -1);
-
-		MFnAttribute attributeFn(child.attribute());
-		MString n = attributeFn.shortName();
-		if (n == name)
-		{
-			if (rc != NULL) *rc = MStatus::kSuccess;
-			return i;
-		}
-	}
-
-	// Check longNames second, use shortNames!
-	for (uint i = 0; i < childCount; ++i)
-	{
-		MPlug child = parent.child(i, &st);
-		CHECK_MSTATUS_AND_RETURN(st, -1);
-
-		MFnAttribute attributeFn(child.attribute());
-		MString n = attributeFn.name();
-		if (n == name)
-		{
-			if (rc != NULL) *rc = MStatus::kSuccess;
-			return i;
-		}
-	}
-
-	if (rc != NULL) *rc = MStatus::kNotFound;
-	return -1;
-}
 
 bool DagHelper::SetPlugValue(MPlug& plug, const MVector& value)
 {
@@ -912,27 +926,27 @@ void DagHelper::GroupConnect(MPlug& source, const MObject& destination, const MO
 	// Tell the ouput node to expect the groupId
 	MPlug instanceObjectGroupsPlug = finalMeshFn.findPlug("instObjGroups");
 	instanceObjectGroupsPlug = instanceObjectGroupsPlug.elementByLogicalIndex(0);
-	MPlug objectGroupsPlug = DagHelper::GetChildPlug(instanceObjectGroupsPlug, "og"); // "objectGroups"
+	MPlug objectGroupsPlug = DagHelper::getChildPlug(instanceObjectGroupsPlug, "og"); // "objectGroups"
 	MPlug objectGroupPlug = objectGroupsPlug.elementByLogicalIndex(objectGroupsPlug.numElements());
-	MPlug groupIdPlug = DagHelper::GetChildPlug(objectGroupPlug, "gid"); // "objectGroupId"
+	MPlug groupIdPlug = DagHelper::getChildPlug(objectGroupPlug, "gid"); // "objectGroupId"
 	DagHelper::Connect(groupId.object(), "id", groupIdPlug);
 
 	// Tell the groupId about the set to implied in the connection
 	DagHelper::ConnectToList(groupId.object(), "msg", objectSetFn.object(), "gn");
 
 	// Connect up the set and the groupId implication within the final mesh
-	MPlug groupColorPlug = DagHelper::GetChildPlug(objectGroupPlug, "gco"); // "objectGrpColor"
+	MPlug groupColorPlug = DagHelper::getChildPlug(objectGroupPlug, "gco"); // "objectGrpColor"
 	DagHelper::Connect(objectSet, "memberWireframeColor", groupColorPlug);
 	DagHelper::ConnectToList(objectGroupPlug, objectSet, "dagSetMembers");
 
 	// Connect the output with the groupParts
 	MPlug inputGlobalPlug = destinationFn.findPlug("input");
 	inputGlobalPlug = inputGlobalPlug.elementByLogicalIndex(inputGlobalPlug.numElements());
-	MPlug inputGeometryPlug = DagHelper::GetChildPlug(inputGlobalPlug, "ig"); // "inputGeometry"
+	MPlug inputGeometryPlug = DagHelper::getChildPlug(inputGlobalPlug, "ig"); // "inputGeometry"
 	DagHelper::Connect(groupParts.object(), "og", inputGeometryPlug);
 
 	// Connect the output with the groupId
-	groupIdPlug = DagHelper::GetChildPlug(inputGlobalPlug, "gi"); // "groupId"
+	groupIdPlug = DagHelper::getChildPlug(inputGlobalPlug, "gi"); // "groupId"
 	DagHelper::Connect(groupId.object(), "id", groupIdPlug);
 
 	// Connect the input with the groupParts
@@ -995,10 +1009,10 @@ MObject DagHelper::CreateAnimationCurve(const MObject& node, const char* attribu
 }
 MObject DagHelper::CreateAnimationCurve(const MPlug& plug, const char* curveType)
 {
-	MStatus rc;
+	MStatus status;
 	MFnDependencyNode curveFn;
-	curveFn.create(curveType, &rc);
-	if (rc == MStatus::kSuccess)
+	curveFn.create(curveType, &status);
+	if (status == MStatus::kSuccess)
 	{
 		DagHelper::Connect(curveFn.object(), "output", plug);
 	}

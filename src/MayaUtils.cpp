@@ -2,7 +2,7 @@
 #include "MayaUtils.h"
 #include "MayaException.h"
 
-namespace Maya
+namespace utils
 {
 	MMatrix getMatrix(const MPlug& plug)
 	{
@@ -14,7 +14,7 @@ namespace Maya
 		return mayaMatrix;
 	}
 
-	inline MMatrix getMatrix(const MFnDependencyNode& node, const char* plugName)
+	MMatrix getMatrix(const MFnDependencyNode& node, const char* plugName)
 	{
 		MStatus status;
 		MPlug plug = node.findPlug(plugName, &status);
@@ -22,7 +22,7 @@ namespace Maya
 		return getMatrix(plug);
 	}
 
-	inline MTransformationMatrix getTransformation(const MDagPath& path)
+	MTransformationMatrix getTransformation(const MDagPath& path)
 	{
 		MStatus status;
 
@@ -45,10 +45,10 @@ namespace Maya
 		return fnMat.transformation();
 	}
 
-	inline std::string simpleName(const MString& name)
+	MString simpleName(const MString& name)
 	{
 		std::string buffer(name.asChar());
 		replace_if(buffer.begin(), buffer.end(), isalnum, '_');
-		return buffer;
+		return MString(buffer.c_str());
 	}
 }

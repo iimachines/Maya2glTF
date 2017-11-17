@@ -9,7 +9,7 @@ class Mesh;
 class ExportableMesh : public ExportableItem
 {
 public:
-	ExportableMesh(const MDagPath& shapeDagPath, ExportableResources& resources);
+	ExportableMesh(const MDagPath& shapeDagPath, ExportableResources& resources, const Arguments& args);
 	virtual ~ExportableMesh();
 
 	GLTF::Mesh glMesh;

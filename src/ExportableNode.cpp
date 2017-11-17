@@ -31,7 +31,7 @@ ExportableNode::ExportableNode(MDagPath dagPath, MString name, ExportableResourc
 	{
 	case MFn::kMesh:
 	{
-		m_mesh = std::make_unique<ExportableMesh>(dagPath, resources);
+		m_mesh = std::make_unique<ExportableMesh>(dagPath, resources, args);
 		glNode.mesh = &m_mesh->glMesh;
 	}
 	break;

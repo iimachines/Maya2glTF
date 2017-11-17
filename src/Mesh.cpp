@@ -2,21 +2,26 @@
 #include "Mesh.h"
 #include "MayaException.h"
 
-Mesh::Mesh(const MDagPath& dagPath) : m_dagPath(dagPath)
+Mesh::Mesh(const MDagPath& dagPath) 
 {
 	MStatus status;
 
 	const MFnMesh fnMesh(dagPath, &status);
 	THROW_ON_FAILURE(status);
 
+	m_shape = std::make_unique<MeshShape>(fnMesh);
+
 	auto instanceNumber = dagPath.instanceNumber(&status);
 	THROW_ON_FAILURE(status);
 
-	m_semantics.reset(new MeshSemantics(fnMesh));
-	m_vertices.reset(new MeshVertices(*m_semantics, fnMesh));
-	m_indices.reset(new MeshIndices(*m_semantics, fnMesh));
+	// Find blend shapes. The weights of shapes are added as extra semantics
+	MObject blendShapeController = tryExtractBlendController(fnMesh);
+	if (!blendShapeController.isNull())
+	{
+		m_blendShapes = std::make_unique<MeshBlendShapes>(blendShapeController);
+	}
 
-	auto& shadingPerInstance = m_indices->shadingPerInstance();
+	auto& shadingPerInstance = m_shape->indices().shadingPerInstance();
 
 	auto& shading = shadingPerInstance.at(instanceNumber);
 	const auto shaderCount = shading.shaderCount();
@@ -25,10 +30,10 @@ Mesh::Mesh(const MDagPath& dagPath) : m_dagPath(dagPath)
 		// If the shader is not used by any primitive, skip it
 		if (shading.isShaderUsed[shaderIndex])
 		{
-			auto renderable = std::make_unique<MeshRenderable>(instanceNumber, shaderIndex, *m_semantics, *m_vertices, *m_indices);
+			auto renderable = std::make_unique<MeshRenderable>(instanceNumber, shaderIndex, *m_shape);
 			if (renderable->indices().size())
 			{
-				m_renderables.emplace_back(move(renderable));
+				m_renderables.emplace_back(std::move(renderable));
 			}
 		}
 	}
@@ -42,12 +47,13 @@ void Mesh::dump(const std::string& name, const std::string& indent) const
 {
 	cout << indent << quoted(name) << ": {" << endl;
 	const auto subIndent = indent + "\t";
-	m_semantics->dump("semantics", subIndent);
+
+	m_shape->dump("shape", subIndent);
 	cout << "," << endl;
-	m_vertices->dump("vertices", subIndent);
+
+	m_blendShapes->dump("blendShapes", subIndent);
 	cout << "," << endl;
-	m_indices->dump("indices", subIndent);
-	cout << "," << endl;
+
 	cout << subIndent << std::quoted("renderables") << ": [" << endl;
 	const auto subIndent2 = subIndent + "\t";
 	for (auto && renderable: m_renderables)
@@ -59,3 +65,45 @@ void Mesh::dump(const std::string& name, const std::string& indent) const
 	cout << indent << "}" << endl;
 }
 
+
+MObject Mesh::tryExtractBlendController(const MFnMesh& fnMesh)
+{
+	MObject blendController;
+
+	// Iterate upstream to find all the nodes that affect the mesh.
+	MStatus status;
+	MPlug plug = fnMesh.findPlug("inMesh", status);
+	THROW_ON_FAILURE(status);
+
+	if (plug.isConnected())
+	{
+		MItDependencyGraph dgIt(plug,
+			MFn::kInvalid,
+			MItDependencyGraph::kUpstream,
+			MItDependencyGraph::kBreadthFirst,
+			MItDependencyGraph::kNodeLevel,
+			&status);
+
+		THROW_ON_FAILURE(status);
+
+		dgIt.disablePruningOnFilter();
+
+		for (; !dgIt.isDone(); dgIt.next())
+		{
+			MObject thisNode = dgIt.thisNode();
+			if (thisNode.hasFn(MFn::kBlendShape))
+			{
+				if (blendController.isNull())
+				{
+					blendController = thisNode;
+				}
+				else
+				{
+					cerr << "maya2glTF: ignoring blend controller " << MFnDependencyNode(thisNode).name() << endl;
+				}
+			}
+		}
+	}
+
+	return blendController;
+}

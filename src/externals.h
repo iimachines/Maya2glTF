@@ -11,6 +11,7 @@
 #include <iomanip>
 #include <fstream>
 #include <filesystem>
+#include <cstdarg>
 
 #ifdef _MSC_VER
 #	pragma  warning(disable:4267)
@@ -66,9 +67,5 @@
 #include <maya/MMatrix.h>
 #include <maya/MFnMatrixData.h>
 #include <maya/MFnTransform.h>
-
-
-
-
-
-
+#include <maya/MItDependencyGraph.h>
+#include <maya/MFnBlendShapeDeformer.h>

@@ -1,5 +1,5 @@
 #pragma once
-#include <signal.h>
+#include "dump.h"
 
 class MayaException : public std::runtime_error
 {
@@ -11,10 +11,10 @@ public:
 	const MStatus status;
 
 	/** Formats an error message and throws me */
-	static void throwIt(const MStatus status, const char* file, int line, const char* function);
+	static void throwIt(const MStatus status, const std::string& message, const char* file, int line, const char* function);
 
 	/** Prints an error to the standard error and the Maya script window */
-	static MStatus printError(const char* message, MStatus error = MStatus::kFailure);
+	static MStatus printError(const std::string& message, MStatus error = MStatus::kFailure);
 };
 
 
@@ -25,5 +25,22 @@ public:
 	MStatus __status__ = (__expression__); \
 	ASSERT_SUCCESS(__status__); \
 	if (MStatus::kSuccess != __status__) \
-		MayaException::throwIt(__status__, __FILE__, __LINE__, __FUNCTION__); \
+		MayaException::throwIt(__status__, "", __FILE__, __LINE__, __FUNCTION__); \
+}
+
+#define THROW_ON_FAILURE_WITH(__expression__, __message__) { \
+	MStatus __status__ = (__expression__); \
+	ASSERT_SUCCESS(__status__); \
+	if (MStatus::kSuccess != __status__) \
+		MayaException::throwIt(__status__, (__message__)__FILE__, __LINE__, __FUNCTION__); \
+}
+
+template<typename ... Args>
+bool checkAndReportStatus(const MStatus& status, const char* format, Args ... args)
+{
+	if (status == MStatus::kSuccess)
+		return true;
+
+	cerr << formatted(format, args...);
+	return false;
 }

@@ -2,9 +2,8 @@
 
 #include "sceneTypes.h"
 
-class MeshIndices;
-class MeshVertices;
-class MeshSemantics;
+class MeshShape;
+
 typedef std::vector<std::vector<float>> DrawableComponentsPerSetIndex;
 typedef std::array<DrawableComponentsPerSetIndex, Semantic::COUNT> DrawableComponentsPerSetIndexTable;
 
@@ -20,9 +19,7 @@ public:
 	MeshRenderable(
 		const int meshInstanceIndex,
 		const int meshShaderIndex,
-		const MeshSemantics& meshSemantics,
-		const MeshVertices& meshVertices,
-		const MeshIndices& meshIndices);
+		const MeshShape& shape);
 
 	virtual ~MeshRenderable();
 

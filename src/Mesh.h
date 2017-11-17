@@ -1,8 +1,8 @@
 #pragma once
-#include "MeshSemantics.h"
-#include "MeshVertices.h"
-#include "MeshIndices.h"
+
 #include "MeshRenderable.h"
+#include "MeshShape.h"
+#include "MeshBlendShapes.h"
 
 typedef std::vector<std::unique_ptr<MeshRenderable>> MeshRenderables;
 
@@ -14,17 +14,16 @@ public:
 
 	void dump(const std::string& name, const std::string& indent) const;
 
-	const MeshSemantics& semantics() const { return *m_semantics; }
-	const MeshVertices& vertices() const { return *m_vertices; }
-	const MeshIndices& indices() const { return *m_indices; }
+	const MeshShape& shape() const { return *m_shape; }
+	const MeshBlendShapes& blendShapes() const { return *m_blendShapes; }
 	const MeshRenderables& renderables() const { return m_renderables; }
 
 private:
-	MDagPath m_dagPath;
+	static MObject tryExtractBlendController(const MFnMesh& fnMesh);
 
-	std::unique_ptr<MeshSemantics> m_semantics;
-	std::unique_ptr<MeshVertices> m_vertices;
-	std::unique_ptr<MeshIndices> m_indices;
+private:
+	std::unique_ptr<MeshShape> m_shape;
+	std::unique_ptr<MeshBlendShapes> m_blendShapes;
 	MeshRenderables m_renderables;
 };
 

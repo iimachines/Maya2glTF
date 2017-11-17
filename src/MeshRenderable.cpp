@@ -5,17 +5,20 @@
 #include "dump.h"
 #include "MayaException.h"
 #include "DagHelper.h"
+#include "MeshShape.h"
 
 MeshRenderable::MeshRenderable(
 	const int meshInstanceIndex,
-	const int meshShaderIndex,
-	const MeshSemantics& meshSemantics,
-	const MeshVertices& meshVertices,
-	const MeshIndices& meshIndices)
+	const int meshShaderIndex, 
+	const MeshShape& shape)
 	: meshInstanceIndex(meshInstanceIndex)
 	, meshShaderIndex(meshShaderIndex)
 {
 	MStatus status;
+
+	const auto& meshIndices = shape.indices();
+	const auto& meshVertices = shape.vertices();
+	const auto& meshSemantics = shape.semantics();
 
 	const MeshShading& shading = meshIndices.shadingPerInstance().at(meshInstanceIndex);
 
