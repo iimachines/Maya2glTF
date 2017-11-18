@@ -229,7 +229,11 @@ MeshRenderable::MeshRenderable(
 							assert(baseSourceIndex >= 0);
 							assert(shapeSourceIndex >= 0);
 
-							auto& target = targetComponentsPerShape[targetIndex];
+							// TODO: Preallocate!
+							if (targetComponentsPerShape.size() == 0)
+								targetComponentsPerShape.push_back(FloatVector());
+
+							auto& target = targetComponentsPerShape.at(targetIndex);
 
 							const auto offset = target.size();
 
@@ -268,6 +272,8 @@ void MeshRenderable::dump(const std::string& indent) const
 	dump_table("vertices", m_table, subIndent);
 	cout << "," << endl;
 	dump_iterable("indices", m_indices, subIndent);
+	cout << "," << endl;
+	dump_table("deltas", m_deltasTable, subIndent);
 	cout << "," << endl;
 	cout << indent << "}";
 }

@@ -8,7 +8,7 @@ class MeshBlendShapes;
 typedef std::vector<std::vector<float>> DrawableComponentsPerSetIndex;
 typedef std::array<DrawableComponentsPerSetIndex, Semantic::COUNT> DrawableComponentsPerSetIndexTable;
 
-typedef std::map<int, std::vector<float>> ComponentDeltasPerBlendShapeIndex;
+typedef std::vector<std::vector<float>> ComponentDeltasPerBlendShapeIndex;
 typedef std::array<ComponentDeltasPerBlendShapeIndex, Semantic::COUNT> ComponentDeltasPerBlendShapeIndexTable;
 
 /**

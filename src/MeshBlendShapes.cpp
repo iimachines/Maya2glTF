@@ -15,45 +15,7 @@ MeshBlendShapes::MeshBlendShapes(MObject blendShapeController)
 
 	cout << "Processing blend shapes of " << fnController.name().asChar() << "..." << endl;
 
-	MPlug inputsPlug = fnController.findPlug("input", &status);
-	THROW_ON_FAILURE(status);
-
-	const auto numElements = inputsPlug.evaluateNumElements(&status);
-	THROW_ON_FAILURE(status);
-	if (numElements == 0)
-	{
-		MayaException::printError("Blend shape controller has no inputs!");
-		return;
-	}
-
-	const MPlug inputPlug = inputsPlug.elementByPhysicalIndex(0, &status);
-	THROW_ON_FAILURE(status);
-
-	const MPlug inputGeometryPlug = DagHelper::getChildPlug(inputPlug, "inputGeometry");
-	if (inputGeometryPlug.isNull())
-	{
-		MayaException::printError("Blend shape controller has no input geometry plug!");
-		return;
-	}
-
-	MObject baseObject = getOrCreateIncomingShapeNode(inputGeometryPlug);
-	if (baseObject == MObject::kNullObj)
-	{
-		MayaException::printError("Blend shape controller has no input geometry!");
-		return;
-	}
-
-	MFnMesh mesh(baseObject, &status);
-	cout << "Blend neutral shape = " << mesh.name() << endl;
-	THROW_ON_FAILURE(status);
-
-	MPlug inputTargetArrayPlug = fnController.findPlug("inputTarget", &status);
-	THROW_ON_FAILURE(status);
-
 	MPlug weightArrayPlug = fnController.findPlug("weight", &status);
-	THROW_ON_FAILURE(status);
-
-	const auto inputTargetCount = inputTargetArrayPlug.evaluateNumElements(&status);
 	THROW_ON_FAILURE(status);
 
 	MPlug outputGeometryPlugs = fnController.findPlug("outputGeometry", &status);
@@ -64,113 +26,44 @@ MeshBlendShapes::MeshBlendShapes(MObject blendShapeController)
 
 	if (outputGeometryPlugsDimension == 0)
 	{
-		MayaException::printError("Blend shape controller output geometry is not connected to anything!");
+		MayaException::printError("Output geometry is not connected to anything!");
 		return;
 	}
 
-	m_baseShape = std::make_unique<MeshShape>(mesh, true);
+	MPlug outputGeometryPlug = outputGeometryPlugs.elementByPhysicalIndex(0, &status);
+	THROW_ON_FAILURE(status);
 
-	for (uint targetIndex = 0; targetIndex < inputTargetCount; ++targetIndex)
+	MObject outputShape = getOrCreateOutputShape(outputGeometryPlug);
+
+	if (outputShape.isNull())
 	{
-		const auto inputTargetPlug = inputTargetArrayPlug.elementByPhysicalIndex(targetIndex, &status);
-		THROW_ON_FAILURE(status);
+		MayaException::printError("Could not get output geometry!");
+		return;
+	}
 
-		auto inputTargetGroupArrayPlug = DagHelper::getChildPlug(inputTargetPlug, "inputTargetGroup");
+	MFnMesh outputMesh(outputShape, &status);
+	THROW_ON_FAILURE(status);
 
-		const auto inputTargetGroupCount = inputTargetGroupArrayPlug.evaluateNumElements(&status);
-		THROW_ON_FAILURE(status);
+	// We use the MeshBlendShapeWeights helper class to manipulate the weights 
+	// in order to reconstruct the geometry of deleted blend shape targets.
+	// When an exception is thrown, the weights and connections will be restored.
+	MeshBlendShapeWeights weightPlugs(weightArrayPlug);
+	weightPlugs.breakConnections();
 
-		for (uint groupIndex = 0; groupIndex < inputTargetGroupCount; ++groupIndex)
-		{
-			const auto inputTargetGroupPlug = inputTargetGroupArrayPlug.elementByPhysicalIndex(groupIndex, &status);
-			THROW_ON_FAILURE(status);
+	// Clear all weights to reconstruct base mesh
+	weightPlugs.clearWeightsExceptFor(-1);
 
-			auto inputTargetInputArrayPlug = DagHelper::getChildPlug(inputTargetGroupPlug, "inputTargetInput");
-			if (inputTargetInputArrayPlug.isNull())
-			{
-				MayaException::printError(formatted("Blend shape controller's target#%d, group#%d, has no inputTargetInput plug!", targetIndex, groupIndex));
-				continue;
-			}
+	m_baseShape = std::make_unique<MeshShape>(outputMesh, true);
 
-			const auto inputTargetInputCount = inputTargetInputArrayPlug.evaluateNumElements(&status);
-			THROW_ON_FAILURE(status);
+	const auto numWeights = weightPlugs.numWeights();
 
-			for (uint inputIndex = 0; inputIndex < inputTargetInputCount; ++inputIndex)
-			{
-				const auto inputTargetInput = inputTargetInputArrayPlug.elementByPhysicalIndex(inputIndex, &status);
-				THROW_ON_FAILURE(status);
-
-				MPlug inputGeometryTargetPlug = DagHelper::getChildPlug(inputTargetInput, "inputGeomTarget");
-				if (inputGeometryTargetPlug.isNull())
-				{
-					MayaException::printError(formatted("Blend shape controller's target#%d, group#%d, input#%d has no inputGeomTarget plug!", targetIndex, groupIndex, inputIndex));
-					continue;
-				}
-
-				MPlug weightPlug = weightArrayPlug.elementByLogicalIndex(inputIndex, &status);
-				THROW_ON_FAILURE(status);
-
-				const auto isInstanced = DagHelper::hasConnection(inputGeometryTargetPlug, false, true);
-				if (isInstanced)
-				{
-					// The original blend shape target mesh is still part of the history,
-					// so we can extract full information (normals, tangents, etc) from the mesh.
-					MObject targetObj = getOrCreateIncomingShapeNode(inputGeometryTargetPlug);
-
-					if (targetObj.isNull())
-					{
-						MayaException::printError(formatted("getOrCreateIncomingShapeNode failed for target #%d!", inputIndex));
-					}
-					else
-					{
-						MFnMesh blendShapeTargetMesh(targetObj, &status);
-						THROW_ON_FAILURE(status);
-
-						cout << "Found blend shape target " << blendShapeTargetMesh.name() << endl;
-
-						m_entries.emplace_back(std::make_unique<MeshBlendShapeEntry>(blendShapeTargetMesh, weightPlug));
-					}
-				}
-				else
-				{
-					// The mesh is not in Maya anymore...
-					// We only have access to the blendshape positions deltas, not the normals...
-					// We create a temporary shape node at the blend shape controller's geometry output,
-					// and mutually exclusively set each weight to one, reconstructing the original blend shapes.
-					cout << "The original blend shape target mesh was deleted; reconstructing blend shape normals..." << endl;
-
-					// We use the MeshBlendShapeWeights helper class to manipulate the weights 
-					// in order to reconstruct the geometry of deleted blend shape targets.
-					// When an exception is thrown, the weights and connections will be restored.
-					MeshBlendShapeWeights weightPlugs(weightArrayPlug);
-					weightPlugs.breakConnections();
-
-					MPlug outputGeometryPlug = outputGeometryPlugs.elementByPhysicalIndex(0, &status);
-					THROW_ON_FAILURE(status);
-
-					MObject outputMeshObj = getOrCreateOutgoingShapeNode(outputGeometryPlug);
-
-					if (outputMeshObj.isNull())
-					{
-						MayaException::printError(formatted("getOrCreateOutgoingShapeNode failed for target #%d!", inputIndex));
-					}
-					else
-					{
-						weightPlugs.setFullWeightAndClearOthers(inputIndex);
-
-						MFnMesh blendShapeTargetMesh(outputMeshObj, &status);
-						THROW_ON_FAILURE(status);
-
-						cout << "Reconstructed blend shape target " << blendShapeTargetMesh.name() << endl;
-
-						m_entries.emplace_back(std::make_unique<MeshBlendShapeEntry>(blendShapeTargetMesh, weightPlug));
-					}
-				}
-			}
-		}
+	for (auto i = 0; i < numWeights; i++)
+	{
+		weightPlugs.clearWeightsExceptFor(i);
+		auto weightPlug = weightPlugs.getWeightPlug(i);
+		m_entries.emplace_back(std::make_unique<MeshBlendShapeEntry>(outputMesh, weightPlug));
 	}
 }
-
 
 MeshBlendShapes::~MeshBlendShapes()
 {
@@ -202,96 +95,7 @@ void MeshBlendShapes::dump(const std::string& name, const std::string& indent) c
 	cout << indent << "}";
 }
 
-MObject MeshBlendShapes::getOrCreateIncomingShapeNode(const MPlug& inputGeometryPlug) const
-{
-	MStatus status;
-	MPlugArray connections;
-	inputGeometryPlug.connectedTo(connections, true, false, &status);
-	THROW_ON_FAILURE(status);
-
-	if (connections.length() == 0)
-		return MObject::kNullObj;
-
-	MPlug sourcePlug = connections[0];
-	MObject sourceNode = sourcePlug.node();
-
-	if (sourceNode.isNull())
-		return MObject::kNullObj;
-
-	if (sourceNode.hasFn(MFn::kMesh))
-		return sourceNode;
-
-	cout << sourceNode.apiTypeStr() << endl;
-
-	// No shape is coming in the blend-shape deformer.
-	// If this is a tweak-node, then the mesh is most likely found attached to it
-	if (sourceNode.hasFn(MFn::kGroupParts))
-	{
-		auto connectedToSourceNode = DagHelper::findSourceNodeConnectedTo(sourceNode, "input");
-		cout << connectedToSourceNode.apiTypeStr() << endl;
-	}
-
-	return MObject::kNullObj;
-
-	// This means that some other modifier is deforming the geometry (
-	// So we instead a temporary mesh to extract the geometry.
-
-	// Create the mesh node
-	MDagModifier dagMod;
-	const MObject tempNode = dagMod.createNode("mesh", MObject::kNullObj, &status);
-	THROW_ON_FAILURE(dagMod.doIt());
-
-	// Make sure we select the shape node, not the transform node.
-	MDagPath meshDagPath = MDagPath::getAPathTo(tempNode, &status);
-	THROW_ON_FAILURE(status);
-	THROW_ON_FAILURE(meshDagPath.extendToShape());
-
-	// Connect the mesh node
-	// NOTE: The node does not yet have an MFnMesh interface!!!
-	// This only happens when it is connected to another node that delivers geometry...
-	MFnDagNode dagFn(meshDagPath, &status);
-	THROW_ON_FAILURE(status);
-
-	const auto newSuggestedName = utils::simpleName(inputGeometryPlug.name(&status));
-	THROW_ON_FAILURE(status);
-
-	const auto newName = dagFn.setName(newSuggestedName, &status);
-	THROW_ON_FAILURE(status);
-
-	cout << "Created temporary incoming shape " << newName << endl;
-
-	// Make the mesh invisible
-	MPlug intermediateObjectPlug = dagFn.findPlug("intermediateObject", &status);
-	THROW_ON_FAILURE(status);
-	THROW_ON_FAILURE(intermediateObjectPlug.setBool(true));
-
-	MPlug inMeshPlug = dagFn.findPlug("inMesh", &status);
-	THROW_ON_FAILURE(status);
-
-	MPlug outMeshPlug = dagFn.findPlug("outMesh", &status);
-	THROW_ON_FAILURE(status);
-
-	MDGModifier dgMod;
-	THROW_ON_FAILURE(dgMod.disconnect(sourcePlug, inputGeometryPlug));
-	THROW_ON_FAILURE(dgMod.doIt());
-
-	THROW_ON_FAILURE(dgMod.connect(outMeshPlug, inputGeometryPlug));
-	THROW_ON_FAILURE(dgMod.doIt());
-
-	THROW_ON_FAILURE(dgMod.connect(sourcePlug, inMeshPlug));
-	THROW_ON_FAILURE(dgMod.doIt());
-
-	// Should now be a mesh...
-	if (!meshDagPath.hasFn(MFn::kMesh))
-		return MObject::kNullObj;
-
-	MObject mesh = meshDagPath.node(&status);
-	THROW_ON_FAILURE(status);
-	return mesh;
-}
-
-
-MObject MeshBlendShapes::getOrCreateOutgoingShapeNode(MPlug& outputGeometryPlug) const
+MObject MeshBlendShapes::getOrCreateOutputShape(MPlug& outputGeometryPlug) const
 {
 	MStatus status;
 	MPlugArray connections;
@@ -333,13 +137,13 @@ MObject MeshBlendShapes::getOrCreateOutgoingShapeNode(MPlug& outputGeometryPlug)
 		MFnDagNode dagFn(meshDagPath, &status);
 		THROW_ON_FAILURE(status);
 
-		MString newSuggestedName = utils::simpleName(outputGeometryPlug.name(&status));
+		const MString newSuggestedName = "maya2glTW_" + utils::simpleName(outputGeometryPlug.name(&status));
 		THROW_ON_FAILURE(status);
 
-		MString newName = dagFn.setName(newSuggestedName, &status);
+		const MString newName = dagFn.setName(newSuggestedName, &status);
 		THROW_ON_FAILURE(status);
 
-		cout << "Created temporary outgoing shape " << newName << endl;
+		cout << "Created temporary output mesh" << newName << endl;
 
 		// Make the mesh invisible
 		MPlug intermediateObjectPlug = dagFn.findPlug("intermediateObject", &status);

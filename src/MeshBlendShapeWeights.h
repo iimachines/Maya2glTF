@@ -24,7 +24,10 @@ public:
 	MeshBlendShapeWeights(MPlug weightArrayPlug);
 	~MeshBlendShapeWeights();
 
-	void setFullWeightAndClearOthers(const size_t index) const;
+	auto numWeights() const { return m_originalWeightPlugStates.size(); }
+	auto getWeightPlug(const int index) const { return m_weightArrayPlug[index]; }
+
+	void clearWeightsExceptFor(const size_t index) const;
 	void breakConnections();
 };
 

@@ -2,7 +2,7 @@
 #include "MeshBlendShapeWeights.h"
 #include "MayaException.h"
 
-void MeshBlendShapeWeights::setFullWeightAndClearOthers(const size_t index) const
+void MeshBlendShapeWeights::clearWeightsExceptFor(const size_t index) const
 {
 	const auto numWeights = m_originalWeightPlugStates.size();
 
@@ -27,7 +27,7 @@ MeshBlendShapeWeights::MeshBlendShapeWeights(const MPlug weightArrayPlug):m_weig
 
 	for (auto weightIndex = 0U; weightIndex<numWeights; ++weightIndex)
 	{
-		OriginalWeightPlugState state = m_originalWeightPlugStates[weightIndex];
+		OriginalWeightPlugState state;
 
 		MPlug weightPlug = m_weightArrayPlug.elementByLogicalIndex(weightIndex, &status);
 		THROW_ON_FAILURE(status);

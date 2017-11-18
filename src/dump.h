@@ -31,7 +31,7 @@ static void dump_iterable(const std::string& name, const T& iterable, const std:
 }
 
 template<typename T>
-static void dump_table(const std::string& name, const T& table, const std::string& indent, const size_t precision = 3)
+static void dump_table(const std::string& name, const std::array<T, Semantic::COUNT>& table, const std::string& indent, const size_t precision = 3)
 {
 	cout << indent << quoted(name) << ": {" << endl;
 
