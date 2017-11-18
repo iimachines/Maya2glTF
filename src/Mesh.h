@@ -15,7 +15,10 @@ public:
 	void dump(const std::string& name, const std::string& indent) const;
 
 	const MeshShape& shape() const { return *m_shape; }
-	const MeshBlendShapes& blendShapes() const { return *m_blendShapes; }
+	
+	/** null if the mesh has no blend-shapes */
+	const MeshBlendShapes* blendShapes() const { return m_blendShapes.get(); }
+
 	const MeshRenderables& renderables() const { return m_renderables; }
 
 private:

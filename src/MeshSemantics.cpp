@@ -15,7 +15,7 @@ void SetDescription::dump(const std::string& name, const std::string& indent) co
 	cout << indent << "}";
 }
 
-MeshSemantics::MeshSemantics(const MFnMesh& mesh)
+MeshSemantics::MeshSemantics(const MFnMesh& mesh, const bool isBlendShape)
 {
 	MStatus status;
 
@@ -27,24 +27,27 @@ MeshSemantics::MeshSemantics(const MFnMesh& mesh)
 		SetDescription(0, "", mesh.numNormals(&status)));
 	THROW_ON_FAILURE(status);
 
-	MStringArray colorSetNames;
-	THROW_ON_FAILURE(mesh.getColorSetNames(colorSetNames));
-
-	for (unsigned i = 0; i < colorSetNames.length(); ++i)
+	if (!isBlendShape)
 	{
-		m_table[Semantic::COLOR].push_back(
-			SetDescription(i, colorSetNames[i].asChar(), mesh.numColors(colorSetNames[i], &status)));
-		THROW_ON_FAILURE(status);
-	}
+		MStringArray colorSetNames;
+		THROW_ON_FAILURE(mesh.getColorSetNames(colorSetNames));
 
-	MStringArray uvSetNames;
-	THROW_ON_FAILURE(mesh.getUVSetNames(uvSetNames));
+		for (unsigned i = 0; i < colorSetNames.length(); ++i)
+		{
+			m_table[Semantic::COLOR].push_back(
+				SetDescription(i, colorSetNames[i].asChar(), mesh.numColors(colorSetNames[i], &status)));
+			THROW_ON_FAILURE(status);
+		}
 
-	for (unsigned  i = 0; i < uvSetNames.length(); ++i)
-	{
-		const auto description = SetDescription(i, uvSetNames[i].asChar(), mesh.numUVs(uvSetNames[i], &status));
-		m_table[Semantic::TEXCOORD].push_back(description);
-		m_table[Semantic::TANGENT].push_back(description);
+		MStringArray uvSetNames;
+		THROW_ON_FAILURE(mesh.getUVSetNames(uvSetNames));
+
+		for (unsigned i = 0; i < uvSetNames.length(); ++i)
+		{
+			const auto description = SetDescription(i, uvSetNames[i].asChar(), mesh.numUVs(uvSetNames[i], &status));
+			m_table[Semantic::TEXCOORD].push_back(description);
+			m_table[Semantic::TANGENT].push_back(description);
+		}
 	}
 }
 

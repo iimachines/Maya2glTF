@@ -45,10 +45,15 @@ namespace utils
 		return fnMat.transformation();
 	}
 
+	bool isNotSimpleChar(const char c)
+	{
+		return !isalnum(c);
+	}
+
 	MString simpleName(const MString& name)
 	{
 		std::string buffer(name.asChar());
-		replace_if(buffer.begin(), buffer.end(), isalnum, '_');
+		replace_if(buffer.begin(), buffer.end(), isNotSimpleChar, '_');
 		return MString(buffer.c_str());
 	}
 }

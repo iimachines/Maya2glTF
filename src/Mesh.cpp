@@ -9,7 +9,7 @@ Mesh::Mesh(const MDagPath& dagPath)
 	const MFnMesh fnMesh(dagPath, &status);
 	THROW_ON_FAILURE(status);
 
-	m_shape = std::make_unique<MeshShape>(fnMesh);
+	m_shape = std::make_unique<MeshShape>(fnMesh, false);
 
 	auto instanceNumber = dagPath.instanceNumber(&status);
 	THROW_ON_FAILURE(status);
@@ -30,7 +30,7 @@ Mesh::Mesh(const MDagPath& dagPath)
 		// If the shader is not used by any primitive, skip it
 		if (shading.isShaderUsed[shaderIndex])
 		{
-			auto renderable = std::make_unique<MeshRenderable>(instanceNumber, shaderIndex, *m_shape);
+			auto renderable = std::make_unique<MeshRenderable>(instanceNumber, shaderIndex, *m_shape, m_blendShapes.get());
 			if (renderable->indices().size())
 			{
 				m_renderables.emplace_back(std::move(renderable));
@@ -51,8 +51,11 @@ void Mesh::dump(const std::string& name, const std::string& indent) const
 	m_shape->dump("shape", subIndent);
 	cout << "," << endl;
 
-	m_blendShapes->dump("blendShapes", subIndent);
-	cout << "," << endl;
+	if (m_blendShapes)
+	{
+		m_blendShapes->dump("blendShapes", subIndent);
+		cout << "," << endl;
+	}
 
 	cout << subIndent << std::quoted("renderables") << ": [" << endl;
 	const auto subIndent2 = subIndent + "\t";

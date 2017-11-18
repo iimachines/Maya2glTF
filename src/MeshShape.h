@@ -7,12 +7,13 @@
 class MeshShape
 {
 public:
-	MeshShape(const MFnMesh& mesh);
-	MeshShape(const MDagPath& dagPath);
+	MeshShape(const MFnMesh& mesh, bool isBlendShape);
 	virtual ~MeshShape();
 
 	void dump(const std::string& name, const std::string& indent) const;
 
+	const bool isBlendShape;
+	const MDagPath& dagPath() const { return m_dagPath; }
 	const MeshSemantics& semantics() const { return *m_semantics; }
 	const MeshVertices& vertices() const { return *m_vertices; }
 	const MeshIndices& indices() const { return *m_indices; }

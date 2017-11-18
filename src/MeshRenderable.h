@@ -3,9 +3,13 @@
 #include "sceneTypes.h"
 
 class MeshShape;
+class MeshBlendShapes;
 
 typedef std::vector<std::vector<float>> DrawableComponentsPerSetIndex;
 typedef std::array<DrawableComponentsPerSetIndex, Semantic::COUNT> DrawableComponentsPerSetIndexTable;
+
+typedef std::map<int, std::vector<float>> ComponentDeltasPerBlendShapeIndex;
+typedef std::array<ComponentDeltasPerBlendShapeIndex, Semantic::COUNT> ComponentDeltasPerBlendShapeIndexTable;
 
 /**
  * A single renderable part of a mesh, 
@@ -19,7 +23,8 @@ public:
 	MeshRenderable(
 		const int meshInstanceIndex,
 		const int meshShaderIndex,
-		const MeshShape& shape);
+		const MeshShape& meshShape,
+		const MeshBlendShapes* maybeBlendShapes);
 
 	virtual ~MeshRenderable();
 
@@ -37,5 +42,8 @@ private:
 	IndexVector m_indices;
 	MObject m_shaderGroup;
 	DrawableComponentsPerSetIndexTable m_table;
+	ComponentDeltasPerBlendShapeIndexTable m_deltasTable;
+
+	int m_primaryComponentsCount;
 };
 

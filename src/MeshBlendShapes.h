@@ -1,9 +1,9 @@
 #pragma once
 #include "MeshShape.h"
 
-struct MeshBlendShape
+struct MeshBlendShapeEntry
 {
-	MeshBlendShape(const MFnMesh& fnMesh, const MPlug weightPlug) : shape(fnMesh), weightPlug(weightPlug)
+	MeshBlendShapeEntry(const MFnMesh& fnMesh, const MPlug weightPlug) : shape(fnMesh, true), weightPlug(weightPlug)
 	{
 	}
 
@@ -11,7 +11,7 @@ struct MeshBlendShape
 	const MPlug weightPlug;
 };
 
-typedef std::vector<std::unique_ptr<MeshBlendShape>> MeshBlendShapeVector;
+typedef std::vector<std::unique_ptr<MeshBlendShapeEntry>> MeshBlendShapeEntries;
 
 class MeshBlendShapes
 {
@@ -21,13 +21,15 @@ public:
 
 	void dump(const std::string& name, const std::string& indent) const;
 
-	const MeshBlendShapeVector& blendShapes() const { return m_blendShapes; }
+	bool empty() const { return m_baseShape == nullptr || m_entries.size() == 0;  }
 
+	const MeshBlendShapeEntries& entries() const { return m_entries; }
+	const MeshShape* baseShape() const { return m_baseShape.get(); }
 
 private:
 	MObject getOrCreateOutgoingShapeNode(MPlug& sourcePlug) const;
 	MObject getOrCreateIncomingShapeNode(const MPlug& plug) const;
 	std::unique_ptr<MeshShape> m_baseShape;
-	MeshBlendShapeVector m_blendShapes;
+	MeshBlendShapeEntries m_entries;
 };
 

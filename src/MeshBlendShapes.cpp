@@ -53,8 +53,6 @@ MeshBlendShapes::MeshBlendShapes(MObject blendShapeController)
 	MPlug weightArrayPlug = fnController.findPlug("weight", &status);
 	THROW_ON_FAILURE(status);
 
-	auto nextIndex = 0;
-
 	const auto inputTargetCount = inputTargetArrayPlug.evaluateNumElements(&status);
 	THROW_ON_FAILURE(status);
 
@@ -70,7 +68,7 @@ MeshBlendShapes::MeshBlendShapes(MObject blendShapeController)
 		return;
 	}
 
-	m_baseShape = std::make_unique<MeshShape>(mesh);
+	m_baseShape = std::make_unique<MeshShape>(mesh, true);
 
 	for (uint targetIndex = 0; targetIndex < inputTargetCount; ++targetIndex)
 	{
@@ -130,7 +128,7 @@ MeshBlendShapes::MeshBlendShapes(MObject blendShapeController)
 
 						cout << "Found blend shape target " << blendShapeTargetMesh.name() << endl;
 
-						m_blendShapes.emplace_back(std::make_unique<MeshBlendShape>(blendShapeTargetMesh, weightPlug));
+						m_entries.emplace_back(std::make_unique<MeshBlendShapeEntry>(blendShapeTargetMesh, weightPlug));
 					}
 				}
 				else
@@ -165,7 +163,7 @@ MeshBlendShapes::MeshBlendShapes(MObject blendShapeController)
 
 						cout << "Reconstructed blend shape target " << blendShapeTargetMesh.name() << endl;
 
-						m_blendShapes.emplace_back(std::make_unique<MeshBlendShape>(blendShapeTargetMesh, weightPlug));
+						m_entries.emplace_back(std::make_unique<MeshBlendShapeEntry>(blendShapeTargetMesh, weightPlug));
 					}
 				}
 			}
@@ -195,9 +193,9 @@ void MeshBlendShapes::dump(const std::string& name, const std::string& indent) c
 
 	cout << "," << endl;
 
-	for (auto i=0; i<m_blendShapes.size(); ++i)
+	for (auto i=0; i<m_entries.size(); ++i)
 	{
-		m_blendShapes.at(i)->shape.dump(std::string("target#") + std::to_string(i), subIndent);
+		m_entries.at(i)->shape.dump(std::string("target#") + std::to_string(i), subIndent);
 		cout << "," << endl;
 	}
 
@@ -223,7 +221,20 @@ MObject MeshBlendShapes::getOrCreateIncomingShapeNode(const MPlug& inputGeometry
 	if (sourceNode.hasFn(MFn::kMesh))
 		return sourceNode;
 
-	// The blend-shape geometry is not connected to a mesh, create one.
+	cout << sourceNode.apiTypeStr() << endl;
+
+	// No shape is coming in the blend-shape deformer.
+	// If this is a tweak-node, then the mesh is most likely found attached to it
+	if (sourceNode.hasFn(MFn::kGroupParts))
+	{
+		auto connectedToSourceNode = DagHelper::findSourceNodeConnectedTo(sourceNode, "input");
+		cout << connectedToSourceNode.apiTypeStr() << endl;
+	}
+
+	return MObject::kNullObj;
+
+	// This means that some other modifier is deforming the geometry (
+	// So we instead a temporary mesh to extract the geometry.
 
 	// Create the mesh node
 	MDagModifier dagMod;

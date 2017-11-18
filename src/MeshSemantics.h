@@ -32,7 +32,7 @@ typedef std::array<SetDescriptionPerSetIndex, Semantic::COUNT> SetDescriptionPer
 class MeshSemantics
 {
 public:
-	MeshSemantics(const MFnMesh& mesh);
+	MeshSemantics(const MFnMesh& mesh, bool isBlendShape);
 	virtual ~MeshSemantics();
 
 	const SetDescriptionPerSetIndexTable& table() const { return m_table; }

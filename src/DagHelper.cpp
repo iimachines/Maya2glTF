@@ -52,9 +52,8 @@ bool DagHelper::getPlugConnectedTo(const MObject& node, const MString& attribute
 	MStatus status;
 	MFnDependencyNode dgFn(node);
 	auto plug = dgFn.findPlug(attribute, &status);
-	THROW_ON_FAILURE(status);
 	
-	if (plug.isConnected())
+	if (status && plug.isConnected())
 	{
 		// Get the connection - there can be at most one input to a plug
 		MPlugArray connections;
@@ -78,9 +77,8 @@ MObject	DagHelper::findSourceNodeConnectedTo(const MObject& node, const MString&
 	THROW_ON_FAILURE(status);
 
 	auto plug = dgFn.findPlug(attribute, &status);
-	THROW_ON_FAILURE(status);
 
-	if (plug.isConnected())
+	if (status && plug.isConnected())
 	{
 		// Get the connection - there can be at most one input to a plug
 		MPlugArray connections;

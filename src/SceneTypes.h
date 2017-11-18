@@ -44,6 +44,7 @@ namespace Semantic
 		TEXCOORD,
 		TANGENT,
 		COUNT,
+		MORPH_COUNT = 2, // POSITION & NORMAL only currently
 	};
 
 	inline Kind from(int s)
