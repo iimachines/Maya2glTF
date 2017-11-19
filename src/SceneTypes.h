@@ -20,6 +20,8 @@ typedef std::vector<Tangent> TangentVector;
 typedef std::vector<Color> ColorVector;
 typedef std::vector<Index> IndexVector;
 
+typedef gsl::span<Index> IndexSpan;
+
 /** Index of a Maya shape instance */
 typedef int InstanceIndex;
 
@@ -85,4 +87,18 @@ namespace Semantic
 		default: assert(false); return "UNKNOWN";
 		}
 	}
+
+	template<typename T>
+	size_t totalSetCount(const T& table) 
+	{
+		size_t count = 0;
+
+		for (int semanticIndex = 0; semanticIndex < Semantic::COUNT; ++semanticIndex)
+		{
+			count += table.at(semanticIndex).size();
+		}
+
+		return count;
+	}
 }
+

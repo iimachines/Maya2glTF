@@ -1,14 +1,15 @@
 #pragma once
 
 #include "sceneTypes.h"
+#include "MeshShapesVertexIndexer.h"
 
-class MeshVertexComponentMappings;
+class MeshShapesVertexIndexer;
 
 typedef std::vector<std::vector<float>> DrawableComponentsPerSetIndex;
 typedef std::array<DrawableComponentsPerSetIndex, Semantic::COUNT> DrawableComponentsPerSetIndexTable;
 
 typedef std::vector<std::vector<float>> ComponentDeltasPerBlendShapeIndex;
-typedef std::array<ComponentDeltasPerBlendShapeIndex, Semantic::COUNT> ComponentDeltasPerBlendShapeIndexTable;
+typedef std::array<ComponentDeltasPerBlendShapeIndex, Semantic::MORPH_COUNT> ComponentDeltasPerBlendShapeIndexTable;
 
 /**
  * A single renderable part of a mesh, 
@@ -21,7 +22,8 @@ class MeshRenderable
 public:
 	MeshRenderable(
 		const int shaderIndex,
-		const MeshVertexComponentMappings& vertexSignatures);
+		const VertexSignature& signature,
+		const MeshShapesVertexIndexer& vertexComponentIndices);
 
 	virtual ~MeshRenderable();
 
@@ -33,7 +35,8 @@ public:
 	MObject shaderGroup() const { return m_shaderGroup; }
 
 	const int shaderIndex;
-	const MeshVertexComponentMappings& vertexSignatures;
+	const VertexSignature& vertexSignature;
+	const MeshShapesVertexIndexer& vertexComponentIndices;
 
 private:
 	IndexVector m_indices;

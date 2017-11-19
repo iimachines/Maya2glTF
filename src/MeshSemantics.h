@@ -2,17 +2,19 @@
 
 #include "sceneTypes.h"
 
-struct SetDescription
+struct VertexComponentSetDescription
 {
-	SetDescription(const SetIndex setIndex, const MString& setName, const int elementCount)
-		: setName(setName)
+	VertexComponentSetDescription(const Semantic::Kind semantic, const SetIndex setIndex, const MString& setName, const int elementCount)
+		: semantic(semantic)
+		, setName(setName)
 		, setIndex(setIndex)
 		, elementCount(elementCount)
 	{
 	}
 
-	SetDescription(const SetDescription& from)
-		: setName(from.setName)
+	VertexComponentSetDescription(const VertexComponentSetDescription& from)
+		: semantic(from.semantic)
+		, setName(from.setName)
 		, setIndex(from.setIndex)
 		, elementCount(from.elementCount)
 	{
@@ -20,14 +22,14 @@ struct SetDescription
 
 	void dump(const std::string& name, const std::string& indent) const;
 
+	const Semantic::Kind semantic;
 	const MString setName;
 	const SetIndex setIndex;
 	const int elementCount;
 };
 
-typedef std::vector<SetDescription> SetDescriptionPerSetIndex;
-typedef std::array<SetDescriptionPerSetIndex, Semantic::COUNT> SetDescriptionPerSetIndexTable;
-
+typedef std::vector<VertexComponentSetDescription> VertexComponentSetDescriptionPerSetIndex;
+typedef std::array<VertexComponentSetDescriptionPerSetIndex, Semantic::COUNT> VertexComponentSetDescriptionPerSetIndexTable;
 
 class MeshSemantics
 {
@@ -35,15 +37,13 @@ public:
 	MeshSemantics(const MFnMesh& mesh, bool isBlendShape);
 	virtual ~MeshSemantics();
 
-	const SetDescriptionPerSetIndexTable& table() const { return m_table; }
+	const VertexComponentSetDescriptionPerSetIndexTable& table() const { return m_table; }
 
-	const SetDescriptionPerSetIndex& descriptions(const Semantic::Kind kind) const { return m_table.at(kind); }
-
-	size_t totalSetCount() const;
+	const VertexComponentSetDescriptionPerSetIndex& descriptions(const Semantic::Kind kind) const { return m_table.at(kind); }
 
 	void dump(const std::string& name, const std::string& indent) const;
 
 private:
-	SetDescriptionPerSetIndexTable m_table;
+	VertexComponentSetDescriptionPerSetIndexTable m_table;
 };
 

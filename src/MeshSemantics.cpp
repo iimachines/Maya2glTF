@@ -2,7 +2,7 @@
 #include "MeshSemantics.h"
 #include "MayaException.h"
 
-void SetDescription::dump(const std::string& name, const std::string& indent) const
+void VertexComponentSetDescription::dump(const std::string& name, const std::string& indent) const
 {
 	const auto subIndent = indent + "\t";
 
@@ -20,11 +20,11 @@ MeshSemantics::MeshSemantics(const MFnMesh& mesh, const bool isBlendShape)
 	MStatus status;
 
 	m_table[Semantic::POSITION].push_back(
-		SetDescription(0, "", mesh.numVertices(&status)));
+		VertexComponentSetDescription(Semantic::POSITION, 0, "", mesh.numVertices(&status)));
 	THROW_ON_FAILURE(status);
 
 	m_table[Semantic::NORMAL].push_back(
-		SetDescription(0, "", mesh.numNormals(&status)));
+		VertexComponentSetDescription(Semantic::NORMAL, 0, "", mesh.numNormals(&status)));
 	THROW_ON_FAILURE(status);
 
 	if (!isBlendShape)
@@ -35,7 +35,7 @@ MeshSemantics::MeshSemantics(const MFnMesh& mesh, const bool isBlendShape)
 		for (unsigned i = 0; i < colorSetNames.length(); ++i)
 		{
 			m_table[Semantic::COLOR].push_back(
-				SetDescription(i, colorSetNames[i].asChar(), mesh.numColors(colorSetNames[i], &status)));
+				VertexComponentSetDescription(Semantic::COLOR, i, colorSetNames[i].asChar(), mesh.numColors(colorSetNames[i], &status)));
 			THROW_ON_FAILURE(status);
 		}
 
@@ -44,9 +44,10 @@ MeshSemantics::MeshSemantics(const MFnMesh& mesh, const bool isBlendShape)
 
 		for (unsigned i = 0; i < uvSetNames.length(); ++i)
 		{
-			const auto description = SetDescription(i, uvSetNames[i].asChar(), mesh.numUVs(uvSetNames[i], &status));
-			m_table[Semantic::TEXCOORD].push_back(description);
-			m_table[Semantic::TANGENT].push_back(description);
+			m_table[Semantic::TEXCOORD].push_back(
+				VertexComponentSetDescription(Semantic::TEXCOORD, i, uvSetNames[i].asChar(), mesh.numUVs(uvSetNames[i], &status)));
+			m_table[Semantic::TANGENT].push_back(
+				VertexComponentSetDescription(Semantic::TANGENT, i, uvSetNames[i].asChar(), mesh.numUVs(uvSetNames[i], &status)));
 		}
 	}
 }
@@ -54,18 +55,6 @@ MeshSemantics::MeshSemantics(const MFnMesh& mesh, const bool isBlendShape)
 
 MeshSemantics::~MeshSemantics()
 {
-}
-
-size_t MeshSemantics::totalSetCount() const
-{
-	size_t count = 0;
-
-	for (int semanticIndex = 0; semanticIndex < Semantic::COUNT; ++semanticIndex)
-	{
-		count += m_table.at(semanticIndex).size();
-	}
-
-	return count;
 }
 
 void MeshSemantics::dump(const std::string& name, const std::string& indent) const

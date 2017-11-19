@@ -1,7 +1,6 @@
 #pragma once
 
 #include "sceneTypes.h"
-#include "Spans.h"
 #include "MeshSemantics.h"
 
 /** The vertices of a single Maya mesh */

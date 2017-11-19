@@ -64,6 +64,7 @@
       <PrecompiledHeaderFile>externals.h</PrecompiledHeaderFile>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <EnableModules>false</EnableModules>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -101,6 +102,7 @@ if errorlevel 1 (exit /b 100)
       <PrecompiledHeaderFile>externals.h</PrecompiledHeaderFile>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <EnableModules>false</EnableModules>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -127,6 +129,7 @@ if errorlevel 1 (exit /b 100)
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\MeshShapesIndices.cpp" />
     <ClCompile Include="src\MeshBlendShapeWeights.cpp" />
     <ClCompile Include="src\ExportableMaterial.cpp" />
     <ClCompile Include="src\DagHelper.cpp" />
@@ -139,7 +142,7 @@ if errorlevel 1 (exit /b 100)
     <ClCompile Include="src\MayaUtils.cpp" />
     <ClCompile Include="src\MeshBlendShapes.cpp" />
     <ClCompile Include="src\MeshShape.cpp" />
-    <ClCompile Include="src\MeshVertexComponentMappings.cpp" />
+    <ClCompile Include="src\MeshShapesVertexIndexer.cpp" />
     <ClCompile Include="src\SignalHandlers.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\dump.cpp" />
@@ -164,6 +167,7 @@ if errorlevel 1 (exit /b 100)
     <None Include="mel\test-iteration.mel" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\MeshShapesIndices.h" />
     <ClInclude Include="src\MeshBlendShapeWeights.h" />
     <ClInclude Include="src\DagHelper.h" />
     <ClInclude Include="src\ExportableAsset.h" />
@@ -176,7 +180,7 @@ if errorlevel 1 (exit /b 100)
     <ClInclude Include="src\MayaUtils.h" />
     <ClInclude Include="src\MeshBlendShapes.h" />
     <ClInclude Include="src\MeshShape.h" />
-    <ClInclude Include="src\MeshVertexComponentMappings.h" />
+    <ClInclude Include="src\MeshShapesVertexIndexer.h" />
     <ClInclude Include="src\SignalHandlers.h" />
     <ClInclude Include="src\Mesh.h" />
     <ClInclude Include="src\dump.h" />
