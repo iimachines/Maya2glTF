@@ -21,22 +21,9 @@ Mesh::Mesh(const MDagPath& dagPath)
 		m_blendShapes = std::make_unique<MeshBlendShapes>(blendShapeController);
 	}
 
-	auto& shadingPerInstance = m_shape->indices().shadingPerInstance();
+	m_shapeCollection = std::make_unique<MeshShapeCollection>(*m_shape, m_blendShapes.get());
 
-	auto& shading = shadingPerInstance.at(instanceNumber);
-	const auto shaderCount = shading.shaderCount();
-	for (auto shaderIndex = 0; shaderIndex < shaderCount; ++shaderIndex)
-	{
-		// If the shader is not used by any primitive, skip it
-		if (shading.isShaderUsed[shaderIndex])
-		{
-			auto renderable = std::make_unique<MeshRenderable>(instanceNumber, shaderIndex, *m_shape, m_blendShapes.get());
-			if (renderable->indices().size())
-			{
-				m_renderables.emplace_back(std::move(renderable));
-			}
-		}
-	}
+	m_renderables = std::make_unique<MeshRenderables>(instanceNumber, *m_shapeCollection);
 }
 
 Mesh::~Mesh()
@@ -57,14 +44,9 @@ void Mesh::dump(const std::string& name, const std::string& indent) const
 		cout << "," << endl;
 	}
 
-	cout << subIndent << std::quoted("renderables") << ": [" << endl;
-	const auto subIndent2 = subIndent + "\t";
-	for (auto && renderable: m_renderables)
-	{
-		renderable->dump(subIndent2);
-		cout << "," << endl;
-	}
-	cout << subIndent << "]" << endl;
+	//m_renderables->dump("renderables", subIndent);
+	//cout << "," << endl;
+
 	cout << indent << "}" << endl;
 }
 

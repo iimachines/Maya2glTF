@@ -55,6 +55,11 @@ public:
 	auto primitiveCount() const { return m_table.at(Semantic::POSITION).at(0).size() / perPrimitiveVertexCount(); }
 	auto vertexCount() const { return perPrimitiveVertexCount() * primitiveCount(); }
 
+	auto indexAt(const size_t semanticIndex, const size_t setIndex) const
+	{
+		return m_table.at(semanticIndex).at(setIndex);
+	}
+
 	const auto& shadingPerInstance() const { return m_shadingPerInstance; }
 
 	void dump(const std::string& name, const std::string& indent) const;

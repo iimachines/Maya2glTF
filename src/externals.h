@@ -15,6 +15,7 @@
 #include <unordered_set>
 #include <unordered_map>
 #include <bitset>
+#include <numeric>
 
 #ifdef _MSC_VER
 #	pragma  warning(disable:4267)

@@ -129,7 +129,7 @@ if errorlevel 1 (exit /b 100)
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\MeshShapesIndices.cpp" />
+    <ClCompile Include="src\MeshShapeCollection.cpp" />
     <ClCompile Include="src\MeshBlendShapeWeights.cpp" />
     <ClCompile Include="src\ExportableMaterial.cpp" />
     <ClCompile Include="src\DagHelper.cpp" />
@@ -142,7 +142,7 @@ if errorlevel 1 (exit /b 100)
     <ClCompile Include="src\MayaUtils.cpp" />
     <ClCompile Include="src\MeshBlendShapes.cpp" />
     <ClCompile Include="src\MeshShape.cpp" />
-    <ClCompile Include="src\MeshShapesVertexIndexer.cpp" />
+    <ClCompile Include="src\MeshRenderables.cpp" />
     <ClCompile Include="src\SignalHandlers.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\dump.cpp" />
@@ -157,7 +157,6 @@ if errorlevel 1 (exit /b 100)
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2018-Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2018-Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="src\MeshRenderable.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
@@ -167,7 +166,7 @@ if errorlevel 1 (exit /b 100)
     <None Include="mel\test-iteration.mel" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\MeshShapesIndices.h" />
+    <ClInclude Include="src\MeshShapeCollection.h" />
     <ClInclude Include="src\MeshBlendShapeWeights.h" />
     <ClInclude Include="src\DagHelper.h" />
     <ClInclude Include="src\ExportableAsset.h" />
@@ -180,7 +179,7 @@ if errorlevel 1 (exit /b 100)
     <ClInclude Include="src\MayaUtils.h" />
     <ClInclude Include="src\MeshBlendShapes.h" />
     <ClInclude Include="src\MeshShape.h" />
-    <ClInclude Include="src\MeshShapesVertexIndexer.h" />
+    <ClInclude Include="src\MeshRenderables.h" />
     <ClInclude Include="src\SignalHandlers.h" />
     <ClInclude Include="src\Mesh.h" />
     <ClInclude Include="src\dump.h" />
@@ -195,7 +194,6 @@ if errorlevel 1 (exit /b 100)
     <ClInclude Include="src\externals.h" />
     <ClInclude Include="src\sceneTypes.h" />
     <ClInclude Include="src\spans.h" />
-    <ClInclude Include="src\MeshRenderable.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

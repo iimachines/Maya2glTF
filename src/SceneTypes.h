@@ -46,6 +46,7 @@ namespace Semantic
 {
 	enum Kind
 	{
+		INVALID = -1,
 		POSITION,
 		NORMAL,
 		COLOR,

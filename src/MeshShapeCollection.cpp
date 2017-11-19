@@ -1,20 +1,19 @@
 #include "externals.h"
-#include "MeshShapesIndices.h"
+#include "MeshShapeCollection.h"
 #include "MeshShape.h"
 #include "MeshBlendShapes.h"
 #include "dump.h"
 
-MeshShapesIndices::MeshShapesIndices(const MeshShape& mainShape, const MeshBlendShapes* maybeBlendShapes)
+MeshShapeCollection::MeshShapeCollection(const MeshShape& mainShape, const MeshBlendShapes* maybeBlendShapes)
 	: mainShape(mainShape)
 	, maybeBlendShapes(maybeBlendShapes)
 	, m_maxVertexComponentCount(0)
 {
-	const auto& meshIndices = mainShape.indices();
-	m_collection.push_back(&meshIndices);
+	m_shapes.push_back(&mainShape);
 
 	m_offsets.mainMeshOffset = 0;
 
-	const auto vertexCount = meshIndices.vertexCount();
+	const auto vertexCount = mainShape.indices().vertexCount();
 
 	const auto hasBlendShapes = maybeBlendShapes && !maybeBlendShapes->empty();
 
@@ -24,13 +23,13 @@ MeshShapesIndices::MeshShapesIndices(const MeshShape& mainShape, const MeshBlend
 		m_offsets.baseShapeOffset = 1;
 		m_offsets.blendShapeOffset = 2;
 
-		const auto baseShape = maybeBlendShapes->baseShape();
+		const auto* baseShape = maybeBlendShapes->baseShape();
 
 		if (baseShape->indices().vertexCount() != vertexCount)
 			throw std::runtime_error(formatted("Base shape '%s' has different topology from '%s'!",
 				mainShape.dagPath().fullPathName().asChar(), baseShape->dagPath().fullPathName().asChar()));
 
-		m_collection.push_back(&baseShape->indices());
+		m_shapes.push_back(baseShape);
 
 		m_offsets.blendShapeCount = maybeBlendShapes->entries().size();
 
@@ -41,15 +40,15 @@ MeshShapesIndices::MeshShapesIndices(const MeshShape& mainShape, const MeshBlend
 				throw std::runtime_error(formatted("Blend shape '%s' has different topology from '%s'!",
 					mainShape.dagPath().fullPathName().asChar(), shape.dagPath().fullPathName().asChar()));
 
-			m_collection.push_back(&meshIndices);
+			m_shapes.push_back(&shape);
 		}
 	}
 
-	auto maxVertexComponentCount = 0;
+	size_t maxVertexComponentCount = 0;
 
-	for (auto* shapeIndices : m_collection)
+	for (auto* shape : m_shapes)
 	{
-		for (auto && indicesPerSet : shapeIndices->table())
+		for (auto && indicesPerSet : shape->indices().table())
 		{
 			maxVertexComponentCount += indicesPerSet.size();
 		}
@@ -58,6 +57,6 @@ MeshShapesIndices::MeshShapesIndices(const MeshShape& mainShape, const MeshBlend
 	m_maxVertexComponentCount = maxVertexComponentCount;
 }
 
-MeshShapesIndices::~MeshShapesIndices()
+MeshShapeCollection::~MeshShapeCollection()
 {
 }
