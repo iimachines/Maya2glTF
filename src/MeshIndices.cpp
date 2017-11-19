@@ -5,6 +5,7 @@
 #include "dump.h"
 
 MeshIndices::MeshIndices(const MeshSemantics& semantics, const MFnMesh& fnMesh)
+	:meshName(fnMesh.partialPathName().asChar())
 {
 	MStatus status;
 
@@ -155,7 +156,6 @@ MeshIndices::MeshIndices(const MeshSemantics& semantics, const MFnMesh& fnMesh)
 					}
 					else
 					{
-						// This polygon has no associated UV.
 						uvSets.at(setIndex).push_back(NoIndex);
 						tangentSets.at(setIndex).push_back(NoIndex);
 					}

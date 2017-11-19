@@ -139,6 +139,7 @@ if errorlevel 1 (exit /b 100)
     <ClCompile Include="src\MayaUtils.cpp" />
     <ClCompile Include="src\MeshBlendShapes.cpp" />
     <ClCompile Include="src\MeshShape.cpp" />
+    <ClCompile Include="src\MeshVertexComponentMappings.cpp" />
     <ClCompile Include="src\SignalHandlers.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\dump.cpp" />
@@ -175,6 +176,7 @@ if errorlevel 1 (exit /b 100)
     <ClInclude Include="src\MayaUtils.h" />
     <ClInclude Include="src\MeshBlendShapes.h" />
     <ClInclude Include="src\MeshShape.h" />
+    <ClInclude Include="src\MeshVertexComponentMappings.h" />
     <ClInclude Include="src\SignalHandlers.h" />
     <ClInclude Include="src\Mesh.h" />
     <ClInclude Include="src\dump.h" />

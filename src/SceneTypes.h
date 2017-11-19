@@ -20,6 +20,12 @@ typedef std::vector<Tangent> TangentVector;
 typedef std::vector<Color> ColorVector;
 typedef std::vector<Index> IndexVector;
 
+/** Index of a Maya shape instance */
+typedef int InstanceIndex;
+
+/** Index of a Maya material */
+typedef int ShaderIndex;
+
 typedef size_t Hash;
 
 enum PrimitiveKind

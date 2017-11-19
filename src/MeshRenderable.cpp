@@ -6,16 +6,18 @@
 #include "DagHelper.h"
 #include "MeshShape.h"
 #include "MeshBlendShapes.h"
+#include "MeshVertexComponentMappings.h"
 
 MeshRenderable::MeshRenderable(
-	const int meshInstanceIndex,
-	const int meshShaderIndex, 
-	const MeshShape& meshShape,
-	const MeshBlendShapes* maybeBlendShapes)
-	: meshInstanceIndex(meshInstanceIndex)
-	, meshShaderIndex(meshShaderIndex)
+	const int shaderIndex,
+	const MeshVertexComponentMappings& vertexSignatures)
+	: shaderIndex(shaderIndex)
+	, vertexSignatures(vertexSignatures)
 {
 	MStatus status;
+
+	const auto& meshShape = vertexSignatures.shape;
+	const auto* maybeBlendShapes = vertexSignatures.maybeBlendShapes;
 
 	const auto& meshIndices = meshShape.indices();
 	const auto& meshVertices = meshShape.vertices();
@@ -23,13 +25,13 @@ MeshRenderable::MeshRenderable(
 
 	const MeshShading& shading = meshIndices.shadingPerInstance().at(meshInstanceIndex);
 
-	m_shaderGroup = shading.shaderGroups[meshShaderIndex];
+	m_shaderGroup = shading.shaderGroups[shaderIndex];
 
-	std::map<IndexVector, Index> drawableComponentIndexMap;
+	std::map<IndexVector, Index> vertexMap;
 
 	const auto& shaderMap = shading.primitiveToShaderIndexMap;
 	const auto& indicesTable = meshIndices.table();
-	const auto& componentsTable = meshVertices.table();
+	const auto& verticesTable = meshVertices.table();
 
 	const auto primitiveCount = shaderMap.size();
 
@@ -45,7 +47,7 @@ MeshRenderable::MeshRenderable(
 			throw std::runtime_error(formatted("Base shape '%s' has different topology from '%s'!",
 				meshShape.dagPath().fullPathName().asChar(), baseShape->dagPath().fullPathName().asChar()));
 
-		for (auto&& entry: maybeBlendShapes->entries())
+		for (auto&& entry : maybeBlendShapes->entries())
 		{
 			const auto& shape = entry->shape;
 			if (shape.indices().primitiveCount() != primitiveCount)
@@ -67,35 +69,54 @@ MeshRenderable::MeshRenderable(
 	for (auto semanticIndex = 0; semanticIndex < Semantic::COUNT; ++semanticIndex)
 	{
 		const auto semanticKind = Semantic::from(semanticIndex);
-		const auto& sourceComponentsPerSet = componentsTable.at(semanticKind);
-		auto& targetComponentsPerSet = m_table.at(semanticKind);
+		const auto& inputVerticesPerSet = verticesTable.at(semanticKind);
+		auto& outputVerticesPerSet = m_table.at(semanticKind);
 
-		for (auto setIndex = 0; setIndex < sourceComponentsPerSet.size(); ++setIndex)
+		for (auto setIndex = 0; setIndex < inputVerticesPerSet.size(); ++setIndex)
 		{
-			const auto& source = sourceComponentsPerSet[setIndex];
+			const auto& source = inputVerticesPerSet[setIndex];
 
 			FloatVector target;
 			target.reserve(source.size() * 2);
-			targetComponentsPerSet.push_back(target);
+			outputVerticesPerSet.push_back(target);
+		}
+	}
+
+	if (hasBlendShapes)
+	{
+		// Allocate delta component vectors
+		const auto& entries = maybeBlendShapes->entries();
+		for (auto targetIndex = 0; targetIndex < entries.size(); ++targetIndex)
+		{
+			for (auto semanticIndex = 0; semanticIndex < Semantic::MORPH_COUNT; ++semanticIndex)
+			{
+				const auto semanticKind = Semantic::from(semanticIndex);
+				auto& targetDeltasPerShape = m_deltasTable.at(semanticKind);
+				targetDeltasPerShape.push_back(FloatVector());
+			}
 		}
 	}
 
 	// Merge components
-	int componentIndex = 0;
-	const int componentsPerPrimitive = 3;
+	auto primitiveVertexIndex = 0;
+
+	const auto perPrimitiveVertexCount = meshIndices.perPrimitiveVertexCount();
 
 	for (int primitiveIndex = 0; primitiveIndex < primitiveCount; ++primitiveIndex)
 	{
-		if (shaderMap[primitiveIndex] != meshShaderIndex)
+		if (shaderMap[primitiveIndex] != shaderIndex)
 		{
-			// This primitive does not belong to the shader, skip it.
-			componentIndex += componentsPerPrimitive;
+			// This primitive is not shaded, skip it.
+			primitiveVertexIndex += perPrimitiveVertexCount;
 			continue;
 		}
 
-		// Add each component of the primitive.
-		for (int counter = componentsPerPrimitive; --counter >= 0; ++componentIndex)
+		// Add each vertex of the primitive.
+		for (int counter = perPrimitiveVertexCount; --counter >= 0; ++primitiveVertexIndex)
 		{
+			// Build a key of indices. 
+			// If a vertex with the same key is already added, reuse it.
+			// TODO: We should use a set of the vertices itself!
 			key.clear();
 
 			uint64 keyMask = 0;
@@ -104,7 +125,7 @@ MeshRenderable::MeshRenderable(
 			{
 				for (auto && indices : indicesPerSet)
 				{
-					const auto index = indices[componentIndex];
+					const auto index = indices[primitiveVertexIndex];
 					key.push_back(index);
 
 					keyMask <<= 1;
@@ -112,7 +133,10 @@ MeshRenderable::MeshRenderable(
 				}
 			}
 
-			// Also add blend shapes
+			// Also add blend shapes indices to the key. 
+			// The topology of the blend shapes must be exactly the same as the main mesh, 
+			// ie if we split a vertex in the main mesh, 
+			// we must also split it in the blend shapes.
 			if (hasBlendShapes)
 			{
 				//const auto baseShape = maybeBlendShapes->baseShape();
@@ -137,7 +161,7 @@ MeshRenderable::MeshRenderable(
 					{
 						for (auto && indices : indicesPerSet)
 						{
-							const auto index = indices[componentIndex];
+							const auto index = indices[primitiveVertexIndex];
 							key.push_back(index);
 
 							keyMask <<= 1;
@@ -148,15 +172,15 @@ MeshRenderable::MeshRenderable(
 			}
 
 			if (vertexMask && vertexMask != keyMask)
-				throw std::exception("Mesh seems to have invalid set assignments");
+				throw std::runtime_error(formatted("Mesh seems to have invalid set assignments (0x%08X vs 0x%08X)"));
 
 			vertexMask = keyMask;
 
 			int vertexIndex;
 
-			const auto foundIt = drawableComponentIndexMap.find(key);
+			const auto foundIt = vertexMap.find(key);
 
-			if (foundIt != drawableComponentIndexMap.end())
+			if (foundIt != vertexMap.end())
 			{
 				// Reuse the vertex
 				vertexIndex = foundIt->second;
@@ -166,7 +190,7 @@ MeshRenderable::MeshRenderable(
 				// Create a new vertex
 				vertexIndex = ++lastVertexIndex;
 
-				drawableComponentIndexMap[key] = vertexIndex;
+				vertexMap[key] = vertexIndex;
 
 				auto keyIndex = 0;
 
@@ -174,21 +198,21 @@ MeshRenderable::MeshRenderable(
 				{
 					const auto semanticKind = Semantic::from(semanticIndex);
 					const auto groupSize = Semantic::dimension(semanticKind);
-					const auto& sourceComponentsPerSet = componentsTable.at(semanticKind);
-					auto& targetComponentsPerSet = m_table.at(semanticKind);
+					const auto& inputVerticesPerSet = verticesTable.at(semanticKind);
+					auto& outputVerticesPerSet = m_table.at(semanticKind);
 
-					for (auto setIndex = 0; setIndex < sourceComponentsPerSet.size(); ++setIndex)
+					for (auto setIndex = 0; setIndex < inputVerticesPerSet.size(); ++setIndex)
 					{
-						const auto& source = sourceComponentsPerSet[setIndex];
-						auto& target = targetComponentsPerSet[setIndex];
+						const auto& inputVertex = inputVerticesPerSet[setIndex];
+						auto& outputVertex = outputVerticesPerSet[setIndex];
 
-						const auto sourceIndex = key[keyIndex++];
+						const auto inputIndices = key[keyIndex++];
 
-						if (sourceIndex >= 0)
+						if (inputIndices >= 0)
 						{
-							target.insert(target.end(),
-								source.begin() + groupSize * sourceIndex,
-								source.begin() + groupSize * (sourceIndex + 1));
+							outputVertex.insert(outputVertex.end(),
+								inputVertex.begin() + groupSize * inputIndices,
+								inputVertex.begin() + groupSize * (inputIndices + 1));
 						}
 					}
 				}
@@ -197,15 +221,15 @@ MeshRenderable::MeshRenderable(
 				if (hasBlendShapes)
 				{
 					const auto baseShape = maybeBlendShapes->baseShape();
-					const auto& baseComponentsTable = baseShape->vertices().table();
+					const auto& baseVerticesTable = baseShape->vertices().table();
 					const auto& baseIndicesTable = baseShape->indices().table();
 
 					const auto& entries = maybeBlendShapes->entries();
 
-					for (auto targetIndex = 0; targetIndex < entries.size(); ++targetIndex)
+					for (auto outputIndex = 0; outputIndex < entries.size(); ++outputIndex)
 					{
-						const auto& shape = entries.at(targetIndex)->shape;
-						const auto& shapeComponentsTable = shape.vertices().table();
+						const auto& shape = entries.at(outputIndex)->shape;
+						const auto& shapeVerticesTable = shape.vertices().table();
 						const auto& shapeIndicesTable = shape.indices().table();
 
 						for (auto semanticIndex = 0; semanticIndex < Semantic::MORPH_COUNT; ++semanticIndex)
@@ -216,36 +240,32 @@ MeshRenderable::MeshRenderable(
 							const auto& baseIndicesPerSet = baseIndicesTable.at(semanticIndex);
 							const auto& shapeIndicesPerSet = shapeIndicesTable.at(semanticIndex);
 
-							const auto& baseComponentsPerSet = baseComponentsTable.at(semanticKind);
-							const auto& sourceComponentsPerSet = shapeComponentsTable.at(semanticKind);
+							const auto& baseVerticesPerSet = baseVerticesTable.at(semanticKind);
+							const auto& shapeVerticesPerSet = shapeVerticesTable.at(semanticKind);
 
-							auto& targetComponentsPerShape = m_deltasTable.at(semanticKind);
+							auto& deltaVerticesPerSet = m_deltasTable.at(semanticKind);
 
-							const auto& shapeSource = sourceComponentsPerSet.at(0);
-							const auto& baseSource = baseComponentsPerSet.at(0);
+							const auto& shapeVertex = shapeVerticesPerSet.at(0);
+							const auto& baseVertex = baseVerticesPerSet.at(0);
 
-							const auto baseSourceIndex = baseIndicesPerSet.at(0).at(componentIndex);
-							const auto shapeSourceIndex = shapeIndicesPerSet.at(0).at(componentIndex);
-							assert(baseSourceIndex >= 0);
-							assert(shapeSourceIndex >= 0);
+							const auto baseVertexIndex = baseIndicesPerSet.at(0).at(primitiveVertexIndex);
+							const auto shapeVertexIndex = shapeIndicesPerSet.at(0).at(primitiveVertexIndex);
+							assert(baseVertexIndex >= 0);
+							assert(shapeVertexIndex >= 0);
 
-							// TODO: Preallocate!
-							if (targetComponentsPerShape.size() == 0)
-								targetComponentsPerShape.push_back(FloatVector());
+							auto& deltaVertex = deltaVerticesPerSet.at(outputIndex);
 
-							auto& target = targetComponentsPerShape.at(targetIndex);
+							const auto offset = deltaVertex.size();
 
-							const auto offset = target.size();
-
-							target.insert(target.end(),
-								shapeSource.begin() + groupSize * shapeSourceIndex,
-								shapeSource.begin() + groupSize * (shapeSourceIndex + 1));
+							deltaVertex.insert(deltaVertex.end(),
+								shapeVertex.begin() + groupSize * shapeVertexIndex,
+								shapeVertex.begin() + groupSize * (shapeVertexIndex + 1));
 
 							// Subtract base shape
-							auto itBase = baseSource.begin() + groupSize * shapeSourceIndex;
-							auto itTarget = target.begin() + offset;
-							const auto itEnd = target.end();
-							while (itTarget<itEnd)
+							auto itBase = baseVertex.begin() + groupSize * baseVertexIndex;
+							auto itTarget = deltaVertex.begin() + offset;
+							const auto itEnd = deltaVertex.end();
+							while (itTarget < itEnd)
 							{
 								*itTarget++ -= *itBase++;
 							}
@@ -268,7 +288,7 @@ void MeshRenderable::dump(const std::string& indent) const
 {
 	const auto subIndent = indent + "\t";
 	cout << indent << "{" << endl;
-	cout << subIndent << std::quoted("meshShaderIndex") << ":" << std::to_string(meshShaderIndex) << "," << endl;
+	cout << subIndent << std::quoted("shaderIndex") << ":" << std::to_string(shaderIndex) << "," << endl;
 	dump_table("vertices", m_table, subIndent);
 	cout << "," << endl;
 	dump_iterable("indices", m_indices, subIndent);

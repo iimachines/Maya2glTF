@@ -2,8 +2,7 @@
 
 #include "sceneTypes.h"
 
-class MeshShape;
-class MeshBlendShapes;
+class MeshVertexComponentMappings;
 
 typedef std::vector<std::vector<float>> DrawableComponentsPerSetIndex;
 typedef std::array<DrawableComponentsPerSetIndex, Semantic::COUNT> DrawableComponentsPerSetIndexTable;
@@ -21,10 +20,8 @@ class MeshRenderable
 {
 public:
 	MeshRenderable(
-		const int meshInstanceIndex,
-		const int meshShaderIndex,
-		const MeshShape& meshShape,
-		const MeshBlendShapes* maybeBlendShapes);
+		const int shaderIndex,
+		const MeshVertexComponentMappings& vertexSignatures);
 
 	virtual ~MeshRenderable();
 
@@ -35,8 +32,8 @@ public:
 
 	MObject shaderGroup() const { return m_shaderGroup; }
 
-	const int meshInstanceIndex;
-	const int meshShaderIndex;
+	const int shaderIndex;
+	const MeshVertexComponentMappings& vertexSignatures;
 
 private:
 	IndexVector m_indices;
