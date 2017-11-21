@@ -35,3 +35,11 @@ static gsl::span<const T> reinterpret_span(const gsl::span<S>& span)
 	return gsl::make_span(reinterpret_cast<const T*>(bgn_ptr), reinterpret_cast<const T*>(end_ptr));
 }
 
+static std::size_t hash_value(const gsl::span<const uint32>& span)
+{
+	std::size_t seed = span.size();
+	for (auto& i : span) {
+		seed ^= i + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+	}
+	return seed;
+}

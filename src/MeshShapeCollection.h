@@ -39,23 +39,23 @@ public:
 
 	bool hasBlendShapes() const { return maybeBlendShapes != nullptr; }
 
-	/** A vertex will contain the all components of the main shape, all the blend shape deltas, and the skin weight assignments */
-	auto maxVertexComponentCount() const { return m_maxVertexComponentCount; }
+	/** A vertex will contain the all elements of the main shape, all the blend shape deltas, and the skin weight assignments */
+	auto maxVertexElementCount() const { return m_maxVertexElementCount; }
 
-	auto indexAt(const size_t shapeIndex, const size_t semanticIndex, const size_t setIndex) const
+	const IndexVector& indicesAt(const size_t shapeIndex, const size_t semanticIndex, const size_t setIndex) const
 	{
 		auto* shape = m_shapes.at(shapeIndex);
-		return shape->indices().indexAt(semanticIndex, setIndex);
+		return shape->indices().indicesAt(semanticIndex, setIndex);
 	}
 
-	const VertexComponents& vertexComponentsAt(const size_t shapeIndex, const size_t semanticIndex, const size_t setIndex) const
+	const VertexComponents& vertexElementsAt(const size_t shapeIndex, const size_t semanticIndex, const size_t setIndex) const
 	{
 		auto* shape = m_shapes.at(shapeIndex);
-		return shape->vertices().vertexComponentsAt(semanticIndex, setIndex);
+		return shape->vertices().vertexElementComponentsAt(semanticIndex, setIndex);
 	}
 
 private:
 	MeshShapesVector m_shapes;
 	MeshShapeOffsets m_offsets;
-	size_t m_maxVertexComponentCount;
+	size_t m_maxVertexElementCount;
 };

@@ -2,7 +2,7 @@
 #include "MeshSemantics.h"
 #include "MayaException.h"
 
-void VertexComponentSetDescription::dump(const std::string& name, const std::string& indent) const
+void VertexElementSetDescription::dump(const std::string& name, const std::string& indent) const
 {
 	const auto subIndent = indent + "\t";
 
@@ -20,11 +20,11 @@ MeshSemantics::MeshSemantics(const MFnMesh& mesh, const bool isBlendShape)
 	MStatus status;
 
 	m_table[Semantic::POSITION].push_back(
-		VertexComponentSetDescription(Semantic::POSITION, 0, "", mesh.numVertices(&status)));
+		VertexElementSetDescription(Semantic::POSITION, 0, "", mesh.numVertices(&status)));
 	THROW_ON_FAILURE(status);
 
 	m_table[Semantic::NORMAL].push_back(
-		VertexComponentSetDescription(Semantic::NORMAL, 0, "", mesh.numNormals(&status)));
+		VertexElementSetDescription(Semantic::NORMAL, 0, "", mesh.numNormals(&status)));
 	THROW_ON_FAILURE(status);
 
 	if (!isBlendShape)
@@ -35,7 +35,7 @@ MeshSemantics::MeshSemantics(const MFnMesh& mesh, const bool isBlendShape)
 		for (unsigned i = 0; i < colorSetNames.length(); ++i)
 		{
 			m_table[Semantic::COLOR].push_back(
-				VertexComponentSetDescription(Semantic::COLOR, i, colorSetNames[i].asChar(), mesh.numColors(colorSetNames[i], &status)));
+				VertexElementSetDescription(Semantic::COLOR, i, colorSetNames[i].asChar(), mesh.numColors(colorSetNames[i], &status)));
 			THROW_ON_FAILURE(status);
 		}
 
@@ -45,9 +45,9 @@ MeshSemantics::MeshSemantics(const MFnMesh& mesh, const bool isBlendShape)
 		for (unsigned i = 0; i < uvSetNames.length(); ++i)
 		{
 			m_table[Semantic::TEXCOORD].push_back(
-				VertexComponentSetDescription(Semantic::TEXCOORD, i, uvSetNames[i].asChar(), mesh.numUVs(uvSetNames[i], &status)));
+				VertexElementSetDescription(Semantic::TEXCOORD, i, uvSetNames[i].asChar(), mesh.numUVs(uvSetNames[i], &status)));
 			m_table[Semantic::TANGENT].push_back(
-				VertexComponentSetDescription(Semantic::TANGENT, i, uvSetNames[i].asChar(), mesh.numUVs(uvSetNames[i], &status)));
+				VertexElementSetDescription(Semantic::TANGENT, i, uvSetNames[i].asChar(), mesh.numUVs(uvSetNames[i], &status)));
 		}
 	}
 }

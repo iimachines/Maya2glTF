@@ -7,7 +7,7 @@
 MeshShapeCollection::MeshShapeCollection(const MeshShape& mainShape, const MeshBlendShapes* maybeBlendShapes)
 	: mainShape(mainShape)
 	, maybeBlendShapes(maybeBlendShapes)
-	, m_maxVertexComponentCount(0)
+	, m_maxVertexElementCount(0)
 {
 	m_shapes.push_back(&mainShape);
 
@@ -44,17 +44,17 @@ MeshShapeCollection::MeshShapeCollection(const MeshShape& mainShape, const MeshB
 		}
 	}
 
-	size_t maxVertexComponentCount = 0;
+	size_t maxVertexElementCount = 0;
 
 	for (auto* shape : m_shapes)
 	{
 		for (auto && indicesPerSet : shape->indices().table())
 		{
-			maxVertexComponentCount += indicesPerSet.size();
+			maxVertexElementCount += indicesPerSet.size();
 		}
 	}
 
-	m_maxVertexComponentCount = maxVertexComponentCount;
+	m_maxVertexElementCount = maxVertexElementCount;
 }
 
 MeshShapeCollection::~MeshShapeCollection()

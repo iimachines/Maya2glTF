@@ -62,8 +62,8 @@ namespace Semantic
 		return static_cast<Kind>(s);
 	}
 
-	// Get the number of components per semantic 
-	inline size_t dimension(const Kind s)
+	// Get the number of float components per semantic 
+	inline int dimension(const Kind s)
 	{
 		switch (s)
 		{

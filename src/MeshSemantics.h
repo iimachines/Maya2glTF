@@ -2,9 +2,9 @@
 
 #include "sceneTypes.h"
 
-struct VertexComponentSetDescription
+struct VertexElementSetDescription
 {
-	VertexComponentSetDescription(const Semantic::Kind semantic, const SetIndex setIndex, const MString& setName, const int elementCount)
+	VertexElementSetDescription(const Semantic::Kind semantic, const SetIndex setIndex, const MString& setName, const int elementCount)
 		: semantic(semantic)
 		, setName(setName)
 		, setIndex(setIndex)
@@ -12,7 +12,7 @@ struct VertexComponentSetDescription
 	{
 	}
 
-	VertexComponentSetDescription(const VertexComponentSetDescription& from)
+	VertexElementSetDescription(const VertexElementSetDescription& from)
 		: semantic(from.semantic)
 		, setName(from.setName)
 		, setIndex(from.setIndex)
@@ -28,7 +28,7 @@ struct VertexComponentSetDescription
 	const int elementCount;
 };
 
-typedef std::vector<VertexComponentSetDescription> VertexComponentSetDescriptionPerSetIndex;
+typedef std::vector<VertexElementSetDescription> VertexComponentSetDescriptionPerSetIndex;
 typedef std::array<VertexComponentSetDescriptionPerSetIndex, Semantic::COUNT> VertexComponentSetDescriptionPerSetIndexTable;
 
 class MeshSemantics

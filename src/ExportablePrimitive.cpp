@@ -1,6 +1,5 @@
 #include "externals.h"
-#include "MayaException.h"
-#include "MeshRenderable.h"
+#include "MeshRenderables.h"
 #include "ExportablePrimitive.h"
 #include "ExportableResources.h"
 #include "ExportableMaterial.h"
@@ -26,50 +25,45 @@ namespace Semantic
 	}
 }
 
-ExportablePrimitive::ExportablePrimitive(const MeshRenderable& renderable, ExportableResources& resources)
+ExportablePrimitive::ExportablePrimitive(
+	const VertexBuffer& vertexBuffer,
+	const MObject& shaderGroup,
+	ExportableResources& resources)
 {
 	glPrimitive.mode = GLTF::Primitive::TRIANGLES;
 
-	auto& renderableIndices = renderable.indices();
-	auto& renderableTable = renderable.table();
+	auto& vertexIndices = vertexBuffer.indices;
 
-	auto spanIndices = reinterpret_span<uint8>(span(renderableIndices));
+	auto spanIndices = reinterpret_span<uint8>(span(vertexIndices));
 	m_data.insert(m_data.end(), spanIndices.begin(), spanIndices.end());
 
 	glIndices = std::make_unique<GLTF::Accessor>(
 		GLTF::Accessor::Type::SCALAR, WebGL::UNSIGNED_INT,
-		&m_data[0], static_cast<int>(renderableIndices.size()),
+		&m_data[0], static_cast<int>(vertexIndices.size()),
 		WebGL::ELEMENT_ARRAY_BUFFER);
 
 	glPrimitive.indices = glIndices.get();
 
-	for (int semanticIndex = 0; semanticIndex < Semantic::COUNT; ++semanticIndex)
+	// Extract main shape vertices
+	// TODO: Derived blend shape deltas!
+	for (auto && slot : vertexBuffer.layout)
 	{
-		const auto semanticKind = Semantic::from(semanticIndex);
-		const auto& componentsPerSetIndex = renderableTable.at(semanticIndex);
-		const auto componentDimension = Semantic::dimension(semanticKind);
-
-		for (int setIndex = 0; setIndex < componentsPerSetIndex.size(); ++setIndex)
+		if (slot.shapeIndex == 0)
 		{
-			const auto& renderableComponents = componentsPerSetIndex.at(setIndex);
+			const auto& components = vertexBuffer.componentsMap.at(slot);
+			const int offset = static_cast<int>(m_data.size());
+			const int count = static_cast<int>(components.size() / slot.dimension());
+			auto spanComponents = reinterpret_span<uint8>(span(components));
+			m_data.insert(m_data.end(), spanComponents.begin(), spanComponents.end());
 
-			if (renderableComponents.size())
-			{
-				const int offset = static_cast<int>(m_data.size());
-				const int count = static_cast<int>(renderableComponents.size() / componentDimension);
-
-				auto spanComponents = reinterpret_span<uint8>(span(renderableComponents));
-				m_data.insert(m_data.end(), spanComponents.begin(), spanComponents.end());
-
-				auto accessor = createAccessor(semanticKind, offset, count);
-				glPrimitive.attributes[glTFattributeName(semanticKind, setIndex)] = accessor.get();
-				glAccessorTable[semanticIndex].emplace_back(move(accessor));
-			}
+			auto accessor = createAccessor(slot.semantic, offset, count);
+			glPrimitive.attributes[glTFattributeName(slot.semantic, slot.setIndex)] = accessor.get();
+			glAccessorTable[slot.semantic].emplace_back(move(accessor));
 		}
 	}
 
 	// Link material
-	const auto material = resources.getMaterial(renderable.shaderGroup());
+	const auto material = resources.getMaterial(shaderGroup);
 	if (material)
 	{
 		glPrimitive.material = material->glMaterial();

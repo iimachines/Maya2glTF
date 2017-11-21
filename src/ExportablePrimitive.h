@@ -1,7 +1,7 @@
 #pragma once
 
 #include "sceneTypes.h"
-#include "MeshRenderable.h"
+#include "MeshRenderables.h"
 #include "ExportableMesh.h"
 
 typedef std::vector<std::unique_ptr<GLTF::Accessor>> MeshAccessorPerSetIndex;
@@ -12,7 +12,7 @@ class ExportableResources;
 class ExportablePrimitive
 {
 public:
-	ExportablePrimitive(const MeshRenderable& renderable, ExportableResources& resources);
+	ExportablePrimitive(const VertexBuffer& vertexBuffer, const MObject& shaderGroup, ExportableResources& resources);
 	virtual ~ExportablePrimitive();
 
 	GLTF::Primitive glPrimitive;
