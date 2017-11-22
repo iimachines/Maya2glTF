@@ -62,13 +62,13 @@
       <PreprocessorDefinitions>WIN32;_WIN64;_WINDOWS;_USRDLL;NT_PLUGIN;REQUIRE_IOSTREAM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>externals.h</PrecompiledHeaderFile>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <EnableModules>false</EnableModules>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(MAYA_2018_SDK)\lib;$(ProjectDir)dependencies\COLLADA2GLTF\build\GLTF\Debug;$(ProjectDir)dependencies\COLLADA2GLTF\build\GLTF\dependencies\draco\Debug</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(MAYA_2018_SDK)\lib;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\build\Debug;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\build\dependencies\draco\Debug</AdditionalLibraryDirectories>
       <AdditionalDependencies>Foundation.lib;OpenMaya.lib;OpenMayaUI.lib;glTF.lib;draco.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/export:initializePlugin /export:uninitializePlugin %(AdditionalOptions)</AdditionalOptions>
     </Link>
@@ -100,7 +100,7 @@ if errorlevel 1 (exit /b 100)
       <PreprocessorDefinitions>WIN32;_WIN64;_WINDOWS;_USRDLL;NT_PLUGIN;REQUIRE_IOSTREAM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>externals.h</PrecompiledHeaderFile>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <EnableModules>false</EnableModules>
     </ClCompile>
@@ -108,7 +108,7 @@ if errorlevel 1 (exit /b 100)
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(MAYA_2018_SDK)\lib;$(ProjectDir)dependencies\COLLADA2GLTF\build\GLTF\Release;$(ProjectDir)dependencies\COLLADA2GLTF\build\GLTF\dependencies\draco\Release</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(MAYA_2018_SDK)\lib;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\build\Release;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\build\dependencies\draco\Release</AdditionalLibraryDirectories>
       <AdditionalDependencies>Foundation.lib;OpenMaya.lib;OpenMayaUI.lib;glTF.lib;draco.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/export:initializePlugin /export:uninitializePlugin %(AdditionalOptions)</AdditionalOptions>
     </Link>
