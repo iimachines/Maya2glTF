@@ -1,6 +1,7 @@
 #include "externals.h"
 #include "Mesh.h"
 #include "MayaException.h"
+#include <any>
 
 Mesh::Mesh(const MDagPath& dagPath) 
 {
@@ -11,15 +12,14 @@ Mesh::Mesh(const MDagPath& dagPath)
 
 	m_shape = std::make_unique<MeshShape>(fnMesh, false);
 
-	auto instanceNumber = dagPath.instanceNumber(&status);
-	THROW_ON_FAILURE(status);
-
-	// Find blend shapes. The weights of shapes are added as extra semantics
 	MObject blendShapeController = tryExtractBlendController(fnMesh);
 	if (!blendShapeController.isNull())
 	{
 		m_blendShapes = std::make_unique<MeshBlendShapes>(blendShapeController);
 	}
+
+	auto instanceNumber = dagPath.instanceNumber(&status);
+	THROW_ON_FAILURE(status);
 
 	m_shapeCollection = std::make_unique<MeshShapeCollection>(*m_shape, m_blendShapes.get());
 
@@ -30,24 +30,24 @@ Mesh::~Mesh()
 {
 }
 
-void Mesh::dump(const std::string& name, const std::string& indent) const
+void Mesh::dump(std::ostream& out, const std::string& name, const std::string& indent) const
 {
-	cout << indent << quoted(name) << ": {" << endl;
+	out << indent << quoted(name) << ": {" << endl;
 	const auto subIndent = indent + "\t";
 
-	m_shape->dump("shape", subIndent);
-	cout << "," << endl;
+	m_shape->dump(out, "shape", subIndent);
+	out << "," << endl;
 
 	if (m_blendShapes)
 	{
-		m_blendShapes->dump("blendShapes", subIndent);
-		cout << "," << endl;
+		m_blendShapes->dump(out, "blendShapes", subIndent);
+		out << "," << endl;
 	}
 
-	//m_renderables->dump("renderables", subIndent);
+	//m_renderables->dump(cout, "renderables", subIndent);
 	//cout << "," << endl;
 
-	cout << indent << "}" << endl;
+	out << indent << "}" << endl;
 }
 
 
@@ -78,13 +78,22 @@ MObject Mesh::tryExtractBlendController(const MFnMesh& fnMesh)
 			MObject thisNode = dgIt.thisNode();
 			if (thisNode.hasFn(MFn::kBlendShape))
 			{
-				if (blendController.isNull())
+				MFnBlendShapeDeformer fnController(thisNode, &status);
+
+				if (status == MStatus::kSuccess)
 				{
-					blendController = thisNode;
+					if (blendController.isNull())
+					{
+						blendController = thisNode;
+					}
+					else
+					{
+						cerr << "maya2glTF: ignoring blend controller " << MFnDependencyNode(thisNode).name() << endl;
+					}
 				}
 				else
 				{
-					cerr << "maya2glTF: ignoring blend controller " << MFnDependencyNode(thisNode).name() << endl;
+					cerr << "maya2glTF: node has " << MFnDependencyNode(thisNode).name() << endl;
 				}
 			}
 		}

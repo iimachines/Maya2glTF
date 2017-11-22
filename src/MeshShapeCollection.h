@@ -23,7 +23,10 @@ struct MeshShapeOffsets
 	}
 };
 
-/** All the shapes used by a mesh: the main shape, the blend shapes (and in the future, the skin weight assignments) */
+/** 
+ * All the shapes used by a mesh: the main shape or the blend shapes (including the base shape) 
+ * (and in the future, the skin weight assignments) 
+ */
 class MeshShapeCollection
 {
 public:

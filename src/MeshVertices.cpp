@@ -109,8 +109,8 @@ MeshVertices::~MeshVertices()
 {
 }
 
-void MeshVertices::dump(const std::string& name, const std::string& indent) const
+void MeshVertices::dump(std::ostream& out, const std::string& name, const std::string& indent) const
 {
-	dump_table(name, m_table, indent);
+	dump_table(out, name, m_table, indent);
 }
 

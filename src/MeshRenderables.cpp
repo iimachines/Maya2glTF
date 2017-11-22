@@ -18,7 +18,6 @@ MeshRenderables::MeshRenderables(
 	auto& shadingPerInstance = mainIndices.shadingPerInstance();
 
 	auto& shading = shadingPerInstance.at(instanceIndex);
-	const auto shaderCount = shading.shaderCount();
 
 	const auto primitiveCount = mainIndices.primitiveCount();
 	const auto vertexCount = mainIndices.vertexCount();

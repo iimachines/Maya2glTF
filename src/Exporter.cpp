@@ -71,7 +71,7 @@ void Exporter::exportScene(const Arguments& args)
 	glAsset.scenes.push_back(&glScene);
 	glAsset.scene = 0;
 
-	ExportableResources resources(args.dumpMaya);
+	ExportableResources resources(args);
 
 	std::vector<std::unique_ptr<ExportableItem>> exportables;
 
@@ -95,8 +95,9 @@ void Exporter::exportScene(const Arguments& args)
 
 	if (args.dumpGLTF)
 	{
-		cout << "glTF dump:" << endl;
-		cout << exportableAsset.prettyJsonString();
-		cout << endl;
+		auto& out = *args.dumpGLTF;
+		out << "glTF dump:" << endl;
+		out << exportableAsset.prettyJsonString();
+		out << endl;
 	}
 }

@@ -6,11 +6,11 @@
 #include "MayaUtils.h"
 #include "MeshBlendShapeWeights.h"
 
-MeshBlendShapes::MeshBlendShapes(MObject blendShapeController)
+MeshBlendShapes::MeshBlendShapes(MObject blendShapeNode)
 {
 	MStatus status;
 
-	MFnDependencyNode fnController(blendShapeController, &status);
+	MFnBlendShapeDeformer fnController(blendShapeNode, &status);
 	THROW_ON_FAILURE(status);
 
 	cout << "Processing blend shapes of " << fnController.name().asChar() << "..." << endl;
@@ -70,14 +70,14 @@ MeshBlendShapes::~MeshBlendShapes()
 	// TODO: Delete temporary created shapes
 }
 
-void MeshBlendShapes::dump(const std::string& name, const std::string& indent) const
+void MeshBlendShapes::dump(std::ostream& cout, const std::string& name, const std::string& indent) const
 {
 	cout << indent << quoted(name) << ": {" << endl;
 	const auto subIndent = indent + "\t";
 
 	if (m_baseShape)
 	{
-		m_baseShape->dump("base", subIndent);
+		m_baseShape->dump(cout, "base", subIndent);
 	}
 	else
 	{
@@ -88,7 +88,7 @@ void MeshBlendShapes::dump(const std::string& name, const std::string& indent) c
 
 	for (auto i=0; i<m_entries.size(); ++i)
 	{
-		m_entries.at(i)->shape.dump(std::string("target#") + std::to_string(i), subIndent);
+		m_entries.at(i)->shape.dump(cout, std::string("target#") + std::to_string(i), subIndent);
 		cout << "," << endl;
 	}
 

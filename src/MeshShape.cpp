@@ -13,16 +13,16 @@ MeshShape::~MeshShape()
 {
 }
 
-void MeshShape::dump(const std::string& name, const std::string& indent) const
+void MeshShape::dump(std::ostream& cout, const std::string& name, const std::string& indent) const
 {
 	cout << indent << quoted(name) << ": {" << endl;
 	const auto subIndent = indent + "\t";
 	cout << subIndent << "isBlendShape: " << isBlendShape << ", " << endl;
-	m_semantics->dump("semantics", subIndent);
+	m_semantics->dump(cout, "semantics", subIndent);
 	cout << "," << endl;
-	m_vertices->dump("vertices", subIndent);
+	m_vertices->dump(cout, "vertices", subIndent);
 	cout << "," << endl;
-	m_indices->dump("indices", subIndent);
+	m_indices->dump(cout, "indices", subIndent);
 	cout << "," << endl;
 	cout << indent << "}" << endl;
 }

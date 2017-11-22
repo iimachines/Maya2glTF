@@ -12,7 +12,7 @@ class ExportableResources;
 class ExportablePrimitive
 {
 public:
-	ExportablePrimitive(const VertexBuffer& vertexBuffer, const MObject& shaderGroup, ExportableResources& resources);
+	ExportablePrimitive(const VertexBuffer& vertexBuffer, ExportableResources& resources);
 	virtual ~ExportablePrimitive();
 
 	GLTF::Primitive glPrimitive;

@@ -13,27 +13,43 @@ std::string formatted(const char* format, Args ... args)
 }
 
 template<typename T>
-static void dump_iterable(const std::string& name, const T& iterable, const std::string& indent, const size_t precision = 3)
+static void dump_iterable(std::ostream& out, const std::string& name, const T& iterable, const std::string& indent, const int itemsPerLine, const size_t precision = 3)
 {
-	cout << std::fixed;
+	out << std::fixed;
 
-	cout << indent << quoted(name) << ":\t[";
+	const auto itemsIndent = indent + '\t';
+	const auto newLineIndent = std::string(",\n") + itemsIndent;
+	const auto itemSeparator = std::string(",\t");
+	const auto noSeparator = std::string("");
 
-	auto separator = "";
+	out << indent << quoted(name) << ": [" << endl << itemsIndent;
+
+	const auto* separator = &noSeparator;
+
+	int counter = itemsPerLine;
 
 	for(auto it=iterable.begin(); it!=iterable.end(); ++it)
 	{
-		cout << separator << std::setprecision(precision) << *it;
-		separator = ", ";
+		out << *separator << std::setprecision(precision) << *it;
+
+		if (--counter <= 0)
+		{
+			separator = &newLineIndent;
+			counter = itemsPerLine;
+		}
+		else
+		{
+			separator = &itemSeparator;
+		}
 	}
 
-	cout << "]";
+	out << endl << indent << "]";
 }
 
 template<typename T>
-static void dump_table(const std::string& name, const std::array<T, Semantic::COUNT>& table, const std::string& indent, const size_t precision = 3)
+static void dump_table(std::ostream& out, const std::string& name, const std::array<T, Semantic::COUNT>& table, const std::string& indent, const size_t precision = 3)
 {
-	cout << indent << quoted(name) << ": {" << endl;
+	out << indent << quoted(name) << ": {" << endl;
 
 	const auto subIndent = indent + "\t";
 
@@ -43,12 +59,12 @@ static void dump_table(const std::string& name, const std::array<T, Semantic::CO
 
 		for (auto&& components : table.at(semanticKind))
 		{
-			dump_iterable(Semantic::name(semanticKind), components, subIndent, precision);
-			cout << "," << endl;
+			dump_iterable(out, Semantic::name(semanticKind), components, subIndent, dimension(semanticKind), precision);
+			out << "," << endl;
 		}
 	}
 
-	cout << indent << "}";
+	out << indent << "}";
 }
 
-void dump_array(const std::string& name, const MStringArray& items, const std::string& indent);
+void dump_array(std::ostream& out, const std::string& name, const MStringArray& items, const std::string& indent);

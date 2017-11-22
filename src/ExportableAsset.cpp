@@ -138,13 +138,22 @@ const std::string& ExportableAsset::prettyJsonString() const
 	{
 		// Pretty format the JSON
 		rapidjson::Document jsonDocument;
-		jsonDocument.Parse(m_rawJsonString.c_str());
+		const bool hasParseErrors = jsonDocument.Parse(m_rawJsonString.c_str()).HasParseError();
 
-		rapidjson::StringBuffer jsonPrettyBuffer;
-		rapidjson::PrettyWriter<rapidjson::StringBuffer> jsonPrettyWriter(jsonPrettyBuffer);
-		jsonDocument.Accept(jsonPrettyWriter);
+		if (hasParseErrors)
+		{
+			cerr << "Failed to reformat glTF JSON, outputting raw JSON" << endl;
+			m_prettyJsonString = m_rawJsonString;
+		}
+		else
+		{
+			rapidjson::StringBuffer jsonPrettyBuffer;
 
-		m_prettyJsonString = jsonPrettyBuffer.GetString();
+			// Write the pretty JSON
+			rapidjson::PrettyWriter<rapidjson::StringBuffer> jsonPrettyWriter(jsonPrettyBuffer);
+			jsonDocument.Accept(jsonPrettyWriter);
+			m_prettyJsonString = jsonPrettyBuffer.GetString();
+		}
 	}
 
 	return m_prettyJsonString;

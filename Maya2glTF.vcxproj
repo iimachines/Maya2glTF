@@ -69,7 +69,7 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(MAYA_2018_SDK)\lib;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\build\Debug;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\build\dependencies\draco\Debug</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Foundation.lib;OpenMaya.lib;OpenMayaUI.lib;glTF.lib;draco.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Foundation.lib;OpenMaya.lib;OpenMayaAnim.lib;OpenMayaUI.lib;glTF.lib;draco.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/export:initializePlugin /export:uninitializePlugin %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>
@@ -109,7 +109,7 @@ if errorlevel 1 (exit /b 100)
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>$(MAYA_2018_SDK)\lib;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\build\Release;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\build\dependencies\draco\Release</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Foundation.lib;OpenMaya.lib;OpenMayaUI.lib;glTF.lib;draco.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Foundation.lib;OpenMaya.lib;OpenMayaAnim.lib;OpenMayaUI.lib;glTF.lib;draco.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/export:initializePlugin /export:uninitializePlugin %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PostBuildEvent>
@@ -129,6 +129,7 @@ if errorlevel 1 (exit /b 100)
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\color.cpp" />
     <ClCompile Include="src\MeshShapeCollection.cpp" />
     <ClCompile Include="src\MeshBlendShapeWeights.cpp" />
     <ClCompile Include="src\ExportableMaterial.cpp" />
@@ -166,6 +167,7 @@ if errorlevel 1 (exit /b 100)
     <None Include="mel\test-iteration.mel" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\color.h" />
     <ClInclude Include="src\hashers.h" />
     <ClInclude Include="src\MeshShapeCollection.h" />
     <ClInclude Include="src\MeshBlendShapeWeights.h" />

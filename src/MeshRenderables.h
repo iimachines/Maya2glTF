@@ -227,7 +227,7 @@ public:
 
 	const VertexBufferTable& table() const { return m_table; }
 
-	//void dump(const std::string& name, const std::string& indent) const;
+	//void dump(std::ostream& cout, const std::string& name, const std::string& indent) const;
 
 private:
 	VertexBufferTable m_table;

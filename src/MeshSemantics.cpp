@@ -2,7 +2,7 @@
 #include "MeshSemantics.h"
 #include "MayaException.h"
 
-void VertexElementSetDescription::dump(const std::string& name, const std::string& indent) const
+void VertexElementSetDescription::dump(std::ostream& cout, const std::string& name, const std::string& indent) const
 {
 	const auto subIndent = indent + "\t";
 
@@ -57,7 +57,7 @@ MeshSemantics::~MeshSemantics()
 {
 }
 
-void MeshSemantics::dump(const std::string& name, const std::string& indent) const
+void MeshSemantics::dump(std::ostream& cout, const std::string& name, const std::string& indent) const
 {
 	const auto subIndent = indent + "\t";
 
@@ -69,7 +69,7 @@ void MeshSemantics::dump(const std::string& name, const std::string& indent) con
 
 		for (auto&& semantic : m_table.at(semanticKind))
 		{
-			semantic.dump(Semantic::name(semanticKind), subIndent);
+			semantic.dump(cout, Semantic::name(semanticKind), subIndent);
 			cout << "," << endl;
 		}
 	}

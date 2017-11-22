@@ -16,10 +16,10 @@ typedef std::vector<std::unique_ptr<MeshBlendShapeEntry>> MeshBlendShapeEntries;
 class MeshBlendShapes
 {
 public:
-	MeshBlendShapes(MObject blendShapeController);
+	MeshBlendShapes(MObject blendShapeNode);
 	virtual ~MeshBlendShapes();
 
-	void dump(const std::string& name, const std::string& indent) const;
+	void dump(std::ostream& cout, const std::string& name, const std::string& indent) const;
 
 	bool empty() const { return m_baseShape == nullptr || m_entries.size() == 0;  }
 

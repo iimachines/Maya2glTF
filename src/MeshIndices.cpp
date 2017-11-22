@@ -19,9 +19,6 @@ MeshIndices::MeshIndices(const MeshSemantics& semantics, const MFnMesh& fnMesh)
 	{
 		auto& shading = m_shadingPerInstance[instanceIndex];
 		THROW_ON_FAILURE(fnMesh.getConnectedShaders(instanceIndex, shading.shaderGroups, mapPolygonToShaderPerInstance[instanceIndex]));
-
-		const auto shaderCount = shading.shaderGroups.length();
-		shading.isShaderUsed.resize(shaderCount, false);
 		shading.primitiveToShaderIndexMap.reserve(numPolygons * 2);
 	}
 
@@ -67,17 +64,6 @@ MeshIndices::MeshIndices(const MeshSemantics& semantics, const MFnMesh& fnMesh)
 
 		auto numTrianglesInPolygon = 0;
 		THROW_ON_FAILURE(itPoly.numTriangles(numTrianglesInPolygon));
-
-		// NOTE: This can be negative when no shader is attached (e.g. blend shapes)
-		for (unsigned instanceIndex = 0; instanceIndex < instanceCount; ++instanceIndex)
-		{
-			auto& shading = m_shadingPerInstance[instanceIndex];
-			const auto shaderIndex = mapPolygonToShaderPerInstance.at(instanceIndex)[polygonIndex];
-			if (shaderIndex >= 0)
-			{
-				shading.isShaderUsed[shaderIndex] = true;
-			}
-		}
 
 		// Map mesh-vertex-indices to face-vertex-indices.
 		// TODO: Figure out what Maya API does this for us;
@@ -169,9 +155,9 @@ MeshIndices::~MeshIndices()
 {
 }
 
-void MeshIndices::dump(const std::string& name, const std::string& indent) const
+void MeshIndices::dump(std::ostream& out, const std::string& name, const std::string& indent) const
 {
-	dump_table(name, m_table, indent);
+	dump_table(out, name, m_table, indent);
 }
 
 
