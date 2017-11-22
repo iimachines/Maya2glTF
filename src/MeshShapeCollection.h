@@ -8,10 +8,10 @@ typedef std::vector<const MeshShape*> MeshShapesVector;
 
 struct MeshShapeOffsets
 {
-	size_t mainMeshOffset;
-	size_t baseShapeOffset;
-	size_t blendShapeOffset;
-	size_t blendShapeCount;
+	int mainMeshOffset;
+	int baseShapeOffset;
+	int blendShapeOffset;
+	int blendShapeCount;
 
 	MeshShapeOffsets() :mainMeshOffset(-1), baseShapeOffset(-1), blendShapeOffset(-1), blendShapeCount(0)
 	{

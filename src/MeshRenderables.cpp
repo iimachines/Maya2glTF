@@ -82,7 +82,7 @@ MeshRenderables::MeshRenderables(
 
 				for (auto&& slot : vertexLayout)
 				{
-					componentsMap[slot].resize(vertexCount * slot.dimension());
+					componentsMap[slot].reserve(vertexCount * slot.dimension());
 				}
 			}
 			else
@@ -105,7 +105,7 @@ MeshRenderables::MeshRenderables(
 					const auto& elementIndices = shapeCollection.indicesAt(slot.shapeIndex, slot.semantic, slot.setIndex);
 					const auto vertexIndex = elementIndices.at(primitiveVertexIndex);
 					const auto& vertexElements = shapeCollection.vertexElementsAt(slot.shapeIndex, slot.semantic, slot.setIndex);
-					const auto source = componentsAt(vertexElements, vertexIndex, slot.semantic);
+					const auto& source = componentsAt(vertexElements, vertexIndex, slot.semantic);
 					auto& target = componentsMap.at(slot);
 					target.insert(target.end(), source.begin(), source.end());
 				}
@@ -120,38 +120,47 @@ MeshRenderables::MeshRenderables(
 		}
 	}
 
-	// No subtract the blend-shape-base mesh from the blend-shape-targets
+	// Now subtract the blend-shape-base mesh from the blend-shape-targets,
+	// and delete the base-mesh
 	const auto& meshOffsets = shapeCollection.offsets();
 	if (meshOffsets.baseShapeOffset > 0)
 	{
 		for (auto&& pair : m_table)
 		{
 			VertexBuffer& buffer = pair.second;
-			const VertexLayout& layout = buffer.layout;
+			VertexLayout& layout = buffer.layout;
 			VertexComponentsMap& compMap = buffer.componentsMap;
 
 			auto baseShapeSlots = from(layout)
 				| where([meshOffsets](const VertexSlot& slot) {return slot.shapeIndex == meshOffsets.baseShapeOffset; })
 				| to_vector();
 
-			for (VertexSlot slot : baseShapeSlots)
+			for (const VertexSlot& baseSlot : baseShapeSlots)
 			{
-				const auto& baseComps = compMap.at(slot);
-				const auto count = baseComps.size();
+				auto& baseComps = compMap.at(baseSlot);
+				auto count = baseComps.size();
 
-				for (auto blendShapeIndex: from_int_range(meshOffsets.blendShapeOffset, meshOffsets.blendShapeCount))
+				for (int blendShapeIndex: from_int_range(meshOffsets.blendShapeOffset, meshOffsets.blendShapeCount))
 				{
-					slot.shapeIndex = blendShapeIndex;
-					auto& shapeComps = compMap.at(slot);
+					VertexSlot shapeSlot = baseSlot;
+					shapeSlot.shapeIndex = blendShapeIndex;
+					auto& shapeComps = compMap.at(shapeSlot);
 
 					for (auto index=0; index<count; ++index)
 					{
 						shapeComps[index] -= baseComps[index];
 					}
 				}
+
+				// Remove base components.
+				compMap.erase(baseSlot);
 			}
 
-			// TODO: Remove the base slots
+			// Remove base slots from layout
+			std::remove_if(layout.begin(), layout.end(), [meshOffsets](const VertexSlot& slot)
+			{
+				return slot.shapeIndex == meshOffsets.baseShapeOffset;
+			});
 		}
 	}
 }

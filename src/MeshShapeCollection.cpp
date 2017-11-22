@@ -12,6 +12,7 @@ MeshShapeCollection::MeshShapeCollection(const MeshShape& mainShape, const MeshB
 	const auto hasBlendShapes = maybeBlendShapes && !maybeBlendShapes->empty();
 
 	m_offsets.mainMeshOffset = 0;
+	m_shapes.push_back(&mainShape);
 
 	const auto vertexCount = mainShape.indices().vertexCount();
 
@@ -29,7 +30,7 @@ MeshShapeCollection::MeshShapeCollection(const MeshShape& mainShape, const MeshB
 
 		m_shapes.push_back(baseShape);
 
-		m_offsets.blendShapeCount = maybeBlendShapes->entries().size();
+		m_offsets.blendShapeCount = static_cast<int>(maybeBlendShapes->entries().size());
 
 		for (auto&& entry : maybeBlendShapes->entries())
 		{
@@ -40,10 +41,6 @@ MeshShapeCollection::MeshShapeCollection(const MeshShape& mainShape, const MeshB
 
 			m_shapes.push_back(&shape);
 		}
-	}
-	else
-	{
-		m_shapes.push_back(&mainShape);
 	}
 
 	size_t maxVertexElementCount = 0;
