@@ -17,6 +17,7 @@
 #include <bitset>
 #include <numeric>
 #include <cmath>
+#include <valarray>
 
 #ifdef _MSC_VER
 #	pragma  warning(disable:4267)
@@ -40,6 +41,9 @@
 #include "rapidjson/writer.h"
 
 #include <gsl/span>
+
+#include <coveo/linq.h>
+#include <coveo/enumerable.h>
 
 #include <experimental/vector>
 #include <maya/MPxCommand.h>

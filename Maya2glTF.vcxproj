@@ -58,7 +58,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <AdditionalIncludeDirectories>$(MAYA_2018_SDK)\include;$(ProjectDir)dependencies\GSL\include;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\include;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\dependencies\draco\src;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\dependencies\rapidjson\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MAYA_2018_SDK)\include;$(ProjectDir)dependencies\GSL\include;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\include;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\dependencies\draco\src;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\dependencies\rapidjson\include;$(ProjectDir)dependencies\cpp-linq\lib</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WIN64;_WINDOWS;_USRDLL;NT_PLUGIN;REQUIRE_IOSTREAM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>externals.h</PrecompiledHeaderFile>
@@ -96,7 +96,7 @@ if errorlevel 1 (exit /b 100)
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
-      <AdditionalIncludeDirectories>$(MAYA_2018_SDK)\include;$(ProjectDir)dependencies\GSL\include;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\include;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\dependencies\draco\src;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\dependencies\rapidjson\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(MAYA_2018_SDK)\include;$(ProjectDir)dependencies\GSL\include;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\include;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\dependencies\draco\src;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\dependencies\rapidjson\include;$(ProjectDir)dependencies\cpp-linq\lib</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_WIN64;_WINDOWS;_USRDLL;NT_PLUGIN;REQUIRE_IOSTREAM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>externals.h</PrecompiledHeaderFile>

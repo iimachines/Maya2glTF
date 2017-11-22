@@ -5,6 +5,8 @@
 #include "MeshShapeCollection.h"
 #include "MeshRenderables.h"
 
+using namespace coveo::linq;
+
 MeshRenderables::MeshRenderables(
 	const InstanceIndex instanceIndex,
 	const MeshShapeCollection& shapeCollection)
@@ -38,10 +40,9 @@ MeshRenderables::MeshRenderables(
 	{
 		const auto shaderIndex = shading.primitiveToShaderIndexMap[primitiveIndex];
 
-		// Determine signature (used semantics per shader)
 		for (int counter = perPrimitiveVertexCount; --counter >= 0; ++primitiveVertexIndex)
 		{
-			// Compute the vertex signature (a bit per used semantic+set)
+			// Compute the vertex signature (one bit per semantic+set, 0=unused, 1=used)
 			VertexSignature vertexSignature(shaderIndex, 0);
 
 			vertexLayout.clear();
@@ -79,9 +80,9 @@ MeshRenderables::MeshRenderables(
 				vertexBuffer.layout = vertexLayout;
 				vertexBuffer.indices.reserve(vertexCount);
 
-				for (auto&& slot: vertexLayout)
+				for (auto&& slot : vertexLayout)
 				{
-					componentsMap[slot].reserve(vertexCount * slot.dimension());
+					componentsMap[slot].resize(vertexCount * slot.dimension());
 				}
 			}
 			else
@@ -116,6 +117,41 @@ MeshRenderables::MeshRenderables(
 			}
 
 			vertexBuffer.indices.push_back(sharedVertexIndex);
+		}
+	}
+
+	// No subtract the blend-shape-base mesh from the blend-shape-targets
+	const auto& meshOffsets = shapeCollection.offsets();
+	if (meshOffsets.baseShapeOffset > 0)
+	{
+		for (auto&& pair : m_table)
+		{
+			VertexBuffer& buffer = pair.second;
+			const VertexLayout& layout = buffer.layout;
+			VertexComponentsMap& compMap = buffer.componentsMap;
+
+			auto baseShapeSlots = from(layout)
+				| where([meshOffsets](const VertexSlot& slot) {return slot.shapeIndex == meshOffsets.baseShapeOffset; })
+				| to_vector();
+
+			for (VertexSlot slot : baseShapeSlots)
+			{
+				const auto& baseComps = compMap.at(slot);
+				const auto count = baseComps.size();
+
+				for (auto blendShapeIndex: from_int_range(meshOffsets.blendShapeOffset, meshOffsets.blendShapeCount))
+				{
+					slot.shapeIndex = blendShapeIndex;
+					auto& shapeComps = compMap.at(slot);
+
+					for (auto index=0; index<count; ++index)
+					{
+						shapeComps[index] -= baseComps[index];
+					}
+				}
+			}
+
+			// TODO: Remove the base slots
 		}
 	}
 }

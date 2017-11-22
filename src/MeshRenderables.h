@@ -201,6 +201,7 @@ typedef std::vector<VertexSlot> VertexLayout;
 
 typedef std::unordered_map<IndexVector, Index, CollectionHashers> VertexSharingMap;
 
+// TODO: Use valarrays here?
 typedef std::unordered_map<VertexSlot, FloatVector, VertexHashers> VertexComponentsMap;
 
 struct VertexBuffer
@@ -209,6 +210,8 @@ struct VertexBuffer
 	VertexLayout layout;
 	IndexVector indices;
 	VertexComponentsMap componentsMap;
+
+
 };
 
 typedef std::unordered_map<VertexSignature, VertexBuffer, VertexHashers> VertexBufferTable;
