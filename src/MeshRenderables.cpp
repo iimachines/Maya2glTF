@@ -5,6 +5,8 @@
 #include "MeshShapeCollection.h"
 #include "MeshRenderables.h"
 
+using namespace coveo::linq;
+
 MeshRenderables::MeshRenderables(
 	const InstanceIndex instanceIndex,
 	const MeshShapeCollection& shapeCollection)
@@ -18,7 +20,6 @@ MeshRenderables::MeshRenderables(
 	auto& shadingPerInstance = mainIndices.shadingPerInstance();
 
 	auto& shading = shadingPerInstance.at(instanceIndex);
-	const auto shaderCount = shading.shaderCount();
 
 	const auto primitiveCount = mainIndices.primitiveCount();
 	const auto vertexCount = mainIndices.vertexCount();
@@ -39,10 +40,9 @@ MeshRenderables::MeshRenderables(
 	{
 		const auto shaderIndex = shading.primitiveToShaderIndexMap[primitiveIndex];
 
-		// Determine signature (used semantics per shader)
 		for (int counter = perPrimitiveVertexCount; --counter >= 0; ++primitiveVertexIndex)
 		{
-			// Compute the vertex signature (a bit per used semantic+set)
+			// Compute the vertex signature (one bit per semantic+set, 0=unused, 1=used)
 			VertexSignature vertexSignature(shaderIndex, 0);
 
 			vertexLayout.clear();
@@ -80,7 +80,7 @@ MeshRenderables::MeshRenderables(
 				vertexBuffer.layout = vertexLayout;
 				vertexBuffer.indices.reserve(vertexCount);
 
-				for (auto&& slot: vertexLayout)
+				for (auto&& slot : vertexLayout)
 				{
 					componentsMap[slot].reserve(vertexCount * slot.dimension());
 				}
@@ -105,7 +105,7 @@ MeshRenderables::MeshRenderables(
 					const auto& elementIndices = shapeCollection.indicesAt(slot.shapeIndex, slot.semantic, slot.setIndex);
 					const auto vertexIndex = elementIndices.at(primitiveVertexIndex);
 					const auto& vertexElements = shapeCollection.vertexElementsAt(slot.shapeIndex, slot.semantic, slot.setIndex);
-					const auto source = componentsAt(vertexElements, vertexIndex, slot.semantic);
+					const auto& source = componentsAt(vertexElements, vertexIndex, slot.semantic);
 					auto& target = componentsMap.at(slot);
 					target.insert(target.end(), source.begin(), source.end());
 				}
@@ -117,6 +117,50 @@ MeshRenderables::MeshRenderables(
 			}
 
 			vertexBuffer.indices.push_back(sharedVertexIndex);
+		}
+	}
+
+	// Now subtract the blend-shape-base mesh from the blend-shape-targets,
+	// and delete the base-mesh
+	const auto& meshOffsets = shapeCollection.offsets();
+	if (meshOffsets.baseShapeOffset > 0)
+	{
+		for (auto&& pair : m_table)
+		{
+			VertexBuffer& buffer = pair.second;
+			VertexLayout& layout = buffer.layout;
+			VertexComponentsMap& compMap = buffer.componentsMap;
+
+			auto baseShapeSlots = from(layout)
+				| where([meshOffsets](const VertexSlot& slot) {return slot.shapeIndex == meshOffsets.baseShapeOffset; })
+				| to_vector();
+
+			for (const VertexSlot& baseSlot : baseShapeSlots)
+			{
+				auto& baseComps = compMap.at(baseSlot);
+				auto count = baseComps.size();
+
+				for (int blendShapeIndex: from_int_range(meshOffsets.blendShapeOffset, meshOffsets.blendShapeCount))
+				{
+					VertexSlot shapeSlot = baseSlot;
+					shapeSlot.shapeIndex = blendShapeIndex;
+					auto& shapeComps = compMap.at(shapeSlot);
+
+					for (auto index=0; index<count; ++index)
+					{
+						shapeComps[index] -= baseComps[index];
+					}
+				}
+
+				// Remove base components.
+				compMap.erase(baseSlot);
+			}
+
+			// Remove base slots from layout
+			std::remove_if(layout.begin(), layout.end(), [meshOffsets](const VertexSlot& slot)
+			{
+				return slot.shapeIndex == meshOffsets.baseShapeOffset;
+			});
 		}
 	}
 }

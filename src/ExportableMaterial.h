@@ -1,6 +1,8 @@
 #pragma once
 #include "sceneTypes.h"
-#include "ExportableResources.h"
+#include "color.h"
+
+class ExportableResources;
 
 class ExportableMaterial
 {
@@ -16,18 +18,35 @@ protected:
 	static bool getColor(const MObject& shaderObject, const char* attributeName, Float4& color);
 };
 
-class ExportableMaterialPBR : public ExportableMaterial
+class ExportableMaterialBasePBR : public ExportableMaterial
 {
 public:
-	ExportableMaterialPBR(ExportableResources& resources, const MFnDependencyNode& shaderNode);
-	~ExportableMaterialPBR();
-
 	GLTF::Material* glMaterial() override { return &m_pbrMaterial; }
 
-private:
+protected:
 	Float4 m_pbrBaseColorFactor;
 	Float3 m_pbrEmissiveFactor;
 	GLTF::MaterialPBR m_pbrMaterial;
 	GLTF::MaterialPBR::MetallicRoughness m_pbrMetallicRoughness;
 };
 
+class ExportableDefaultMaterial : public ExportableMaterialBasePBR
+{
+public:
+	ExportableDefaultMaterial();
+	~ExportableDefaultMaterial();
+};
+
+class ExportableMaterialPBR : public ExportableMaterialBasePBR
+{
+public:
+	ExportableMaterialPBR(ExportableResources& resources, const MFnDependencyNode& shaderNode);
+	~ExportableMaterialPBR();
+};
+
+class ExportableDebugMaterial : public ExportableMaterialBasePBR
+{
+public:
+	ExportableDebugMaterial(const Float3& hsv);
+	~ExportableDebugMaterial();
+};

@@ -5,15 +5,16 @@
 #include "DagHelper.h"
 #include "MayaUtils.h"
 #include "MeshBlendShapeWeights.h"
+#include "IndentableStream.h"
 
-MeshBlendShapes::MeshBlendShapes(MObject blendShapeController)
+MeshBlendShapes::MeshBlendShapes(MObject blendShapeNode)
 {
 	MStatus status;
 
-	MFnDependencyNode fnController(blendShapeController, &status);
+	MFnBlendShapeDeformer fnController(blendShapeNode, &status);
 	THROW_ON_FAILURE(status);
 
-	cout << "Processing blend shapes of " << fnController.name().asChar() << "..." << endl;
+	cout << prefix << "Processing blend shapes of " << fnController.name().asChar() << "..." << endl;
 
 	MPlug weightArrayPlug = fnController.findPlug("weight", &status);
 	THROW_ON_FAILURE(status);
@@ -33,7 +34,7 @@ MeshBlendShapes::MeshBlendShapes(MObject blendShapeController)
 	MPlug outputGeometryPlug = outputGeometryPlugs.elementByPhysicalIndex(0, &status);
 	THROW_ON_FAILURE(status);
 
-	MObject outputShape = getOrCreateOutputShape(outputGeometryPlug);
+	MObject outputShape = getOrCreateOutputShape(outputGeometryPlug, m_tempOutputMesh);
 
 	if (outputShape.isNull())
 	{
@@ -67,35 +68,41 @@ MeshBlendShapes::MeshBlendShapes(MObject blendShapeController)
 
 MeshBlendShapes::~MeshBlendShapes()
 {
-	// TODO: Delete temporary created shapes
+	if (!m_tempOutputMesh.isNull())
+	{
+		MDagModifier dagMod;
+		dagMod.deleteNode(m_tempOutputMesh);
+		m_tempOutputMesh = MObject::kNullObj;
+	}
 }
 
-void MeshBlendShapes::dump(const std::string& name, const std::string& indent) const
+void MeshBlendShapes::dump(class IndentableStream& out, const std::string& name) const
 {
-	cout << indent << quoted(name) << ": {" << endl;
-	const auto subIndent = indent + "\t";
-
-	if (m_baseShape)
+	out << quoted(name) << ": {" << endl;
 	{
-		m_baseShape->dump("base", subIndent);
-	}
-	else
-	{
-		cout << subIndent << "base: null";
-	}
+		auto&& indented = out.scope();
 
-	cout << "," << endl;
+		if (m_baseShape)
+		{
+			m_baseShape->dump(out, "base");
+		}
+		else
+		{
+			out << "base: null";
+		}
 
-	for (auto i=0; i<m_entries.size(); ++i)
-	{
-		m_entries.at(i)->shape.dump(std::string("target#") + std::to_string(i), subIndent);
-		cout << "," << endl;
+		out << "," << endl;
+
+		for (auto i = 0; i < m_entries.size(); ++i)
+		{
+			m_entries.at(i)->shape.dump(out, std::string("target#") + std::to_string(i));
+			out << "," << endl;
+		}
 	}
-
-	cout << indent << "}";
+	out << '}';
 }
 
-MObject MeshBlendShapes::getOrCreateOutputShape(MPlug& outputGeometryPlug) const
+MObject MeshBlendShapes::getOrCreateOutputShape(MPlug& outputGeometryPlug, MObject& createdMesh) const
 {
 	MStatus status;
 	MPlugArray connections;
@@ -124,11 +131,11 @@ MObject MeshBlendShapes::getOrCreateOutputShape(MPlug& outputGeometryPlug) const
 
 		// Create the mesh node
 		MDagModifier dagMod;
-		MObject tempNode = dagMod.createNode("mesh", MObject::kNullObj, &status);
+		createdMesh = dagMod.createNode("mesh", MObject::kNullObj, &status);
 		THROW_ON_FAILURE(dagMod.doIt());
 
 		// Make sure we select the shape node, not the transform node.
-		MDagPath meshDagPath = MDagPath::getAPathTo(tempNode, &status);
+		MDagPath meshDagPath = MDagPath::getAPathTo(createdMesh, &status);
 		THROW_ON_FAILURE(status);
 		THROW_ON_FAILURE(meshDagPath.extendToShape());
 
@@ -143,7 +150,7 @@ MObject MeshBlendShapes::getOrCreateOutputShape(MPlug& outputGeometryPlug) const
 		const MString newName = dagFn.setName(newSuggestedName, &status);
 		THROW_ON_FAILURE(status);
 
-		cout << "Created temporary output mesh" << newName << endl;
+		cout << prefix << "Created temporary output mesh. This will be deleted after exporting, but Maya will think your scene is modified, and warn you." << newName << endl;
 
 		// Make the mesh invisible
 		MPlug intermediateObjectPlug = dagFn.findPlug("intermediateObject", &status);

@@ -119,3 +119,37 @@ ExportableMaterialPBR::ExportableMaterialPBR(ExportableResources& resources, con
 ExportableMaterialPBR::~ExportableMaterialPBR()
 {
 }
+
+ExportableDefaultMaterial::ExportableDefaultMaterial()
+{
+	m_pbrBaseColorFactor = { 1, 1, 1, 1 };
+	m_pbrMetallicRoughness.baseColorFactor = &m_pbrBaseColorFactor[0];
+
+	m_pbrMetallicRoughness.metallicFactor = 0.5f;
+	m_pbrMetallicRoughness.roughnessFactor = 0.5f;
+	m_pbrMaterial.metallicRoughness = &m_pbrMetallicRoughness;
+
+	m_pbrEmissiveFactor = { 0.1f, 0.1f, 0.1f };
+	m_pbrMaterial.emissiveFactor = &m_pbrEmissiveFactor[0];
+}
+
+ExportableDefaultMaterial::~ExportableDefaultMaterial()
+{
+}
+
+ExportableDebugMaterial::ExportableDebugMaterial(const Float3& hsv)
+{
+	m_pbrBaseColorFactor = hsvToRgb(hsv, 1);
+	m_pbrMetallicRoughness.baseColorFactor = &m_pbrBaseColorFactor[0];
+
+	m_pbrMetallicRoughness.metallicFactor = 0;
+	m_pbrMetallicRoughness.roughnessFactor = 1;
+	m_pbrMaterial.metallicRoughness = &m_pbrMetallicRoughness;
+
+	m_pbrEmissiveFactor = { 0, 0, 0 };
+	m_pbrMaterial.emissiveFactor = &m_pbrEmissiveFactor[0];
+}
+
+ExportableDebugMaterial::~ExportableDebugMaterial()
+{
+}

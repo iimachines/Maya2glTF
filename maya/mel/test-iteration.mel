@@ -2,7 +2,7 @@
 
 global proc maya2glTF_exporter(string $cmd) {
 	print ("Executing "+$cmd+"...\n");
-	if ( catch(`maya2glTF -outputFolder "c:\\temp\\maya2glTF"`) ) {
+	if ( catch(`maya2glTF -cm -outputFolder "c:\\temp\\maya2glTF"`) ) {
 		print "Failed!\n";
 	} 
 	print ("Unloading maya2glTF...");

@@ -2,6 +2,7 @@
 #include "Mesh.h"
 #include "ExportableMesh.h"
 #include "ExportablePrimitive.h"
+#include "ExportableResources.h"
 #include "Arguments.h"
 
 ExportableMesh::ExportableMesh(const MDagPath& shapeDagPath, ExportableResources& resources, const Arguments& args)
@@ -10,24 +11,56 @@ ExportableMesh::ExportableMesh(const MDagPath& shapeDagPath, ExportableResources
 
 	if (args.dumpMaya)
 	{
-		mayaMesh.dump(shapeDagPath.fullPathName().asChar(), "");
+		mayaMesh.dump(*args.dumpMaya, shapeDagPath.fullPathName().asChar());
 	}
 
-	const MeshShape& mainShape = mayaMesh.shape();
-	const auto& renderables = mayaMesh.renderables();
-	const auto& shadingMap = mainShape.indices().shadingPerInstance();
-	const auto& shading = shadingMap.at(renderables.instanceIndex);
-
-	for (auto && pair : renderables.table())
+	const MeshShape* mainShape = mayaMesh.shape();
+	if (mainShape)
 	{
-		const auto& vertexSignature = pair.first;
-		const auto& vertexBuffer = pair.second;
+		const auto& renderables = mayaMesh.renderables();
+		const auto& shadingMap = mainShape->indices().shadingPerInstance();
+		const auto& shading = shadingMap.at(renderables.instanceIndex);
+		const int shaderCount = static_cast<int>(shading.shaderGroups.length());
 
-		auto& shaderGroup = shading.shaderGroups[vertexSignature.shaderIndex];
-		auto exportablePrimitive = new ExportablePrimitive(vertexBuffer, shaderGroup, resources);
-		m_primitives.emplace_back(exportablePrimitive);
+		const auto& vertexBufferEntries = renderables.table();
+		const size_t vertexBufferCount = vertexBufferEntries.size();
+		size_t vertexBufferIndex = 0;
+		for (auto && pair : vertexBufferEntries)
+		{
+			const auto& vertexSignature = pair.first;
+			const auto& vertexBuffer = pair.second;
 
-		glMesh.primitives.push_back(&exportablePrimitive->glPrimitive);
+			const int shaderIndex = vertexSignature.shaderIndex;
+			auto& shaderGroup = shaderIndex >= 0 && shaderIndex < shaderCount
+				? shading.shaderGroups[shaderIndex]
+				: MObject::kNullObj;
+
+			auto exportablePrimitive = std::make_unique<ExportablePrimitive>(vertexBuffer, resources);
+
+			// Assign material to primitive
+			if (args.colorizeMaterials)
+			{
+				const float h = vertexBufferIndex * 1.0f / vertexBufferCount;
+				const float s = shaderCount == 0 ? 0.5f : 1;
+				const float v = shaderIndex < 0 ? 0.5f : 1;
+				exportablePrimitive->glPrimitive.material = resources.getDebugMaterial({h,s,v})->glMaterial();
+			}
+			else
+			{
+				auto material = resources.getMaterial(shaderGroup);
+				if (!material && resources.arguments().defaultMaterial)
+					material = resources.getDefaultMaterial();
+
+				if (material)
+					exportablePrimitive->glPrimitive.material = material->glMaterial();
+			}
+
+			glMesh.primitives.push_back(&exportablePrimitive->glPrimitive);
+
+			m_primitives.emplace_back(move(exportablePrimitive));
+
+			++vertexBufferIndex;
+		}
 	}
 }
 

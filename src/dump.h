@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sceneTypes.h"
+#include "IndentableStream.h"
 
 template<typename ... Args>
 std::string formatted(const char* format, Args ... args)
@@ -13,42 +14,79 @@ std::string formatted(const char* format, Args ... args)
 }
 
 template<typename T>
-static void dump_iterable(const std::string& name, const T& iterable, const std::string& indent, const size_t precision = 3)
+static void dump_iterable(IndentableStream& out, const std::string& name, const T& iterable, const size_t itemsPerLine, const size_t precision = 3)
 {
-	cout << std::fixed;
+	out << std::fixed;
 
-	cout << indent << quoted(name) << ":\t[";
+	const auto itemsIndent = '\t';
+	const auto newLineIndent = std::string(",\n") + itemsIndent;
+	const auto itemSeparator = std::string(",\t");
+	const auto noSeparator = std::string("");
 
-	auto separator = "";
+	out << quoted(name) << ": [" << endl << itemsIndent;
+
+	const auto* separator = &noSeparator;
+
+	int counter = static_cast<int>(itemsPerLine);
 
 	for(auto it=iterable.begin(); it!=iterable.end(); ++it)
 	{
-		cout << separator << std::setprecision(precision) << *it;
-		separator = ", ";
-	}
+		out << *separator << std::setprecision(precision) << *it;
 
-	cout << "]";
-}
-
-template<typename T>
-static void dump_table(const std::string& name, const std::array<T, Semantic::COUNT>& table, const std::string& indent, const size_t precision = 3)
-{
-	cout << indent << quoted(name) << ": {" << endl;
-
-	const auto subIndent = indent + "\t";
-
-	for (int semanticIndex = 0; semanticIndex < Semantic::COUNT; ++semanticIndex)
-	{
-		const auto semanticKind = Semantic::from(semanticIndex);
-
-		for (auto&& components : table.at(semanticKind))
+		if (--counter <= 0)
 		{
-			dump_iterable(Semantic::name(semanticKind), components, subIndent, precision);
-			cout << "," << endl;
+			separator = &newLineIndent;
+			counter = static_cast<int>(itemsPerLine);
+		}
+		else
+		{
+			separator = &itemSeparator;
 		}
 	}
 
-	cout << indent << "}";
+	out << endl << "]";
 }
 
-void dump_array(const std::string& name, const MStringArray& items, const std::string& indent);
+template<typename T>
+static void dump_index_table(IndentableStream& out, const std::string& name, const std::array<T, Semantic::COUNT>& table, const size_t indicesPerPrimitive, const size_t precision = 3)
+{
+	out << quoted(name) << ": {" << endl;
+	{
+		auto&& indented = out.scope();
+
+		for (int semanticIndex = 0; semanticIndex < Semantic::COUNT; ++semanticIndex)
+		{
+			const auto semanticKind = Semantic::from(semanticIndex);
+
+			for (auto&& components : table.at(semanticKind))
+			{
+				dump_iterable(out, Semantic::name(semanticKind), components, indicesPerPrimitive, precision);
+				out << "," << endl;
+			}
+		}
+	}
+	out << "}";
+}
+
+template<typename T>
+static void dump_vertex_table(IndentableStream& out, const std::string& name, const std::array<T, Semantic::COUNT>& table, const size_t precision = 3)
+{
+	out << quoted(name) << ": {" << endl;
+	{
+		auto&& indented = out.scope();
+
+		for (int semanticIndex = 0; semanticIndex < Semantic::COUNT; ++semanticIndex)
+		{
+			const auto semanticKind = Semantic::from(semanticIndex);
+
+			for (auto&& components : table.at(semanticKind))
+			{
+				dump_iterable(out, Semantic::name(semanticKind), components, dimension(semanticKind), precision);
+				out << "," << endl;
+			}
+		}
+	}
+	out << "}";
+}
+
+void dump_array(IndentableStream& out, const std::string& name, const MStringArray& items);

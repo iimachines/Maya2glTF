@@ -11,10 +11,10 @@ public:
 	Mesh(const MDagPath& dagPath);
 	virtual ~Mesh();
 
-	void dump(const std::string& name, const std::string& indent) const;
+	void dump(IndentableStream& cout, const std::string& name) const;
 
-	const MeshShape& shape() const { return *m_shape; }
-	
+	const MeshShape* shape() const { return m_shape.get(); }
+
 	/** null if the mesh has no blend-shapes */
 	const MeshBlendShapes* blendShapes() const { return m_blendShapes.get(); }
 

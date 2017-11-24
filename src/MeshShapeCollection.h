@@ -8,10 +8,10 @@ typedef std::vector<const MeshShape*> MeshShapesVector;
 
 struct MeshShapeOffsets
 {
-	size_t mainMeshOffset;
-	size_t baseShapeOffset;
-	size_t blendShapeOffset;
-	size_t blendShapeCount;
+	int mainMeshOffset;
+	int baseShapeOffset;
+	int blendShapeOffset;
+	int blendShapeCount;
 
 	MeshShapeOffsets() :mainMeshOffset(-1), baseShapeOffset(-1), blendShapeOffset(-1), blendShapeCount(0)
 	{
@@ -23,7 +23,10 @@ struct MeshShapeOffsets
 	}
 };
 
-/** All the shapes used by a mesh: the main shape, the blend shapes (and in the future, the skin weight assignments) */
+/** 
+ * All the shapes used by a mesh: the main shape or the blend shapes (including the base shape) 
+ * (and in the future, the skin weight assignments) 
+ */
 class MeshShapeCollection
 {
 public:

@@ -4,6 +4,7 @@
 #include "MeshSemantics.h"
 
 /** The vertices of a single Maya mesh (components stored sequentially, ie [x0, y0, z0, x1, y1, z1, ...])  */
+// TODO: Use valarrays here?
 typedef gsl::span<const float> VertexComponents;
 typedef std::vector<VertexComponents> VertexElementsPerSetIndex;
 typedef std::array<VertexElementsPerSetIndex, Semantic::COUNT> VertexElementsPerSetIndexTable;
@@ -22,7 +23,7 @@ public:
 
 	const VertexElementsPerSetIndexTable& table() const { return m_table; }
 
-	void dump(const std::string& name, const std::string& indent) const;
+	void dump(class IndentableStream& cout, const std::string& name) const;
 	
 	const VertexComponents& vertexElementComponentsAt(const size_t semanticIndex, const size_t setIndex) const
 	{

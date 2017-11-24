@@ -1,16 +1,18 @@
 #include "externals.h"
 #include "Arguments.h"
 #include "MayaException.h"
-#include <fstream>
+#include "IndentableStream.h"
 
 namespace flag
 {
 	const auto outputFolder = "of";
 	const auto sceneName = "sn";
 	const auto glb = "glb";
-	const auto dumpMaya = "dm";
-	const auto dumpGLTF = "dg";
+	const auto dumpMaya = "dmy";
+	const auto dumpGLTF = "dgl";
 	const auto separate = "sep";
+	const auto defaultMaterial = "dm";
+	const auto colorizeMaterials = "cm";
 }
 
 MSyntax Arguments::createSyntax()
@@ -30,13 +32,19 @@ MSyntax Arguments::createSyntax()
 	status = syntax.addFlag(flag::glb, "binary", MSyntax::MArgType::kNoArg);
 	ASSERT_SUCCESS(status);
 
-	status = syntax.addFlag(flag::dumpGLTF, "dumpGTLF", MSyntax::MArgType::kNoArg);
+	status = syntax.addFlag(flag::dumpGLTF, "dumpGTLF", MSyntax::MArgType::kString);
 	ASSERT_SUCCESS(status);
 
-	status = syntax.addFlag(flag::dumpMaya, "dumpMaya", MSyntax::MArgType::kNoArg);
+	status = syntax.addFlag(flag::dumpMaya, "dumpMaya", MSyntax::MArgType::kString);
 	ASSERT_SUCCESS(status);
 
 	status = syntax.addFlag(flag::separate, "separate", MSyntax::MArgType::kNoArg);
+	ASSERT_SUCCESS(status);
+
+	status = syntax.addFlag(flag::defaultMaterial, "defaultMaterial", MSyntax::MArgType::kNoArg);
+	ASSERT_SUCCESS(status);
+
+	status = syntax.addFlag(flag::colorizeMaterials, "colorizeMaterials", MSyntax::MArgType::kNoArg);
 	ASSERT_SUCCESS(status);
 
 	syntax.useSelectionAsDefault(true);
@@ -48,7 +56,10 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 {
 	MStatus status;
 	MArgDatabase adb(syntax, args, &status);
-	THROW_ON_FAILURE(status);
+
+	// TODO: How to provide more error information about what arguments are wrong?
+	if (status.error())
+		throw MayaException(status, "Invalid arguments");
 
 	status = adb.getObjects(selection);
 	if (status.error() || selection.length() < 1)
@@ -61,9 +72,16 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	THROW_ON_FAILURE(status);
 
 	glb = adb.isFlagSet(flag::glb);
-	dumpMaya = adb.isFlagSet(flag::dumpMaya);
-	dumpGLTF = adb.isFlagSet(flag::dumpGLTF);
+
+	m_mayaOutputStream = getOutputStream(adb, flag::dumpMaya, "Maya debug", m_mayaOutputFileStream);
+	m_gltfOutputStream = getOutputStream(adb, flag::dumpGLTF, "glTF debug", m_gltfOutputFileStream);
+
+	dumpMaya = m_mayaOutputStream.get();
+	dumpGLTF = m_gltfOutputStream.get();
+
 	separate = adb.isFlagSet(flag::separate);
+	defaultMaterial = adb.isFlagSet(flag::defaultMaterial);
+	colorizeMaterials = adb.isFlagSet(flag::colorizeMaterials);
 
 	if (adb.isFlagSet(flag::sceneName))
 	{
@@ -91,10 +109,49 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	status = selection.getSelectionStrings(selectedObjects);
 	THROW_ON_FAILURE(status);
 
-	cout << "maya2glTF: Using arguments -sn " << sceneName << " -of " << outputFolder << " " << selectedObjects << endl;
+	cout << prefix << "Using arguments -sn " << sceneName << " -of " << outputFolder << " " << selectedObjects << endl;
 }
 
 Arguments::~Arguments()
 {
+	if (m_mayaOutputFileStream.is_open())
+	{
+		m_mayaOutputFileStream.flush();
+		m_mayaOutputFileStream.close();
+	}
+
+	if (m_gltfOutputFileStream.is_open())
+	{
+		m_gltfOutputFileStream.flush();
+		m_gltfOutputFileStream.close();
+	}
+}
+
+std::unique_ptr<IndentableStream> Arguments::getOutputStream(const MArgDatabase& adb, const char* arg, const char *outputName, std::ofstream& fileOutputStream)
+{
+	std::ostream* out = nullptr;
+
+	if (adb.isFlagSet(arg))
+	{
+		MString path;
+		if (adb.getFlagArgument(arg, 0, path).error() || path.toLowerCase() == "console")
+		{
+			out = &cout;
+		}
+		else if (path.length() == 0 || path.substring(0, 0) == "-")
+		{
+			throw MayaException(MStatus::kInvalidParameter, 
+				formatted("%s requires an output filepath argument, or just 'console' to print to Maya's console window", arg));
+		}
+		else
+		{
+			cout << prefix << "Writing " << outputName << " output to file " << path.asChar() << endl;
+
+			fileOutputStream.open(path.asChar());
+			out = &fileOutputStream;
+		}
+	}
+
+	return out ? move(std::make_unique<IndentableStream>(*out)) : nullptr;
 }
 

@@ -201,6 +201,7 @@ typedef std::vector<VertexSlot> VertexLayout;
 
 typedef std::unordered_map<IndexVector, Index, CollectionHashers> VertexSharingMap;
 
+// TODO: Use valarrays here?
 typedef std::unordered_map<VertexSlot, FloatVector, VertexHashers> VertexComponentsMap;
 
 struct VertexBuffer
@@ -209,6 +210,8 @@ struct VertexBuffer
 	VertexLayout layout;
 	IndexVector indices;
 	VertexComponentsMap componentsMap;
+
+
 };
 
 typedef std::unordered_map<VertexSignature, VertexBuffer, VertexHashers> VertexBufferTable;
@@ -227,7 +230,7 @@ public:
 
 	const VertexBufferTable& table() const { return m_table; }
 
-	//void dump(const std::string& name, const std::string& indent) const;
+	//void dump(class IndentableStream& cout, const std::string& name) const;
 
 private:
 	VertexBufferTable m_table;

@@ -4,6 +4,7 @@
 #include "ExportableResources.h"
 #include "ExportableMaterial.h"
 #include "spans.h"
+#include "Arguments.h"
 
 using namespace GLTF::Constants;
 
@@ -27,7 +28,6 @@ namespace Semantic
 
 ExportablePrimitive::ExportablePrimitive(
 	const VertexBuffer& vertexBuffer,
-	const MObject& shaderGroup,
 	ExportableResources& resources)
 {
 	glPrimitive.mode = GLTF::Primitive::TRIANGLES;
@@ -60,13 +60,6 @@ ExportablePrimitive::ExportablePrimitive(
 			glPrimitive.attributes[glTFattributeName(slot.semantic, slot.setIndex)] = accessor.get();
 			glAccessorTable[slot.semantic].emplace_back(move(accessor));
 		}
-	}
-
-	// Link material
-	const auto material = resources.getMaterial(shaderGroup);
-	if (material)
-	{
-		glPrimitive.material = material->glMaterial();
 	}
 }
 

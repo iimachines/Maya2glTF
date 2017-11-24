@@ -10,7 +10,7 @@ public:
 	MeshShape(const MFnMesh& mesh, bool isBlendShape);
 	virtual ~MeshShape();
 
-	void dump(const std::string& name, const std::string& indent) const;
+	void dump(class IndentableStream& out, const std::string& name) const;
 
 	const bool isBlendShape;
 	const MDagPath& dagPath() const { return m_dagPath; }

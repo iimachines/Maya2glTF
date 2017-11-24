@@ -9,13 +9,12 @@ MeshShapeCollection::MeshShapeCollection(const MeshShape& mainShape, const MeshB
 	, maybeBlendShapes(maybeBlendShapes)
 	, m_maxVertexElementCount(0)
 {
-	m_shapes.push_back(&mainShape);
+	const auto hasBlendShapes = maybeBlendShapes && !maybeBlendShapes->empty();
 
 	m_offsets.mainMeshOffset = 0;
+	m_shapes.push_back(&mainShape);
 
 	const auto vertexCount = mainShape.indices().vertexCount();
-
-	const auto hasBlendShapes = maybeBlendShapes && !maybeBlendShapes->empty();
 
 	// Verify that all blend-shapes have the same "topology"
 	if (hasBlendShapes)
@@ -31,7 +30,7 @@ MeshShapeCollection::MeshShapeCollection(const MeshShape& mainShape, const MeshB
 
 		m_shapes.push_back(baseShape);
 
-		m_offsets.blendShapeCount = maybeBlendShapes->entries().size();
+		m_offsets.blendShapeCount = static_cast<int>(maybeBlendShapes->entries().size());
 
 		for (auto&& entry : maybeBlendShapes->entries())
 		{

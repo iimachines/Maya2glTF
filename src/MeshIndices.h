@@ -28,11 +28,6 @@ struct MeshShading
 
 	// Maps the index of each primitive to the single attached shader index.
 	IndexVector primitiveToShaderIndexMap;
-
-	// Some primitives don't have a shader attached (e.g. primitives from blend-shape)
-	ShaderUsageVector isShaderUsed;
-
-	size_t shaderCount() const { return isShaderUsed.size(); }
 };
 
 typedef std::map<InstanceIndex, MeshShading> MeshShadingPerInstance;
@@ -63,7 +58,7 @@ public:
 
 	const MeshShadingPerInstance& shadingPerInstance() const { return m_shadingPerInstance; }
 
-	void dump(const std::string& name, const std::string& indent) const;
+	void dump(class IndentableStream& cout, const std::string& name) const;
 
 private:
 	VertexElementIndicesPerSetIndexTable m_table;

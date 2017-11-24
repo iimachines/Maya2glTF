@@ -16,10 +16,10 @@ typedef std::vector<std::unique_ptr<MeshBlendShapeEntry>> MeshBlendShapeEntries;
 class MeshBlendShapes
 {
 public:
-	MeshBlendShapes(MObject blendShapeController);
+	MeshBlendShapes(MObject blendShapeNode);
 	virtual ~MeshBlendShapes();
 
-	void dump(const std::string& name, const std::string& indent) const;
+	void dump(class IndentableStream& cout, const std::string& name) const;
 
 	bool empty() const { return m_baseShape == nullptr || m_entries.size() == 0;  }
 
@@ -27,9 +27,10 @@ public:
 	const MeshShape* baseShape() const { return m_baseShape.get(); }
 
 private:
-	MObject getOrCreateOutputShape(MPlug& sourcePlug) const;
+	MObject getOrCreateOutputShape(MPlug& sourcePlug, MObject& createdMesh) const;
 
 	std::unique_ptr<MeshShape> m_baseShape;
 	MeshBlendShapeEntries m_entries;
+	MObject m_tempOutputMesh;
 };
 

@@ -6,13 +6,13 @@ void MayaException::throwIt(const MStatus status, const std::string& message, co
 	std::stringstream err;
 	std::string path(file);
 	std::replace(path.begin(), path.end(), '\\', '/');
-	err << "error " << message << " [" << status.errorString().asChar() << "] in " << function << " (" << path << ":" << line << ")";
+	err << prefix << "*** ERROR *** " << message << " [" << status.errorString().asChar() << "] in " << function << " (" << path << ":" << line << ")";
 	throw MayaException(status, err.str());
 }
 
 MStatus MayaException::printError(const std::string& message, MStatus status)
 {
-	MGlobal::executeCommand(MString("error \"") + message.c_str() + "\"");
-	cerr << message << endl;
+	MGlobal::executeCommand(MString("*** ERROR *** \"") + message.c_str() + "\"");
+	cerr << prefix << "*** ERROR *** " << message << endl;
 	return status;
 }

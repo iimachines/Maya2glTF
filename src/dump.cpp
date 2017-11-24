@@ -1,18 +1,19 @@
 #include "externals.h"
 #include "dump.h"
+#include "IndentableStream.h"
 
-void dump_array(const std::string& name, const MStringArray& items, const std::string& indent)
+void dump_array(IndentableStream& out, const std::string& name, const MStringArray& items)
 {
-	cout << indent << quoted(name) << " : [";
+	out << quoted(name) << " : [";
 
 	auto separator = "";
 
 	for (unsigned i = 0; i < items.length(); ++i)
 	{
-		cout << separator << std::quoted(items[i].asChar());
+		out << separator << std::quoted(items[i].asChar());
 		separator = ", ";
 	}
 
-	cout << "]";
+	out << "]";
 }
 
