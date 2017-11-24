@@ -33,7 +33,7 @@ MeshBlendShapes::MeshBlendShapes(MObject blendShapeNode)
 	MPlug outputGeometryPlug = outputGeometryPlugs.elementByPhysicalIndex(0, &status);
 	THROW_ON_FAILURE(status);
 
-	MObject outputShape = getOrCreateOutputShape(outputGeometryPlug);
+	MObject outputShape = getOrCreateOutputShape(outputGeometryPlug, m_tempOutputMesh);
 
 	if (outputShape.isNull())
 	{
@@ -67,7 +67,12 @@ MeshBlendShapes::MeshBlendShapes(MObject blendShapeNode)
 
 MeshBlendShapes::~MeshBlendShapes()
 {
-	// TODO: Delete temporary created shapes
+	if (!m_tempOutputMesh.isNull())
+	{
+		MDagModifier dagMod;
+		dagMod.deleteNode(m_tempOutputMesh);
+		m_tempOutputMesh = MObject::kNullObj;
+	}
 }
 
 void MeshBlendShapes::dump(std::ostream& cout, const std::string& name, const std::string& indent) const
@@ -95,7 +100,7 @@ void MeshBlendShapes::dump(std::ostream& cout, const std::string& name, const st
 	cout << indent << "}";
 }
 
-MObject MeshBlendShapes::getOrCreateOutputShape(MPlug& outputGeometryPlug) const
+MObject MeshBlendShapes::getOrCreateOutputShape(MPlug& outputGeometryPlug, MObject& createdMesh) const
 {
 	MStatus status;
 	MPlugArray connections;
@@ -124,11 +129,11 @@ MObject MeshBlendShapes::getOrCreateOutputShape(MPlug& outputGeometryPlug) const
 
 		// Create the mesh node
 		MDagModifier dagMod;
-		MObject tempNode = dagMod.createNode("mesh", MObject::kNullObj, &status);
+		createdMesh = dagMod.createNode("mesh", MObject::kNullObj, &status);
 		THROW_ON_FAILURE(dagMod.doIt());
 
 		// Make sure we select the shape node, not the transform node.
-		MDagPath meshDagPath = MDagPath::getAPathTo(tempNode, &status);
+		MDagPath meshDagPath = MDagPath::getAPathTo(createdMesh, &status);
 		THROW_ON_FAILURE(status);
 		THROW_ON_FAILURE(meshDagPath.extendToShape());
 
@@ -143,7 +148,7 @@ MObject MeshBlendShapes::getOrCreateOutputShape(MPlug& outputGeometryPlug) const
 		const MString newName = dagFn.setName(newSuggestedName, &status);
 		THROW_ON_FAILURE(status);
 
-		cout << "Created temporary output mesh" << newName << endl;
+		cout << "Created temporary output mesh. This will be deleted after exporting, but Maya will think your scene is modified, and warn you." << newName << endl;
 
 		// Make the mesh invisible
 		MPlug intermediateObjectPlug = dagFn.findPlug("intermediateObject", &status);

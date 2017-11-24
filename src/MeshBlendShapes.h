@@ -27,9 +27,10 @@ public:
 	const MeshShape* baseShape() const { return m_baseShape.get(); }
 
 private:
-	MObject getOrCreateOutputShape(MPlug& sourcePlug) const;
+	MObject getOrCreateOutputShape(MPlug& sourcePlug, MObject& createdMesh) const;
 
 	std::unique_ptr<MeshShape> m_baseShape;
 	MeshBlendShapeEntries m_entries;
+	MObject m_tempOutputMesh;
 };
 
