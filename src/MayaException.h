@@ -4,7 +4,7 @@
 class MayaException : public std::runtime_error
 {
 public:
-	MayaException(const MStatus error, const std::string& message) : runtime_error("maya2glTF: " + message), status(error)
+	MayaException(const MStatus error, const std::string& message) : runtime_error(message), status(error)
 	{
 	}
 

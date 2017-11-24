@@ -1,5 +1,7 @@
 #pragma once
 
+#include "indentableStream.h"
+
 /*
  * Workaround for plugin not printing to cout/cerr in debug builds
  * https://forums.autodesk.com/t5/maya-programming/c-api-not-printing-to-output-window/td-p/4260798
@@ -12,12 +14,12 @@ public:
 	{
 		original_cout_buf = cout.rdbuf(MStreamUtils::stdOutStream().rdbuf());
 		original_cerr_buf = cerr.rdbuf(MStreamUtils::stdErrorStream().rdbuf());
-		cout << "maya2glTF: Patched cout and cerr!" << endl;
+		cout << prefix << "Patched cout and cerr!" << endl;
 	}
 
 	~OutputStreamsPatch()
 	{
-		cout << "maya2glTF: Restoring cout and cerr..." << endl;
+		cout << prefix << "Restoring cout and cerr..." << endl;
 		cout.rdbuf(original_cout_buf);
 		cerr.rdbuf(original_cout_buf);
 	}

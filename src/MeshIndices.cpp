@@ -155,9 +155,9 @@ MeshIndices::~MeshIndices()
 {
 }
 
-void MeshIndices::dump(std::ostream& out, const std::string& name, const std::string& indent) const
+void MeshIndices::dump(IndentableStream& out, const std::string& name) const
 {
-	dump_table(out, name, m_table, indent);
+	dump_index_table(out, name, m_table, perPrimitiveVertexCount());
 }
 
 

@@ -20,7 +20,7 @@ struct VertexElementSetDescription
 	{
 	}
 
-	void dump(std::ostream& cout, const std::string& name, const std::string& indent) const;
+	void dump(class IndentableStream& cout, const std::string& name) const;
 
 	const Semantic::Kind semantic;
 	const MString setName;
@@ -41,7 +41,7 @@ public:
 
 	const VertexComponentSetDescriptionPerSetIndex& descriptions(const Semantic::Kind kind) const { return m_table.at(kind); }
 
-	void dump(std::ostream& cout, const std::string& name, const std::string& indent) const;
+	void dump(class IndentableStream& cout, const std::string& name) const;
 
 private:
 	VertexComponentSetDescriptionPerSetIndexTable m_table;

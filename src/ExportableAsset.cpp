@@ -31,7 +31,7 @@ ExportableAsset::ExportableAsset(GLTF::Asset& glAsset, const Arguments& args)
 	const auto outputFilename = std::string(args.sceneName.asChar()) + (args.glb ? ".glb" : ".glTF");
 	const auto outputPath = outputFolder / outputFilename;
 
-	cout << "Writing glTF file to '" << outputPath << "'" << endl;
+	cout << prefix << "Writing glTF file to '" << outputPath << "'" << endl;
 
 	if (!options.embeddedTextures) {
 		for (GLTF::Image* image : glAsset.getAllImages()) {

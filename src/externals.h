@@ -18,6 +18,7 @@
 #include <numeric>
 #include <cmath>
 #include <valarray>
+#include <fstream>
 
 #ifdef _MSC_VER
 #	pragma  warning(disable:4267)

@@ -19,7 +19,7 @@ public:
 	MeshBlendShapes(MObject blendShapeNode);
 	virtual ~MeshBlendShapes();
 
-	void dump(std::ostream& cout, const std::string& name, const std::string& indent) const;
+	void dump(class IndentableStream& cout, const std::string& name) const;
 
 	bool empty() const { return m_baseShape == nullptr || m_entries.size() == 0;  }
 

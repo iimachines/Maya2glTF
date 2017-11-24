@@ -1,5 +1,7 @@
 #pragma once
 
+#include "IndentableStream.h"
+
 class Arguments
 {
 public:
@@ -20,17 +22,20 @@ public:
 	bool colorizeMaterials = false;
 
 	/** If non-null, dump the Maya intermediate objects to the stream */
-	std::ostream* dumpMaya;
+	IndentableStream* dumpMaya;
 	
 	/** If non-null, dump the GLTF JSON to the stream */
-	std::ostream* dumpGLTF;
+	IndentableStream* dumpGLTF;
 
 	bool separate = false;
 
 private:
-	static std::ostream* getOutputStream(const MArgDatabase& adb, const char* arg, std::ofstream& fileOutputStream);
+	static std::unique_ptr<IndentableStream> getOutputStream(const MArgDatabase& adb, const char* arg, const char *outputName, std::ofstream& fileOutputStream);
 
-	std::ofstream m_mayaOutputStream;
-	std::ofstream m_gltfOutputStream;
+	std::ofstream m_mayaOutputFileStream;
+	std::ofstream m_gltfOutputFileStream;
+
+	std::unique_ptr<IndentableStream> m_mayaOutputStream;
+	std::unique_ptr<IndentableStream> m_gltfOutputStream;
 };
 

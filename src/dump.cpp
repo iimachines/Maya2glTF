@@ -1,9 +1,10 @@
 #include "externals.h"
 #include "dump.h"
+#include "IndentableStream.h"
 
-void dump_array(std::ostream& out, const std::string& name, const MStringArray& items, const std::string& indent)
+void dump_array(IndentableStream& out, const std::string& name, const MStringArray& items)
 {
-	out << indent << quoted(name) << " : [";
+	out << quoted(name) << " : [";
 
 	auto separator = "";
 

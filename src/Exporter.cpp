@@ -27,10 +27,10 @@ MStatus Exporter::doIt(const MArgList& args)
 
 	try
 	{
-		std::cout << "maya2glTF: Parsing arguments..." << endl;
+		std::cout << prefix << "Parsing arguments..." << endl;
 		const Arguments arguments(args, syntax());
 
-		std::cout << "maya2glTF: Starting export..." << endl;
+		std::cout << prefix << "Starting export..." << endl;
 		exportScene(arguments);
 
 		return MStatus::kSuccess;
@@ -45,7 +45,7 @@ MStatus Exporter::doIt(const MArgList& args)
 	}
 	catch (...)
 	{
-		return MayaException::printError("maya2glTF: Unexpected fatal error!");
+		return MayaException::printError("Unexpected fatal error!");
 	}
 }
 
@@ -80,7 +80,7 @@ void Exporter::exportScene(const Arguments& args)
 		MDagPath dagPath;
 		THROW_ON_FAILURE(selection.getDagPath(selectionIndex, dagPath));
 
-		cout << "maya2glTF: Processing " << dagPath.partialPathName() << "..." << endl;
+		cout << prefix << "Processing " << dagPath.partialPathName() << "..." << endl;
 
 		auto exportableNode = ExportableNode::from(dagPath, resources, args);
 

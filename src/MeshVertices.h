@@ -23,7 +23,7 @@ public:
 
 	const VertexElementsPerSetIndexTable& table() const { return m_table; }
 
-	void dump(std::ostream& cout, const std::string& name, const std::string& indent) const;
+	void dump(class IndentableStream& cout, const std::string& name) const;
 	
 	const VertexComponents& vertexElementComponentsAt(const size_t semanticIndex, const size_t setIndex) const
 	{

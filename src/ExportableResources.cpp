@@ -36,7 +36,7 @@ ExportableMaterial* ExportableResources::getMaterial(const MObject& shaderGroup)
 	auto& materialPtr = m_materialMap[key];
 	if (materialPtr)
 	{
-		cout << "maya2glTF: Reusing material instance " <<key << endl;
+		cout << prefix << "Reusing material instance " <<key << endl;
 	}
 	else
 	{

@@ -3,7 +3,7 @@
 #include "MayaException.h"
 #include <any>
 
-Mesh::Mesh(const MDagPath& dagPath) 
+Mesh::Mesh(const MDagPath& dagPath)
 {
 	MStatus status;
 
@@ -30,24 +30,24 @@ Mesh::~Mesh()
 {
 }
 
-void Mesh::dump(std::ostream& out, const std::string& name, const std::string& indent) const
+void Mesh::dump(IndentableStream& out, const std::string& name) const
 {
-	out << indent << quoted(name) << ": {" << endl;
-	const auto subIndent = indent + "\t";
-
-	m_shape->dump(out, "shape", subIndent);
-	out << "," << endl;
-
-	if (m_blendShapes)
+	out << quoted(name) << ": {" << endl;
 	{
-		m_blendShapes->dump(out, "blendShapes", subIndent);
+		auto&& indented = out.scope();
+		m_shape->dump(out, "shape");
 		out << "," << endl;
+
+		if (m_blendShapes)
+		{
+			m_blendShapes->dump(out, "blendShapes");
+			out << "," << endl;
+		}
+
+		//m_renderables->dump(cout, "renderables", subIndent);
+		//cout << "," << endl;
 	}
-
-	//m_renderables->dump(cout, "renderables", subIndent);
-	//cout << "," << endl;
-
-	out << indent << "}" << endl;
+	out << '}' << endl;
 }
 
 
@@ -88,12 +88,12 @@ MObject Mesh::tryExtractBlendController(const MFnMesh& fnMesh)
 					}
 					else
 					{
-						cerr << "maya2glTF: ignoring blend controller " << MFnDependencyNode(thisNode).name() << endl;
+						cerr << prefix << "ignoring blend controller " << MFnDependencyNode(thisNode).name() << endl;
 					}
 				}
 				else
 				{
-					cerr << "maya2glTF: node has " << MFnDependencyNode(thisNode).name() << endl;
+					cerr << prefix << "node has " << MFnDependencyNode(thisNode).name() << endl;
 				}
 			}
 		}

@@ -1,7 +1,7 @@
 #include "externals.h"
 #include "Arguments.h"
 #include "MayaException.h"
-#include <fstream>
+#include "IndentableStream.h"
 
 namespace flag
 {
@@ -73,8 +73,11 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 
 	glb = adb.isFlagSet(flag::glb);
 
-	dumpMaya = getOutputStream(adb, flag::dumpMaya, m_mayaOutputStream);
-	dumpGLTF = getOutputStream(adb, flag::dumpGLTF, m_gltfOutputStream);
+	m_mayaOutputStream = getOutputStream(adb, flag::dumpMaya, "Maya debug", m_mayaOutputFileStream);
+	m_gltfOutputStream = getOutputStream(adb, flag::dumpGLTF, "glTF debug", m_gltfOutputFileStream);
+
+	dumpMaya = m_mayaOutputStream.get();
+	dumpGLTF = m_gltfOutputStream.get();
 
 	separate = adb.isFlagSet(flag::separate);
 	defaultMaterial = adb.isFlagSet(flag::defaultMaterial);
@@ -106,42 +109,49 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	status = selection.getSelectionStrings(selectedObjects);
 	THROW_ON_FAILURE(status);
 
-	cout << "maya2glTF: Using arguments -sn " << sceneName << " -of " << outputFolder << " " << selectedObjects << endl;
+	cout << prefix << "Using arguments -sn " << sceneName << " -of " << outputFolder << " " << selectedObjects << endl;
 }
 
 Arguments::~Arguments()
 {
-	if (m_mayaOutputStream.is_open())
+	if (m_mayaOutputFileStream.is_open())
 	{
-		m_mayaOutputStream.flush();
-		m_mayaOutputStream.close();
+		m_mayaOutputFileStream.flush();
+		m_mayaOutputFileStream.close();
 	}
 
-	if (m_gltfOutputStream.is_open())
+	if (m_gltfOutputFileStream.is_open())
 	{
-		m_gltfOutputStream.flush();
-		m_gltfOutputStream.close();
+		m_gltfOutputFileStream.flush();
+		m_gltfOutputFileStream.close();
 	}
 }
 
-std::ostream* Arguments::getOutputStream(const MArgDatabase& adb, const char* arg, std::ofstream& fileOutputStream)
+std::unique_ptr<IndentableStream> Arguments::getOutputStream(const MArgDatabase& adb, const char* arg, const char *outputName, std::ofstream& fileOutputStream)
 {
-	std::ostream* result = nullptr;
+	std::ostream* out = nullptr;
 
 	if (adb.isFlagSet(arg))
 	{
 		MString path;
-		if (adb.getFlagArgument(arg, 0, path).error() || path.toLowerCase() == "cout" || path.toLowerCase() == "console")
+		if (adb.getFlagArgument(arg, 0, path).error() || path.toLowerCase() == "console")
 		{
-			result = &cout;
+			out = &cout;
+		}
+		else if (path.length() == 0 || path.substring(0, 0) == "-")
+		{
+			throw MayaException(MStatus::kInvalidParameter, 
+				formatted("%s requires an output filepath argument, or just 'console' to print to Maya's console window", arg));
 		}
 		else
 		{
+			cout << prefix << "Writing " << outputName << " output to file " << path.asChar() << endl;
+
 			fileOutputStream.open(path.asChar());
-			result = &fileOutputStream;
+			out = &fileOutputStream;
 		}
 	}
 
-	return result;
+	return out ? move(std::make_unique<IndentableStream>(*out)) : nullptr;
 }
 

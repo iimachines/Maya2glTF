@@ -3,6 +3,7 @@
 #include "MayaException.h"
 #include "Dump.h"
 #include "spans.h"
+#include "IndentableStream.h"
 
 MeshVertices::MeshVertices(const MeshSemantics& semantics, const MFnMesh& mesh, const MSpace::Space space)
 {
@@ -109,8 +110,8 @@ MeshVertices::~MeshVertices()
 {
 }
 
-void MeshVertices::dump(std::ostream& out, const std::string& name, const std::string& indent) const
+void MeshVertices::dump(IndentableStream& out, const std::string& name) const
 {
-	dump_table(out, name, m_table, indent);
+	dump_vertex_table(out, name, m_table);
 }
 

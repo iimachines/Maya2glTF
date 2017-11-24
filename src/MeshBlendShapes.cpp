@@ -5,6 +5,7 @@
 #include "DagHelper.h"
 #include "MayaUtils.h"
 #include "MeshBlendShapeWeights.h"
+#include "IndentableStream.h"
 
 MeshBlendShapes::MeshBlendShapes(MObject blendShapeNode)
 {
@@ -13,7 +14,7 @@ MeshBlendShapes::MeshBlendShapes(MObject blendShapeNode)
 	MFnBlendShapeDeformer fnController(blendShapeNode, &status);
 	THROW_ON_FAILURE(status);
 
-	cout << "Processing blend shapes of " << fnController.name().asChar() << "..." << endl;
+	cout << prefix << "Processing blend shapes of " << fnController.name().asChar() << "..." << endl;
 
 	MPlug weightArrayPlug = fnController.findPlug("weight", &status);
 	THROW_ON_FAILURE(status);
@@ -75,29 +76,30 @@ MeshBlendShapes::~MeshBlendShapes()
 	}
 }
 
-void MeshBlendShapes::dump(std::ostream& cout, const std::string& name, const std::string& indent) const
+void MeshBlendShapes::dump(class IndentableStream& out, const std::string& name) const
 {
-	cout << indent << quoted(name) << ": {" << endl;
-	const auto subIndent = indent + "\t";
-
-	if (m_baseShape)
+	out << quoted(name) << ": {" << endl;
 	{
-		m_baseShape->dump(cout, "base", subIndent);
-	}
-	else
-	{
-		cout << subIndent << "base: null";
-	}
+		auto&& indented = out.scope();
 
-	cout << "," << endl;
+		if (m_baseShape)
+		{
+			m_baseShape->dump(out, "base");
+		}
+		else
+		{
+			out << "base: null";
+		}
 
-	for (auto i=0; i<m_entries.size(); ++i)
-	{
-		m_entries.at(i)->shape.dump(cout, std::string("target#") + std::to_string(i), subIndent);
-		cout << "," << endl;
+		out << "," << endl;
+
+		for (auto i = 0; i < m_entries.size(); ++i)
+		{
+			m_entries.at(i)->shape.dump(out, std::string("target#") + std::to_string(i));
+			out << "," << endl;
+		}
 	}
-
-	cout << indent << "}";
+	out << '}';
 }
 
 MObject MeshBlendShapes::getOrCreateOutputShape(MPlug& outputGeometryPlug, MObject& createdMesh) const
@@ -148,7 +150,7 @@ MObject MeshBlendShapes::getOrCreateOutputShape(MPlug& outputGeometryPlug, MObje
 		const MString newName = dagFn.setName(newSuggestedName, &status);
 		THROW_ON_FAILURE(status);
 
-		cout << "Created temporary output mesh. This will be deleted after exporting, but Maya will think your scene is modified, and warn you." << newName << endl;
+		cout << prefix << "Created temporary output mesh. This will be deleted after exporting, but Maya will think your scene is modified, and warn you." << newName << endl;
 
 		// Make the mesh invisible
 		MPlug intermediateObjectPlug = dagFn.findPlug("intermediateObject", &status);

@@ -11,7 +11,7 @@ ExportableMesh::ExportableMesh(const MDagPath& shapeDagPath, ExportableResources
 
 	if (args.dumpMaya)
 	{
-		mayaMesh.dump(*args.dumpMaya, shapeDagPath.fullPathName().asChar(), "");
+		mayaMesh.dump(*args.dumpMaya, shapeDagPath.fullPathName().asChar());
 	}
 
 	const MeshShape* mainShape = mayaMesh.shape();

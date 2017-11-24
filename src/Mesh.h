@@ -11,7 +11,7 @@ public:
 	Mesh(const MDagPath& dagPath);
 	virtual ~Mesh();
 
-	void dump(std::ostream& out, const std::string& name, const std::string& indent) const;
+	void dump(IndentableStream& cout, const std::string& name) const;
 
 	const MeshShape* shape() const { return m_shape.get(); }
 

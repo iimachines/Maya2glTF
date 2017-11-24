@@ -1,18 +1,19 @@
 #include "externals.h"
 #include "MeshSemantics.h"
 #include "MayaException.h"
+#include "IndentableStream.h"
 
-void VertexElementSetDescription::dump(std::ostream& cout, const std::string& name, const std::string& indent) const
+void VertexElementSetDescription::dump(class IndentableStream& out, const std::string& name) const
 {
-	const auto subIndent = indent + "\t";
+	out << std::quoted(name) << ": {" << endl;
+	{
+		auto&& indented = out.scope();
+		out << std::quoted("setName") << ": " << std::quoted(setName.asChar()) << "," << endl;
+		out << std::quoted("setIndex") << ": " << setIndex << "," << endl;
+		out << std::quoted("elementCount") << ": " << elementCount << endl;
 
-	cout << indent << std::quoted(name) << ": {" << endl;
-
-	cout << subIndent << std::quoted("setName") << ": " << std::quoted(setName.asChar()) << "," << endl;
-	cout << subIndent << std::quoted("setIndex") << ": " << setIndex << "," << endl;
-	cout << subIndent << std::quoted("elementCount") << ": " << elementCount << endl;
-
-	cout << indent << "}";
+	}
+	out << '}';
 }
 
 MeshSemantics::MeshSemantics(const MFnMesh& mesh, const bool isBlendShape)
@@ -57,22 +58,22 @@ MeshSemantics::~MeshSemantics()
 {
 }
 
-void MeshSemantics::dump(std::ostream& cout, const std::string& name, const std::string& indent) const
+void MeshSemantics::dump(class IndentableStream& out, const std::string& name) const
 {
-	const auto subIndent = indent + "\t";
-
-	cout << indent << quoted(name) << ": {" << endl;
-
-	for (int semanticIndex = 0; semanticIndex < Semantic::COUNT; ++semanticIndex)
+	out << quoted(name) << ": {" << endl;
 	{
-		const auto semanticKind = Semantic::from(semanticIndex);
+		auto&& indented = out.scope();
 
-		for (auto&& semantic : m_table.at(semanticKind))
+		for (int semanticIndex = 0; semanticIndex < Semantic::COUNT; ++semanticIndex)
 		{
-			semantic.dump(cout, Semantic::name(semanticKind), subIndent);
-			cout << "," << endl;
+			const auto semanticKind = Semantic::from(semanticIndex);
+
+			for (auto&& semantic : m_table.at(semanticKind))
+			{
+				semantic.dump(out, Semantic::name(semanticKind));
+				out << "," << endl;
+			}
 		}
 	}
-
-	cout << indent << "}";
+	out << '}';
 }

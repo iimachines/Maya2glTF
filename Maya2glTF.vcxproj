@@ -249,6 +249,7 @@ if errorlevel 1 (exit /b 100)
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\color.cpp" />
+    <ClCompile Include="src\IndentableStream.cpp" />
     <ClCompile Include="src\MeshShapeCollection.cpp" />
     <ClCompile Include="src\MeshBlendShapeWeights.cpp" />
     <ClCompile Include="src\ExportableMaterial.cpp" />
@@ -304,6 +305,7 @@ if errorlevel 1 (exit /b 100)
     <ClInclude Include="src\MeshBlendShapes.h" />
     <ClInclude Include="src\MeshShape.h" />
     <ClInclude Include="src\MeshRenderables.h" />
+    <ClInclude Include="src\IndentableStream.h" />
     <ClInclude Include="src\SignalHandlers.h" />
     <ClInclude Include="src\Mesh.h" />
     <ClInclude Include="src\dump.h" />
