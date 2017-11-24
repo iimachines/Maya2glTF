@@ -17,7 +17,7 @@ inline VertexComponents componentsAt(const VertexComponents& elements, const siz
 class MeshVertices
 {
 public:
-	MeshVertices(const MeshSemantics& names, const MFnMesh& mesh, MSpace::Space space = MSpace::kObject);
+	MeshVertices(const MeshSemantics& names, const MFnMesh& mesh, MSpace::Space space = MSpace::kTransform);
 	virtual ~MeshVertices();
 
 	const VertexElementsPerSetIndexTable& table() const { return m_table; }

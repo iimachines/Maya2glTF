@@ -3,6 +3,7 @@
 #include "MayaException.h"
 #include "Dump.h"
 #include "spans.h"
+#include "DagHelper.h"
 
 MeshVertices::MeshVertices(const MeshSemantics& semantics, const MFnMesh& mesh, const MSpace::Space space)
 {
@@ -17,13 +18,23 @@ MeshVertices::MeshVertices(const MeshSemantics& semantics, const MFnMesh& mesh, 
 	for (int i = 0; i < numPoints; ++i)
 	{
 		const auto& p = mPoints[i];
-		m_positions.push_back({ static_cast<float>(p.x), static_cast<float>(p.y), static_cast<float>(p.z) });
+		m_positions.push_back({static_cast<float>(p.x), static_cast<float>(p.y), static_cast<float>(p.z)});
 	}
 
 	const auto positionsSpan = reinterpret_span<float>(span(m_positions));
 	m_table.at(Semantic::POSITION).push_back(positionsSpan);
 
 	// Get normals
+	auto oppositePlug = mesh.findPlug("opposite", true, &status);
+	THROW_ON_FAILURE(status);
+
+	bool shouldFlipNormals = false;
+	status = oppositePlug.getValue(shouldFlipNormals);
+	THROW_ON_FAILURE(status);
+
+	// TODO: When flipping normals, we should also flip the winding
+	const float normalSign = shouldFlipNormals ? -1.0f : 1.0f;
+
 	MFloatVectorArray mNormals;
 	THROW_ON_FAILURE(mesh.getNormals(mNormals, space));
 	const int numNormals = mNormals.length();
@@ -31,7 +42,7 @@ MeshVertices::MeshVertices(const MeshSemantics& semantics, const MFnMesh& mesh, 
 	for (int i = 0; i < numNormals; ++i)
 	{
 		const auto& n = mNormals[i];
-		m_normals.push_back({ n.x, n.y, n.z });
+		m_normals.push_back({normalSign * n.x, normalSign * n.y, normalSign * n.z});
 	}
 
 	const auto normalsSpan = reinterpret_span<float>(span(m_normals));
@@ -51,7 +62,7 @@ MeshVertices::MeshVertices(const MeshSemantics& semantics, const MFnMesh& mesh, 
 		for (int i = 0; i < numColors; ++i)
 		{
 			const auto& c = mColors[i];;
-			colors.push_back({ c.r, c.g, c.b, c.a });
+			colors.push_back({c.r, c.g, c.b, c.a});
 		}
 
 		const auto colorsSpan = reinterpret_span<float>(span(colors));
@@ -97,7 +108,7 @@ MeshVertices::MeshVertices(const MeshSemantics& semantics, const MFnMesh& mesh, 
 			const auto& t = mTangents[i];
 			const auto rht = 2 * mesh.isRightHandedTangent(i, &semantic.setName, &status) - 1.0f;
 			THROW_ON_FAILURE(status);
-			tangentSet.push_back({ t.x, t.y, t.z, rht ? 1.0f : -1.0f });
+			tangentSet.push_back({t.x, t.y, t.z, rht ? 1.0f : -1.0f});
 		}
 
 		const auto tangentSpan = reinterpret_span<float>(span(tangentSet));
@@ -113,4 +124,3 @@ void MeshVertices::dump(const std::string& name, const std::string& indent) cons
 {
 	dump_table(name, m_table, indent);
 }
-
