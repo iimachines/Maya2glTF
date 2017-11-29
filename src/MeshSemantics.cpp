@@ -5,15 +5,13 @@
 
 void VertexElementSetDescription::dump(class IndentableStream& out, const std::string& name) const
 {
-	out << std::quoted(name) << ": {" << endl;
-	{
-		auto&& indented = out.scope();
-		out << std::quoted("setName") << ": " << std::quoted(setName.asChar()) << "," << endl;
-		out << std::quoted("setIndex") << ": " << setIndex << "," << endl;
-		out << std::quoted("elementCount") << ": " << elementCount << endl;
+	out << std::quoted(name) << ": {" << endl << indent;
 
-	}
-	out << '}';
+	out << std::quoted("setName") << ": " << std::quoted(setName.asChar()) << "," << endl;
+	out << std::quoted("setIndex") << ": " << setIndex << "," << endl;
+	out << std::quoted("elementCount") << ": " << elementCount << endl;
+
+	out << undent << '}';
 }
 
 MeshSemantics::MeshSemantics(const MFnMesh& mesh, const bool isBlendShape)
@@ -60,20 +58,18 @@ MeshSemantics::~MeshSemantics()
 
 void MeshSemantics::dump(class IndentableStream& out, const std::string& name) const
 {
-	out << quoted(name) << ": {" << endl;
+	out << quoted(name) << ": {" << endl << indent;
+
+	for (int semanticIndex = 0; semanticIndex < Semantic::COUNT; ++semanticIndex)
 	{
-		auto&& indented = out.scope();
+		const auto semanticKind = Semantic::from(semanticIndex);
 
-		for (int semanticIndex = 0; semanticIndex < Semantic::COUNT; ++semanticIndex)
+		for (auto&& semantic : m_table.at(semanticKind))
 		{
-			const auto semanticKind = Semantic::from(semanticIndex);
-
-			for (auto&& semantic : m_table.at(semanticKind))
-			{
-				semantic.dump(out, Semantic::name(semanticKind));
-				out << "," << endl;
-			}
+			semantic.dump(out, Semantic::name(semanticKind));
+			out << "," << endl;
 		}
 	}
-	out << '}';
+
+	out << undent << '}';
 }

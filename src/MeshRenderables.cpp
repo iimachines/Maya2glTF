@@ -4,6 +4,8 @@
 #include "MeshShape.h"
 #include "MeshShapeCollection.h"
 #include "MeshRenderables.h"
+#include "IndentableStream.h"
+#include "dump.h"
 
 using namespace coveo::linq;
 
@@ -75,30 +77,16 @@ MeshRenderables::MeshRenderables(
 			VertexBuffer& vertexBuffer = m_table[vertexSignature];
 
 			auto& componentsMap = vertexBuffer.componentsMap;
-			if (vertexBuffer.layout.empty())
-			{
-				vertexBuffer.layout = vertexLayout;
-				vertexBuffer.indices.reserve(vertexCount);
-
-				for (auto&& slot : vertexLayout)
-				{
-					componentsMap[slot].reserve(vertexCount * slot.dimension());
-				}
-			}
-			else
-			{
-				assert(vertexBuffer.layout == vertexLayout);
-			}
 
 			VertexIndex sharedVertexIndex;
 
-			const auto itSharedIndex = vertexBuffer.sharing.find(vertexIndexKey);
+			const auto itSharedIndex = vertexBuffer.cache.find(vertexIndexKey);
 
-			if (itSharedIndex == vertexBuffer.sharing.end())
+			if (itSharedIndex == vertexBuffer.cache.end())
 			{
 				// No vertex with same indices found, create a new output vertex index.
-				sharedVertexIndex = static_cast<VertexIndex>(vertexBuffer.sharing.size());
-				vertexBuffer.sharing[vertexIndexKey] = sharedVertexIndex;
+				sharedVertexIndex = static_cast<VertexIndex>(vertexBuffer.cache.size());
+				vertexBuffer.cache[vertexIndexKey] = sharedVertexIndex;
 
 				for (auto&& slot : vertexLayout)
 				{
@@ -106,7 +94,11 @@ MeshRenderables::MeshRenderables(
 					const auto vertexIndex = elementIndices.at(primitiveVertexIndex);
 					const auto& vertexElements = shapeCollection.vertexElementsAt(slot.shapeIndex, slot.semantic, slot.setIndex);
 					const auto& source = componentsAt(vertexElements, vertexIndex, slot.semantic);
-					auto& target = componentsMap.at(slot);
+					auto& target = componentsMap[slot];
+					if (target.empty())
+					{
+						target.reserve(vertexCount * slot.dimension());
+					}
 					target.insert(target.end(), source.begin(), source.end());
 				}
 			}
@@ -128,10 +120,11 @@ MeshRenderables::MeshRenderables(
 		for (auto&& pair : m_table)
 		{
 			VertexBuffer& buffer = pair.second;
-			VertexLayout& layout = buffer.layout;
+			//VertexLayout& layout = buffer.layout;
 			VertexComponentsMap& compMap = buffer.componentsMap;
 
-			auto baseShapeSlots = from(layout)
+			auto baseShapeSlots = from(compMap)
+				| select([](const auto& pair) { return pair.first; })
 				| where([meshOffsets](const VertexSlot& slot) {return slot.shapeIndex == meshOffsets.baseShapeOffset; })
 				| to_vector();
 
@@ -155,12 +148,50 @@ MeshRenderables::MeshRenderables(
 				// Remove base components.
 				compMap.erase(baseSlot);
 			}
-
-			// Remove base slots from layout
-			std::remove_if(layout.begin(), layout.end(), [meshOffsets](const VertexSlot& slot)
-			{
-				return slot.shapeIndex == meshOffsets.baseShapeOffset;
-			});
 		}
 	}
 }
+
+std::ostream& operator<<(std::ostream& out, const VertexSignature& obj)
+{
+	out << '{' << ' ';
+	out << std::quoted("shaderIndex") << ':' << obj.shaderIndex << ',';
+	out << std::quoted("slotUsage") << ':' << std::hex << std::setw(8) << obj.slotUsage;
+	out << ' ' << '}';
+	return out;
+}
+
+std::ostream& operator<<(std::ostream& out, const VertexSlot& slot)
+{
+	out << '{' << ' ';
+	out << std::quoted("shapeIndex") << ':' << slot.shapeIndex << ',' << ' ';
+	out << std::quoted("setIndex") << ':' << slot.setIndex << ',' << ' ';
+	out << std::quoted("semantic") << ':' << std::quoted(Semantic::name(slot.semantic));
+	out << ' ' << '}';
+	return out;
+}
+
+std::ostream& operator<<(std::ostream& out, const VertexBuffer& obj)
+{
+	out << '{' << endl << indent;
+
+	dump_iterable(out, "indices", obj.indices, obj.indices.size() / obj.cache.size(), 0);
+
+	out << "," << endl;
+
+	dump_iterable(out, "components", obj.componentsMap, 1);
+
+	out << "," << endl;
+
+	out << undent << '}';
+
+	return out;
+}
+//
+//std::ostream& operator<<(std::ostream& out, const MeshRenderables& obj)
+//{
+//	dump_iterable(out, "renderables", obj.m_table, 1);
+//	return out;
+//}
+
+

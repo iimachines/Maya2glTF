@@ -78,28 +78,26 @@ MeshBlendShapes::~MeshBlendShapes()
 
 void MeshBlendShapes::dump(class IndentableStream& out, const std::string& name) const
 {
-	out << quoted(name) << ": {" << endl;
+	out << quoted(name) << ": {" << endl << indent;
+
+	if (m_baseShape)
 	{
-		auto&& indented = out.scope();
-
-		if (m_baseShape)
-		{
-			m_baseShape->dump(out, "base");
-		}
-		else
-		{
-			out << "base: null";
-		}
-
-		out << "," << endl;
-
-		for (auto i = 0; i < m_entries.size(); ++i)
-		{
-			m_entries.at(i)->shape.dump(out, std::string("target#") + std::to_string(i));
-			out << "," << endl;
-		}
+		m_baseShape->dump(out, "base");
 	}
-	out << '}';
+	else
+	{
+		out << "base: null";
+	}
+
+	out << "," << endl;
+
+	for (auto i = 0; i < m_entries.size(); ++i)
+	{
+		m_entries.at(i)->shape.dump(out, std::string("target#") + std::to_string(i));
+		out << "," << endl;
+	}
+
+	out << undent << '}';
 }
 
 MObject MeshBlendShapes::getOrCreateOutputShape(MPlug& outputGeometryPlug, MObject& createdMesh) const

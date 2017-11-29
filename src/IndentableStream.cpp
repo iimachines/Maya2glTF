@@ -11,14 +11,9 @@ ostream& prefix(ostream& stream)
 	return stream;
 }
 
-IndentationScope&& IndentableStream::scope()
-{
-	return std::move(IndentationScope(*this));
-}
-
 IndentationBuffer::IndentationBuffer(std::streambuf* sbuf)
-	: m_sbuf(sbuf)
-	, m_indentationLevel(1)
+	: m_streamBuffer(sbuf)
+	, m_indentationLevel(0)
 	, m_shouldIndent(true)
 {
 }
@@ -26,15 +21,15 @@ IndentationBuffer::IndentationBuffer(std::streambuf* sbuf)
 std::basic_streambuf<char>::int_type IndentationBuffer::overflow(const int_type c)
 {
 	if (traits_type::eq_int_type(c, traits_type::eof()))
-		return m_sbuf->sputc(c);
+		return m_streamBuffer->sputc(c);
 
 	if (m_shouldIndent)
 	{
-		fill_n(std::ostreambuf_iterator<char>(m_sbuf), m_indentationLevel, '\t');
+		fill_n(std::ostreambuf_iterator<char>(m_streamBuffer), m_indentationLevel, '\t');
 		m_shouldIndent = false;
 	}
 
-	if (traits_type::eq_int_type(m_sbuf->sputc(c), traits_type::eof()))
+	if (traits_type::eq_int_type(m_streamBuffer->sputc(c), traits_type::eof()))
 		return traits_type::eof();
 
 	if (traits_type::eq_int_type(c, traits_type::to_char_type('\n')))

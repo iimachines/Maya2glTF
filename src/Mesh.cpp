@@ -32,22 +32,22 @@ Mesh::~Mesh()
 
 void Mesh::dump(IndentableStream& out, const std::string& name) const
 {
-	out << quoted(name) << ": {" << endl;
+	out << quoted(name) << ": {" << endl << indent;
+
+	m_shape->dump(out, "shape");
+	
+	out << "," << endl;
+
+	if (m_blendShapes)
 	{
-		auto&& indented = out.scope();
-		m_shape->dump(out, "shape");
+		m_blendShapes->dump(out, "blendShapes");
 		out << "," << endl;
-
-		if (m_blendShapes)
-		{
-			m_blendShapes->dump(out, "blendShapes");
-			out << "," << endl;
-		}
-
-		//m_renderables->dump(cout, "renderables", subIndent);
-		//cout << "," << endl;
 	}
-	out << '}' << endl;
+
+	//m_renderables->dump(cout, "renderables", subIndent);
+	//cout << "," << endl;
+	
+	out << undent << '}' << endl;
 }
 
 

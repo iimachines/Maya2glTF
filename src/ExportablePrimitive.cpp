@@ -46,11 +46,12 @@ ExportablePrimitive::ExportablePrimitive(
 
 	// Extract main shape vertices
 	// TODO: Derived blend shape deltas!
-	for (auto && slot : vertexBuffer.layout)
+	for (auto && pair: vertexBuffer.componentsMap)
 	{
+		const auto& slot = pair.first;
 		if (slot.shapeIndex == 0)
 		{
-			const auto& components = vertexBuffer.componentsMap.at(slot);
+			const auto& components = pair.second;
 			const int offset = static_cast<int>(m_data.size());
 			const int count = static_cast<int>(components.size() / slot.dimension());
 			auto spanComponents = reinterpret_span<uint8>(span(components));

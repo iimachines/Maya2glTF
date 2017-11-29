@@ -2,6 +2,7 @@
 
 #include "sceneTypes.h"
 #include "hashers.h"
+#include "dump.h"
 
 class MeshShape;
 class MeshBlendShapes;
@@ -99,6 +100,8 @@ struct VertexSignature
 		seed ^= (seed << 6) + (seed >> 2) + 0x5A1BB057 + static_cast<std::size_t>(obj.slotUsage);
 		return seed;
 	}
+
+	friend std::ostream& operator <<(std::ostream& out, const VertexSignature& obj);
 };
 
 struct VertexSlot
@@ -128,6 +131,7 @@ struct VertexSlot
 	Semantic::Kind semantic;
 	SetIndex setIndex;
 
+	friend std::ostream& operator <<(std::ostream& out, const VertexSlot& slot);
 
 	friend bool operator==(const VertexSlot& lhs, const VertexSlot& rhs)
 	{
@@ -199,19 +203,18 @@ struct VertexHashers
 
 typedef std::vector<VertexSlot> VertexLayout;
 
-typedef std::unordered_map<IndexVector, Index, CollectionHashers> VertexSharingMap;
+typedef std::unordered_map<IndexVector, Index, CollectionHashers> VertexIndexCache;
 
 // TODO: Use valarrays here?
 typedef std::unordered_map<VertexSlot, FloatVector, VertexHashers> VertexComponentsMap;
 
 struct VertexBuffer
 {
-	VertexSharingMap sharing;
-	VertexLayout layout;
+	VertexIndexCache cache;
 	IndexVector indices;
 	VertexComponentsMap componentsMap;
 
-
+	friend std::ostream& operator <<(std::ostream& out, const VertexBuffer& obj);
 };
 
 typedef std::unordered_map<VertexSignature, VertexBuffer, VertexHashers> VertexBufferTable;
@@ -230,8 +233,8 @@ public:
 
 	const VertexBufferTable& table() const { return m_table; }
 
-	//void dump(class IndentableStream& cout, const std::string& name) const;
+	friend std::ostream& operator <<(std::ostream& out, const MeshRenderables& obj);
 
-private:
+protected:
 	VertexBufferTable m_table;
 };

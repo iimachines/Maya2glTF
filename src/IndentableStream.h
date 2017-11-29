@@ -14,13 +14,13 @@ public:
 
 	void indent() { ++m_indentationLevel; }
 
-	void deindent() { m_indentationLevel = std::max(0, m_indentationLevel - 1); }
+	void undent() { m_indentationLevel = std::max(0, m_indentationLevel - 1); }
 
 protected:
 
 	int_type overflow(const int_type c) override;
 
-	std::streambuf* m_sbuf;
+	std::streambuf* m_streamBuffer;
 	int m_indentationLevel;
 	bool m_shouldIndent;
 };
@@ -29,89 +29,104 @@ class IndentableStream : public ostream
 {
 public:
 	explicit IndentableStream(ostream& os)
-		: ostream(&m_ib)
-		  , m_ib(os.rdbuf())
+		: ostream(&m_indentationBuffer)
+		, m_indentationBuffer(os.rdbuf())
+		, m_itemsPerLine(1)
 	{
 	}
 
 	IndentableStream& indent()
 	{
-		m_ib.indent();
+		m_indentationBuffer.indent();
 		return *this;
 	}
 
-	IndentableStream& deindent()
+	IndentableStream& undent()
 	{
-		m_ib.deindent();
+		m_indentationBuffer.undent();
 		return *this;
 	}
 
-	class IndentationScope&& scope();
-
-	static friend std::ostream& indent(std::ostream& stream)
+	friend std::ostream& itemsPerLine(std::ostream& out, size_t ipl)
 	{
-		auto is = dynamic_cast<IndentableStream*>(&stream);
-		return is ? is->indent() : stream;
+		const auto is = dynamic_cast<IndentableStream*>(&out);
+		if (is)
+		{
+			is->m_itemsPerLine = ipl;
+		}
+
+		return out;
 	}
 
-	static friend std::ostream& deindent(std::ostream& stream)
-	{
-		auto is = dynamic_cast<IndentableStream*>(&stream);
-		return is ? is->indent() : stream;
-	}
+	size_t itemsPerLine() const { return m_itemsPerLine; }
 
+	size_t itemsPrecision() const { return m_itemsPrecision; }
+	
 private:
-	IndentationBuffer m_ib;
+	IndentationBuffer m_indentationBuffer;
+	size_t m_itemsPerLine;
+	size_t m_itemsPrecision;
 };
 
-class IndentationScope
+inline std::ostream& indent(std::ostream& stream)
 {
-public:
-	explicit IndentationScope(IndentableStream& out):out(&out)
-	{
-		out.indent();
-	}
+	auto is = dynamic_cast<IndentableStream*>(&stream);
+	return is ? is->indent() : stream;
+}
 
+inline std::ostream& undent(std::ostream& stream)
+{
+	auto is = dynamic_cast<IndentableStream*>(&stream);
+	return is ? is->undent() : stream;
+}
 
-	IndentationScope(IndentationScope&& other) noexcept 
-		: out(other.out)
-	{
-		other.out = nullptr;
-	}
+template<typename T>
+std::ostream& operator << (std::ostream& out, const std::vector<T>& iterable)
+{
+	out << std::fixed;
 
-	IndentationScope(const IndentationScope& other)
-		: out(other.out)
-	{
-	}
+	const auto itemsIndent = '\t';
+	const auto newLineIndent = std::string(",\n") + itemsIndent;
+	const auto itemSeparator = std::string(",\t");
+	const auto noSeparator = std::string("");
 
-	IndentationScope& operator=(const IndentationScope& other)
+	out << '[' << endl << itemsIndent;
+
+	const auto* separator = &noSeparator;
+
+	auto is = dynamic_cast<IndentableStream*>(&out);
+	const int itemsPerLine = static_cast<int>(is ? is->itemsPerLine() : 10);
+	const int precision = static_cast<int>(is ? is->itemsPrecision() : 3);
+
+	int counter = itemsPerLine;
+
+	for (auto it = iterable.begin(); it != iterable.end(); ++it)
 	{
-		if (this != &other)
+		const auto& val = *it;
+
+		out << *separator << std::setprecision(precision) << val;
+
+		if (--counter <= 0)
 		{
-			out = other.out;
+			separator = &newLineIndent;
+			counter = static_cast<int>(itemsPerLine);
 		}
-		return *this;
-	}
-
-	IndentationScope& operator=(IndentationScope&& other) noexcept
-	{
-		if (this != &other)
+		else
 		{
-			out = other.out;
-			other.out = nullptr;
-		}
-		return *this;
-	} 
-
-	~IndentationScope()
-	{
-		if (out)
-		{
-			out->deindent();
-			out = nullptr;
+			separator = &itemSeparator;
 		}
 	}
 
-private:
-	IndentableStream* out;
-};
+	out << endl << "]";
+
+	return out;
+}
+
+template<typename K, typename V>
+std::ostream& operator<<(std::ostream& out, const std::pair<K, V>& pair)
+{
+	out << '{' << '"' << pair.first << '"' << ':' << pair.second << '}';
+	return out;
+}
+
+
