@@ -86,7 +86,7 @@ MeshVertices::MeshVertices(const MeshSemantics& semantics, const MFnMesh& mesh, 
 		{
 			auto& uvArray = uvSet[uIndex];
 			uvArray[0] = uArray[uIndex];
-			uvArray[1] = vArray[uIndex];
+			uvArray[1] = 1-vArray[uIndex];
 		}
 
 		const auto uvSpan = reinterpret_span<float>(span(uvSet));

@@ -21,6 +21,9 @@ public:
 	/** Assign a color with a different hue to each material, for debugging purposes */
 	bool colorizeMaterials = false;
 
+	/** Convert any material into the scene to a glTF PBR material */
+	bool forcePbrMaterials = false;
+
 	/** If non-null, dump the Maya intermediate objects to the stream */
 	IndentableStream* dumpMaya;
 	

@@ -14,6 +14,8 @@ public:
 	static std::unique_ptr<ExportableMaterial> from(ExportableResources& resources, const MFnDependencyNode& shaderNode);
 
 protected:
+	static bool tryCreateTexture(ExportableResources& resources, const MObject& obj, const char* attributeName, GLTF::Texture*& outputTexture);
+
 	static bool getScalar(const MObject& shaderObject, const char* attributeName, float& scalar);
 	static bool getColor(const MObject& shaderObject, const char* attributeName, Float4& color);
 };
@@ -21,13 +23,14 @@ protected:
 class ExportableMaterialBasePBR : public ExportableMaterial
 {
 public:
-	GLTF::Material* glMaterial() override { return &m_pbrMaterial; }
+	GLTF::Material* glMaterial() override { return &m_glMaterial; }
 
 protected:
-	Float4 m_pbrBaseColorFactor;
-	Float3 m_pbrEmissiveFactor;
-	GLTF::MaterialPBR m_pbrMaterial;
-	GLTF::MaterialPBR::MetallicRoughness m_pbrMetallicRoughness;
+	Float4 m_glBaseColorFactor;
+	Float3 m_glEmissiveFactor;
+	GLTF::MaterialPBR m_glMaterial;
+	GLTF::MaterialPBR::MetallicRoughness m_glMetallicRoughness;
+	GLTF::MaterialPBR::Texture m_glBaseColorTexture;
 };
 
 class ExportableDefaultMaterial : public ExportableMaterialBasePBR
@@ -42,6 +45,10 @@ class ExportableMaterialPBR : public ExportableMaterialBasePBR
 public:
 	ExportableMaterialPBR(ExportableResources& resources, const MFnDependencyNode& shaderNode);
 	~ExportableMaterialPBR();
+
+private:
+	void loadPBR(ExportableResources& resources, const MFnDependencyNode& shaderNode);
+	void loadPhong(ExportableResources& resources, const MFnDependencyNode& shaderNode);
 };
 
 class ExportableDebugMaterial : public ExportableMaterialBasePBR
@@ -50,3 +57,4 @@ public:
 	ExportableDebugMaterial(const Float3& hsv);
 	~ExportableDebugMaterial();
 };
+

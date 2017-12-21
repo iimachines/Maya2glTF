@@ -148,7 +148,7 @@ MObject MeshBlendShapes::getOrCreateOutputShape(MPlug& outputGeometryPlug, MObje
 		const MString newName = dagFn.setName(newSuggestedName, &status);
 		THROW_ON_FAILURE(status);
 
-		cout << prefix << "Created temporary output mesh. This will be deleted after exporting, but Maya will think your scene is modified, and warn you." << newName << endl;
+		cout << prefix << "Created temporary output mesh '" << newName  << "'. This will be deleted after exporting, but Maya will think your scene is modified, and warn you." << endl;
 
 		// Make the mesh invisible
 		MPlug intermediateObjectPlug = dagFn.findPlug("intermediateObject", &status);

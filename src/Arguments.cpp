@@ -13,6 +13,7 @@ namespace flag
 	const auto separate = "sep";
 	const auto defaultMaterial = "dm";
 	const auto colorizeMaterials = "cm";
+	const auto forcePbrMaterials = "fpm";
 }
 
 MSyntax Arguments::createSyntax()
@@ -45,6 +46,9 @@ MSyntax Arguments::createSyntax()
 	ASSERT_SUCCESS(status);
 
 	status = syntax.addFlag(flag::colorizeMaterials, "colorizeMaterials", MSyntax::MArgType::kNoArg);
+	ASSERT_SUCCESS(status);
+
+	status = syntax.addFlag(flag::forcePbrMaterials, "forcePbrMaterials", MSyntax::MArgType::kNoArg);
 	ASSERT_SUCCESS(status);
 
 	syntax.useSelectionAsDefault(true);
@@ -82,6 +86,7 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	separate = adb.isFlagSet(flag::separate);
 	defaultMaterial = adb.isFlagSet(flag::defaultMaterial);
 	colorizeMaterials = adb.isFlagSet(flag::colorizeMaterials);
+	forcePbrMaterials = adb.isFlagSet(flag::forcePbrMaterials);
 
 	if (adb.isFlagSet(flag::sceneName))
 	{

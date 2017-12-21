@@ -79,3 +79,4 @@
 #include <maya/MFnTransform.h>
 #include <maya/MItDependencyGraph.h>
 #include <maya/MFnBlendShapeDeformer.h>
+#include <maya/MFnPhongShader.h>
