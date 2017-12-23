@@ -5,9 +5,11 @@
 #include "ExportableResources.h"
 #include "Arguments.h"
 
-ExportableMesh::ExportableMesh(const MDagPath& shapeDagPath, ExportableResources& resources, const Arguments& args)
+ExportableMesh::ExportableMesh(const MDagPath& shapeDagPath, ExportableResources& resources)
 {
 	Mesh mayaMesh(shapeDagPath);
+
+	const Arguments& args = resources.arguments();
 
 	if (args.dumpMaya)
 	{

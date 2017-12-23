@@ -1,10 +1,79 @@
 #include "externals.h"
 #include "ExportableAsset.h"
 #include "Arguments.h"
+#include "ExportableNode.h"
+#include "MayaException.h"
+#include "version.h"
 
-ExportableAsset::ExportableAsset(GLTF::Asset& glAsset, const Arguments& args)
+ExportableAsset::ExportableAsset(const Arguments& args)
+	: m_resources(args)
 {
-	const auto buffer = glAsset.packAccessors();
+	m_glAsset.scenes.push_back(&m_glScene);
+	m_glAsset.scene = 0;
+
+	m_glAsset.metadata = &m_glMetadata;
+	m_glMetadata.generator = "Maya2glTF";
+	m_glMetadata.version = "2.0";
+
+	auto& selection = args.selection;
+
+	for (uint selectionIndex = 0; selectionIndex < selection.length(); ++selectionIndex)
+	{
+		MDagPath dagPath;
+		THROW_ON_FAILURE(selection.getDagPath(selectionIndex, dagPath));
+
+		cout << prefix << "Processing " << dagPath.partialPathName() << "..." << endl;
+
+		addNode(dagPath);
+	}
+}
+
+ExportableAsset::~ExportableAsset()
+{
+}
+
+const std::string& ExportableAsset::prettyJsonString() const
+{
+	if (m_prettyJsonString.empty() && !m_rawJsonString.empty())
+	{
+		// Pretty format the JSON
+		rapidjson::Document jsonDocument;
+		const bool hasParseErrors = jsonDocument.Parse(m_rawJsonString.c_str()).HasParseError();
+
+		if (hasParseErrors)
+		{
+			cerr << "Failed to reformat glTF JSON, outputting raw JSON" << endl;
+			m_prettyJsonString = m_rawJsonString;
+		}
+		else
+		{
+			rapidjson::StringBuffer jsonPrettyBuffer;
+
+			// Write the pretty JSON
+			rapidjson::PrettyWriter<rapidjson::StringBuffer> jsonPrettyWriter(jsonPrettyBuffer);
+			jsonDocument.Accept(jsonPrettyWriter);
+			m_prettyJsonString = jsonPrettyBuffer.GetString();
+		}
+	}
+
+	return m_prettyJsonString;
+}
+
+void ExportableAsset::addNode(MDagPath& dagPath)
+{
+	auto exportableNode = ExportableNode::from(dagPath, m_resources);
+
+	if (exportableNode)
+	{
+		m_glScene.nodes.push_back(&exportableNode->glNode);
+		m_items.push_back(std::move(exportableNode));
+	}
+}
+
+void ExportableAsset::save()
+{
+	const auto& args = m_resources.arguments();
+	const auto buffer = m_glAsset.packAccessors();
 
 	// Generate glTF JSON file
 	rapidjson::StringBuffer jsonStringBuffer;
@@ -20,7 +89,7 @@ ExportableAsset::ExportableAsset(GLTF::Asset& glAsset, const Arguments& args)
 	options.name = args.sceneName.asChar();
 	options.binary = args.glb;
 
-	glAsset.writeJSON(&jsonWriter, &options);
+	m_glAsset.writeJSON(&jsonWriter, &options);
 	jsonWriter.EndObject();
 
 	m_rawJsonString = jsonStringBuffer.GetString();
@@ -34,7 +103,7 @@ ExportableAsset::ExportableAsset(GLTF::Asset& glAsset, const Arguments& args)
 	cout << prefix << "Writing glTF file to '" << outputPath << "'" << endl;
 
 	if (!options.embeddedTextures) {
-		for (GLTF::Image* image : glAsset.getAllImages()) {
+		for (GLTF::Image* image : m_glAsset.getAllImages()) {
 			path uri = outputFolder / image->uri;
 			std::ofstream file;
 			create(file, uri.generic_string(), ios::out | ios::binary);
@@ -52,7 +121,7 @@ ExportableAsset::ExportableAsset(GLTF::Asset& glAsset, const Arguments& args)
 	}
 
 	if (!options.embeddedShaders) {
-		for (GLTF::Shader* shader : glAsset.getAllShaders()) {
+		for (GLTF::Shader* shader : m_glAsset.getAllShaders()) {
 			path uri = outputFolder / shader->uri;
 			std::ofstream file;
 			create(file, uri.generic_string(), ios::out | ios::binary);
@@ -113,11 +182,14 @@ ExportableAsset::ExportableAsset(GLTF::Asset& glAsset, const Arguments& args)
 
 		file.close();
 	}
-}
 
-
-ExportableAsset::~ExportableAsset()
-{
+	if (args.dumpGLTF)
+	{
+		auto& out = *args.dumpGLTF;
+		out << "glTF dump:" << endl;
+		out << prettyJsonString();
+		out << endl;
+	}
 }
 
 void ExportableAsset::create(std::ofstream& file, const std::string& path, const std::ios_base::openmode mode)
@@ -130,32 +202,5 @@ void ExportableAsset::create(std::ofstream& file, const std::string& path, const
 		ss << "Couldn't write to '" << path << "'";
 		throw std::exception(ss.str().c_str());
 	}
-}
-
-const std::string& ExportableAsset::prettyJsonString() const
-{
-	if (m_prettyJsonString.empty() && !m_rawJsonString.empty())
-	{
-		// Pretty format the JSON
-		rapidjson::Document jsonDocument;
-		const bool hasParseErrors = jsonDocument.Parse(m_rawJsonString.c_str()).HasParseError();
-
-		if (hasParseErrors)
-		{
-			cerr << "Failed to reformat glTF JSON, outputting raw JSON" << endl;
-			m_prettyJsonString = m_rawJsonString;
-		}
-		else
-		{
-			rapidjson::StringBuffer jsonPrettyBuffer;
-
-			// Write the pretty JSON
-			rapidjson::PrettyWriter<rapidjson::StringBuffer> jsonPrettyWriter(jsonPrettyBuffer);
-			jsonDocument.Accept(jsonPrettyWriter);
-			m_prettyJsonString = jsonPrettyBuffer.GetString();
-		}
-	}
-
-	return m_prettyJsonString;
 }
 

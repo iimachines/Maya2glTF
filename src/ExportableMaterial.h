@@ -48,7 +48,7 @@ public:
 
 private:
 	void loadPBR(ExportableResources& resources, const MFnDependencyNode& shaderNode);
-	void loadPhong(ExportableResources& resources, const MFnDependencyNode& shaderNode);
+	template<class MFnShader> void convert(ExportableResources& resources, const MObject& shaderObject);
 };
 
 class ExportableDebugMaterial : public ExportableMaterialBasePBR

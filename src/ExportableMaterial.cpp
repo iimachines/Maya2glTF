@@ -104,7 +104,13 @@ ExportableMaterialPBR::ExportableMaterialPBR(ExportableResources& resources, con
 	switch (shaderType)
 	{
 	case MFn::kPhong:
-		loadPhong(resources, shaderObject);
+		convert<MFnPhongShader>(resources, shaderObject);
+		break;
+	case MFn::kLambert:
+		convert<MFnLambertShader>(resources, shaderObject);
+		break;
+	case MFn::kBlinn:
+		convert<MFnBlinnShader>(resources, shaderObject);
 		break;
 	default:
 		loadPBR(resources, shaderObject);
@@ -112,13 +118,12 @@ ExportableMaterialPBR::ExportableMaterialPBR(ExportableResources& resources, con
 	}
 }
 
-void ExportableMaterialPBR::loadPhong(ExportableResources& resources, const MFnDependencyNode& shaderNode)
+template<class MFnShader> 
+void ExportableMaterialPBR::convert(ExportableResources& resources, const MObject& shaderObject)
 {
 	MStatus status;
-	const auto shaderObject = shaderNode.object(&status);
-	THROW_ON_FAILURE(status);
 
-	MFnPhongShader phong(shaderObject, &status);
+	MFnShader shader(shaderObject, &status);
 	THROW_ON_FAILURE(status);
 
 	m_glMetallicRoughness.roughnessFactor = 1;
@@ -133,12 +138,23 @@ void ExportableMaterialPBR::loadPhong(ExportableResources& resources, const MFnD
 	}
 
 	// TODO: Currently we expect the alpha channel of the color texture to hold the transparency.
-	const bool hasTransparencyTexture = phong.findPlug("transparency").isConnected();
+	const bool hasTransparencyTexture = shader.findPlug("transparency").isConnected();
 
-	const auto color = colorTexture ? MColor(1,1,1) : phong.color(&status);
+	const auto color = colorTexture ? MColor(1,1,1) : shader.color(&status);
 
-	const auto diffuseFactor = phong.diffuseCoeff(&status);
-	const auto transparency = hasTransparencyTexture ? 0 : phong.transparency(&status).r;
+	const auto diffuseFactor = shader.diffuseCoeff(&status);
+	const auto transparency = hasTransparencyTexture ? 0 : shader.transparency(&status).r;
+
+	// TODO: Currently we don't actually check the pixels of the transparency texture.
+	const auto isTransparent = hasTransparencyTexture || transparency != 0;
+	if (isTransparent)
+	{
+		m_glMaterial.alphaMode = "BLEND";
+	}
+
+	// TODO: Support MASK alphaMode and alphaCutoff
+	
+	// TODO: Support double-sides materials.
 
 	m_glBaseColorFactor = 
 	{ 
@@ -150,6 +166,8 @@ void ExportableMaterialPBR::loadPhong(ExportableResources& resources, const MFnD
 
 	m_glMetallicRoughness.baseColorFactor = &m_glBaseColorFactor[0];
 }
+
+
 
 void ExportableMaterialPBR::loadPBR(ExportableResources& resources, const MFnDependencyNode& shaderNode)
 {

@@ -61,43 +61,7 @@ bool Exporter::hasSyntax() const
 
 void Exporter::exportScene(const Arguments& args)
 {
-	MStatus status;
+	ExportableAsset exportableAsset(args);
 
-	auto& selection = args.selection;
-
-	GLTF::Asset glAsset;
-	GLTF::Scene glScene;
-
-	glAsset.scenes.push_back(&glScene);
-	glAsset.scene = 0;
-
-	ExportableResources resources(args);
-
-	std::vector<std::unique_ptr<ExportableItem>> exportables;
-
-	for (uint selectionIndex = 0; selectionIndex < selection.length(); ++selectionIndex)
-	{
-		MDagPath dagPath;
-		THROW_ON_FAILURE(selection.getDagPath(selectionIndex, dagPath));
-
-		cout << prefix << "Processing " << dagPath.partialPathName() << "..." << endl;
-
-		auto exportableNode = ExportableNode::from(dagPath, resources, args);
-
-		if (exportableNode)
-		{
-			glScene.nodes.push_back(&exportableNode->glNode);
-			exportables.push_back(std::move(exportableNode));
-		}
-	}
-
-	ExportableAsset exportableAsset(glAsset, args);
-
-	if (args.dumpGLTF)
-	{
-		auto& out = *args.dumpGLTF;
-		out << "glTF dump:" << endl;
-		out << exportableAsset.prettyJsonString();
-		out << endl;
-	}
+	exportableAsset.save();
 }

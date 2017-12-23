@@ -2,6 +2,7 @@
 #include "Exporter.h"
 #include "Arguments.h"
 #include "OutputStreamsPatch.h"
+#include "version.h"
 
 #if _DEBUG
 static OutputStreamsPatch<char> patch;
@@ -10,7 +11,7 @@ static OutputStreamsPatch<char> patch;
 MStatus initializePlugin(MObject obj)
 {
 	MStatus status;
-	MFnPlugin plugin(obj, "WonderMedia Maya to glTF 2.0 exporter", "0.0.0", "Any");
+	MFnPlugin plugin(obj, "WonderMedia Maya to glTF 2.0 exporter", version, "Any");
 	status = plugin.registerCommand("maya2glTF", Exporter::createInstance, Arguments::createSyntax);
 	CHECK_MSTATUS_AND_RETURN_IT(status);
 	return status;

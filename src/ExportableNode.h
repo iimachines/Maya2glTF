@@ -6,10 +6,10 @@
 class ExportableNode : public ExportableItem
 {
 public:
-	ExportableNode(MDagPath dagPath, MString name, ExportableResources& resources, const Arguments& args);
+	ExportableNode(MDagPath dagPath, MString name, ExportableResources& resources);
 	~ExportableNode();
 
-	static std::unique_ptr<ExportableNode> from(MDagPath dagPath, ExportableResources& resources, const Arguments& args);
+	static std::unique_ptr<ExportableNode> from(MDagPath dagPath, ExportableResources& resources);
 
 	GLTF::Node glNode;
 

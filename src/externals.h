@@ -80,3 +80,6 @@
 #include <maya/MItDependencyGraph.h>
 #include <maya/MFnBlendShapeDeformer.h>
 #include <maya/MFnPhongShader.h>
+#include <maya/MFnLambertShader.h>
+#include <maya/MFnBlinnShader.h>
+

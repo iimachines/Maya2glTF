@@ -4,7 +4,7 @@
 #include "ExportableResources.h"
 #include "Arguments.h"
 
-ExportableNode::ExportableNode(MDagPath dagPath, MString name, ExportableResources& resources, const Arguments& args)
+ExportableNode::ExportableNode(MDagPath dagPath, MString name, ExportableResources& resources)
 {
 	MStatus status;
 
@@ -31,7 +31,7 @@ ExportableNode::ExportableNode(MDagPath dagPath, MString name, ExportableResourc
 	{
 	case MFn::kMesh:
 	{
-		m_mesh = std::make_unique<ExportableMesh>(dagPath, resources, args);
+		m_mesh = std::make_unique<ExportableMesh>(dagPath, resources);
 		glNode.mesh = &m_mesh->glMesh;
 	}
 	break;
@@ -45,7 +45,7 @@ ExportableNode::~ExportableNode()
 {
 }
 
-std::unique_ptr<ExportableNode> ExportableNode::from(MDagPath dagPath, ExportableResources& usedShaderNames, const Arguments& args)
+std::unique_ptr<ExportableNode> ExportableNode::from(MDagPath dagPath, ExportableResources& usedShaderNames)
 {
 	MStatus status;
 
@@ -59,5 +59,5 @@ std::unique_ptr<ExportableNode> ExportableNode::from(MDagPath dagPath, Exportabl
 		return nullptr;
 	}
 
-	return std::make_unique<ExportableNode>(dagPath, name, usedShaderNames, args);
+	return std::make_unique<ExportableNode>(dagPath, name, usedShaderNames);
 }
