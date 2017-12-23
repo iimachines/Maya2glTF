@@ -1,7 +1,5 @@
 # Maya to glTF exporter
 
-This is work in progress, a complete README will be provided as soon as this project is usable.
-
 ## Status
 
 * I consider this plugin to be in *pre-alpha* stage, use it at your own risk :) 
@@ -24,35 +22,36 @@ This is work in progress, a complete README will be provided as soon as this pro
 * Currently Phong, Lambert and Blinn shaders are converted to PBR, but only the color texture and transparency is taken into account (this is mainly done for testing with existing models). 
 
 * Converts the StingrayPBS material to glTF PBR.
-    * But since Autodesk just cancelled Stingray, we will provide our own `OGSFX` shader for Maya (this is completed but we are having some colorspace troubles) 
+    * You should use the ShaderFX graph in `Maya2glTF\maya\renderData\shaders\glTF_maya_shader.sfx` to emulate the glTF PBR shader
+    * Now since Autodesk cancelled Stingray, we will provide our own `OGSFX/GLSL` and `FX/HLSL` PBR shaders for Maya (this is completed but we are having some colorspace troubles) 
 
 * Code for exporting blend-shape deltas exists, but is not fully working yet.
 
-* No skinning yet
-
-* No animation yet
+* No skinning nor animation yet
+    * but my company needs this urgently, so it's high on our TODO
 
 * No lights, cameras, meshes only
-
+    * unlikely to be added, we don't really need this
+    
 
 ## Building
 
-* Currently this project requires **Microsoft Windows x64**
-    * It can easily be ported to OSX and Linux
-    * feel free to provide a patch request, e.g. one that uses CMake :)
+* Currently this project requires **Microsoft Windows 10 x64**
+    * It can easily be ported to OSX and Linux, or older versions of Windows.
+    * Feel free to provide a patch request, e.g. one that uses CMake :)
 
 * All development happens in the *develop* branch, the *master* branch will contain so called 'stable' code and hot-fixes. 
 
 * I assume you already installed a [GIT client for Windows](https://git-scm.com/downloads)
 
 * Install [Visual Studio 2017](https://www.visualstudio.com/downloads)
-    * Select at least the C++ desktop development and the Windows 10 SDKs payloads
+    * Select at least the C++ desktop development payload
 
-* Install [CMAKE](https://cmake.org)
+* Install the Win64-x64 version of [CMAKE](https://cmake.org)
 
 * Install the [latest Maya devkit matching your Maya application version](https://apps.autodesk.com/All/en/List/Search?isAppSearch=True&searchboxstore=All&facet=&collection=&sort=&query=maya+devkit)
     
-* We need to tell our project where it can find the Maya devkit header and library files. Declare the following environment variables, or add `user macros` to the Visual Studio `Microsoft.Cpp.x64.user` property page
+* We need to tell the Maya2glTF project where it can find the Maya devkit header and library files. Declare the following environment variables, or add `user macros` to the Visual Studio `Microsoft.Cpp.x64.user` property page
     * For Maya 2018:
         * `MAYA_2018_SDK` -> *the devkit folder*
     * For Maya 2017:
