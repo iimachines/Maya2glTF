@@ -11,7 +11,7 @@ Float3 hsvToRgb(const Float3& hsv)
 		return {0,0,0};
 
 	const auto i = static_cast<int>(h * 6) % 6;
-	const float f = h - i;
+	const float f = (h - i / 6.0f);
 
 	const float p = v * (1.0f - s);
 	const float q = v * (1.0f - s * f);
