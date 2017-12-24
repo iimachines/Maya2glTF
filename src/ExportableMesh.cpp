@@ -42,7 +42,7 @@ ExportableMesh::ExportableMesh(const MDagPath& shapeDagPath, ExportableResources
 			// Assign material to primitive
 			if (args.colorizeMaterials)
 			{
-				const float h = vertexBufferIndex * 1.0f / vertexBufferCount;
+ 				const float h = vertexBufferIndex * 1.0f / vertexBufferCount;
 				const float s = shaderCount == 0 ? 0.5f : 1;
 				const float v = shaderIndex < 0 ? 0.5f : 1;
 				exportablePrimitive->glPrimitive.material = resources.getDebugMaterial({h,s,v})->glMaterial();

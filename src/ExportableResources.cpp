@@ -9,7 +9,6 @@ ExportableResources::ExportableResources(const Arguments& args)
 {
 }
 
-
 ExportableResources::~ExportableResources()
 {
 }
@@ -49,6 +48,13 @@ ExportableMaterial* ExportableResources::getMaterial(const MObject& shaderGroup)
 
 GLTF::Image* ExportableResources::getImage(const char* path)
 {
+	if (!std::experimental::filesystem::exists(path)) 
+	{
+		MayaException::printError(formatted("Image with path '%s' does not exist!", path));
+		MayaException::printError("(it is adviced to use a Maya project and relative paths)");
+		return nullptr;
+	}
+
 	std::string key(path);
 	std::transform(key.begin(), key.end(), key.begin(), ::tolower);
 	auto& imagePtr = m_imageMap[key];

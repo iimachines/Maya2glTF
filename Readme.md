@@ -1,9 +1,20 @@
 # Maya to glTF exporter
 
+## Rationale
+
+At **[Wonder Media](https://wondermedia.tv)**, we are specialized in creating realtime interactive 3D animation, for education, events and broadcast television, since 1992. We have developed our own multi-machine real-time 3D puppeteering software called **AnimationNow**, and we are about to upgrade this to make use of up-to-date rendering techniques. 
+
+If something goes wrong in our production pipeline, it usually is exporting our complex rigged Maya characters. In the past, we contributed both donations and patches to the open source OGRE exporter, but now we want to dig deep into the Maya API ourselves, so we can help out our artists if something goes wrong during the export. 
+
+**[glTF 2.0](https://www.khronos.org/gltf)** seems to contain most of the features we need, and is extensible. IMHO [glTF](https://www.khronos.org/gltf) must become the defacto standard for animated 3D content. At [Wonder Media](https://wondermedia.tv), we plan to use [glTF](https://www.khronos.org/gltf) for all our 3D assets.
+
+## Limitations
+
+Maya interally uses a dataflow architecture (called the *dependency graph*). This means that power-users can connect these nodes in any way they like. Unfortunately this flexibility also makes it insanely difficult to develop an exporter that always works ;-)
+
 ## Status
 
-* I consider this plugin to be in *pre-alpha* stage, use it at your own risk :) 
-    * However, it works for 3D models we use at [Wonder Media](https://wondermedia.tv), so give your model a try
+I consider this plugin to be in *pre-alpha* stage, use it at your own risk :) 
 
 * Supports **Maya 2017-x64** and **Maya 2018-x64** 
 
@@ -36,26 +47,33 @@
 
 ## Building
 
-* Currently this project requires **Microsoft Windows 10 x64**
-    * It can easily be ported to OSX and Linux, or older versions of Windows.
+* No out-of-the-box downloads are available yet, currently you have to build the plugin from sources.
+
+* Right now this project requires **Microsoft Windows x64 8.1 or higher**
+    * It should be easily ported to OSX and Linux, or older versions of Windows.
     * Feel free to provide a patch request, e.g. one that uses CMake :)
 
 * All development happens in the *develop* branch, the *master* branch will contain so called 'stable' code and hot-fixes. 
 
 * I assume you already installed a [GIT client for Windows](https://git-scm.com/downloads)
 
-* Install [Visual Studio 2017](https://www.visualstudio.com/downloads)
-    * Select at least the C++ desktop development payload
+* Install **[Visual Studio 2017](https://www.visualstudio.com/downloads)**
+    * Select at least the **C++ desktop development** payload
+    * In the individual components tab, select:
+        * the **Windows 8.1 SDK**
+        * the **Windows Universal CRT SDK**
+    * This document was written for Visual Studio 2017 15.5.2, newer versions might not work. 
 
-* Install the Win64-x64 version of [CMAKE](https://cmake.org)
+* Install the Win64-x64 version of **[CMAKE](https://cmake.org)**
+    * Make sure to add CMake to the system path
 
-* Install the [latest Maya devkit matching your Maya application version](https://apps.autodesk.com/All/en/List/Search?isAppSearch=True&searchboxstore=All&facet=&collection=&sort=&query=maya+devkit)
+* Install the **[latest Maya devkit matching your Maya application version](https://apps.autodesk.com/All/en/List/Search?isAppSearch=True&searchboxstore=All&facet=&collection=&sort=&query=maya+devkit)**
     
 * We need to tell the Maya2glTF project where it can find the Maya devkit header and library files. Declare the following environment variables, or add `user macros` to the Visual Studio `Microsoft.Cpp.x64.user` property page
     * For Maya 2018:
-        * `MAYA_2018_SDK` -> *the devkit folder*
+        * `MAYA_2018_SDK` -> *the `devkitBase` sub-folder of the Maya devkit*, e.g. `C:\dev\Maya-2018-SDK\devkitBase`
     * For Maya 2017:
-        * `MAYA_2017_INC` -> *the `include` folder of the devkit*, e.g `C:\dev\Maya-2017-x64\devkitBase\include`
+        * `MAYA_2017_INC` -> *the `include` folder of the devkit*, e.g `C:\dev\Maya-2017-SDK\devkitBase\include`
         * `MAYA_2017_LIB` -> *the `lib` folder of **your Maya program installation***, e.g. `C:\Program Files\Autodesk\Maya2017\lib`
      
 

@@ -47,6 +47,7 @@
 #include <coveo/enumerable.h>
 
 #include <experimental/vector>
+
 #include <maya/MPxCommand.h>
 #include <maya/MFnPlugin.h>
 #include <maya/MIOStream.h>

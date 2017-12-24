@@ -113,11 +113,19 @@ void ExportableAsset::save()
 	}
 
 	if (!options.embeddedBuffers) {
-		path uri = outputFolder / buffer->uri;
-		std::ofstream file;
-		create(file, uri.generic_string(), ios::out | ios::binary);
-		file.write(reinterpret_cast<char*>(buffer->data), buffer->byteLength);
-		file.close();
+
+		if (buffer->data)
+		{
+			path uri = outputFolder / buffer->uri;
+			std::ofstream file;
+			create(file, uri.generic_string(), ios::out | ios::binary);
+			file.write(reinterpret_cast<char*>(buffer->data), buffer->byteLength);
+			file.close();
+		}
+		else
+		{
+			MayaException::printError(formatted("Buffer '%s' with URI '%s' has no data!", buffer->name, buffer->uri));
+		}
 	}
 
 	if (!options.embeddedShaders) {
