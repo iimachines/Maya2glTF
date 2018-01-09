@@ -33,6 +33,8 @@ MStatus Exporter::doIt(const MArgList& args)
 		std::cout << prefix << "Starting export..." << endl;
 		exportScene(arguments);
 
+		std::cout << prefix << "Finished export :-)" << endl;
+
 		return MStatus::kSuccess;
 	}
 	catch (const MayaException &ex)
