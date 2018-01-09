@@ -3,8 +3,10 @@
 	url = https://github.com/Microsoft/GSL.git
 [submodule "dependencies/COLLADA2GLTF"]
 	path = dependencies/COLLADA2GLTF
-	url = https://github.com/Ziriax/COLLADA2GLTF.git
+	url = https://github.com/Ziriax/COLLADA2GLTF
 	branch = 2.0
 [submodule "dependencies/cpp-linq"]
 	path = dependencies/cpp-linq
 	url = https://github.com/coveo/linq
+
+	
