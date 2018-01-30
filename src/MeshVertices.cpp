@@ -109,7 +109,7 @@ MeshVertices::MeshVertices(const MeshSemantics& semantics, const MFnMesh& mesh, 
 			const auto& t = mTangents[i];
 			const auto rht = 2 * mesh.isRightHandedTangent(i, &semantic.setName, &status) - 1.0f;
 			THROW_ON_FAILURE(status);
-			tangentSet.push_back({t.x, t.y, t.z, rht ? 1.0f : -1.0f});
+			tangentSet.push_back({ t.x, t.y, t.z, rht });
 		}
 
 		const auto tangentSpan = reinterpret_span<float>(span(tangentSet));
