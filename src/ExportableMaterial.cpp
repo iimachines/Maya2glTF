@@ -75,18 +75,52 @@ bool ExportableMaterial::tryCreateTexture(
 	return true;
 }
 
-bool ExportableMaterial::getScalar(const MObject& shaderObject, const char* attributeName, float& scalar)
+bool ExportableMaterial::tryCreateNormalTexture(
+	ExportableResources& resources, 
+	const MObject& shaderObject,
+	float& normalScale, 
+	GLTF::Texture*& outputTexture)
 {
-	return DagHelper::getPlugValue(shaderObject, attributeName, scalar);
+	MObject normalCamera = DagHelper::findSourceNodeConnectedTo(shaderObject, "normalCamera");
+	if (normalCamera.isNull())
+		return false;
+
+	if (!getScalar(normalCamera, "bumpDepth", normalScale))
+		return false;
+
+	if (!tryCreateTexture(resources, normalCamera, "bumpValue", outputTexture))
+		return false;
+
+	return true;
+
 }
 
-bool ExportableMaterial::getColor(const MObject& shaderObject, const char* attributeName, Float4& color)
+bool ExportableMaterial::getScalar(const MObject& obj, const char* attributeName, float& scalar)
+{
+	return DagHelper::getPlugValue(obj, attributeName, scalar);
+}
+
+bool ExportableMaterial::getColor(const MObject& obj, const char* attributeName, Float4& color)
 {
 	MColor c;
-	if (!DagHelper::getPlugValue(shaderObject, attributeName, c))
+	if (!DagHelper::getPlugValue(obj, attributeName, c))
 		return false;
 
 	color = { c.r, c.g, c.b, c.a };
+	return true;
+}
+
+bool ExportableMaterialBasePBR::loadNormalTexture(ExportableResources& resources, const MObject& shaderObject)
+{
+	float normalScale;
+	GLTF::Texture* normalTexture;
+	if (!tryCreateNormalTexture(resources, shaderObject, normalScale, normalTexture))
+		return false;
+
+	m_glNormalTexture.texture = normalTexture;
+	// TODO: m_glNormalTexture.scale = normalScale;
+	// TODO: m_glNormalTexture.texCoord = ...
+	m_glMaterial.normalTexture = &m_glNormalTexture;
 	return true;
 }
 
@@ -165,6 +199,8 @@ void ExportableMaterialPBR::convert(ExportableResources& resources, const MObjec
 	};
 
 	m_glMetallicRoughness.baseColorFactor = &m_glBaseColorFactor[0];
+
+	loadNormalTexture(resources, shaderObject);
 }
 
 

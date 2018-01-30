@@ -15,6 +15,7 @@ public:
 
 protected:
 	static bool tryCreateTexture(ExportableResources& resources, const MObject& obj, const char* attributeName, GLTF::Texture*& outputTexture);
+	static bool tryCreateNormalTexture(ExportableResources& resources, const MObject& obj, float& normalScale, GLTF::Texture*& outputTexture);
 
 	static bool getScalar(const MObject& shaderObject, const char* attributeName, float& scalar);
 	static bool getColor(const MObject& shaderObject, const char* attributeName, Float4& color);
@@ -31,6 +32,9 @@ protected:
 	GLTF::MaterialPBR m_glMaterial;
 	GLTF::MaterialPBR::MetallicRoughness m_glMetallicRoughness;
 	GLTF::MaterialPBR::Texture m_glBaseColorTexture;
+	GLTF::MaterialPBR::Texture m_glNormalTexture;
+
+	bool loadNormalTexture(ExportableResources& resources, const MObject& obj);
 };
 
 class ExportableDefaultMaterial : public ExportableMaterialBasePBR
