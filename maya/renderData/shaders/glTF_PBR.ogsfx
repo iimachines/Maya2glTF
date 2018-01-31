@@ -11,7 +11,6 @@
 //     https://github.com/KhronosGroup/glTF-WebGL-PBR/#environment-maps
 // [4] "An Inexpensive BRDF Model for Physically based Rendering" by Christophe Schlick
 //     https://www.cs.virginia.edu/~jdl/bib/appearance/analytic%20models/schlick94b.pdf
-
 #define USE_IBL
 #define HAS_BASECOLORMAP
 #define HAS_NORMALMAP
@@ -206,6 +205,9 @@ uniform vec4 u_ScaleIBLAmbient
     string UIGroup = "PBR Debug";
 > = {0.0, 0.0, 0.0, 0.0};
 
+// If the user enables viewport gamma correction in Maya's global viewport rendering settings, the shader should not do gamma again
+//uniform bool MayaFullScreenGamma : MayaGammaCorrection < string UIWidget = "None"; > = false;
+
 
 // Encapsulate the various inputs used by the various functions in the shading equation
 // We store values in this struct to simplify the integration of alternative implementations
@@ -310,12 +312,12 @@ GLSLShader PS
     // See our README.md on Environment Maps [3] for additional discussion.
     vec3 getIBLContribution(PBRInfo pbrInputs, vec3 n, vec3 reflection)
     {
-        float mipCount = textureQueryLevels(u_SpecularEnvSampler);
-        float lod = (pbrInputs.perceptualRoughness * mipCount);
+        float mipMax = textureQueryLevels(u_SpecularEnvSampler)-1;
+        float lod = pbrInputs.perceptualRoughness * mipMax;
         // retrieve a scale and bias to F0. See [1], Figure 3
-        vec3 brdf = SRGBtoLINEAR(texture2D(u_brdfLUT, vec2(pbrInputs.NdotV, 1.0 - pbrInputs.perceptualRoughness))).rgb;
-        vec3 diffuseLight = SRGBtoLINEAR(textureCube(u_DiffuseEnvSampler, n)).rgb;
-        vec3 specularLight = SRGBtoLINEAR(textureCube(u_SpecularEnvSampler, reflection, lod)).rgb;
+        vec3 brdf = texture(u_brdfLUT, vec2(pbrInputs.NdotV, 1.0 - pbrInputs.perceptualRoughness)).rgb;
+        vec3 diffuseLight = (texture(u_DiffuseEnvSampler, n)).rgb;
+        vec3 specularLight = (textureLod(u_SpecularEnvSampler, reflection, lod)).rgb;
 
         vec3 diffuse = diffuseLight * pbrInputs.diffuseColor;
         vec3 specular = specularLight * (pbrInputs.specularColor * brdf.x + brdf.y);
@@ -377,7 +379,7 @@ GLSLShader PS
 #ifdef HAS_METALROUGHNESSMAP
         // Roughness is stored in the 'g' channel, metallic is stored in the 'b' channel.
         // This layout intentionally reserves the 'r' channel for (optional) occlusion map data
-        vec4 mrSample = texture2D(u_MetallicRoughnessSampler, v_UV);
+        vec4 mrSample = texture(u_MetallicRoughnessSampler, v_UV);
         perceptualRoughness = mrSample.g * perceptualRoughness;
         metallic = mrSample.b * metallic;
 #endif
@@ -389,7 +391,7 @@ GLSLShader PS
 
         // The albedo may be defined from a base texture or a flat color
 #ifdef HAS_BASECOLORMAP
-        vec4 baseColor = SRGBtoLINEAR(texture2D(u_BaseColorSampler, v_UV)) * u_BaseColorFactor;
+        vec4 baseColor = SRGBtoLINEAR(texture(u_BaseColorSampler, v_UV)) * u_BaseColorFactor;
 #else
         vec4 baseColor = u_BaseColorFactor;
 #endif
@@ -452,12 +454,12 @@ GLSLShader PS
 
         // Apply optional PBR terms for additional (optional) shading
 #ifdef HAS_OCCLUSIONMAP
-        float ao = texture2D(u_OcclusionSampler, v_UV).r;
+        float ao = texture(u_OcclusionSampler, v_UV).r;
         color = mix(color, color * ao, u_OcclusionStrength);
 #endif
 
 #ifdef HAS_EMISSIVEMAP
-        vec3 emissive = SRGBtoLINEAR(texture2D(u_EmissiveSampler, v_UV)).rgb * u_EmissiveFactor;
+        vec3 emissive = SRGBtoLINEAR(texture(u_EmissiveSampler, v_UV)).rgb * u_EmissiveFactor;
         color += emissive;
 #endif
 
