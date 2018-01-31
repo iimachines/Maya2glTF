@@ -1,8 +1,9 @@
 //Maya ASCII 2018 scene
 //Name: damaged_helmet_glsl.ma
-//Last modified: Wed, Jan 31, 2018 03:57:24 PM
+//Last modified: Wed, Jan 31, 2018 07:30:53 PM
 //Codeset: 1252
 requires maya "2018";
+requires -nodeType "aiOptions" -nodeType "aiAOVDriver" -nodeType "aiAOVFilter" "mtoa" "2.0.1";
 requires "stereoCamera" "10.0";
 requires -nodeType "GLSLShader" "glslShader" "1.0";
 requires "stereoCamera" "10.0";
@@ -16,14 +17,14 @@ createNode transform -s -n "persp";
 	rename -uid "62D6CA3E-4845-5AEF-C5AD-3789FFD0601D";
 	addAttr -ci true -sn "nts" -ln "notes" -dt "string";
 	setAttr ".v" no;
-	setAttr ".t" -type "double3" -1.6721978012382943 0.93412694359103776 -4.1713307527082426 ;
-	setAttr ".r" -type "double3" -1092.0000000123525 4162.4000000064107 0 ;
+	setAttr ".t" -type "double3" -0.087205843048113768 2.5834917789086895 -1.9420466631811346 ;
+	setAttr ".r" -type "double3" -1134.6000000183642 4142.7999999997692 0 ;
 	setAttr ".nts" -type "string" "\t\t";
 createNode camera -s -n "perspShape" -p "persp";
 	rename -uid "077E03D9-4657-105C-1272-90A434265646";
 	setAttr -k off ".v" no;
 	setAttr ".fl" 34.999999999999993;
-	setAttr ".coi" 4.4928517682432041;
+	setAttr ".coi" 3.1694186567534564;
 	setAttr ".imn" -type "string" "persp";
 	setAttr ".den" -type "string" "persp_depth";
 	setAttr ".man" -type "string" "persp_mask";
@@ -65515,6 +65516,12 @@ createNode nurbsCurve -n "nurbsCircleShape1" -p "nurbsCircle1";
 	rename -uid "E8ABB34E-4537-92F8-9F43-AF922A1B5F2E";
 	setAttr -k off ".v";
 	setAttr ".tw" yes;
+createNode transform -n "nurbsCircle2";
+	rename -uid "DD1D0E46-4A11-F677-965A-229B02C3EF2D";
+createNode nurbsCurve -n "nurbsCircleShape2" -p "nurbsCircle2";
+	rename -uid "A378DC58-4B5D-FC2F-2BCD-539A3C25365D";
+	setAttr -k off ".v";
+	setAttr ".tw" yes;
 createNode lightLinker -s -n "lightLinker1";
 	rename -uid "B2E1ABAE-494C-A99A-3234-6981DD86E900";
 	setAttr -s 8 ".lnk";
@@ -65561,74 +65568,6 @@ createNode GLSLShader -n "GLSL_PBR_Shader";
 		-at "message";
 	addAttr -s false -is true -ci true -k true -sn "te" -ln "techniqueEnum" -nn "Technique" 
 		-min 0 -max 0 -en "Main" -at "enum";
-	addAttr -is true -ci true -h true -sn "gBaseColorFactor_Name" -ln "gBaseColorFactor_Name" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -h true -sn "gBaseColorFactor_Type" -ln "gBaseColorFactor_Type" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -sn "gBaseColorFactor" -ln "gBaseColorFactor" -nn "Base Color Factor" 
-		-ct "HW_shader_parameter" -at "compound" -nc 2;
-	addAttr -is true -ci true -uac -sn "gBaseColorFactorRGB" -ln "gBaseColorFactorRGB" 
-		-ct "HW_shader_parameter" -at "float3" -p "gBaseColorFactor" -nc 3;
-	addAttr -is true -ci true -sn "gBaseColorFactorR" -ln "gBaseColorFactorR" -ct "HW_shader_parameter" 
-		-dv 1 -smn 0 -smx 1 -at "float" -p "gBaseColorFactorRGB";
-	addAttr -is true -ci true -sn "gBaseColorFactorG" -ln "gBaseColorFactorG" -ct "HW_shader_parameter" 
-		-dv 1 -smn 0 -smx 1 -at "float" -p "gBaseColorFactorRGB";
-	addAttr -is true -ci true -sn "gBaseColorFactorB" -ln "gBaseColorFactorB" -ct "HW_shader_parameter" 
-		-dv 1 -smn 0 -smx 1 -at "float" -p "gBaseColorFactorRGB";
-	addAttr -is true -ci true -sn "gBaseColorFactorA" -ln "gBaseColorFactorA" -ct "HW_shader_parameter" 
-		-dv 1 -smn 0 -smx 1 -at "float" -p "gBaseColorFactor";
-	addAttr -is true -ci true -h true -sn "gBaseColorTexture_Name" -ln "gBaseColorTexture_Name" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -h true -sn "gBaseColorTexture_Type" -ln "gBaseColorTexture_Type" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -uac -sn "gBaseColorTexture" -ln "gBaseColorTexture" -nn "Base Color Map" 
-		-ct "HW_shader_parameter" -at "float3" -nc 3;
-	addAttr -is true -ci true -sn "gBaseColorTextureR" -ln "gBaseColorTextureR" -ct "HW_shader_parameter" 
-		-smn 0 -smx 1 -at "float" -p "gBaseColorTexture";
-	addAttr -is true -ci true -sn "gBaseColorTextureG" -ln "gBaseColorTextureG" -ct "HW_shader_parameter" 
-		-smn 0 -smx 1 -at "float" -p "gBaseColorTexture";
-	addAttr -is true -ci true -sn "gBaseColorTextureB" -ln "gBaseColorTextureB" -ct "HW_shader_parameter" 
-		-smn 0 -smx 1 -at "float" -p "gBaseColorTexture";
-	addAttr -is true -ci true -h true -sn "gMetallicRoughnessValues_Name" -ln "gMetallicRoughnessValues_Name" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -h true -sn "gMetallicRoughnessValues_Type" -ln "gMetallicRoughnessValues_Type" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -sn "gMetallicRoughnessValues" -ln "gMetallicRoughnessValues" 
-		-nn "Metallic Roughness" -ct "HW_shader_parameter" -at "float2" -nc 2;
-	addAttr -is true -ci true -sn "gMetallicRoughnessValuesX" -ln "gMetallicRoughnessValuesX" 
-		-ct "HW_shader_parameter" -dv 0.5 -smn 0 -smx 1 -at "float" -p "gMetallicRoughnessValues";
-	addAttr -is true -ci true -sn "gMetallicRoughnessValuesY" -ln "gMetallicRoughnessValuesY" 
-		-ct "HW_shader_parameter" -dv 0.5 -smn 0 -smx 1 -at "float" -p "gMetallicRoughnessValues";
-	addAttr -is true -ci true -h true -sn "gMetallicRoughnessTexture_Name" -ln "gMetallicRoughnessTexture_Name" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -h true -sn "gMetallicRoughnessTexture_Type" -ln "gMetallicRoughnessTexture_Type" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -uac -sn "gMetallicRoughnessTexture" -ln "gMetallicRoughnessTexture" 
-		-nn "AO Ro Me (RGB) Map" -ct "HW_shader_parameter" -at "float3" -nc 3;
-	addAttr -is true -ci true -sn "gMetallicRoughnessTextureR" -ln "gMetallicRoughnessTextureR" 
-		-ct "HW_shader_parameter" -smn 0 -smx 1 -at "float" -p "gMetallicRoughnessTexture";
-	addAttr -is true -ci true -sn "gMetallicRoughnessTextureG" -ln "gMetallicRoughnessTextureG" 
-		-ct "HW_shader_parameter" -smn 0 -smx 1 -at "float" -p "gMetallicRoughnessTexture";
-	addAttr -is true -ci true -sn "gMetallicRoughnessTextureB" -ln "gMetallicRoughnessTextureB" 
-		-ct "HW_shader_parameter" -smn 0 -smx 1 -at "float" -p "gMetallicRoughnessTexture";
-	addAttr -is true -ci true -h true -sn "gNormalScale_Name" -ln "gNormalScale_Name" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -h true -sn "gNormalScale_Type" -ln "gNormalScale_Type" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -sn "gNormalScale" -ln "gNormalScale" -nn "Normal Scale" 
-		-ct "HW_shader_parameter" -smn 0 -smx 1 -at "float";
-	addAttr -is true -ci true -h true -sn "gNormalTexture_Name" -ln "gNormalTexture_Name" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -h true -sn "gNormalTexture_Type" -ln "gNormalTexture_Type" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -uac -sn "gNormalTexture" -ln "gNormalTexture" -nn "Normal Map" 
-		-ct "HW_shader_parameter" -at "float3" -nc 3;
-	addAttr -is true -ci true -sn "gNormalTextureR" -ln "gNormalTextureR" -ct "HW_shader_parameter" 
-		-smn 0 -smx 1 -at "float" -p "gNormalTexture";
-	addAttr -is true -ci true -sn "gNormalTextureG" -ln "gNormalTextureG" -ct "HW_shader_parameter" 
-		-smn 0 -smx 1 -at "float" -p "gNormalTexture";
-	addAttr -is true -ci true -sn "gNormalTextureB" -ln "gNormalTextureB" -ct "HW_shader_parameter" 
-		-smn 0 -smx 1 -at "float" -p "gNormalTexture";
 	addAttr -ci true -sn "Position" -ln "Position" -at "compound" -nc 3;
 	addAttr -is true -ci true -h true -sn "Position_Name" -ln "Position_Name" -ct "HW_shader_parameter" 
 		-dt "string" -p "Position";
@@ -65636,6 +65575,194 @@ createNode GLSLShader -n "GLSL_PBR_Shader";
 		-dt "string" -p "Position";
 	addAttr -is true -ci true -sn "Position_DefaultTexture" -ln "Position_DefaultTexture" 
 		-ct "HW_shader_parameter" -dt "string" -p "Position";
+	addAttr -is true -ci true -h true -sn "u_LightColor_Name" -ln "u_LightColor_Name" 
+		-ct "HW_shader_parameter" -dt "string";
+	addAttr -is true -ci true -h true -sn "u_LightColor_Type" -ln "u_LightColor_Type" 
+		-ct "HW_shader_parameter" -dt "string";
+	addAttr -is true -ci true -uac -sn "u_LightColor" -ln "u_LightColor" -nn "Light Color" 
+		-ct "HW_shader_parameter" -at "float3" -nc 3;
+	addAttr -is true -ci true -sn "u_LightColorR" -ln "u_LightColorR" -ct "HW_shader_parameter" 
+		-dv 1 -min 0 -max 1 -at "float" -p "u_LightColor";
+	addAttr -is true -ci true -sn "u_LightColorG" -ln "u_LightColorG" -ct "HW_shader_parameter" 
+		-dv 1 -min 0 -max 1 -at "float" -p "u_LightColor";
+	addAttr -is true -ci true -sn "u_LightColorB" -ln "u_LightColorB" -ct "HW_shader_parameter" 
+		-dv 1 -min 0 -max 1 -at "float" -p "u_LightColor";
+	addAttr -is true -ci true -h true -sn "u_DiffuseEnvTexture_Name" -ln "u_DiffuseEnvTexture_Name" 
+		-ct "HW_shader_parameter" -dt "string";
+	addAttr -is true -ci true -h true -sn "u_DiffuseEnvTexture_Type" -ln "u_DiffuseEnvTexture_Type" 
+		-ct "HW_shader_parameter" -dt "string";
+	addAttr -is true -ci true -uac -sn "u_DiffuseEnvTexture" -ln "u_DiffuseEnvTexture" 
+		-nn "Diffuse env map" -ct "HW_shader_parameter" -at "float3" -nc 3;
+	addAttr -is true -ci true -sn "u_DiffuseEnvTextureR" -ln "u_DiffuseEnvTextureR" 
+		-ct "HW_shader_parameter" -smn 0 -smx 1 -at "float" -p "u_DiffuseEnvTexture";
+	addAttr -is true -ci true -sn "u_DiffuseEnvTextureG" -ln "u_DiffuseEnvTextureG" 
+		-ct "HW_shader_parameter" -smn 0 -smx 1 -at "float" -p "u_DiffuseEnvTexture";
+	addAttr -is true -ci true -sn "u_DiffuseEnvTextureB" -ln "u_DiffuseEnvTextureB" 
+		-ct "HW_shader_parameter" -smn 0 -smx 1 -at "float" -p "u_DiffuseEnvTexture";
+	addAttr -is true -ci true -h true -sn "u_SpecularEnvTexture_Name" -ln "u_SpecularEnvTexture_Name" 
+		-ct "HW_shader_parameter" -dt "string";
+	addAttr -is true -ci true -h true -sn "u_SpecularEnvTexture_Type" -ln "u_SpecularEnvTexture_Type" 
+		-ct "HW_shader_parameter" -dt "string";
+	addAttr -is true -ci true -uac -sn "u_SpecularEnvTexture" -ln "u_SpecularEnvTexture" 
+		-nn "Specular env map" -ct "HW_shader_parameter" -at "float3" -nc 3;
+	addAttr -is true -ci true -sn "u_SpecularEnvTextureR" -ln "u_SpecularEnvTextureR" 
+		-ct "HW_shader_parameter" -smn 0 -smx 1 -at "float" -p "u_SpecularEnvTexture";
+	addAttr -is true -ci true -sn "u_SpecularEnvTextureG" -ln "u_SpecularEnvTextureG" 
+		-ct "HW_shader_parameter" -smn 0 -smx 1 -at "float" -p "u_SpecularEnvTexture";
+	addAttr -is true -ci true -sn "u_SpecularEnvTextureB" -ln "u_SpecularEnvTextureB" 
+		-ct "HW_shader_parameter" -smn 0 -smx 1 -at "float" -p "u_SpecularEnvTexture";
+	addAttr -is true -ci true -h true -sn "u_brdfTexture_Name" -ln "u_brdfTexture_Name" 
+		-ct "HW_shader_parameter" -dt "string";
+	addAttr -is true -ci true -h true -sn "u_brdfTexture_Type" -ln "u_brdfTexture_Type" 
+		-ct "HW_shader_parameter" -dt "string";
+	addAttr -is true -ci true -uac -sn "u_brdfTexture" -ln "u_brdfTexture" -nn "BRDF LUT" 
+		-ct "HW_shader_parameter" -at "float3" -nc 3;
+	addAttr -is true -ci true -sn "u_brdfTextureR" -ln "u_brdfTextureR" -ct "HW_shader_parameter" 
+		-smn 0 -smx 1 -at "float" -p "u_brdfTexture";
+	addAttr -is true -ci true -sn "u_brdfTextureG" -ln "u_brdfTextureG" -ct "HW_shader_parameter" 
+		-smn 0 -smx 1 -at "float" -p "u_brdfTexture";
+	addAttr -is true -ci true -sn "u_brdfTextureB" -ln "u_brdfTextureB" -ct "HW_shader_parameter" 
+		-smn 0 -smx 1 -at "float" -p "u_brdfTexture";
+	addAttr -is true -ci true -h true -sn "u_BaseColorTexture_Name" -ln "u_BaseColorTexture_Name" 
+		-ct "HW_shader_parameter" -dt "string";
+	addAttr -is true -ci true -h true -sn "u_BaseColorTexture_Type" -ln "u_BaseColorTexture_Type" 
+		-ct "HW_shader_parameter" -dt "string";
+	addAttr -is true -ci true -uac -sn "u_BaseColorTexture" -ln "u_BaseColorTexture" 
+		-nn "Base Color Map" -ct "HW_shader_parameter" -at "float3" -nc 3;
+	addAttr -is true -ci true -sn "u_BaseColorTextureR" -ln "u_BaseColorTextureR" -ct "HW_shader_parameter" 
+		-smn 0 -smx 1 -at "float" -p "u_BaseColorTexture";
+	addAttr -is true -ci true -sn "u_BaseColorTextureG" -ln "u_BaseColorTextureG" -ct "HW_shader_parameter" 
+		-smn 0 -smx 1 -at "float" -p "u_BaseColorTexture";
+	addAttr -is true -ci true -sn "u_BaseColorTextureB" -ln "u_BaseColorTextureB" -ct "HW_shader_parameter" 
+		-smn 0 -smx 1 -at "float" -p "u_BaseColorTexture";
+	addAttr -is true -ci true -h true -sn "u_EmissiveTexture_Name" -ln "u_EmissiveTexture_Name" 
+		-ct "HW_shader_parameter" -dt "string";
+	addAttr -is true -ci true -h true -sn "u_EmissiveTexture_Type" -ln "u_EmissiveTexture_Type" 
+		-ct "HW_shader_parameter" -dt "string";
+	addAttr -is true -ci true -uac -sn "u_EmissiveTexture" -ln "u_EmissiveTexture" -nn "Emissive Map" 
+		-ct "HW_shader_parameter" -at "float3" -nc 3;
+	addAttr -is true -ci true -sn "u_EmissiveTextureR" -ln "u_EmissiveTextureR" -ct "HW_shader_parameter" 
+		-smn 0 -smx 1 -at "float" -p "u_EmissiveTexture";
+	addAttr -is true -ci true -sn "u_EmissiveTextureG" -ln "u_EmissiveTextureG" -ct "HW_shader_parameter" 
+		-smn 0 -smx 1 -at "float" -p "u_EmissiveTexture";
+	addAttr -is true -ci true -sn "u_EmissiveTextureB" -ln "u_EmissiveTextureB" -ct "HW_shader_parameter" 
+		-smn 0 -smx 1 -at "float" -p "u_EmissiveTexture";
+	addAttr -is true -ci true -h true -sn "u_EmissiveFactor_Name" -ln "u_EmissiveFactor_Name" 
+		-ct "HW_shader_parameter" -dt "string";
+	addAttr -is true -ci true -h true -sn "u_EmissiveFactor_Type" -ln "u_EmissiveFactor_Type" 
+		-ct "HW_shader_parameter" -dt "string";
+	addAttr -is true -ci true -sn "u_EmissiveFactor" -ln "u_EmissiveFactor" -nn "Emissive Factor" 
+		-ct "HW_shader_parameter" -at "float3" -nc 3;
+	addAttr -is true -ci true -sn "u_EmissiveFactorX" -ln "u_EmissiveFactorX" -ct "HW_shader_parameter" 
+		-dv 1 -smn 0 -smx 1 -at "float" -p "u_EmissiveFactor";
+	addAttr -is true -ci true -sn "u_EmissiveFactorY" -ln "u_EmissiveFactorY" -ct "HW_shader_parameter" 
+		-dv 1 -smn 0 -smx 1 -at "float" -p "u_EmissiveFactor";
+	addAttr -is true -ci true -sn "u_EmissiveFactorZ" -ln "u_EmissiveFactorZ" -ct "HW_shader_parameter" 
+		-dv 1 -smn 0 -smx 1 -at "float" -p "u_EmissiveFactor";
+	addAttr -is true -ci true -h true -sn "u_MetallicRoughnessTexture_Name" -ln "u_MetallicRoughnessTexture_Name" 
+		-ct "HW_shader_parameter" -dt "string";
+	addAttr -is true -ci true -h true -sn "u_MetallicRoughnessTexture_Type" -ln "u_MetallicRoughnessTexture_Type" 
+		-ct "HW_shader_parameter" -dt "string";
+	addAttr -is true -ci true -uac -sn "u_MetallicRoughnessTexture" -ln "u_MetallicRoughnessTexture" 
+		-nn "Roughness(G) Metallic(B)" -ct "HW_shader_parameter" -at "float3" -nc 3;
+	addAttr -is true -ci true -sn "u_MetallicRoughnessTextureR" -ln "u_MetallicRoughnessTextureR" 
+		-ct "HW_shader_parameter" -smn 0 -smx 1 -at "float" -p "u_MetallicRoughnessTexture";
+	addAttr -is true -ci true -sn "u_MetallicRoughnessTextureG" -ln "u_MetallicRoughnessTextureG" 
+		-ct "HW_shader_parameter" -smn 0 -smx 1 -at "float" -p "u_MetallicRoughnessTexture";
+	addAttr -is true -ci true -sn "u_MetallicRoughnessTextureB" -ln "u_MetallicRoughnessTextureB" 
+		-ct "HW_shader_parameter" -smn 0 -smx 1 -at "float" -p "u_MetallicRoughnessTexture";
+	addAttr -is true -ci true -h true -sn "u_OcclusionTexture_Name" -ln "u_OcclusionTexture_Name" 
+		-ct "HW_shader_parameter" -dt "string";
+	addAttr -is true -ci true -h true -sn "u_OcclusionTexture_Type" -ln "u_OcclusionTexture_Type" 
+		-ct "HW_shader_parameter" -dt "string";
+	addAttr -is true -ci true -uac -sn "u_OcclusionTexture" -ln "u_OcclusionTexture" 
+		-nn "Occlusion map" -ct "HW_shader_parameter" -at "float3" -nc 3;
+	addAttr -is true -ci true -sn "u_OcclusionTextureR" -ln "u_OcclusionTextureR" -ct "HW_shader_parameter" 
+		-smn 0 -smx 1 -at "float" -p "u_OcclusionTexture";
+	addAttr -is true -ci true -sn "u_OcclusionTextureG" -ln "u_OcclusionTextureG" -ct "HW_shader_parameter" 
+		-smn 0 -smx 1 -at "float" -p "u_OcclusionTexture";
+	addAttr -is true -ci true -sn "u_OcclusionTextureB" -ln "u_OcclusionTextureB" -ct "HW_shader_parameter" 
+		-smn 0 -smx 1 -at "float" -p "u_OcclusionTexture";
+	addAttr -is true -ci true -h true -sn "u_OcclusionStrength_Name" -ln "u_OcclusionStrength_Name" 
+		-ct "HW_shader_parameter" -dt "string";
+	addAttr -is true -ci true -h true -sn "u_OcclusionStrength_Type" -ln "u_OcclusionStrength_Type" 
+		-ct "HW_shader_parameter" -dt "string";
+	addAttr -is true -ci true -sn "u_OcclusionStrength" -ln "u_OcclusionStrength" -nn "Occlusion strength" 
+		-ct "HW_shader_parameter" -dv 1 -smn 0 -smx 1 -at "float";
+	addAttr -is true -ci true -h true -sn "u_MetallicRoughnessValues_Name" -ln "u_MetallicRoughnessValues_Name" 
+		-ct "HW_shader_parameter" -dt "string";
+	addAttr -is true -ci true -h true -sn "u_MetallicRoughnessValues_Type" -ln "u_MetallicRoughnessValues_Type" 
+		-ct "HW_shader_parameter" -dt "string";
+	addAttr -is true -ci true -sn "u_MetallicRoughnessValues" -ln "u_MetallicRoughnessValues" 
+		-nn "Metallic Roughness" -ct "HW_shader_parameter" -at "float2" -nc 2;
+	addAttr -is true -ci true -sn "u_MetallicRoughnessValuesX" -ln "u_MetallicRoughnessValuesX" 
+		-ct "HW_shader_parameter" -dv 1 -smn 0 -smx 1 -at "float" -p "u_MetallicRoughnessValues";
+	addAttr -is true -ci true -sn "u_MetallicRoughnessValuesY" -ln "u_MetallicRoughnessValuesY" 
+		-ct "HW_shader_parameter" -dv 1 -smn 0 -smx 1 -at "float" -p "u_MetallicRoughnessValues";
+	addAttr -is true -ci true -h true -sn "u_BaseColorFactor_Name" -ln "u_BaseColorFactor_Name" 
+		-ct "HW_shader_parameter" -dt "string";
+	addAttr -is true -ci true -h true -sn "u_BaseColorFactor_Type" -ln "u_BaseColorFactor_Type" 
+		-ct "HW_shader_parameter" -dt "string";
+	addAttr -is true -ci true -sn "u_BaseColorFactor" -ln "u_BaseColorFactor" -nn "Base Color Factor" 
+		-ct "HW_shader_parameter" -at "compound" -nc 2;
+	addAttr -is true -ci true -uac -sn "u_BaseColorFactorRGB" -ln "u_BaseColorFactorRGB" 
+		-ct "HW_shader_parameter" -at "float3" -p "u_BaseColorFactor" -nc 3;
+	addAttr -is true -ci true -sn "u_BaseColorFactorR" -ln "u_BaseColorFactorR" -ct "HW_shader_parameter" 
+		-dv 1 -smn 0 -smx 1 -at "float" -p "u_BaseColorFactorRGB";
+	addAttr -is true -ci true -sn "u_BaseColorFactorG" -ln "u_BaseColorFactorG" -ct "HW_shader_parameter" 
+		-dv 1 -smn 0 -smx 1 -at "float" -p "u_BaseColorFactorRGB";
+	addAttr -is true -ci true -sn "u_BaseColorFactorB" -ln "u_BaseColorFactorB" -ct "HW_shader_parameter" 
+		-dv 1 -smn 0 -smx 1 -at "float" -p "u_BaseColorFactorRGB";
+	addAttr -is true -ci true -sn "u_BaseColorFactorA" -ln "u_BaseColorFactorA" -ct "HW_shader_parameter" 
+		-dv 1 -smn 0 -smx 1 -at "float" -p "u_BaseColorFactor";
+	addAttr -is true -ci true -h true -sn "u_ScaleDiffBaseMR_Name" -ln "u_ScaleDiffBaseMR_Name" 
+		-ct "HW_shader_parameter" -dt "string";
+	addAttr -is true -ci true -h true -sn "u_ScaleDiffBaseMR_Type" -ln "u_ScaleDiffBaseMR_Type" 
+		-ct "HW_shader_parameter" -dt "string";
+	addAttr -is true -ci true -sn "u_ScaleDiffBaseMR" -ln "u_ScaleDiffBaseMR" -nn "Scale Diff Base MR" 
+		-ct "HW_shader_parameter" -at "compound" -nc 2;
+	addAttr -is true -ci true -sn "u_ScaleDiffBaseMRXYZ" -ln "u_ScaleDiffBaseMRXYZ" 
+		-ct "HW_shader_parameter" -at "float3" -p "u_ScaleDiffBaseMR" -nc 3;
+	addAttr -is true -ci true -sn "u_ScaleDiffBaseMRX" -ln "u_ScaleDiffBaseMRX" -ct "HW_shader_parameter" 
+		-smn 0 -smx 1 -at "float" -p "u_ScaleDiffBaseMRXYZ";
+	addAttr -is true -ci true -sn "u_ScaleDiffBaseMRY" -ln "u_ScaleDiffBaseMRY" -ct "HW_shader_parameter" 
+		-smn 0 -smx 1 -at "float" -p "u_ScaleDiffBaseMRXYZ";
+	addAttr -is true -ci true -sn "u_ScaleDiffBaseMRZ" -ln "u_ScaleDiffBaseMRZ" -ct "HW_shader_parameter" 
+		-smn 0 -smx 1 -at "float" -p "u_ScaleDiffBaseMRXYZ";
+	addAttr -is true -ci true -sn "u_ScaleDiffBaseMRW" -ln "u_ScaleDiffBaseMRW" -ct "HW_shader_parameter" 
+		-smn 0 -smx 1 -at "float" -p "u_ScaleDiffBaseMR";
+	addAttr -is true -ci true -h true -sn "u_ScaleFGDSpec_Name" -ln "u_ScaleFGDSpec_Name" 
+		-ct "HW_shader_parameter" -dt "string";
+	addAttr -is true -ci true -h true -sn "u_ScaleFGDSpec_Type" -ln "u_ScaleFGDSpec_Type" 
+		-ct "HW_shader_parameter" -dt "string";
+	addAttr -is true -ci true -sn "u_ScaleFGDSpec" -ln "u_ScaleFGDSpec" -nn "Scale FGD Spec" 
+		-ct "HW_shader_parameter" -at "compound" -nc 2;
+	addAttr -is true -ci true -sn "u_ScaleFGDSpecXYZ" -ln "u_ScaleFGDSpecXYZ" -ct "HW_shader_parameter" 
+		-at "float3" -p "u_ScaleFGDSpec" -nc 3;
+	addAttr -is true -ci true -sn "u_ScaleFGDSpecX" -ln "u_ScaleFGDSpecX" -ct "HW_shader_parameter" 
+		-smn 0 -smx 1 -at "float" -p "u_ScaleFGDSpecXYZ";
+	addAttr -is true -ci true -sn "u_ScaleFGDSpecY" -ln "u_ScaleFGDSpecY" -ct "HW_shader_parameter" 
+		-smn 0 -smx 1 -at "float" -p "u_ScaleFGDSpecXYZ";
+	addAttr -is true -ci true -sn "u_ScaleFGDSpecZ" -ln "u_ScaleFGDSpecZ" -ct "HW_shader_parameter" 
+		-smn 0 -smx 1 -at "float" -p "u_ScaleFGDSpecXYZ";
+	addAttr -is true -ci true -sn "u_ScaleFGDSpecW" -ln "u_ScaleFGDSpecW" -ct "HW_shader_parameter" 
+		-smn 0 -smx 1 -at "float" -p "u_ScaleFGDSpec";
+	addAttr -is true -ci true -h true -sn "u_ScaleIBLAmbient_Name" -ln "u_ScaleIBLAmbient_Name" 
+		-ct "HW_shader_parameter" -dt "string";
+	addAttr -is true -ci true -h true -sn "u_ScaleIBLAmbient_Type" -ln "u_ScaleIBLAmbient_Type" 
+		-ct "HW_shader_parameter" -dt "string";
+	addAttr -is true -ci true -sn "u_ScaleIBLAmbient" -ln "u_ScaleIBLAmbient" -nn "Scale IBL Ambient" 
+		-ct "HW_shader_parameter" -at "compound" -nc 2;
+	addAttr -is true -ci true -uac -sn "u_ScaleIBLAmbientRGB" -ln "u_ScaleIBLAmbientRGB" 
+		-ct "HW_shader_parameter" -at "float3" -p "u_ScaleIBLAmbient" -nc 3;
+	addAttr -is true -ci true -sn "u_ScaleIBLAmbientR" -ln "u_ScaleIBLAmbientR" -ct "HW_shader_parameter" 
+		-smn 0 -smx 1 -at "float" -p "u_ScaleIBLAmbientRGB";
+	addAttr -is true -ci true -sn "u_ScaleIBLAmbientG" -ln "u_ScaleIBLAmbientG" -ct "HW_shader_parameter" 
+		-smn 0 -smx 1 -at "float" -p "u_ScaleIBLAmbientRGB";
+	addAttr -is true -ci true -sn "u_ScaleIBLAmbientB" -ln "u_ScaleIBLAmbientB" -ct "HW_shader_parameter" 
+		-smn 0 -smx 1 -at "float" -p "u_ScaleIBLAmbientRGB";
+	addAttr -is true -ci true -sn "u_ScaleIBLAmbientA" -ln "u_ScaleIBLAmbientA" -ct "HW_shader_parameter" 
+		-smn 0 -smx 1 -at "float" -p "u_ScaleIBLAmbient";
 	addAttr -ci true -sn "Normal" -ln "Normal" -at "compound" -nc 3;
 	addAttr -is true -ci true -h true -sn "Normal_Name" -ln "Normal_Name" -ct "HW_shader_parameter" 
 		-dt "string" -p "Normal";
@@ -65657,313 +65784,129 @@ createNode GLSLShader -n "GLSL_PBR_Shader";
 		-ct "HW_shader_parameter" -dt "string" -p "TexCoord0";
 	addAttr -is true -ci true -sn "TexCoord0_DefaultTexture" -ln "TexCoord0_DefaultTexture" 
 		-ct "HW_shader_parameter" -dt "string" -p "TexCoord0";
-	addAttr -is true -ci true -h true -sn "gBrdfLUT_Name" -ln "gBrdfLUT_Name" -ct "HW_shader_parameter" 
+	addAttr -is true -ci true -h true -sn "u_LightDir_Name" -ln "u_LightDir_Name" -ct "HW_shader_parameter" 
 		-dt "string";
-	addAttr -is true -ci true -h true -sn "gBrdfLUT_Type" -ln "gBrdfLUT_Type" -ct "HW_shader_parameter" 
+	addAttr -is true -ci true -h true -sn "u_LightDir_Type" -ln "u_LightDir_Type" -ct "HW_shader_parameter" 
 		-dt "string";
-	addAttr -is true -ci true -uac -sn "gBrdfLUT" -ln "gBrdfLUT" -nn "BRDF LUT" -ct "HW_shader_parameter" 
-		-at "float3" -nc 3;
-	addAttr -is true -ci true -sn "gBrdfLUTR" -ln "gBrdfLUTR" -ct "HW_shader_parameter" 
-		-smn 0 -smx 1 -at "float" -p "gBrdfLUT";
-	addAttr -is true -ci true -sn "gBrdfLUTG" -ln "gBrdfLUTG" -ct "HW_shader_parameter" 
-		-smn 0 -smx 1 -at "float" -p "gBrdfLUT";
-	addAttr -is true -ci true -sn "gBrdfLUTB" -ln "gBrdfLUTB" -ct "HW_shader_parameter" 
-		-smn 0 -smx 1 -at "float" -p "gBrdfLUT";
-	addAttr -is true -ci true -h true -sn "gDiffuseEnvTexture_Name" -ln "gDiffuseEnvTexture_Name" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -h true -sn "gDiffuseEnvTexture_Type" -ln "gDiffuseEnvTexture_Type" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -uac -sn "gDiffuseEnvTexture" -ln "gDiffuseEnvTexture" 
-		-nn "Diffuse Environment Map" -ct "HW_shader_parameter" -at "float3" -nc 3;
-	addAttr -is true -ci true -sn "gDiffuseEnvTextureR" -ln "gDiffuseEnvTextureR" -ct "HW_shader_parameter" 
-		-smn 0 -smx 1 -at "float" -p "gDiffuseEnvTexture";
-	addAttr -is true -ci true -sn "gDiffuseEnvTextureG" -ln "gDiffuseEnvTextureG" -ct "HW_shader_parameter" 
-		-smn 0 -smx 1 -at "float" -p "gDiffuseEnvTexture";
-	addAttr -is true -ci true -sn "gDiffuseEnvTextureB" -ln "gDiffuseEnvTextureB" -ct "HW_shader_parameter" 
-		-smn 0 -smx 1 -at "float" -p "gDiffuseEnvTexture";
-	addAttr -is true -ci true -h true -sn "gSpecularEnvTexture_Name" -ln "gSpecularEnvTexture_Name" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -h true -sn "gSpecularEnvTexture_Type" -ln "gSpecularEnvTexture_Type" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -uac -sn "gSpecularEnvTexture" -ln "gSpecularEnvTexture" 
-		-nn "Specular Environment Map" -ct "HW_shader_parameter" -at "float3" -nc 3;
-	addAttr -is true -ci true -sn "gSpecularEnvTextureR" -ln "gSpecularEnvTextureR" 
-		-ct "HW_shader_parameter" -smn 0 -smx 1 -at "float" -p "gSpecularEnvTexture";
-	addAttr -is true -ci true -sn "gSpecularEnvTextureG" -ln "gSpecularEnvTextureG" 
-		-ct "HW_shader_parameter" -smn 0 -smx 1 -at "float" -p "gSpecularEnvTexture";
-	addAttr -is true -ci true -sn "gSpecularEnvTextureB" -ln "gSpecularEnvTextureB" 
-		-ct "HW_shader_parameter" -smn 0 -smx 1 -at "float" -p "gSpecularEnvTexture";
-	addAttr -is true -ci true -h true -sn "gOcclusionStrength_Name" -ln "gOcclusionStrength_Name" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -h true -sn "gOcclusionStrength_Type" -ln "gOcclusionStrength_Type" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -sn "gOcclusionStrength" -ln "gOcclusionStrength" -nn "Occlusion Strength" 
-		-ct "HW_shader_parameter" -dv 1 -smn 0 -smx 1 -at "float";
-	addAttr -is true -ci true -h true -sn "gOcclusionTexture_Name" -ln "gOcclusionTexture_Name" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -h true -sn "gOcclusionTexture_Type" -ln "gOcclusionTexture_Type" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -uac -sn "gOcclusionTexture" -ln "gOcclusionTexture" -nn "Occlusion Map" 
+	addAttr -is true -ci true -sn "u_LightDir" -ln "u_LightDir" -nn "Light Direction" 
 		-ct "HW_shader_parameter" -at "float3" -nc 3;
-	addAttr -is true -ci true -sn "gOcclusionTextureR" -ln "gOcclusionTextureR" -ct "HW_shader_parameter" 
-		-smn 0 -smx 1 -at "float" -p "gOcclusionTexture";
-	addAttr -is true -ci true -sn "gOcclusionTextureG" -ln "gOcclusionTextureG" -ct "HW_shader_parameter" 
-		-smn 0 -smx 1 -at "float" -p "gOcclusionTexture";
-	addAttr -is true -ci true -sn "gOcclusionTextureB" -ln "gOcclusionTextureB" -ct "HW_shader_parameter" 
-		-smn 0 -smx 1 -at "float" -p "gOcclusionTexture";
-	addAttr -is true -ci true -h true -sn "gEmissiveFactor_Name" -ln "gEmissiveFactor_Name" 
+	addAttr -is true -ci true -sn "u_LightDirX" -ln "u_LightDirX" -ct "HW_shader_parameter" 
+		-smn 0 -smx 1 -at "float" -p "u_LightDir";
+	addAttr -is true -ci true -sn "u_LightDirY" -ln "u_LightDirY" -ct "HW_shader_parameter" 
+		-dv 1 -smn 0 -smx 1 -at "float" -p "u_LightDir";
+	addAttr -is true -ci true -sn "u_LightDirZ" -ln "u_LightDirZ" -ct "HW_shader_parameter" 
+		-smn 0 -smx 1 -at "float" -p "u_LightDir";
+	addAttr -is true -ci true -h true -sn "u_NormalTexture_Name" -ln "u_NormalTexture_Name" 
 		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -h true -sn "gEmissiveFactor_Type" -ln "gEmissiveFactor_Type" 
+	addAttr -is true -ci true -h true -sn "u_NormalTexture_Type" -ln "u_NormalTexture_Type" 
 		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -sn "gEmissiveFactor" -ln "gEmissiveFactor" -nn "Emissive Factor" 
-		-ct "HW_shader_parameter" -dv 1 -smn 0 -smx 1 -at "float";
-	addAttr -is true -ci true -h true -sn "gEmissiveTexture_Name" -ln "gEmissiveTexture_Name" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -h true -sn "gEmissiveTexture_Type" -ln "gEmissiveTexture_Type" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -uac -sn "gEmissiveTexture" -ln "gEmissiveTexture" -nn "Emissive Map" 
+	addAttr -is true -ci true -uac -sn "u_NormalTexture" -ln "u_NormalTexture" -nn "Normal Map" 
 		-ct "HW_shader_parameter" -at "float3" -nc 3;
-	addAttr -is true -ci true -sn "gEmissiveTextureR" -ln "gEmissiveTextureR" -ct "HW_shader_parameter" 
-		-smn 0 -smx 1 -at "float" -p "gEmissiveTexture";
-	addAttr -is true -ci true -sn "gEmissiveTextureG" -ln "gEmissiveTextureG" -ct "HW_shader_parameter" 
-		-smn 0 -smx 1 -at "float" -p "gEmissiveTexture";
-	addAttr -is true -ci true -sn "gEmissiveTextureB" -ln "gEmissiveTextureB" -ct "HW_shader_parameter" 
-		-smn 0 -smx 1 -at "float" -p "gEmissiveTexture";
-	addAttr -is true -ci true -h true -sn "Light0Type_Name" -ln "Light0Type_Name" -ct "HW_shader_parameter" 
-		-dt "string";
-	addAttr -is true -ci true -h true -sn "Light0Type_Type" -ln "Light0Type_Type" -ct "HW_shader_parameter" 
-		-dt "string";
-	addAttr -is true -ci true -h true -sn "Light0Type" -ln "Light0Type" -nn "Light 0 Type" 
-		-ct "HW_shader_parameter" -dv 3 -smn 0 -smx 1 -at "long";
-	addAttr -is true -ci true -h true -sn "Light1Type_Name" -ln "Light1Type_Name" -ct "HW_shader_parameter" 
-		-dt "string";
-	addAttr -is true -ci true -h true -sn "Light1Type_Type" -ln "Light1Type_Type" -ct "HW_shader_parameter" 
-		-dt "string";
-	addAttr -is true -ci true -h true -sn "Light1Type" -ln "Light1Type" -nn "Light 1 Type" 
-		-ct "HW_shader_parameter" -dv 3 -smn 0 -smx 1 -at "long";
-	addAttr -is true -ci true -h true -sn "Light0Color_Name" -ln "Light0Color_Name" 
+	addAttr -is true -ci true -sn "u_NormalTextureR" -ln "u_NormalTextureR" -ct "HW_shader_parameter" 
+		-smn 0 -smx 1 -at "float" -p "u_NormalTexture";
+	addAttr -is true -ci true -sn "u_NormalTextureG" -ln "u_NormalTextureG" -ct "HW_shader_parameter" 
+		-smn 0 -smx 1 -at "float" -p "u_NormalTexture";
+	addAttr -is true -ci true -sn "u_NormalTextureB" -ln "u_NormalTextureB" -ct "HW_shader_parameter" 
+		-smn 0 -smx 1 -at "float" -p "u_NormalTexture";
+	addAttr -is true -ci true -h true -sn "u_NormalScale_Name" -ln "u_NormalScale_Name" 
 		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -h true -sn "Light0Color_Type" -ln "Light0Color_Type" 
+	addAttr -is true -ci true -h true -sn "u_NormalScale_Type" -ln "u_NormalScale_Type" 
 		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -uac -sn "Light0Color" -ln "Light0Color" -nn "Light 0 Color" 
-		-ct "HW_shader_parameter" -at "float3" -nc 3;
-	addAttr -is true -ci true -sn "Light0ColorR" -ln "Light0ColorR" -ct "HW_shader_parameter" 
-		-dv 1 -min 0 -max 1 -at "float" -p "Light0Color";
-	addAttr -is true -ci true -sn "Light0ColorG" -ln "Light0ColorG" -ct "HW_shader_parameter" 
-		-dv 1 -min 0 -max 1 -at "float" -p "Light0Color";
-	addAttr -is true -ci true -sn "Light0ColorB" -ln "Light0ColorB" -ct "HW_shader_parameter" 
-		-dv 1 -min 0 -max 1 -at "float" -p "Light0Color";
-	addAttr -is true -ci true -h true -sn "Light1Color_Name" -ln "Light1Color_Name" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -h true -sn "Light1Color_Type" -ln "Light1Color_Type" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -uac -sn "Light1Color" -ln "Light1Color" -nn "Light 1 Color" 
-		-ct "HW_shader_parameter" -at "float3" -nc 3;
-	addAttr -is true -ci true -sn "Light1ColorR" -ln "Light1ColorR" -ct "HW_shader_parameter" 
-		-dv 1 -min 0 -max 1 -at "float" -p "Light1Color";
-	addAttr -is true -ci true -sn "Light1ColorG" -ln "Light1ColorG" -ct "HW_shader_parameter" 
-		-dv 1 -min 0 -max 1 -at "float" -p "Light1Color";
-	addAttr -is true -ci true -sn "Light1ColorB" -ln "Light1ColorB" -ct "HW_shader_parameter" 
-		-dv 1 -min 0 -max 1 -at "float" -p "Light1Color";
-	addAttr -is true -ci true -h true -sn "Light0Dir_Name" -ln "Light0Dir_Name" -ct "HW_shader_parameter" 
-		-dt "string";
-	addAttr -is true -ci true -h true -sn "Light0Dir_Type" -ln "Light0Dir_Type" -ct "HW_shader_parameter" 
-		-dt "string";
-	addAttr -is true -ci true -sn "Light0Dir" -ln "Light0Dir" -nn "Light 0 Direction" 
-		-ct "HW_shader_parameter" -at "matrix";
-	addAttr -is true -ci true -h true -sn "Light1Dir_Name" -ln "Light1Dir_Name" -ct "HW_shader_parameter" 
-		-dt "string";
-	addAttr -is true -ci true -h true -sn "Light1Dir_Type" -ln "Light1Dir_Type" -ct "HW_shader_parameter" 
-		-dt "string";
-	addAttr -is true -ci true -sn "Light1Dir" -ln "Light1Dir" -nn "Light 1 Direction" 
-		-ct "HW_shader_parameter" -at "matrix";
-	addAttr -is true -ci true -h true -sn "Light0Pos_Name" -ln "Light0Pos_Name" -ct "HW_shader_parameter" 
-		-dt "string";
-	addAttr -is true -ci true -h true -sn "Light0Pos_Type" -ln "Light0Pos_Type" -ct "HW_shader_parameter" 
-		-dt "string";
-	addAttr -is true -ci true -sn "Light0Pos" -ln "Light0Pos" -nn "Light 0 Position" 
-		-ct "HW_shader_parameter" -at "matrix";
-	addAttr -is true -ci true -h true -sn "Light1Pos_Name" -ln "Light1Pos_Name" -ct "HW_shader_parameter" 
-		-dt "string";
-	addAttr -is true -ci true -h true -sn "Light1Pos_Type" -ln "Light1Pos_Type" -ct "HW_shader_parameter" 
-		-dt "string";
-	addAttr -is true -ci true -sn "Light1Pos" -ln "Light1Pos" -nn "Light 1 Position" 
-		-ct "HW_shader_parameter" -at "matrix";
-	addAttr -is true -ci true -h true -sn "Light0Attenuation_Name" -ln "Light0Attenuation_Name" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -h true -sn "Light0Attenuation_Type" -ln "Light0Attenuation_Type" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -sn "Light0Attenuation" -ln "Light0Attenuation" -nn "Light 0 Decay" 
+	addAttr -is true -ci true -sn "u_NormalScale" -ln "u_NormalScale" -nn "Normal Scale" 
 		-ct "HW_shader_parameter" -smn 0 -smx 1 -at "float";
-	addAttr -is true -ci true -h true -sn "Light1Attenuation_Name" -ln "Light1Attenuation_Name" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -h true -sn "Light1Attenuation_Type" -ln "Light1Attenuation_Type" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -sn "Light1Attenuation" -ln "Light1Attenuation" -nn "Light 1 Decay" 
-		-ct "HW_shader_parameter" -smn 0 -smx 1 -at "float";
-	addAttr -is true -ci true -h true -sn "Light0Intensity_Name" -ln "Light0Intensity_Name" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -h true -sn "Light0Intensity_Type" -ln "Light0Intensity_Type" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -sn "Light0Intensity" -ln "Light0Intensity" -nn "Light 0 Intensity" 
-		-ct "HW_shader_parameter" -dv 1 -smn 0 -smx 1 -at "float";
-	addAttr -is true -ci true -h true -sn "Light1Intensity_Name" -ln "Light1Intensity_Name" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -h true -sn "Light1Intensity_Type" -ln "Light1Intensity_Type" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -sn "Light1Intensity" -ln "Light1Intensity" -nn "Light 1 Intensity" 
-		-ct "HW_shader_parameter" -dv 1 -smn 0 -smx 1 -at "float";
-	addAttr -is true -ci true -h true -sn "Light0ConeAngle_Name" -ln "Light0ConeAngle_Name" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -h true -sn "Light0ConeAngle_Type" -ln "Light0ConeAngle_Type" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -sn "Light0ConeAngle" -ln "Light0ConeAngle" -nn "Light 0 Cone Angle" 
-		-ct "HW_shader_parameter" -dv 0.46000000834465027 -smn 0 -smx 1 -at "float";
-	addAttr -is true -ci true -h true -sn "Light1ConeAngle_Name" -ln "Light1ConeAngle_Name" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -h true -sn "Light1ConeAngle_Type" -ln "Light1ConeAngle_Type" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -sn "Light1ConeAngle" -ln "Light1ConeAngle" -nn "Light 1 Cone Angle" 
-		-ct "HW_shader_parameter" -dv 0.46000000834465027 -smn 0 -smx 1 -at "float";
-	addAttr -is true -ci true -h true -sn "Light0Falloff_Name" -ln "Light0Falloff_Name" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -h true -sn "Light0Falloff_Type" -ln "Light0Falloff_Type" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -sn "Light0Falloff" -ln "Light0Falloff" -nn "Light 0 Penumbra Angle" 
-		-ct "HW_shader_parameter" -dv 0.69999998807907104 -smn 0 -smx 1 -at "float";
-	addAttr -is true -ci true -h true -sn "Light1Falloff_Name" -ln "Light1Falloff_Name" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -h true -sn "Light1Falloff_Type" -ln "Light1Falloff_Type" 
-		-ct "HW_shader_parameter" -dt "string";
-	addAttr -is true -ci true -sn "Light1Falloff" -ln "Light1Falloff" -nn "Light 1 Penumbra Angle" 
-		-ct "HW_shader_parameter" -dv 0.69999998807907104 -smn 0 -smx 1 -at "float";
 	setAttr ".vpar" -type "stringArray" 4 "Position" "Normal" "Tangent" "TexCoord0"  ;
-	setAttr ".upar" -type "stringArray" 29 "Light0Type" "Light1Type" "Light0Color" "Light1Color" "Light0Pos" "Light1Pos" "Light0Dir" "Light1Dir" "Light0Intensity" "Light1Intensity" "Light0Attenuation" "Light1Attenuation" "Light0ConeAngle" "Light1ConeAngle" "Light0Falloff" "Light1Falloff" "gBaseColorFactor" "gBaseColorTexture" "gOcclusionStrength" "gMetallicRoughnessValues" "gMetallicRoughnessTexture" "gNormalScale" "gNormalTexture" "gBrdfLUT" "gDiffuseEnvTexture" "gSpecularEnvTexture" "gOcclusionTexture" "gEmissiveFactor" "gEmissiveTexture"  ;
-	setAttr ".s" -type "string" "C:/dev/glTF/Maya2glTF/maya//renderData/shaders/glTF_maya-pbr.ogsfx";
+	setAttr ".upar" -type "stringArray" 18 "u_LightColor" "u_LightDir" "u_DiffuseEnvTexture" "u_SpecularEnvTexture" "u_brdfTexture" "u_BaseColorTexture" "u_NormalTexture" "u_NormalScale" "u_EmissiveTexture" "u_EmissiveFactor" "u_MetallicRoughnessTexture" "u_OcclusionTexture" "u_OcclusionStrength" "u_MetallicRoughnessValues" "u_BaseColorFactor" "u_ScaleDiffBaseMR" "u_ScaleFGDSpec" "u_ScaleIBLAmbient"  ;
+	setAttr ".s" -type "string" "C:/dev/glTF/Maya2glTF/maya//renderData/shaders/glTF_PBR.ogsfx";
 	setAttr ".t" -type "string" "Main";
 	setAttr ".Light_0_use_implicit_lighting" no;
 	setAttr ".Light_1_use_implicit_lighting" no;
-	setAttr ".gBaseColorFactor_Name" -type "string" "gBaseColorFactor";
-	setAttr ".gBaseColorFactor_Type" -type "string" "color4x1";
-	setAttr ".gBaseColorFactorRGB" -type "float3" 0 0 0 ;
-	setAttr ".gBaseColorFactorA" 1;
-	setAttr ".gBaseColorTexture_Name" -type "string" "gBaseColorTexture";
-	setAttr ".gBaseColorTexture_Type" -type "string" "texture";
-	setAttr ".gBaseColorTexture" -type "float3" 0 0 0 ;
-	setAttr ".gMetallicRoughnessValues_Name" -type "string" "gMetallicRoughnessValues";
-	setAttr ".gMetallicRoughnessValues_Type" -type "string" "float2x1";
-	setAttr ".gMetallicRoughnessValues" -type "float2" 1 1 ;
-	setAttr ".gMetallicRoughnessTexture_Name" -type "string" "gMetallicRoughnessTexture";
-	setAttr ".gMetallicRoughnessTexture_Type" -type "string" "texture";
-	setAttr ".gMetallicRoughnessTexture" -type "float3" 0 0 0 ;
-	setAttr ".gNormalScale_Name" -type "string" "gNormalScale";
-	setAttr ".gNormalScale_Type" -type "string" "float";
-	setAttr ".gNormalScale" 1;
-	setAttr ".gNormalTexture_Name" -type "string" "gNormalTexture";
-	setAttr ".gNormalTexture_Type" -type "string" "texture";
-	setAttr ".gNormalTexture" -type "float3" 0 0 0 ;
 	setAttr ".Position_Name" -type "string" "Position";
 	setAttr ".Position_Source" -type "string" "position";
+	setAttr ".u_LightColor_Name" -type "string" "u_LightColor";
+	setAttr ".u_LightColor_Type" -type "string" "color3x1";
+	setAttr ".u_LightColor" -type "float3" 1 1 1 ;
+	setAttr ".u_DiffuseEnvTexture_Name" -type "string" "u_DiffuseEnvTexture";
+	setAttr ".u_DiffuseEnvTexture_Type" -type "string" "texture";
+	setAttr ".u_DiffuseEnvTexture" -type "float3" 0 0 0 ;
+	setAttr ".u_SpecularEnvTexture_Name" -type "string" "u_SpecularEnvTexture";
+	setAttr ".u_SpecularEnvTexture_Type" -type "string" "texture";
+	setAttr ".u_SpecularEnvTexture" -type "float3" 0 0 0 ;
+	setAttr ".u_brdfTexture_Name" -type "string" "u_brdfTexture";
+	setAttr ".u_brdfTexture_Type" -type "string" "texture";
+	setAttr ".u_brdfTexture" -type "float3" 0 0 0 ;
+	setAttr ".u_BaseColorTexture_Name" -type "string" "u_BaseColorTexture";
+	setAttr ".u_BaseColorTexture_Type" -type "string" "texture";
+	setAttr ".u_BaseColorTexture" -type "float3" 0 0 0 ;
+	setAttr ".u_EmissiveTexture_Name" -type "string" "u_EmissiveTexture";
+	setAttr ".u_EmissiveTexture_Type" -type "string" "texture";
+	setAttr ".u_EmissiveTexture" -type "float3" 0 0 0 ;
+	setAttr ".u_EmissiveFactor_Name" -type "string" "u_EmissiveFactor";
+	setAttr ".u_EmissiveFactor_Type" -type "string" "float3x1";
+	setAttr ".u_EmissiveFactor" -type "float3" 1 1 1 ;
+	setAttr ".u_MetallicRoughnessTexture_Name" -type "string" "u_MetallicRoughnessTexture";
+	setAttr ".u_MetallicRoughnessTexture_Type" -type "string" "texture";
+	setAttr ".u_MetallicRoughnessTexture" -type "float3" 0 0 0 ;
+	setAttr ".u_OcclusionTexture_Name" -type "string" "u_OcclusionTexture";
+	setAttr ".u_OcclusionTexture_Type" -type "string" "texture";
+	setAttr ".u_OcclusionTexture" -type "float3" 0 0 0 ;
+	setAttr ".u_OcclusionStrength_Name" -type "string" "u_OcclusionStrength";
+	setAttr ".u_OcclusionStrength_Type" -type "string" "float";
+	setAttr ".u_OcclusionStrength" 1;
+	setAttr ".u_MetallicRoughnessValues_Name" -type "string" "u_MetallicRoughnessValues";
+	setAttr ".u_MetallicRoughnessValues_Type" -type "string" "float2x1";
+	setAttr ".u_MetallicRoughnessValues" -type "float2" 1 1 ;
+	setAttr ".u_BaseColorFactor_Name" -type "string" "u_BaseColorFactor";
+	setAttr ".u_BaseColorFactor_Type" -type "string" "color4x1";
+	setAttr ".u_BaseColorFactorRGB" -type "float3" 1 1 1 ;
+	setAttr ".u_BaseColorFactorA" 1;
+	setAttr ".u_ScaleDiffBaseMR_Name" -type "string" "u_ScaleDiffBaseMR";
+	setAttr ".u_ScaleDiffBaseMR_Type" -type "string" "float4x1";
+	setAttr ".u_ScaleDiffBaseMRXYZ" -type "float3" 0 0 0 ;
+	setAttr ".u_ScaleDiffBaseMRW" 0;
+	setAttr ".u_ScaleFGDSpec_Name" -type "string" "u_ScaleFGDSpec";
+	setAttr ".u_ScaleFGDSpec_Type" -type "string" "float4x1";
+	setAttr ".u_ScaleFGDSpecXYZ" -type "float3" 0 0 0 ;
+	setAttr ".u_ScaleFGDSpecW" 0;
+	setAttr ".u_ScaleIBLAmbient_Name" -type "string" "u_ScaleIBLAmbient";
+	setAttr ".u_ScaleIBLAmbient_Type" -type "string" "color4x1";
+	setAttr ".u_ScaleIBLAmbientRGB" -type "float3" 1 1 1 ;
+	setAttr ".u_ScaleIBLAmbientA" 1;
 	setAttr ".Normal_Name" -type "string" "Normal";
 	setAttr ".Normal_Source" -type "string" "normal";
 	setAttr ".Tangent_Name" -type "string" "Tangent";
 	setAttr ".Tangent_Source" -type "string" "tangent:map1";
 	setAttr ".TexCoord0_Name" -type "string" "TexCoord0";
 	setAttr ".TexCoord0_Source" -type "string" "uv:map1";
-	setAttr ".TexCoord0_DefaultTexture" -type "string" "";
-	setAttr ".gBrdfLUT_Name" -type "string" "gBrdfLUT";
-	setAttr ".gBrdfLUT_Type" -type "string" "texture";
-	setAttr ".gBrdfLUT" -type "float3" 0 0 0 ;
-	setAttr ".gDiffuseEnvTexture_Name" -type "string" "gDiffuseEnvTexture";
-	setAttr ".gDiffuseEnvTexture_Type" -type "string" "texture";
-	setAttr ".gDiffuseEnvTexture" -type "float3" 0 0 0 ;
-	setAttr ".gSpecularEnvTexture_Name" -type "string" "gSpecularEnvTexture";
-	setAttr ".gSpecularEnvTexture_Type" -type "string" "texture";
-	setAttr ".gSpecularEnvTexture" -type "float3" 0 0 0 ;
-	setAttr ".gOcclusionStrength_Name" -type "string" "gOcclusionStrength";
-	setAttr ".gOcclusionStrength_Type" -type "string" "float";
-	setAttr ".gOcclusionStrength" 1;
-	setAttr ".gOcclusionTexture_Name" -type "string" "gOcclusionTexture";
-	setAttr ".gOcclusionTexture_Type" -type "string" "texture";
-	setAttr ".gOcclusionTexture" -type "float3" 0 0 0 ;
-	setAttr ".gEmissiveFactor_Name" -type "string" "gEmissiveFactor";
-	setAttr ".gEmissiveFactor_Type" -type "string" "float";
-	setAttr ".gEmissiveFactor" 1;
-	setAttr ".gEmissiveTexture_Name" -type "string" "gEmissiveTexture";
-	setAttr ".gEmissiveTexture_Type" -type "string" "texture";
-	setAttr ".gEmissiveTexture" -type "float3" 0 0 0 ;
-	setAttr ".Light0Type_Name" -type "string" "Light0Type";
-	setAttr ".Light0Type_Type" -type "string" "int";
-	setAttr ".Light0Type" 4;
-	setAttr ".Light1Type_Name" -type "string" "Light1Type";
-	setAttr ".Light1Type_Type" -type "string" "int";
-	setAttr ".Light1Type" 2;
-	setAttr ".Light0Color_Name" -type "string" "Light0Color";
-	setAttr ".Light0Color_Type" -type "string" "color3x1";
-	setAttr ".Light0Color" -type "float3" 1 1 1 ;
-	setAttr ".Light1Color_Name" -type "string" "Light1Color";
-	setAttr ".Light1Color_Type" -type "string" "color3x1";
-	setAttr ".Light1Color" -type "float3" 0 0 0 ;
-	setAttr ".Light0Dir_Name" -type "string" "Light0Dir";
-	setAttr ".Light0Dir_Type" -type "string" "matrix3x1";
-	setAttr ".Light0Dir" -type "matrix" 0.091447795159359746 -0.98621667149928072 -0.13789118034657563 0
-		 -0.27803228842505806 -0.15825116519501181 0.94744636539887939 0 -0.34239804744720459 0.43893960118293762 -0.83071994781494141 0
-		 -1.4050672230895531 0 0 1;
-	setAttr ".Light1Dir_Name" -type "string" "Light1Dir";
-	setAttr ".Light1Dir_Type" -type "string" "matrix3x1";
-	setAttr ".Light1Dir" -type "matrix" 0.091447795159359746 -0.98621667149928072 -0.13789118034657563 0
-		 -0.27803228842505806 -0.15825116519501181 0.94744636539887939 0 -0.43001112341880798 0.27973565459251404 0.85839289426803589 0
-		 -1.4050672230895531 0 0 1;
-	setAttr ".Light0Pos_Name" -type "string" "Light0Pos";
-	setAttr ".Light0Pos_Type" -type "string" "matrix3x1";
-	setAttr ".Light0Pos" -type "matrix" 1 0 0 0 0 1 0 0 0 0 1 0 1.0990990400314331 0.44998592138290405 1.596551775932312 1;
-	setAttr ".Light1Pos_Name" -type "string" "Light1Pos";
-	setAttr ".Light1Pos_Type" -type "string" "matrix3x1";
-	setAttr ".Light1Pos" -type "matrix" 1 0 0 0 0 1 0 0 0 0 1 0 -1.1893892288208008 0.97755825519561768 1.4075454473495483 1;
-	setAttr ".Light0Attenuation_Name" -type "string" "Light0Attenuation";
-	setAttr ".Light0Attenuation_Type" -type "string" "float";
-	setAttr ".Light0Attenuation" 0;
-	setAttr ".Light1Attenuation_Name" -type "string" "Light1Attenuation";
-	setAttr ".Light1Attenuation_Type" -type "string" "float";
-	setAttr ".Light1Attenuation" 0;
-	setAttr ".Light0Intensity_Name" -type "string" "Light0Intensity";
-	setAttr ".Light0Intensity_Type" -type "string" "float";
-	setAttr ".Light0Intensity" 1;
-	setAttr ".Light1Intensity_Name" -type "string" "Light1Intensity";
-	setAttr ".Light1Intensity_Type" -type "string" "float";
-	setAttr ".Light1Intensity" 0;
-	setAttr ".Light0ConeAngle_Name" -type "string" "Light0ConeAngle";
-	setAttr ".Light0ConeAngle_Type" -type "string" "float";
-	setAttr ".Light0ConeAngle" 0.46000000834465027;
-	setAttr ".Light1ConeAngle_Name" -type "string" "Light1ConeAngle";
-	setAttr ".Light1ConeAngle_Type" -type "string" "float";
-	setAttr ".Light1ConeAngle" 0.3490658700466156;
-	setAttr ".Light0Falloff_Name" -type "string" "Light0Falloff";
-	setAttr ".Light0Falloff_Type" -type "string" "float";
-	setAttr ".Light0Falloff" 0.69999998807907104;
-	setAttr ".Light1Falloff_Name" -type "string" "Light1Falloff";
-	setAttr ".Light1Falloff_Type" -type "string" "float";
-	setAttr ".Light1Falloff" 0.3490658700466156;
+	setAttr ".u_LightDir_Name" -type "string" "u_LightDir";
+	setAttr ".u_LightDir_Type" -type "string" "float3x1";
+	setAttr ".u_LightDir" -type "float3" 0 1 0 ;
+	setAttr ".u_NormalTexture_Name" -type "string" "u_NormalTexture";
+	setAttr ".u_NormalTexture_Type" -type "string" "texture";
+	setAttr ".u_NormalTexture" -type "float3" 0 0 0 ;
+	setAttr ".u_NormalScale_Name" -type "string" "u_NormalScale";
+	setAttr ".u_NormalScale_Type" -type "string" "float";
+	setAttr ".u_NormalScale" 0;
 createNode shadingEngine -n "GLSLShader1SG";
 	rename -uid "A39CC043-408D-53D0-BCE3-E5B74A46CB09";
 	setAttr ".ihi" 0;
 	setAttr ".ro" yes;
 createNode materialInfo -n "materialInfo2";
 	rename -uid "4CE616B2-46CC-0D62-D1AD-8F9FF97C700A";
-createNode file -n "file1";
+createNode file -n "file_albedo";
 	rename -uid "9635A652-444D-3C90-BC05-38A30D9B7D69";
 	setAttr ".ftn" -type "string" "C:/dev/glTF/Maya2glTF/maya//images/damaged_helmet_albedo.jpg";
 	setAttr ".pfr" 10;
 	setAttr ".cs" -type "string" "sRGB";
 createNode place2dTexture -n "place2dTexture1";
 	rename -uid "92259C15-471D-ADC6-FD70-659CF88ECE2F";
-createNode file -n "file2";
+createNode file -n "file_normal";
 	rename -uid "4DA2741B-4978-1AA0-1355-44AA3C5B011D";
 	setAttr ".ftn" -type "string" "C:/dev/glTF/Maya2glTF/maya//images/damaged_helmet_normal.jpg";
+	setAttr ".ft" 4;
 	setAttr ".cs" -type "string" "sRGB";
 createNode place2dTexture -n "place2dTexture2";
 	rename -uid "7982CF56-4B9A-A63B-DCEF-6C9C1458341E";
-createNode file -n "file3";
+createNode file -n "file_orm";
 	rename -uid "86C058B9-4789-FE12-375D-87A82F44A30F";
 	setAttr ".ftn" -type "string" "C:/dev/glTF/Maya2glTF/maya//images/damaged_helmet_orm.jpg";
 	setAttr ".cs" -type "string" "sRGB";
@@ -65985,7 +65928,7 @@ createNode script -n "uiConfigurationScriptNode";
 		+ "            -sceneRenderFilter 0\n            $editorName;\n        modelEditor -e -viewSelected 0 $editorName;\n        modelEditor -e \n            -pluginObjects \"gpuCacheDisplayFilter\" 1 \n            $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextPanel \"modelPanel\" (localizedPanelLabel(\"Persp View\")) `;\n\tif (\"\" != $panelName) {\n\t\t$label = `panel -q -label $panelName`;\n\t\tmodelPanel -edit -l (localizedPanelLabel(\"Persp View\")) -mbv $menusOkayInPanels  $panelName;\n\t\t$editorName = $panelName;\n        modelEditor -e \n            -camera \"persp\" \n            -useInteractiveMode 0\n            -displayLights \"default\" \n            -displayAppearance \"smoothShaded\" \n            -activeOnly 0\n            -ignorePanZoom 0\n            -wireframeOnShaded 0\n            -headsUpDisplay 1\n            -holdOuts 1\n            -selectionHiliteDisplay 0\n            -useDefaultMaterial 0\n            -bufferMode \"double\" \n            -twoSidedLighting 0\n            -backfaceCulling 0\n"
 		+ "            -xray 0\n            -jointXray 0\n            -activeComponentsXray 0\n            -displayTextures 1\n            -smoothWireframe 0\n            -lineWidth 1\n            -textureAnisotropic 0\n            -textureHilight 1\n            -textureSampling 2\n            -textureDisplay \"modulate\" \n            -textureMaxSize 32768\n            -fogging 0\n            -fogSource \"fragment\" \n            -fogMode \"linear\" \n            -fogStart 0\n            -fogEnd 100\n            -fogDensity 0.1\n            -fogColor 0.5 0.5 0.5 1 \n            -depthOfFieldPreview 1\n            -maxConstantTransparency 1\n            -rendererName \"vp2Renderer\" \n            -objectFilterShowInHUD 1\n            -isFiltered 0\n            -colorResolution 256 256 \n            -bumpResolution 512 512 \n            -textureCompression 0\n            -transparencyAlgorithm \"frontAndBackCull\" \n            -transpInShadows 0\n            -cullingOverride \"none\" \n            -lowQualityLighting 0\n            -maximumNumHardwareLights 1\n            -occlusionCulling 0\n"
 		+ "            -shadingModel 0\n            -useBaseRenderer 0\n            -useReducedRenderer 0\n            -smallObjectCulling 0\n            -smallObjectThreshold -1 \n            -interactiveDisableShadows 0\n            -interactiveBackFaceCull 0\n            -sortTransparent 1\n            -controllers 1\n            -nurbsCurves 1\n            -nurbsSurfaces 1\n            -polymeshes 1\n            -subdivSurfaces 1\n            -planes 1\n            -lights 1\n            -cameras 1\n            -controlVertices 1\n            -hulls 1\n            -grid 1\n            -imagePlane 1\n            -joints 1\n            -ikHandles 1\n            -deformers 1\n            -dynamics 1\n            -particleInstancers 1\n            -fluids 1\n            -hairSystems 1\n            -follicles 1\n            -nCloths 1\n            -nParticles 1\n            -nRigids 1\n            -dynamicConstraints 1\n            -locators 1\n            -manipulators 1\n            -pluginShapes 1\n            -dimensions 1\n            -handles 1\n            -pivots 1\n"
-		+ "            -textures 1\n            -strokes 1\n            -motionTrails 1\n            -clipGhosts 1\n            -greasePencils 1\n            -shadows 0\n            -captureSequenceNumber -1\n            -width 1513\n            -height 1060\n            -sceneRenderFilter 0\n            $editorName;\n        modelEditor -e -viewSelected 0 $editorName;\n        modelEditor -e \n            -pluginObjects \"gpuCacheDisplayFilter\" 1 \n            $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextPanel \"outlinerPanel\" (localizedPanelLabel(\"ToggledOutliner\")) `;\n\tif (\"\" != $panelName) {\n\t\t$label = `panel -q -label $panelName`;\n\t\toutlinerPanel -edit -l (localizedPanelLabel(\"ToggledOutliner\")) -mbv $menusOkayInPanels  $panelName;\n\t\t$editorName = $panelName;\n        outlinerEditor -e \n            -showShapes 0\n            -showAssignedMaterials 0\n            -showTimeEditor 1\n            -showReferenceNodes 0\n            -showReferenceMembers 0\n            -showAttributes 0\n"
+		+ "            -textures 1\n            -strokes 1\n            -motionTrails 1\n            -clipGhosts 1\n            -greasePencils 1\n            -shadows 0\n            -captureSequenceNumber -1\n            -width 895\n            -height 710\n            -sceneRenderFilter 0\n            $editorName;\n        modelEditor -e -viewSelected 0 $editorName;\n        modelEditor -e \n            -pluginObjects \"gpuCacheDisplayFilter\" 1 \n            $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextPanel \"outlinerPanel\" (localizedPanelLabel(\"ToggledOutliner\")) `;\n\tif (\"\" != $panelName) {\n\t\t$label = `panel -q -label $panelName`;\n\t\toutlinerPanel -edit -l (localizedPanelLabel(\"ToggledOutliner\")) -mbv $menusOkayInPanels  $panelName;\n\t\t$editorName = $panelName;\n        outlinerEditor -e \n            -showShapes 0\n            -showAssignedMaterials 0\n            -showTimeEditor 1\n            -showReferenceNodes 0\n            -showReferenceMembers 0\n            -showAttributes 0\n"
 		+ "            -showConnected 0\n            -showAnimCurvesOnly 0\n            -showMuteInfo 0\n            -organizeByLayer 1\n            -organizeByClip 1\n            -showAnimLayerWeight 1\n            -autoExpandLayers 1\n            -autoExpand 0\n            -showDagOnly 1\n            -showAssets 1\n            -showContainedOnly 1\n            -showPublishedAsConnected 0\n            -showParentContainers 0\n            -showContainerContents 1\n            -ignoreDagHierarchy 0\n            -expandConnections 0\n            -showUpstreamCurves 1\n            -showUnitlessCurves 1\n            -showCompounds 1\n            -showLeafs 1\n            -showNumericAttrsOnly 0\n            -highlightActive 1\n            -autoSelectNewObjects 0\n            -doNotSelectNewObjects 0\n            -dropIsParent 1\n            -transmitFilters 0\n            -setFilter \"defaultSetFilter\" \n            -showSetMembers 1\n            -allowMultiSelection 1\n            -alwaysToggleSelect 0\n            -directSelect 0\n            -isSet 0\n            -isSetMember 0\n"
 		+ "            -displayMode \"DAG\" \n            -expandObjects 0\n            -setsIgnoreFilters 1\n            -containersIgnoreFilters 0\n            -editAttrName 0\n            -showAttrValues 0\n            -highlightSecondary 0\n            -showUVAttrsOnly 0\n            -showTextureNodesOnly 0\n            -attrAlphaOrder \"default\" \n            -animLayerFilterOptions \"allAffecting\" \n            -sortOrder \"none\" \n            -longNames 0\n            -niceNames 1\n            -showNamespace 1\n            -showPinIcons 0\n            -mapMotionTrails 0\n            -ignoreHiddenAttribute 0\n            -ignoreOutlinerColor 0\n            -renderFilterVisible 0\n            -renderFilterIndex 0\n            -selectionOrder \"chronological\" \n            -expandAttribute 0\n            $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextPanel \"outlinerPanel\" (localizedPanelLabel(\"Outliner\")) `;\n\tif (\"\" != $panelName) {\n\t\t$label = `panel -q -label $panelName`;\n"
 		+ "\t\toutlinerPanel -edit -l (localizedPanelLabel(\"Outliner\")) -mbv $menusOkayInPanels  $panelName;\n\t\t$editorName = $panelName;\n        outlinerEditor -e \n            -showShapes 0\n            -showAssignedMaterials 0\n            -showTimeEditor 1\n            -showReferenceNodes 0\n            -showReferenceMembers 0\n            -showAttributes 0\n            -showConnected 0\n            -showAnimCurvesOnly 0\n            -showMuteInfo 0\n            -organizeByLayer 1\n            -organizeByClip 1\n            -showAnimLayerWeight 1\n            -autoExpandLayers 1\n            -autoExpand 0\n            -showDagOnly 1\n            -showAssets 1\n            -showContainedOnly 1\n            -showPublishedAsConnected 0\n            -showParentContainers 0\n            -showContainerContents 1\n            -ignoreDagHierarchy 0\n            -expandConnections 0\n            -showUpstreamCurves 1\n            -showUnitlessCurves 1\n            -showCompounds 1\n            -showLeafs 1\n            -showNumericAttrsOnly 0\n            -highlightActive 1\n"
@@ -66011,96 +65954,42 @@ createNode script -n "uiConfigurationScriptNode";
 		+ "                -clipGhosts 1\n                -greasePencils 1\n                -shadows 0\n                -captureSequenceNumber -1\n                -width 0\n                -height 0\n                -sceneRenderFilter 0\n                -displayMode \"centerEye\" \n                -viewColor 0 0 0 1 \n                -useCustomBackground 1\n                $editorName;\n            stereoCameraView -e -viewSelected 0 $editorName;\n            stereoCameraView -e \n                -pluginObjects \"gpuCacheDisplayFilter\" 1 \n                $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\t$panelName = `sceneUIReplacement -getNextScriptedPanel \"nodeEditorPanel\" (localizedPanelLabel(\"Node Editor\")) `;\n\tif (\"\" != $panelName) {\n\t\t$label = `panel -q -label $panelName`;\n\t\tscriptedPanel -edit -l (localizedPanelLabel(\"Node Editor\")) -mbv $menusOkayInPanels  $panelName;\n\n\t\t\t$editorName = ($panelName+\"NodeEditorEd\");\n            nodeEditor -e \n                -allAttributes 0\n                -allNodes 0\n"
 		+ "                -autoSizeNodes 1\n                -consistentNameSize 1\n                -createNodeCommand \"nodeEdCreateNodeCommand\" \n                -connectNodeOnCreation 0\n                -connectOnDrop 0\n                -highlightConnections 0\n                -copyConnectionsOnPaste 0\n                -defaultPinnedState 0\n                -additiveGraphingMode 0\n                -settingsChangedCallback \"nodeEdSyncControls\" \n                -traversalDepthLimit -1\n                -keyPressCommand \"nodeEdKeyPressCommand\" \n                -nodeTitleMode \"name\" \n                -gridSnap 0\n                -gridVisibility 1\n                -crosshairOnEdgeDragging 0\n                -popupMenuScript \"nodeEdBuildPanelMenus\" \n                -showNamespace 1\n                -showShapes 1\n                -showSGShapes 0\n                -showTransforms 1\n                -useAssets 1\n                -syncedSelection 1\n                -extendToShapes 1\n                -activeTab -1\n                -editorMode \"default\" \n"
 		+ "                $editorName;\n\t\tif (!$useSceneConfig) {\n\t\t\tpanel -e -l $label $panelName;\n\t\t}\n\t}\n\n\n\tif ($useSceneConfig) {\n        string $configName = `getPanel -cwl (localizedPanelLabel(\"Current Layout\"))`;\n        if (\"\" != $configName) {\n\t\t\tpanelConfiguration -edit -label (localizedPanelLabel(\"Current Layout\")) \n\t\t\t\t-userCreated false\n\t\t\t\t-defaultImage \"vacantCell.xpm\"\n\t\t\t\t-image \"\"\n\t\t\t\t-sc false\n\t\t\t\t-configString \"global string $gMainPane; paneLayout -e -cn \\\"single\\\" -ps 1 100 100 $gMainPane;\"\n\t\t\t\t-removeAllPanels\n\t\t\t\t-ap false\n\t\t\t\t\t(localizedPanelLabel(\"Persp View\")) \n\t\t\t\t\t\"modelPanel\"\n"
-		+ "\t\t\t\t\t\"$panelName = `modelPanel -unParent -l (localizedPanelLabel(\\\"Persp View\\\")) -mbv $menusOkayInPanels `;\\n$editorName = $panelName;\\nmodelEditor -e \\n    -cam `findStartUpCamera persp` \\n    -useInteractiveMode 0\\n    -displayLights \\\"default\\\" \\n    -displayAppearance \\\"smoothShaded\\\" \\n    -activeOnly 0\\n    -ignorePanZoom 0\\n    -wireframeOnShaded 0\\n    -headsUpDisplay 1\\n    -holdOuts 1\\n    -selectionHiliteDisplay 0\\n    -useDefaultMaterial 0\\n    -bufferMode \\\"double\\\" \\n    -twoSidedLighting 0\\n    -backfaceCulling 0\\n    -xray 0\\n    -jointXray 0\\n    -activeComponentsXray 0\\n    -displayTextures 1\\n    -smoothWireframe 0\\n    -lineWidth 1\\n    -textureAnisotropic 0\\n    -textureHilight 1\\n    -textureSampling 2\\n    -textureDisplay \\\"modulate\\\" \\n    -textureMaxSize 32768\\n    -fogging 0\\n    -fogSource \\\"fragment\\\" \\n    -fogMode \\\"linear\\\" \\n    -fogStart 0\\n    -fogEnd 100\\n    -fogDensity 0.1\\n    -fogColor 0.5 0.5 0.5 1 \\n    -depthOfFieldPreview 1\\n    -maxConstantTransparency 1\\n    -rendererName \\\"vp2Renderer\\\" \\n    -objectFilterShowInHUD 1\\n    -isFiltered 0\\n    -colorResolution 256 256 \\n    -bumpResolution 512 512 \\n    -textureCompression 0\\n    -transparencyAlgorithm \\\"frontAndBackCull\\\" \\n    -transpInShadows 0\\n    -cullingOverride \\\"none\\\" \\n    -lowQualityLighting 0\\n    -maximumNumHardwareLights 1\\n    -occlusionCulling 0\\n    -shadingModel 0\\n    -useBaseRenderer 0\\n    -useReducedRenderer 0\\n    -smallObjectCulling 0\\n    -smallObjectThreshold -1 \\n    -interactiveDisableShadows 0\\n    -interactiveBackFaceCull 0\\n    -sortTransparent 1\\n    -controllers 1\\n    -nurbsCurves 1\\n    -nurbsSurfaces 1\\n    -polymeshes 1\\n    -subdivSurfaces 1\\n    -planes 1\\n    -lights 1\\n    -cameras 1\\n    -controlVertices 1\\n    -hulls 1\\n    -grid 1\\n    -imagePlane 1\\n    -joints 1\\n    -ikHandles 1\\n    -deformers 1\\n    -dynamics 1\\n    -particleInstancers 1\\n    -fluids 1\\n    -hairSystems 1\\n    -follicles 1\\n    -nCloths 1\\n    -nParticles 1\\n    -nRigids 1\\n    -dynamicConstraints 1\\n    -locators 1\\n    -manipulators 1\\n    -pluginShapes 1\\n    -dimensions 1\\n    -handles 1\\n    -pivots 1\\n    -textures 1\\n    -strokes 1\\n    -motionTrails 1\\n    -clipGhosts 1\\n    -greasePencils 1\\n    -shadows 0\\n    -captureSequenceNumber -1\\n    -width 1513\\n    -height 1060\\n    -sceneRenderFilter 0\\n    $editorName;\\nmodelEditor -e -viewSelected 0 $editorName;\\nmodelEditor -e \\n    -pluginObjects \\\"gpuCacheDisplayFilter\\\" 1 \\n    $editorName\"\n"
-		+ "\t\t\t\t\t\"modelPanel -edit -l (localizedPanelLabel(\\\"Persp View\\\")) -mbv $menusOkayInPanels  $panelName;\\n$editorName = $panelName;\\nmodelEditor -e \\n    -cam `findStartUpCamera persp` \\n    -useInteractiveMode 0\\n    -displayLights \\\"default\\\" \\n    -displayAppearance \\\"smoothShaded\\\" \\n    -activeOnly 0\\n    -ignorePanZoom 0\\n    -wireframeOnShaded 0\\n    -headsUpDisplay 1\\n    -holdOuts 1\\n    -selectionHiliteDisplay 0\\n    -useDefaultMaterial 0\\n    -bufferMode \\\"double\\\" \\n    -twoSidedLighting 0\\n    -backfaceCulling 0\\n    -xray 0\\n    -jointXray 0\\n    -activeComponentsXray 0\\n    -displayTextures 1\\n    -smoothWireframe 0\\n    -lineWidth 1\\n    -textureAnisotropic 0\\n    -textureHilight 1\\n    -textureSampling 2\\n    -textureDisplay \\\"modulate\\\" \\n    -textureMaxSize 32768\\n    -fogging 0\\n    -fogSource \\\"fragment\\\" \\n    -fogMode \\\"linear\\\" \\n    -fogStart 0\\n    -fogEnd 100\\n    -fogDensity 0.1\\n    -fogColor 0.5 0.5 0.5 1 \\n    -depthOfFieldPreview 1\\n    -maxConstantTransparency 1\\n    -rendererName \\\"vp2Renderer\\\" \\n    -objectFilterShowInHUD 1\\n    -isFiltered 0\\n    -colorResolution 256 256 \\n    -bumpResolution 512 512 \\n    -textureCompression 0\\n    -transparencyAlgorithm \\\"frontAndBackCull\\\" \\n    -transpInShadows 0\\n    -cullingOverride \\\"none\\\" \\n    -lowQualityLighting 0\\n    -maximumNumHardwareLights 1\\n    -occlusionCulling 0\\n    -shadingModel 0\\n    -useBaseRenderer 0\\n    -useReducedRenderer 0\\n    -smallObjectCulling 0\\n    -smallObjectThreshold -1 \\n    -interactiveDisableShadows 0\\n    -interactiveBackFaceCull 0\\n    -sortTransparent 1\\n    -controllers 1\\n    -nurbsCurves 1\\n    -nurbsSurfaces 1\\n    -polymeshes 1\\n    -subdivSurfaces 1\\n    -planes 1\\n    -lights 1\\n    -cameras 1\\n    -controlVertices 1\\n    -hulls 1\\n    -grid 1\\n    -imagePlane 1\\n    -joints 1\\n    -ikHandles 1\\n    -deformers 1\\n    -dynamics 1\\n    -particleInstancers 1\\n    -fluids 1\\n    -hairSystems 1\\n    -follicles 1\\n    -nCloths 1\\n    -nParticles 1\\n    -nRigids 1\\n    -dynamicConstraints 1\\n    -locators 1\\n    -manipulators 1\\n    -pluginShapes 1\\n    -dimensions 1\\n    -handles 1\\n    -pivots 1\\n    -textures 1\\n    -strokes 1\\n    -motionTrails 1\\n    -clipGhosts 1\\n    -greasePencils 1\\n    -shadows 0\\n    -captureSequenceNumber -1\\n    -width 1513\\n    -height 1060\\n    -sceneRenderFilter 0\\n    $editorName;\\nmodelEditor -e -viewSelected 0 $editorName;\\nmodelEditor -e \\n    -pluginObjects \\\"gpuCacheDisplayFilter\\\" 1 \\n    $editorName\"\n"
+		+ "\t\t\t\t\t\"$panelName = `modelPanel -unParent -l (localizedPanelLabel(\\\"Persp View\\\")) -mbv $menusOkayInPanels `;\\n$editorName = $panelName;\\nmodelEditor -e \\n    -cam `findStartUpCamera persp` \\n    -useInteractiveMode 0\\n    -displayLights \\\"default\\\" \\n    -displayAppearance \\\"smoothShaded\\\" \\n    -activeOnly 0\\n    -ignorePanZoom 0\\n    -wireframeOnShaded 0\\n    -headsUpDisplay 1\\n    -holdOuts 1\\n    -selectionHiliteDisplay 0\\n    -useDefaultMaterial 0\\n    -bufferMode \\\"double\\\" \\n    -twoSidedLighting 0\\n    -backfaceCulling 0\\n    -xray 0\\n    -jointXray 0\\n    -activeComponentsXray 0\\n    -displayTextures 1\\n    -smoothWireframe 0\\n    -lineWidth 1\\n    -textureAnisotropic 0\\n    -textureHilight 1\\n    -textureSampling 2\\n    -textureDisplay \\\"modulate\\\" \\n    -textureMaxSize 32768\\n    -fogging 0\\n    -fogSource \\\"fragment\\\" \\n    -fogMode \\\"linear\\\" \\n    -fogStart 0\\n    -fogEnd 100\\n    -fogDensity 0.1\\n    -fogColor 0.5 0.5 0.5 1 \\n    -depthOfFieldPreview 1\\n    -maxConstantTransparency 1\\n    -rendererName \\\"vp2Renderer\\\" \\n    -objectFilterShowInHUD 1\\n    -isFiltered 0\\n    -colorResolution 256 256 \\n    -bumpResolution 512 512 \\n    -textureCompression 0\\n    -transparencyAlgorithm \\\"frontAndBackCull\\\" \\n    -transpInShadows 0\\n    -cullingOverride \\\"none\\\" \\n    -lowQualityLighting 0\\n    -maximumNumHardwareLights 1\\n    -occlusionCulling 0\\n    -shadingModel 0\\n    -useBaseRenderer 0\\n    -useReducedRenderer 0\\n    -smallObjectCulling 0\\n    -smallObjectThreshold -1 \\n    -interactiveDisableShadows 0\\n    -interactiveBackFaceCull 0\\n    -sortTransparent 1\\n    -controllers 1\\n    -nurbsCurves 1\\n    -nurbsSurfaces 1\\n    -polymeshes 1\\n    -subdivSurfaces 1\\n    -planes 1\\n    -lights 1\\n    -cameras 1\\n    -controlVertices 1\\n    -hulls 1\\n    -grid 1\\n    -imagePlane 1\\n    -joints 1\\n    -ikHandles 1\\n    -deformers 1\\n    -dynamics 1\\n    -particleInstancers 1\\n    -fluids 1\\n    -hairSystems 1\\n    -follicles 1\\n    -nCloths 1\\n    -nParticles 1\\n    -nRigids 1\\n    -dynamicConstraints 1\\n    -locators 1\\n    -manipulators 1\\n    -pluginShapes 1\\n    -dimensions 1\\n    -handles 1\\n    -pivots 1\\n    -textures 1\\n    -strokes 1\\n    -motionTrails 1\\n    -clipGhosts 1\\n    -greasePencils 1\\n    -shadows 0\\n    -captureSequenceNumber -1\\n    -width 895\\n    -height 710\\n    -sceneRenderFilter 0\\n    $editorName;\\nmodelEditor -e -viewSelected 0 $editorName;\\nmodelEditor -e \\n    -pluginObjects \\\"gpuCacheDisplayFilter\\\" 1 \\n    $editorName\"\n"
+		+ "\t\t\t\t\t\"modelPanel -edit -l (localizedPanelLabel(\\\"Persp View\\\")) -mbv $menusOkayInPanels  $panelName;\\n$editorName = $panelName;\\nmodelEditor -e \\n    -cam `findStartUpCamera persp` \\n    -useInteractiveMode 0\\n    -displayLights \\\"default\\\" \\n    -displayAppearance \\\"smoothShaded\\\" \\n    -activeOnly 0\\n    -ignorePanZoom 0\\n    -wireframeOnShaded 0\\n    -headsUpDisplay 1\\n    -holdOuts 1\\n    -selectionHiliteDisplay 0\\n    -useDefaultMaterial 0\\n    -bufferMode \\\"double\\\" \\n    -twoSidedLighting 0\\n    -backfaceCulling 0\\n    -xray 0\\n    -jointXray 0\\n    -activeComponentsXray 0\\n    -displayTextures 1\\n    -smoothWireframe 0\\n    -lineWidth 1\\n    -textureAnisotropic 0\\n    -textureHilight 1\\n    -textureSampling 2\\n    -textureDisplay \\\"modulate\\\" \\n    -textureMaxSize 32768\\n    -fogging 0\\n    -fogSource \\\"fragment\\\" \\n    -fogMode \\\"linear\\\" \\n    -fogStart 0\\n    -fogEnd 100\\n    -fogDensity 0.1\\n    -fogColor 0.5 0.5 0.5 1 \\n    -depthOfFieldPreview 1\\n    -maxConstantTransparency 1\\n    -rendererName \\\"vp2Renderer\\\" \\n    -objectFilterShowInHUD 1\\n    -isFiltered 0\\n    -colorResolution 256 256 \\n    -bumpResolution 512 512 \\n    -textureCompression 0\\n    -transparencyAlgorithm \\\"frontAndBackCull\\\" \\n    -transpInShadows 0\\n    -cullingOverride \\\"none\\\" \\n    -lowQualityLighting 0\\n    -maximumNumHardwareLights 1\\n    -occlusionCulling 0\\n    -shadingModel 0\\n    -useBaseRenderer 0\\n    -useReducedRenderer 0\\n    -smallObjectCulling 0\\n    -smallObjectThreshold -1 \\n    -interactiveDisableShadows 0\\n    -interactiveBackFaceCull 0\\n    -sortTransparent 1\\n    -controllers 1\\n    -nurbsCurves 1\\n    -nurbsSurfaces 1\\n    -polymeshes 1\\n    -subdivSurfaces 1\\n    -planes 1\\n    -lights 1\\n    -cameras 1\\n    -controlVertices 1\\n    -hulls 1\\n    -grid 1\\n    -imagePlane 1\\n    -joints 1\\n    -ikHandles 1\\n    -deformers 1\\n    -dynamics 1\\n    -particleInstancers 1\\n    -fluids 1\\n    -hairSystems 1\\n    -follicles 1\\n    -nCloths 1\\n    -nParticles 1\\n    -nRigids 1\\n    -dynamicConstraints 1\\n    -locators 1\\n    -manipulators 1\\n    -pluginShapes 1\\n    -dimensions 1\\n    -handles 1\\n    -pivots 1\\n    -textures 1\\n    -strokes 1\\n    -motionTrails 1\\n    -clipGhosts 1\\n    -greasePencils 1\\n    -shadows 0\\n    -captureSequenceNumber -1\\n    -width 895\\n    -height 710\\n    -sceneRenderFilter 0\\n    $editorName;\\nmodelEditor -e -viewSelected 0 $editorName;\\nmodelEditor -e \\n    -pluginObjects \\\"gpuCacheDisplayFilter\\\" 1 \\n    $editorName\"\n"
 		+ "\t\t\t\t$configName;\n\n            setNamedPanelLayout (localizedPanelLabel(\"Current Layout\"));\n        }\n\n        panelHistory -e -clear mainPanelHistory;\n        sceneUIReplacement -clear;\n\t}\n\n\ngrid -spacing 5 -size 12 -divisions 5 -displayAxes yes -displayGridLines yes -displayDivisionLines yes -displayPerspectiveLabels yes -displayOrthographicLabels yes -displayAxesBold yes -perspectiveLabelPosition axis -orthographicLabelPosition edge;\nviewManip -drawCompass 0 -compassAngle 0 -frontParameters \"\" -homeParameters \"\" -selectionLockParameters \"\";\n}\n");
 	setAttr ".st" 3;
 createNode script -n "sceneConfigurationScriptNode";
 	rename -uid "1ACBD286-4C21-4A15-9BDA-BE99B8047EE0";
 	setAttr ".b" -type "string" "playbackOptions -min 1 -max 120 -ast 1 -aet 200 ";
 	setAttr ".st" 6;
-createNode file -n "file4";
-	rename -uid "C265A14B-453A-1F2A-780C-F2BECE2C3B83";
-	setAttr ".ftn" -type "string" "D:/git/glTF-WebGL-PBR/textures/brdfLUT.png";
-	setAttr ".ft" 0;
-	setAttr ".cs" -type "string" "sRGB";
-	setAttr ".ifr" yes;
 createNode place2dTexture -n "place2dTexture4";
 	rename -uid "C0A8C725-475C-FAAA-DC52-2891FA906FB6";
 createNode envCube -n "envCube1";
 	rename -uid "1863FB24-4D86-0AF5-BBDD-88BE441D1845";
-createNode file -n "file5";
-	rename -uid "F9682584-4C49-AB9F-5BCC-2DA14225B6A2";
-	setAttr ".ftn" -type "string" "D:/git/glTF-WebGL-PBR/textures/papermill/diffuse/diffuse_right_0.jpg";
-	setAttr ".cs" -type "string" "sRGB";
 createNode place2dTexture -n "place2dTexture5";
 	rename -uid "0B90B01A-41E2-61AF-AFFD-94B14532AFE6";
-createNode file -n "file6";
-	rename -uid "C5D8311F-436B-C312-38A4-72BF4872A2F4";
-	setAttr ".ftn" -type "string" "D:/git/glTF-WebGL-PBR/textures/papermill/diffuse/diffuse_left_0.jpg";
-	setAttr ".cs" -type "string" "sRGB";
 createNode place2dTexture -n "place2dTexture6";
 	rename -uid "B68B52DD-416B-FA02-FC02-1E87AF96BE40";
-createNode file -n "file7";
-	rename -uid "6A5E21B7-40A7-2681-EDD4-5B8A63CE14A2";
-	setAttr ".ftn" -type "string" "D:/git/glTF-WebGL-PBR/textures/papermill/diffuse/diffuse_top_0.jpg";
-	setAttr ".cs" -type "string" "sRGB";
 createNode place2dTexture -n "place2dTexture7";
 	rename -uid "4D77912C-4285-ED2C-5E4E-3AACFA7D490F";
-createNode file -n "file8";
-	rename -uid "9E1CDC63-4529-D0AC-7FA2-E3A6497E6F2E";
-	setAttr ".ftn" -type "string" "D:/git/glTF-WebGL-PBR/textures/papermill/diffuse/diffuse_bottom_0.jpg";
-	setAttr ".cs" -type "string" "sRGB";
 createNode place2dTexture -n "place2dTexture8";
 	rename -uid "56220B31-46C0-641A-90AC-79B8B1B9634E";
-createNode file -n "file9";
-	rename -uid "110BA608-4AF0-E1B1-262E-7DAA9AD638F5";
-	setAttr ".ftn" -type "string" "D:/git/glTF-WebGL-PBR/textures/papermill/diffuse/diffuse_front_0.jpg";
-	setAttr ".cs" -type "string" "sRGB";
 createNode place2dTexture -n "place2dTexture9";
 	rename -uid "C458D8F3-4D46-19A9-8802-969CF7162F26";
-createNode file -n "file10";
-	rename -uid "18AA6AD9-49BC-1447-1B03-79B27CEE9EFD";
-	setAttr ".ftn" -type "string" "D:/git/glTF-WebGL-PBR/textures/papermill/diffuse/diffuse_back_0.jpg";
-	setAttr ".cs" -type "string" "sRGB";
 createNode place2dTexture -n "place2dTexture10";
 	rename -uid "6D766279-45DE-D1C5-A303-50BFB7498CC5";
 createNode envCube -n "envCube2";
 	rename -uid "5796FF62-4E44-F6C1-7AB7-028CAFC031F4";
-createNode file -n "file11";
-	rename -uid "7768AA8A-4BDD-BD52-E768-D389F7A2A514";
-	setAttr ".ftn" -type "string" "D:/git/glTF-WebGL-PBR/textures/papermill/specular/specular_right_0.jpg";
-	setAttr ".cs" -type "string" "sRGB";
 createNode place2dTexture -n "place2dTexture11";
 	rename -uid "46880797-45D6-8AB5-7960-73B38A6DDBA1";
-createNode file -n "file12";
-	rename -uid "5CF97C69-48FF-DE02-C57E-7EBFBB4E79D2";
-	setAttr ".ftn" -type "string" "D:/git/glTF-WebGL-PBR/textures/papermill/specular/specular_left_0.jpg";
-	setAttr ".cs" -type "string" "sRGB";
 createNode place2dTexture -n "place2dTexture12";
 	rename -uid "ABBE931F-405D-EB7C-0E67-75A81D184D96";
-createNode file -n "file13";
-	rename -uid "B1F99DFC-4BEA-736A-1C2A-738218143B44";
-	setAttr ".ftn" -type "string" "D:/git/glTF-WebGL-PBR/textures/papermill/specular/specular_top_0.jpg";
-	setAttr ".cs" -type "string" "sRGB";
 createNode place2dTexture -n "place2dTexture13";
 	rename -uid "3C8967E9-4959-9BED-A954-BCA6DC45E9B9";
-createNode file -n "file14";
-	rename -uid "E4D3C078-462B-F619-6029-A99D9C320625";
-	setAttr ".ftn" -type "string" "D:/git/glTF-WebGL-PBR/textures/papermill/specular/specular_bottom_0.jpg";
-	setAttr ".cs" -type "string" "sRGB";
 createNode place2dTexture -n "place2dTexture14";
 	rename -uid "52A548FA-43A9-EBBF-AECC-CB89AFB2F8BA";
-createNode file -n "file15";
-	rename -uid "399FB782-4012-38A7-4F6D-C2BA46AD1A49";
-	setAttr ".ftn" -type "string" "D:/git/glTF-WebGL-PBR/textures/papermill/specular/specular_front_0.jpg";
-	setAttr ".cs" -type "string" "sRGB";
 createNode place2dTexture -n "place2dTexture15";
 	rename -uid "A6C3D041-4063-E2F5-4346-77A13225EFB8";
-createNode file -n "file16";
-	rename -uid "F7EDB1B8-433A-09A4-798F-1F9F56948F64";
-	setAttr ".ftn" -type "string" "D:/git/glTF-WebGL-PBR/textures/papermill/specular/specular_back_0.jpg";
-	setAttr ".cs" -type "string" "sRGB";
 createNode place2dTexture -n "place2dTexture16";
 	rename -uid "F6044585-4BF8-A58D-8142-77A4C02F6BB9";
 createNode layeredTexture -n "layeredTexture1";
@@ -66112,76 +66001,37 @@ createNode layeredTexture -n "layeredTexture1";
 createNode envCube -n "envCube3";
 	rename -uid "F4124F43-4584-F512-E131-B69152156874";
 	setAttr ".lt" 1;
-createNode file -n "file17";
-	rename -uid "88E6D7FA-40B3-D9AC-B14A-94ACB1834F55";
-	setAttr ".ftn" -type "string" "D:/git/glTF-WebGL-PBR/textures/papermill/diffuse/diffuse_back_0.jpg";
-	setAttr ".cs" -type "string" "sRGB";
 createNode place2dTexture -n "place2dTexture17";
 	rename -uid "C2FB0326-4FAC-522E-70C3-E08D70C49B6F";
-createNode file -n "file18";
-	rename -uid "64705688-447F-B08E-C959-01ACF31317E3";
-	setAttr ".ftn" -type "string" "D:/git/glTF-WebGL-PBR/textures/papermill/diffuse/diffuse_front_0.jpg";
-	setAttr ".cs" -type "string" "sRGB";
 createNode place2dTexture -n "place2dTexture18";
 	rename -uid "CB18252A-4F32-7AF9-F448-74BB3AA9B758";
-createNode file -n "file19";
-	rename -uid "53CFD316-483A-60B0-CCB0-20B31DC76F25";
-	setAttr ".ftn" -type "string" "D:/git/glTF-WebGL-PBR/textures/papermill/diffuse/diffuse_bottom_0.jpg";
-	setAttr ".cs" -type "string" "sRGB";
 createNode place2dTexture -n "place2dTexture19";
 	rename -uid "10B8D0DC-41C4-BF08-5084-E8983B96BE93";
-createNode file -n "file20";
-	rename -uid "C94B8D94-4D77-D072-B05E-EF8A54E02C72";
-	setAttr ".ftn" -type "string" "D:/git/glTF-WebGL-PBR/textures/papermill/diffuse/diffuse_top_0.jpg";
-	setAttr ".cs" -type "string" "sRGB";
 createNode place2dTexture -n "place2dTexture20";
 	rename -uid "06BAB71B-42C9-3C03-834A-249767F1995B";
-createNode file -n "file21";
-	rename -uid "D6E70E6D-4A14-F9B4-5C1A-D19FDA8702D8";
-	setAttr ".ftn" -type "string" "D:/git/glTF-WebGL-PBR/textures/papermill/diffuse/diffuse_left_0.jpg";
-	setAttr ".cs" -type "string" "sRGB";
 createNode place2dTexture -n "place2dTexture21";
 	rename -uid "649A863D-4940-1346-0B29-5EBA310A2166";
-createNode file -n "file22";
-	rename -uid "20D29A3A-487B-AAF3-A486-29AC248B8696";
-	setAttr ".ftn" -type "string" "D:/git/glTF-WebGL-PBR/textures/papermill/diffuse/diffuse_right_0.jpg";
-	setAttr ".cs" -type "string" "sRGB";
 createNode place2dTexture -n "place2dTexture22";
 	rename -uid "841A4250-453D-42CB-1528-10BAE9F344B6";
-createNode file -n "file23";
-	rename -uid "902737A9-4DBF-8C80-8F2F-FA8800F56ADE";
-	setAttr ".ftn" -type "string" "C:/Users/Francis/Desktop/environment.dds";
-	setAttr ".cs" -type "string" "sRGB";
 createNode place2dTexture -n "place2dTexture23";
 	rename -uid "55C390A1-48DA-3465-F58A-0D8A2DF6B423";
-createNode file -n "file24";
-	rename -uid "76855751-463E-FDD5-2834-00B5529C618E";
-	setAttr ".ftn" -type "string" "C:/Users/Francis/Desktop/SpecularHDR.dds";
-	setAttr ".cs" -type "string" "sRGB";
 createNode place2dTexture -n "place2dTexture24";
 	rename -uid "46F46848-4E07-C9CA-9922-39B5FF93E5DF";
-createNode file -n "file25";
-	rename -uid "DA23AEAB-4013-DB05-6933-5E9FF1DFE538";
-	setAttr ".ftn" -type "string" "D:/dev/storymaker-eusme/PBR//Models/DamagedHelmet/Default_AO.jpg";
-	setAttr ".cs" -type "string" "sRGB";
 createNode place2dTexture -n "place2dTexture25";
 	rename -uid "6C900BA0-4588-E2D4-305A-57AF28DFF3D3";
-createNode file -n "file26";
-	rename -uid "7737A464-479F-16B3-652B-46882C1A4ED9";
-	setAttr ".ftn" -type "string" "C:/dev/glTF/Maya2glTF/maya//images/damaged_helmet_emissive.jpg";
-	setAttr ".cs" -type "string" "sRGB";
 createNode place2dTexture -n "place2dTexture26";
 	rename -uid "EEDC0D58-4D58-2734-D7E4-7BAE79BBB0DC";
-createNode file -n "file27";
+createNode file -n "file_diffuse_env";
 	rename -uid "1610DE0C-44D6-A0CB-B29D-ABB38A71DAEF";
 	setAttr ".ftn" -type "string" "C:/dev/glTF/Maya2glTF/maya//images/damaged_helmet_diffuse_env.dds";
 	setAttr ".cs" -type "string" "sRGB";
 createNode place2dTexture -n "place2dTexture27";
 	rename -uid "BDACD375-4B22-C2BF-3D10-CD8FEED5837B";
-createNode file -n "file28";
+createNode file -n "file_specular_env";
 	rename -uid "1320658B-4C86-29FD-1D71-338A9870324F";
 	setAttr ".ftn" -type "string" "C:/dev/glTF/Maya2glTF/maya//images/damaged_helmet_specular_env.dds";
-	setAttr ".cs" -type "string" "sRGB";
+	setAttr ".cs" -type "string" "scene-linear CIE XYZ";
+	setAttr ".ifr" yes;
 createNode place2dTexture -n "place2dTexture28";
 	rename -uid "51F4C5BA-47E1-935B-3A70-18A3EF54588F";
 createNode surfaceShader -n "surfaceShader1";
@@ -66200,10 +66050,6 @@ createNode shadingEngine -n "lambert2SG";
 	setAttr ".ro" yes;
 createNode materialInfo -n "materialInfo4";
 	rename -uid "659E0107-4129-0A24-0980-0FBA838A63BE";
-createNode file -n "file29";
-	rename -uid "C642FF5A-4ADA-2155-E164-ACBA5B84E141";
-	setAttr ".ftn" -type "string" "D:/git/DirectXTex/Texassemble/Bin/Desktop_2017/Win32/Debug/specular_right_0.dds";
-	setAttr ".cs" -type "string" "sRGB";
 createNode place2dTexture -n "place2dTexture29";
 	rename -uid "38FD2A9B-46A7-E5D9-E69D-29812AF43992";
 createNode GLSLShader -n "GLSLShader2";
@@ -68495,6 +68341,60 @@ createNode polyNormal -n "polyNormal1";
 createNode makeNurbCircle -n "makeNurbCircle1";
 	rename -uid "52F880AD-4372-3D65-DA3C-2ABD76975711";
 	setAttr ".nr" -type "double3" 0 1 0 ;
+createNode place2dTexture -n "place2dTexture30";
+	rename -uid "F83235C8-4412-C5E5-68CB-1D9465FECD35";
+createNode file -n "file_brdf";
+	rename -uid "94988878-4B51-268F-D9AC-4F8EE66B9F47";
+	setAttr ".ftn" -type "string" "C:/dev/glTF/Maya2glTF/maya//images/brdfLUT.png";
+	setAttr ".cs" -type "string" "sRGB";
+createNode place2dTexture -n "place2dTexture31";
+	rename -uid "5D0837E6-4B5E-558E-A019-F189423FA10F";
+createNode file -n "file_emissive";
+	rename -uid "D4A21B74-4EA4-5201-5577-E581E5CC2581";
+	setAttr ".ftn" -type "string" "C:/dev/glTF/Maya2glTF/maya//images/damaged_helmet_emissive.jpg";
+	setAttr ".cs" -type "string" "sRGB";
+createNode place2dTexture -n "place2dTexture32";
+	rename -uid "BE2DC323-46E1-5ED3-929F-18B7A48AE37E";
+createNode nodeGraphEditorInfo -n "MayaNodeEditorSavedTabsInfo";
+	rename -uid "F3941D94-4ABE-91A3-E47A-ED849CD5CD81";
+	setAttr ".tgi[0].tn" -type "string" "Untitled_1";
+	setAttr ".tgi[0].vl" -type "double2" -581.56795195795121 -896.58857623260906 ;
+	setAttr ".tgi[0].vh" -type "double2" 614.82126375428345 90.316146456082436 ;
+	setAttr -s 6 ".tgi[0].ni";
+	setAttr ".tgi[0].ni[0].x" 72.857139587402344;
+	setAttr ".tgi[0].ni[0].y" 31.693340301513672;
+	setAttr ".tgi[0].ni[0].nvs" 18306;
+	setAttr ".tgi[0].ni[1].x" -234.28572082519531;
+	setAttr ".tgi[0].ni[1].y" -594.28570556640625;
+	setAttr ".tgi[0].ni[1].nvs" 18304;
+	setAttr ".tgi[0].ni[2].x" -197.14285278320313;
+	setAttr ".tgi[0].ni[2].y" -25.714284896850586;
+	setAttr ".tgi[0].ni[2].nvs" 18304;
+	setAttr ".tgi[0].ni[3].x" -197.14285278320313;
+	setAttr ".tgi[0].ni[3].y" -215.71427917480469;
+	setAttr ".tgi[0].ni[3].nvs" 18304;
+	setAttr ".tgi[0].ni[4].x" -504.28570556640625;
+	setAttr ".tgi[0].ni[4].y" -215.71427917480469;
+	setAttr ".tgi[0].ni[4].nvs" 18304;
+	setAttr ".tgi[0].ni[5].x" -504.28570556640625;
+	setAttr ".tgi[0].ni[5].y" -25.714284896850586;
+	setAttr ".tgi[0].ni[5].nvs" 18304;
+createNode aiOptions -s -n "defaultArnoldRenderOptions";
+	rename -uid "F2299C0C-4EF1-2DF8-3FF8-E290B08E582F";
+	setAttr ".version" -type "string" "2.0.1";
+createNode aiAOVFilter -s -n "defaultArnoldFilter";
+	rename -uid "534CA97C-47A7-BE66-414E-CF910F5FEC98";
+	setAttr ".ai_translator" -type "string" "gaussian";
+createNode aiAOVDriver -s -n "defaultArnoldDriver";
+	rename -uid "3ED6C817-42C1-22B8-ED9F-1C9B72ED801F";
+	setAttr ".ai_translator" -type "string" "exr";
+createNode aiAOVDriver -s -n "defaultArnoldDisplayDriver";
+	rename -uid "F3ECEE73-4A23-A6DC-8E71-618A35B23919";
+	setAttr ".output_mode" 0;
+	setAttr ".ai_translator" -type "string" "maya";
+createNode makeNurbCircle -n "makeNurbCircle2";
+	rename -uid "2F0893E3-4B7D-9353-A428-CF8F5E88B1FD";
+	setAttr ".nr" -type "double3" 0 1 0 ;
 select -ne :time1;
 	setAttr ".o" 1;
 	setAttr ".unw" 1;
@@ -68514,27 +68414,33 @@ select -ne :defaultShaderList1;
 select -ne :postProcessList1;
 	setAttr -s 2 ".p";
 select -ne :defaultRenderUtilityList1;
-	setAttr -s 29 ".u";
+	setAttr -s 32 ".u";
 select -ne :defaultRenderingList1;
 select -ne :lightList1;
 	setAttr -s 4 ".l";
 select -ne :defaultTextureList1;
-	setAttr -s 33 ".tx";
+	setAttr -s 11 ".tx";
 select -ne :initialShadingGroup;
 	setAttr ".ro" yes;
 select -ne :initialParticleSE;
 	setAttr ".ro" yes;
 select -ne :defaultRenderGlobals;
-	setAttr ".ren" -type "string" "arnold";
+	setAttr ".ren" -type "string" "mayaHardware2";
+	setAttr ".imfkey" -type "string" "exr";
 select -ne :defaultResolution;
 	setAttr ".pa" 1;
 select -ne :defaultLightSet;
 	setAttr -s 4 ".dsm";
+select -ne :defaultColorMgtGlobals;
+	setAttr ".ote" yes;
+	setAttr ".otc" yes;
+	setAttr ".otn" -type "string" "sRGB";
 select -ne :hardwareRenderGlobals;
 	setAttr ".ctrs" 256;
 	setAttr ".btrs" 512;
 connectAttr "polyNormal1.out" "helmetShape.i";
 connectAttr "makeNurbCircle1.oc" "nurbsCircleShape1.cr";
+connectAttr "makeNurbCircle2.oc" "nurbsCircleShape2.cr";
 relationship "link" ":lightLinker1" ":initialShadingGroup.message" ":defaultLightSet.message";
 relationship "link" ":lightLinker1" ":initialParticleSE.message" ":defaultLightSet.message";
 relationship "link" ":lightLinker1" "node_damagedHelmet_FBXASC0456514SG.message" ":defaultLightSet.message";
@@ -68556,686 +68462,137 @@ connectAttr "renderLayerManager.rlmi[0]" "defaultRenderLayer.rlid";
 connectAttr "Material_MR.oc" "node_damagedHelmet_FBXASC0456514SG.ss";
 connectAttr "node_damagedHelmet_FBXASC0456514SG.msg" "materialInfo1.sg";
 connectAttr "Material_MR.msg" "materialInfo1.m";
-connectAttr "file1.oc" "GLSL_PBR_Shader.gBaseColorTexture";
-connectAttr "file2.oc" "GLSL_PBR_Shader.gNormalTexture";
-connectAttr "file3.oc" "GLSL_PBR_Shader.gMetallicRoughnessTexture";
-connectAttr "file4.oc" "GLSL_PBR_Shader.gBrdfLUT";
-connectAttr "file25.oc" "GLSL_PBR_Shader.gOcclusionTexture";
-connectAttr "file26.oc" "GLSL_PBR_Shader.gEmissiveTexture";
-connectAttr "file27.oc" "GLSL_PBR_Shader.gDiffuseEnvTexture";
-connectAttr "file28.oc" "GLSL_PBR_Shader.gSpecularEnvTexture";
-connectAttr "pointLightShape1.ltd" "GLSL_PBR_Shader.Light_0_connected_light";
 connectAttr "spotLightShape1.ltd" "GLSL_PBR_Shader.Light_1_connected_light";
+connectAttr "file_diffuse_env.oc" "GLSL_PBR_Shader.u_DiffuseEnvTexture";
+connectAttr "file_specular_env.oc" "GLSL_PBR_Shader.u_SpecularEnvTexture";
+connectAttr "file_brdf.oc" "GLSL_PBR_Shader.u_brdfTexture";
+connectAttr "file_albedo.oc" "GLSL_PBR_Shader.u_BaseColorTexture";
+connectAttr "file_orm.oc" "GLSL_PBR_Shader.u_MetallicRoughnessTexture";
+connectAttr "file_orm.oc" "GLSL_PBR_Shader.u_OcclusionTexture";
+connectAttr "file_emissive.oc" "GLSL_PBR_Shader.u_EmissiveTexture";
+connectAttr "file_normal.oc" "GLSL_PBR_Shader.u_NormalTexture";
 connectAttr "GLSL_PBR_Shader.oc" "GLSLShader1SG.ss";
 connectAttr "helmetShape.iog" "GLSLShader1SG.dsm" -na;
 connectAttr "GLSLShader1SG.msg" "materialInfo2.sg";
 connectAttr "GLSL_PBR_Shader.msg" "materialInfo2.m";
 connectAttr "GLSL_PBR_Shader.msg" "materialInfo2.t" -na;
-connectAttr ":defaultColorMgtGlobals.cme" "file1.cme";
-connectAttr ":defaultColorMgtGlobals.cfe" "file1.cmcf";
-connectAttr ":defaultColorMgtGlobals.cfp" "file1.cmcp";
-connectAttr ":defaultColorMgtGlobals.wsn" "file1.ws";
-connectAttr "place2dTexture1.c" "file1.c";
-connectAttr "place2dTexture1.tf" "file1.tf";
-connectAttr "place2dTexture1.rf" "file1.rf";
-connectAttr "place2dTexture1.mu" "file1.mu";
-connectAttr "place2dTexture1.mv" "file1.mv";
-connectAttr "place2dTexture1.s" "file1.s";
-connectAttr "place2dTexture1.wu" "file1.wu";
-connectAttr "place2dTexture1.wv" "file1.wv";
-connectAttr "place2dTexture1.re" "file1.re";
-connectAttr "place2dTexture1.of" "file1.of";
-connectAttr "place2dTexture1.r" "file1.ro";
-connectAttr "place2dTexture1.n" "file1.n";
-connectAttr "place2dTexture1.vt1" "file1.vt1";
-connectAttr "place2dTexture1.vt2" "file1.vt2";
-connectAttr "place2dTexture1.vt3" "file1.vt3";
-connectAttr "place2dTexture1.vc1" "file1.vc1";
-connectAttr "place2dTexture1.o" "file1.uv";
-connectAttr "place2dTexture1.ofs" "file1.fs";
-connectAttr ":defaultColorMgtGlobals.cme" "file2.cme";
-connectAttr ":defaultColorMgtGlobals.cfe" "file2.cmcf";
-connectAttr ":defaultColorMgtGlobals.cfp" "file2.cmcp";
-connectAttr ":defaultColorMgtGlobals.wsn" "file2.ws";
-connectAttr "place2dTexture2.c" "file2.c";
-connectAttr "place2dTexture2.tf" "file2.tf";
-connectAttr "place2dTexture2.rf" "file2.rf";
-connectAttr "place2dTexture2.mu" "file2.mu";
-connectAttr "place2dTexture2.mv" "file2.mv";
-connectAttr "place2dTexture2.s" "file2.s";
-connectAttr "place2dTexture2.wu" "file2.wu";
-connectAttr "place2dTexture2.wv" "file2.wv";
-connectAttr "place2dTexture2.re" "file2.re";
-connectAttr "place2dTexture2.of" "file2.of";
-connectAttr "place2dTexture2.r" "file2.ro";
-connectAttr "place2dTexture2.n" "file2.n";
-connectAttr "place2dTexture2.vt1" "file2.vt1";
-connectAttr "place2dTexture2.vt2" "file2.vt2";
-connectAttr "place2dTexture2.vt3" "file2.vt3";
-connectAttr "place2dTexture2.vc1" "file2.vc1";
-connectAttr "place2dTexture2.o" "file2.uv";
-connectAttr "place2dTexture2.ofs" "file2.fs";
-connectAttr ":defaultColorMgtGlobals.cme" "file3.cme";
-connectAttr ":defaultColorMgtGlobals.cfe" "file3.cmcf";
-connectAttr ":defaultColorMgtGlobals.cfp" "file3.cmcp";
-connectAttr ":defaultColorMgtGlobals.wsn" "file3.ws";
-connectAttr "place2dTexture3.c" "file3.c";
-connectAttr "place2dTexture3.tf" "file3.tf";
-connectAttr "place2dTexture3.rf" "file3.rf";
-connectAttr "place2dTexture3.mu" "file3.mu";
-connectAttr "place2dTexture3.mv" "file3.mv";
-connectAttr "place2dTexture3.s" "file3.s";
-connectAttr "place2dTexture3.wu" "file3.wu";
-connectAttr "place2dTexture3.wv" "file3.wv";
-connectAttr "place2dTexture3.re" "file3.re";
-connectAttr "place2dTexture3.of" "file3.of";
-connectAttr "place2dTexture3.r" "file3.ro";
-connectAttr "place2dTexture3.n" "file3.n";
-connectAttr "place2dTexture3.vt1" "file3.vt1";
-connectAttr "place2dTexture3.vt2" "file3.vt2";
-connectAttr "place2dTexture3.vt3" "file3.vt3";
-connectAttr "place2dTexture3.vc1" "file3.vc1";
-connectAttr "place2dTexture3.o" "file3.uv";
-connectAttr "place2dTexture3.ofs" "file3.fs";
-connectAttr ":defaultColorMgtGlobals.cme" "file4.cme";
-connectAttr ":defaultColorMgtGlobals.cfe" "file4.cmcf";
-connectAttr ":defaultColorMgtGlobals.cfp" "file4.cmcp";
-connectAttr ":defaultColorMgtGlobals.wsn" "file4.ws";
-connectAttr "place2dTexture4.c" "file4.c";
-connectAttr "place2dTexture4.tf" "file4.tf";
-connectAttr "place2dTexture4.rf" "file4.rf";
-connectAttr "place2dTexture4.mu" "file4.mu";
-connectAttr "place2dTexture4.mv" "file4.mv";
-connectAttr "place2dTexture4.s" "file4.s";
-connectAttr "place2dTexture4.wu" "file4.wu";
-connectAttr "place2dTexture4.wv" "file4.wv";
-connectAttr "place2dTexture4.re" "file4.re";
-connectAttr "place2dTexture4.of" "file4.of";
-connectAttr "place2dTexture4.r" "file4.ro";
-connectAttr "place2dTexture4.n" "file4.n";
-connectAttr "place2dTexture4.vt1" "file4.vt1";
-connectAttr "place2dTexture4.vt2" "file4.vt2";
-connectAttr "place2dTexture4.vt3" "file4.vt3";
-connectAttr "place2dTexture4.vc1" "file4.vc1";
-connectAttr "place2dTexture4.o" "file4.uv";
-connectAttr "place2dTexture4.ofs" "file4.fs";
-connectAttr "file5.oc" "envCube1.ri";
-connectAttr "file6.oc" "envCube1.le";
-connectAttr "file7.oc" "envCube1.to";
-connectAttr "file8.oc" "envCube1.bo";
-connectAttr "file9.oc" "envCube1.fr";
-connectAttr "file10.oc" "envCube1.ba";
-connectAttr ":defaultColorMgtGlobals.cme" "file5.cme";
-connectAttr ":defaultColorMgtGlobals.cfe" "file5.cmcf";
-connectAttr ":defaultColorMgtGlobals.cfp" "file5.cmcp";
-connectAttr ":defaultColorMgtGlobals.wsn" "file5.ws";
-connectAttr "place2dTexture5.c" "file5.c";
-connectAttr "place2dTexture5.tf" "file5.tf";
-connectAttr "place2dTexture5.rf" "file5.rf";
-connectAttr "place2dTexture5.mu" "file5.mu";
-connectAttr "place2dTexture5.mv" "file5.mv";
-connectAttr "place2dTexture5.s" "file5.s";
-connectAttr "place2dTexture5.wu" "file5.wu";
-connectAttr "place2dTexture5.wv" "file5.wv";
-connectAttr "place2dTexture5.re" "file5.re";
-connectAttr "place2dTexture5.of" "file5.of";
-connectAttr "place2dTexture5.r" "file5.ro";
-connectAttr "place2dTexture5.n" "file5.n";
-connectAttr "place2dTexture5.vt1" "file5.vt1";
-connectAttr "place2dTexture5.vt2" "file5.vt2";
-connectAttr "place2dTexture5.vt3" "file5.vt3";
-connectAttr "place2dTexture5.vc1" "file5.vc1";
-connectAttr "place2dTexture5.o" "file5.uv";
-connectAttr "place2dTexture5.ofs" "file5.fs";
-connectAttr ":defaultColorMgtGlobals.cme" "file6.cme";
-connectAttr ":defaultColorMgtGlobals.cfe" "file6.cmcf";
-connectAttr ":defaultColorMgtGlobals.cfp" "file6.cmcp";
-connectAttr ":defaultColorMgtGlobals.wsn" "file6.ws";
-connectAttr "place2dTexture6.c" "file6.c";
-connectAttr "place2dTexture6.tf" "file6.tf";
-connectAttr "place2dTexture6.rf" "file6.rf";
-connectAttr "place2dTexture6.mu" "file6.mu";
-connectAttr "place2dTexture6.mv" "file6.mv";
-connectAttr "place2dTexture6.s" "file6.s";
-connectAttr "place2dTexture6.wu" "file6.wu";
-connectAttr "place2dTexture6.wv" "file6.wv";
-connectAttr "place2dTexture6.re" "file6.re";
-connectAttr "place2dTexture6.of" "file6.of";
-connectAttr "place2dTexture6.r" "file6.ro";
-connectAttr "place2dTexture6.n" "file6.n";
-connectAttr "place2dTexture6.vt1" "file6.vt1";
-connectAttr "place2dTexture6.vt2" "file6.vt2";
-connectAttr "place2dTexture6.vt3" "file6.vt3";
-connectAttr "place2dTexture6.vc1" "file6.vc1";
-connectAttr "place2dTexture6.o" "file6.uv";
-connectAttr "place2dTexture6.ofs" "file6.fs";
-connectAttr ":defaultColorMgtGlobals.cme" "file7.cme";
-connectAttr ":defaultColorMgtGlobals.cfe" "file7.cmcf";
-connectAttr ":defaultColorMgtGlobals.cfp" "file7.cmcp";
-connectAttr ":defaultColorMgtGlobals.wsn" "file7.ws";
-connectAttr "place2dTexture7.c" "file7.c";
-connectAttr "place2dTexture7.tf" "file7.tf";
-connectAttr "place2dTexture7.rf" "file7.rf";
-connectAttr "place2dTexture7.mu" "file7.mu";
-connectAttr "place2dTexture7.mv" "file7.mv";
-connectAttr "place2dTexture7.s" "file7.s";
-connectAttr "place2dTexture7.wu" "file7.wu";
-connectAttr "place2dTexture7.wv" "file7.wv";
-connectAttr "place2dTexture7.re" "file7.re";
-connectAttr "place2dTexture7.of" "file7.of";
-connectAttr "place2dTexture7.r" "file7.ro";
-connectAttr "place2dTexture7.n" "file7.n";
-connectAttr "place2dTexture7.vt1" "file7.vt1";
-connectAttr "place2dTexture7.vt2" "file7.vt2";
-connectAttr "place2dTexture7.vt3" "file7.vt3";
-connectAttr "place2dTexture7.vc1" "file7.vc1";
-connectAttr "place2dTexture7.o" "file7.uv";
-connectAttr "place2dTexture7.ofs" "file7.fs";
-connectAttr ":defaultColorMgtGlobals.cme" "file8.cme";
-connectAttr ":defaultColorMgtGlobals.cfe" "file8.cmcf";
-connectAttr ":defaultColorMgtGlobals.cfp" "file8.cmcp";
-connectAttr ":defaultColorMgtGlobals.wsn" "file8.ws";
-connectAttr "place2dTexture8.c" "file8.c";
-connectAttr "place2dTexture8.tf" "file8.tf";
-connectAttr "place2dTexture8.rf" "file8.rf";
-connectAttr "place2dTexture8.mu" "file8.mu";
-connectAttr "place2dTexture8.mv" "file8.mv";
-connectAttr "place2dTexture8.s" "file8.s";
-connectAttr "place2dTexture8.wu" "file8.wu";
-connectAttr "place2dTexture8.wv" "file8.wv";
-connectAttr "place2dTexture8.re" "file8.re";
-connectAttr "place2dTexture8.of" "file8.of";
-connectAttr "place2dTexture8.r" "file8.ro";
-connectAttr "place2dTexture8.n" "file8.n";
-connectAttr "place2dTexture8.vt1" "file8.vt1";
-connectAttr "place2dTexture8.vt2" "file8.vt2";
-connectAttr "place2dTexture8.vt3" "file8.vt3";
-connectAttr "place2dTexture8.vc1" "file8.vc1";
-connectAttr "place2dTexture8.o" "file8.uv";
-connectAttr "place2dTexture8.ofs" "file8.fs";
-connectAttr ":defaultColorMgtGlobals.cme" "file9.cme";
-connectAttr ":defaultColorMgtGlobals.cfe" "file9.cmcf";
-connectAttr ":defaultColorMgtGlobals.cfp" "file9.cmcp";
-connectAttr ":defaultColorMgtGlobals.wsn" "file9.ws";
-connectAttr "place2dTexture9.c" "file9.c";
-connectAttr "place2dTexture9.tf" "file9.tf";
-connectAttr "place2dTexture9.rf" "file9.rf";
-connectAttr "place2dTexture9.mu" "file9.mu";
-connectAttr "place2dTexture9.mv" "file9.mv";
-connectAttr "place2dTexture9.s" "file9.s";
-connectAttr "place2dTexture9.wu" "file9.wu";
-connectAttr "place2dTexture9.wv" "file9.wv";
-connectAttr "place2dTexture9.re" "file9.re";
-connectAttr "place2dTexture9.of" "file9.of";
-connectAttr "place2dTexture9.r" "file9.ro";
-connectAttr "place2dTexture9.n" "file9.n";
-connectAttr "place2dTexture9.vt1" "file9.vt1";
-connectAttr "place2dTexture9.vt2" "file9.vt2";
-connectAttr "place2dTexture9.vt3" "file9.vt3";
-connectAttr "place2dTexture9.vc1" "file9.vc1";
-connectAttr "place2dTexture9.o" "file9.uv";
-connectAttr "place2dTexture9.ofs" "file9.fs";
-connectAttr ":defaultColorMgtGlobals.cme" "file10.cme";
-connectAttr ":defaultColorMgtGlobals.cfe" "file10.cmcf";
-connectAttr ":defaultColorMgtGlobals.cfp" "file10.cmcp";
-connectAttr ":defaultColorMgtGlobals.wsn" "file10.ws";
-connectAttr "place2dTexture10.c" "file10.c";
-connectAttr "place2dTexture10.tf" "file10.tf";
-connectAttr "place2dTexture10.rf" "file10.rf";
-connectAttr "place2dTexture10.mu" "file10.mu";
-connectAttr "place2dTexture10.mv" "file10.mv";
-connectAttr "place2dTexture10.s" "file10.s";
-connectAttr "place2dTexture10.wu" "file10.wu";
-connectAttr "place2dTexture10.wv" "file10.wv";
-connectAttr "place2dTexture10.re" "file10.re";
-connectAttr "place2dTexture10.of" "file10.of";
-connectAttr "place2dTexture10.r" "file10.ro";
-connectAttr "place2dTexture10.n" "file10.n";
-connectAttr "place2dTexture10.vt1" "file10.vt1";
-connectAttr "place2dTexture10.vt2" "file10.vt2";
-connectAttr "place2dTexture10.vt3" "file10.vt3";
-connectAttr "place2dTexture10.vc1" "file10.vc1";
-connectAttr "place2dTexture10.o" "file10.uv";
-connectAttr "place2dTexture10.ofs" "file10.fs";
-connectAttr "file11.oc" "envCube2.ri";
-connectAttr "file12.oc" "envCube2.le";
-connectAttr "file13.oc" "envCube2.to";
-connectAttr "file14.oc" "envCube2.bo";
-connectAttr "file15.oc" "envCube2.fr";
-connectAttr "file16.oc" "envCube2.ba";
-connectAttr ":defaultColorMgtGlobals.cme" "file11.cme";
-connectAttr ":defaultColorMgtGlobals.cfe" "file11.cmcf";
-connectAttr ":defaultColorMgtGlobals.cfp" "file11.cmcp";
-connectAttr ":defaultColorMgtGlobals.wsn" "file11.ws";
-connectAttr "place2dTexture11.c" "file11.c";
-connectAttr "place2dTexture11.tf" "file11.tf";
-connectAttr "place2dTexture11.rf" "file11.rf";
-connectAttr "place2dTexture11.mu" "file11.mu";
-connectAttr "place2dTexture11.mv" "file11.mv";
-connectAttr "place2dTexture11.s" "file11.s";
-connectAttr "place2dTexture11.wu" "file11.wu";
-connectAttr "place2dTexture11.wv" "file11.wv";
-connectAttr "place2dTexture11.re" "file11.re";
-connectAttr "place2dTexture11.of" "file11.of";
-connectAttr "place2dTexture11.r" "file11.ro";
-connectAttr "place2dTexture11.n" "file11.n";
-connectAttr "place2dTexture11.vt1" "file11.vt1";
-connectAttr "place2dTexture11.vt2" "file11.vt2";
-connectAttr "place2dTexture11.vt3" "file11.vt3";
-connectAttr "place2dTexture11.vc1" "file11.vc1";
-connectAttr "place2dTexture11.o" "file11.uv";
-connectAttr "place2dTexture11.ofs" "file11.fs";
-connectAttr ":defaultColorMgtGlobals.cme" "file12.cme";
-connectAttr ":defaultColorMgtGlobals.cfe" "file12.cmcf";
-connectAttr ":defaultColorMgtGlobals.cfp" "file12.cmcp";
-connectAttr ":defaultColorMgtGlobals.wsn" "file12.ws";
-connectAttr "place2dTexture12.c" "file12.c";
-connectAttr "place2dTexture12.tf" "file12.tf";
-connectAttr "place2dTexture12.rf" "file12.rf";
-connectAttr "place2dTexture12.mu" "file12.mu";
-connectAttr "place2dTexture12.mv" "file12.mv";
-connectAttr "place2dTexture12.s" "file12.s";
-connectAttr "place2dTexture12.wu" "file12.wu";
-connectAttr "place2dTexture12.wv" "file12.wv";
-connectAttr "place2dTexture12.re" "file12.re";
-connectAttr "place2dTexture12.of" "file12.of";
-connectAttr "place2dTexture12.r" "file12.ro";
-connectAttr "place2dTexture12.n" "file12.n";
-connectAttr "place2dTexture12.vt1" "file12.vt1";
-connectAttr "place2dTexture12.vt2" "file12.vt2";
-connectAttr "place2dTexture12.vt3" "file12.vt3";
-connectAttr "place2dTexture12.vc1" "file12.vc1";
-connectAttr "place2dTexture12.o" "file12.uv";
-connectAttr "place2dTexture12.ofs" "file12.fs";
-connectAttr ":defaultColorMgtGlobals.cme" "file13.cme";
-connectAttr ":defaultColorMgtGlobals.cfe" "file13.cmcf";
-connectAttr ":defaultColorMgtGlobals.cfp" "file13.cmcp";
-connectAttr ":defaultColorMgtGlobals.wsn" "file13.ws";
-connectAttr "place2dTexture13.c" "file13.c";
-connectAttr "place2dTexture13.tf" "file13.tf";
-connectAttr "place2dTexture13.rf" "file13.rf";
-connectAttr "place2dTexture13.mu" "file13.mu";
-connectAttr "place2dTexture13.mv" "file13.mv";
-connectAttr "place2dTexture13.s" "file13.s";
-connectAttr "place2dTexture13.wu" "file13.wu";
-connectAttr "place2dTexture13.wv" "file13.wv";
-connectAttr "place2dTexture13.re" "file13.re";
-connectAttr "place2dTexture13.of" "file13.of";
-connectAttr "place2dTexture13.r" "file13.ro";
-connectAttr "place2dTexture13.n" "file13.n";
-connectAttr "place2dTexture13.vt1" "file13.vt1";
-connectAttr "place2dTexture13.vt2" "file13.vt2";
-connectAttr "place2dTexture13.vt3" "file13.vt3";
-connectAttr "place2dTexture13.vc1" "file13.vc1";
-connectAttr "place2dTexture13.o" "file13.uv";
-connectAttr "place2dTexture13.ofs" "file13.fs";
-connectAttr ":defaultColorMgtGlobals.cme" "file14.cme";
-connectAttr ":defaultColorMgtGlobals.cfe" "file14.cmcf";
-connectAttr ":defaultColorMgtGlobals.cfp" "file14.cmcp";
-connectAttr ":defaultColorMgtGlobals.wsn" "file14.ws";
-connectAttr "place2dTexture14.c" "file14.c";
-connectAttr "place2dTexture14.tf" "file14.tf";
-connectAttr "place2dTexture14.rf" "file14.rf";
-connectAttr "place2dTexture14.mu" "file14.mu";
-connectAttr "place2dTexture14.mv" "file14.mv";
-connectAttr "place2dTexture14.s" "file14.s";
-connectAttr "place2dTexture14.wu" "file14.wu";
-connectAttr "place2dTexture14.wv" "file14.wv";
-connectAttr "place2dTexture14.re" "file14.re";
-connectAttr "place2dTexture14.of" "file14.of";
-connectAttr "place2dTexture14.r" "file14.ro";
-connectAttr "place2dTexture14.n" "file14.n";
-connectAttr "place2dTexture14.vt1" "file14.vt1";
-connectAttr "place2dTexture14.vt2" "file14.vt2";
-connectAttr "place2dTexture14.vt3" "file14.vt3";
-connectAttr "place2dTexture14.vc1" "file14.vc1";
-connectAttr "place2dTexture14.o" "file14.uv";
-connectAttr "place2dTexture14.ofs" "file14.fs";
-connectAttr ":defaultColorMgtGlobals.cme" "file15.cme";
-connectAttr ":defaultColorMgtGlobals.cfe" "file15.cmcf";
-connectAttr ":defaultColorMgtGlobals.cfp" "file15.cmcp";
-connectAttr ":defaultColorMgtGlobals.wsn" "file15.ws";
-connectAttr "place2dTexture15.c" "file15.c";
-connectAttr "place2dTexture15.tf" "file15.tf";
-connectAttr "place2dTexture15.rf" "file15.rf";
-connectAttr "place2dTexture15.mu" "file15.mu";
-connectAttr "place2dTexture15.mv" "file15.mv";
-connectAttr "place2dTexture15.s" "file15.s";
-connectAttr "place2dTexture15.wu" "file15.wu";
-connectAttr "place2dTexture15.wv" "file15.wv";
-connectAttr "place2dTexture15.re" "file15.re";
-connectAttr "place2dTexture15.of" "file15.of";
-connectAttr "place2dTexture15.r" "file15.ro";
-connectAttr "place2dTexture15.n" "file15.n";
-connectAttr "place2dTexture15.vt1" "file15.vt1";
-connectAttr "place2dTexture15.vt2" "file15.vt2";
-connectAttr "place2dTexture15.vt3" "file15.vt3";
-connectAttr "place2dTexture15.vc1" "file15.vc1";
-connectAttr "place2dTexture15.o" "file15.uv";
-connectAttr "place2dTexture15.ofs" "file15.fs";
-connectAttr ":defaultColorMgtGlobals.cme" "file16.cme";
-connectAttr ":defaultColorMgtGlobals.cfe" "file16.cmcf";
-connectAttr ":defaultColorMgtGlobals.cfp" "file16.cmcp";
-connectAttr ":defaultColorMgtGlobals.wsn" "file16.ws";
-connectAttr "place2dTexture16.c" "file16.c";
-connectAttr "place2dTexture16.tf" "file16.tf";
-connectAttr "place2dTexture16.rf" "file16.rf";
-connectAttr "place2dTexture16.mu" "file16.mu";
-connectAttr "place2dTexture16.mv" "file16.mv";
-connectAttr "place2dTexture16.s" "file16.s";
-connectAttr "place2dTexture16.wu" "file16.wu";
-connectAttr "place2dTexture16.wv" "file16.wv";
-connectAttr "place2dTexture16.re" "file16.re";
-connectAttr "place2dTexture16.of" "file16.of";
-connectAttr "place2dTexture16.r" "file16.ro";
-connectAttr "place2dTexture16.n" "file16.n";
-connectAttr "place2dTexture16.vt1" "file16.vt1";
-connectAttr "place2dTexture16.vt2" "file16.vt2";
-connectAttr "place2dTexture16.vt3" "file16.vt3";
-connectAttr "place2dTexture16.vc1" "file16.vc1";
-connectAttr "place2dTexture16.o" "file16.uv";
-connectAttr "place2dTexture16.ofs" "file16.fs";
-connectAttr "file17.oc" "envCube3.ba";
-connectAttr "file18.oc" "envCube3.fr";
-connectAttr "file19.oc" "envCube3.bo";
-connectAttr "file20.oc" "envCube3.to";
-connectAttr "file21.oc" "envCube3.le";
-connectAttr "file22.oc" "envCube3.ri";
-connectAttr ":defaultColorMgtGlobals.cme" "file17.cme";
-connectAttr ":defaultColorMgtGlobals.cfe" "file17.cmcf";
-connectAttr ":defaultColorMgtGlobals.cfp" "file17.cmcp";
-connectAttr ":defaultColorMgtGlobals.wsn" "file17.ws";
-connectAttr "place2dTexture17.c" "file17.c";
-connectAttr "place2dTexture17.tf" "file17.tf";
-connectAttr "place2dTexture17.rf" "file17.rf";
-connectAttr "place2dTexture17.mu" "file17.mu";
-connectAttr "place2dTexture17.mv" "file17.mv";
-connectAttr "place2dTexture17.s" "file17.s";
-connectAttr "place2dTexture17.wu" "file17.wu";
-connectAttr "place2dTexture17.wv" "file17.wv";
-connectAttr "place2dTexture17.re" "file17.re";
-connectAttr "place2dTexture17.of" "file17.of";
-connectAttr "place2dTexture17.r" "file17.ro";
-connectAttr "place2dTexture17.n" "file17.n";
-connectAttr "place2dTexture17.vt1" "file17.vt1";
-connectAttr "place2dTexture17.vt2" "file17.vt2";
-connectAttr "place2dTexture17.vt3" "file17.vt3";
-connectAttr "place2dTexture17.vc1" "file17.vc1";
-connectAttr "place2dTexture17.o" "file17.uv";
-connectAttr "place2dTexture17.ofs" "file17.fs";
-connectAttr ":defaultColorMgtGlobals.cme" "file18.cme";
-connectAttr ":defaultColorMgtGlobals.cfe" "file18.cmcf";
-connectAttr ":defaultColorMgtGlobals.cfp" "file18.cmcp";
-connectAttr ":defaultColorMgtGlobals.wsn" "file18.ws";
-connectAttr "place2dTexture18.c" "file18.c";
-connectAttr "place2dTexture18.tf" "file18.tf";
-connectAttr "place2dTexture18.rf" "file18.rf";
-connectAttr "place2dTexture18.mu" "file18.mu";
-connectAttr "place2dTexture18.mv" "file18.mv";
-connectAttr "place2dTexture18.s" "file18.s";
-connectAttr "place2dTexture18.wu" "file18.wu";
-connectAttr "place2dTexture18.wv" "file18.wv";
-connectAttr "place2dTexture18.re" "file18.re";
-connectAttr "place2dTexture18.of" "file18.of";
-connectAttr "place2dTexture18.r" "file18.ro";
-connectAttr "place2dTexture18.n" "file18.n";
-connectAttr "place2dTexture18.vt1" "file18.vt1";
-connectAttr "place2dTexture18.vt2" "file18.vt2";
-connectAttr "place2dTexture18.vt3" "file18.vt3";
-connectAttr "place2dTexture18.vc1" "file18.vc1";
-connectAttr "place2dTexture18.o" "file18.uv";
-connectAttr "place2dTexture18.ofs" "file18.fs";
-connectAttr ":defaultColorMgtGlobals.cme" "file19.cme";
-connectAttr ":defaultColorMgtGlobals.cfe" "file19.cmcf";
-connectAttr ":defaultColorMgtGlobals.cfp" "file19.cmcp";
-connectAttr ":defaultColorMgtGlobals.wsn" "file19.ws";
-connectAttr "place2dTexture19.c" "file19.c";
-connectAttr "place2dTexture19.tf" "file19.tf";
-connectAttr "place2dTexture19.rf" "file19.rf";
-connectAttr "place2dTexture19.mu" "file19.mu";
-connectAttr "place2dTexture19.mv" "file19.mv";
-connectAttr "place2dTexture19.s" "file19.s";
-connectAttr "place2dTexture19.wu" "file19.wu";
-connectAttr "place2dTexture19.wv" "file19.wv";
-connectAttr "place2dTexture19.re" "file19.re";
-connectAttr "place2dTexture19.of" "file19.of";
-connectAttr "place2dTexture19.r" "file19.ro";
-connectAttr "place2dTexture19.n" "file19.n";
-connectAttr "place2dTexture19.vt1" "file19.vt1";
-connectAttr "place2dTexture19.vt2" "file19.vt2";
-connectAttr "place2dTexture19.vt3" "file19.vt3";
-connectAttr "place2dTexture19.vc1" "file19.vc1";
-connectAttr "place2dTexture19.o" "file19.uv";
-connectAttr "place2dTexture19.ofs" "file19.fs";
-connectAttr ":defaultColorMgtGlobals.cme" "file20.cme";
-connectAttr ":defaultColorMgtGlobals.cfe" "file20.cmcf";
-connectAttr ":defaultColorMgtGlobals.cfp" "file20.cmcp";
-connectAttr ":defaultColorMgtGlobals.wsn" "file20.ws";
-connectAttr "place2dTexture20.c" "file20.c";
-connectAttr "place2dTexture20.tf" "file20.tf";
-connectAttr "place2dTexture20.rf" "file20.rf";
-connectAttr "place2dTexture20.mu" "file20.mu";
-connectAttr "place2dTexture20.mv" "file20.mv";
-connectAttr "place2dTexture20.s" "file20.s";
-connectAttr "place2dTexture20.wu" "file20.wu";
-connectAttr "place2dTexture20.wv" "file20.wv";
-connectAttr "place2dTexture20.re" "file20.re";
-connectAttr "place2dTexture20.of" "file20.of";
-connectAttr "place2dTexture20.r" "file20.ro";
-connectAttr "place2dTexture20.n" "file20.n";
-connectAttr "place2dTexture20.vt1" "file20.vt1";
-connectAttr "place2dTexture20.vt2" "file20.vt2";
-connectAttr "place2dTexture20.vt3" "file20.vt3";
-connectAttr "place2dTexture20.vc1" "file20.vc1";
-connectAttr "place2dTexture20.o" "file20.uv";
-connectAttr "place2dTexture20.ofs" "file20.fs";
-connectAttr ":defaultColorMgtGlobals.cme" "file21.cme";
-connectAttr ":defaultColorMgtGlobals.cfe" "file21.cmcf";
-connectAttr ":defaultColorMgtGlobals.cfp" "file21.cmcp";
-connectAttr ":defaultColorMgtGlobals.wsn" "file21.ws";
-connectAttr "place2dTexture21.c" "file21.c";
-connectAttr "place2dTexture21.tf" "file21.tf";
-connectAttr "place2dTexture21.rf" "file21.rf";
-connectAttr "place2dTexture21.mu" "file21.mu";
-connectAttr "place2dTexture21.mv" "file21.mv";
-connectAttr "place2dTexture21.s" "file21.s";
-connectAttr "place2dTexture21.wu" "file21.wu";
-connectAttr "place2dTexture21.wv" "file21.wv";
-connectAttr "place2dTexture21.re" "file21.re";
-connectAttr "place2dTexture21.of" "file21.of";
-connectAttr "place2dTexture21.r" "file21.ro";
-connectAttr "place2dTexture21.n" "file21.n";
-connectAttr "place2dTexture21.vt1" "file21.vt1";
-connectAttr "place2dTexture21.vt2" "file21.vt2";
-connectAttr "place2dTexture21.vt3" "file21.vt3";
-connectAttr "place2dTexture21.vc1" "file21.vc1";
-connectAttr "place2dTexture21.o" "file21.uv";
-connectAttr "place2dTexture21.ofs" "file21.fs";
-connectAttr ":defaultColorMgtGlobals.cme" "file22.cme";
-connectAttr ":defaultColorMgtGlobals.cfe" "file22.cmcf";
-connectAttr ":defaultColorMgtGlobals.cfp" "file22.cmcp";
-connectAttr ":defaultColorMgtGlobals.wsn" "file22.ws";
-connectAttr "place2dTexture22.c" "file22.c";
-connectAttr "place2dTexture22.tf" "file22.tf";
-connectAttr "place2dTexture22.rf" "file22.rf";
-connectAttr "place2dTexture22.mu" "file22.mu";
-connectAttr "place2dTexture22.mv" "file22.mv";
-connectAttr "place2dTexture22.s" "file22.s";
-connectAttr "place2dTexture22.wu" "file22.wu";
-connectAttr "place2dTexture22.wv" "file22.wv";
-connectAttr "place2dTexture22.re" "file22.re";
-connectAttr "place2dTexture22.of" "file22.of";
-connectAttr "place2dTexture22.r" "file22.ro";
-connectAttr "place2dTexture22.n" "file22.n";
-connectAttr "place2dTexture22.vt1" "file22.vt1";
-connectAttr "place2dTexture22.vt2" "file22.vt2";
-connectAttr "place2dTexture22.vt3" "file22.vt3";
-connectAttr "place2dTexture22.vc1" "file22.vc1";
-connectAttr "place2dTexture22.o" "file22.uv";
-connectAttr "place2dTexture22.ofs" "file22.fs";
-connectAttr ":defaultColorMgtGlobals.cme" "file23.cme";
-connectAttr ":defaultColorMgtGlobals.cfe" "file23.cmcf";
-connectAttr ":defaultColorMgtGlobals.cfp" "file23.cmcp";
-connectAttr ":defaultColorMgtGlobals.wsn" "file23.ws";
-connectAttr "place2dTexture23.c" "file23.c";
-connectAttr "place2dTexture23.tf" "file23.tf";
-connectAttr "place2dTexture23.rf" "file23.rf";
-connectAttr "place2dTexture23.mu" "file23.mu";
-connectAttr "place2dTexture23.mv" "file23.mv";
-connectAttr "place2dTexture23.s" "file23.s";
-connectAttr "place2dTexture23.wu" "file23.wu";
-connectAttr "place2dTexture23.wv" "file23.wv";
-connectAttr "place2dTexture23.re" "file23.re";
-connectAttr "place2dTexture23.of" "file23.of";
-connectAttr "place2dTexture23.r" "file23.ro";
-connectAttr "place2dTexture23.n" "file23.n";
-connectAttr "place2dTexture23.vt1" "file23.vt1";
-connectAttr "place2dTexture23.vt2" "file23.vt2";
-connectAttr "place2dTexture23.vt3" "file23.vt3";
-connectAttr "place2dTexture23.vc1" "file23.vc1";
-connectAttr "place2dTexture23.o" "file23.uv";
-connectAttr "place2dTexture23.ofs" "file23.fs";
-connectAttr ":defaultColorMgtGlobals.cme" "file24.cme";
-connectAttr ":defaultColorMgtGlobals.cfe" "file24.cmcf";
-connectAttr ":defaultColorMgtGlobals.cfp" "file24.cmcp";
-connectAttr ":defaultColorMgtGlobals.wsn" "file24.ws";
-connectAttr "place2dTexture24.c" "file24.c";
-connectAttr "place2dTexture24.tf" "file24.tf";
-connectAttr "place2dTexture24.rf" "file24.rf";
-connectAttr "place2dTexture24.mu" "file24.mu";
-connectAttr "place2dTexture24.mv" "file24.mv";
-connectAttr "place2dTexture24.s" "file24.s";
-connectAttr "place2dTexture24.wu" "file24.wu";
-connectAttr "place2dTexture24.wv" "file24.wv";
-connectAttr "place2dTexture24.re" "file24.re";
-connectAttr "place2dTexture24.of" "file24.of";
-connectAttr "place2dTexture24.r" "file24.ro";
-connectAttr "place2dTexture24.n" "file24.n";
-connectAttr "place2dTexture24.vt1" "file24.vt1";
-connectAttr "place2dTexture24.vt2" "file24.vt2";
-connectAttr "place2dTexture24.vt3" "file24.vt3";
-connectAttr "place2dTexture24.vc1" "file24.vc1";
-connectAttr "place2dTexture24.o" "file24.uv";
-connectAttr "place2dTexture24.ofs" "file24.fs";
-connectAttr ":defaultColorMgtGlobals.cme" "file25.cme";
-connectAttr ":defaultColorMgtGlobals.cfe" "file25.cmcf";
-connectAttr ":defaultColorMgtGlobals.cfp" "file25.cmcp";
-connectAttr ":defaultColorMgtGlobals.wsn" "file25.ws";
-connectAttr "place2dTexture25.c" "file25.c";
-connectAttr "place2dTexture25.tf" "file25.tf";
-connectAttr "place2dTexture25.rf" "file25.rf";
-connectAttr "place2dTexture25.mu" "file25.mu";
-connectAttr "place2dTexture25.mv" "file25.mv";
-connectAttr "place2dTexture25.s" "file25.s";
-connectAttr "place2dTexture25.wu" "file25.wu";
-connectAttr "place2dTexture25.wv" "file25.wv";
-connectAttr "place2dTexture25.re" "file25.re";
-connectAttr "place2dTexture25.of" "file25.of";
-connectAttr "place2dTexture25.r" "file25.ro";
-connectAttr "place2dTexture25.n" "file25.n";
-connectAttr "place2dTexture25.vt1" "file25.vt1";
-connectAttr "place2dTexture25.vt2" "file25.vt2";
-connectAttr "place2dTexture25.vt3" "file25.vt3";
-connectAttr "place2dTexture25.vc1" "file25.vc1";
-connectAttr "place2dTexture25.o" "file25.uv";
-connectAttr "place2dTexture25.ofs" "file25.fs";
-connectAttr ":defaultColorMgtGlobals.cme" "file26.cme";
-connectAttr ":defaultColorMgtGlobals.cfe" "file26.cmcf";
-connectAttr ":defaultColorMgtGlobals.cfp" "file26.cmcp";
-connectAttr ":defaultColorMgtGlobals.wsn" "file26.ws";
-connectAttr "place2dTexture26.c" "file26.c";
-connectAttr "place2dTexture26.tf" "file26.tf";
-connectAttr "place2dTexture26.rf" "file26.rf";
-connectAttr "place2dTexture26.mu" "file26.mu";
-connectAttr "place2dTexture26.mv" "file26.mv";
-connectAttr "place2dTexture26.s" "file26.s";
-connectAttr "place2dTexture26.wu" "file26.wu";
-connectAttr "place2dTexture26.wv" "file26.wv";
-connectAttr "place2dTexture26.re" "file26.re";
-connectAttr "place2dTexture26.of" "file26.of";
-connectAttr "place2dTexture26.r" "file26.ro";
-connectAttr "place2dTexture26.n" "file26.n";
-connectAttr "place2dTexture26.vt1" "file26.vt1";
-connectAttr "place2dTexture26.vt2" "file26.vt2";
-connectAttr "place2dTexture26.vt3" "file26.vt3";
-connectAttr "place2dTexture26.vc1" "file26.vc1";
-connectAttr "place2dTexture26.o" "file26.uv";
-connectAttr "place2dTexture26.ofs" "file26.fs";
-connectAttr ":defaultColorMgtGlobals.cme" "file27.cme";
-connectAttr ":defaultColorMgtGlobals.cfe" "file27.cmcf";
-connectAttr ":defaultColorMgtGlobals.cfp" "file27.cmcp";
-connectAttr ":defaultColorMgtGlobals.wsn" "file27.ws";
-connectAttr "place2dTexture27.c" "file27.c";
-connectAttr "place2dTexture27.tf" "file27.tf";
-connectAttr "place2dTexture27.rf" "file27.rf";
-connectAttr "place2dTexture27.mu" "file27.mu";
-connectAttr "place2dTexture27.mv" "file27.mv";
-connectAttr "place2dTexture27.s" "file27.s";
-connectAttr "place2dTexture27.wu" "file27.wu";
-connectAttr "place2dTexture27.wv" "file27.wv";
-connectAttr "place2dTexture27.re" "file27.re";
-connectAttr "place2dTexture27.of" "file27.of";
-connectAttr "place2dTexture27.r" "file27.ro";
-connectAttr "place2dTexture27.n" "file27.n";
-connectAttr "place2dTexture27.vt1" "file27.vt1";
-connectAttr "place2dTexture27.vt2" "file27.vt2";
-connectAttr "place2dTexture27.vt3" "file27.vt3";
-connectAttr "place2dTexture27.vc1" "file27.vc1";
-connectAttr "place2dTexture27.o" "file27.uv";
-connectAttr "place2dTexture27.ofs" "file27.fs";
-connectAttr ":defaultColorMgtGlobals.cme" "file28.cme";
-connectAttr ":defaultColorMgtGlobals.cfe" "file28.cmcf";
-connectAttr ":defaultColorMgtGlobals.cfp" "file28.cmcp";
-connectAttr ":defaultColorMgtGlobals.wsn" "file28.ws";
-connectAttr "place2dTexture28.c" "file28.c";
-connectAttr "place2dTexture28.tf" "file28.tf";
-connectAttr "place2dTexture28.rf" "file28.rf";
-connectAttr "place2dTexture28.mu" "file28.mu";
-connectAttr "place2dTexture28.mv" "file28.mv";
-connectAttr "place2dTexture28.s" "file28.s";
-connectAttr "place2dTexture28.wu" "file28.wu";
-connectAttr "place2dTexture28.wv" "file28.wv";
-connectAttr "place2dTexture28.re" "file28.re";
-connectAttr "place2dTexture28.of" "file28.of";
-connectAttr "place2dTexture28.r" "file28.ro";
-connectAttr "place2dTexture28.n" "file28.n";
-connectAttr "place2dTexture28.vt1" "file28.vt1";
-connectAttr "place2dTexture28.vt2" "file28.vt2";
-connectAttr "place2dTexture28.vt3" "file28.vt3";
-connectAttr "place2dTexture28.vc1" "file28.vc1";
-connectAttr "place2dTexture28.o" "file28.uv";
-connectAttr "place2dTexture28.ofs" "file28.fs";
+connectAttr ":defaultColorMgtGlobals.cme" "file_albedo.cme";
+connectAttr ":defaultColorMgtGlobals.cfe" "file_albedo.cmcf";
+connectAttr ":defaultColorMgtGlobals.cfp" "file_albedo.cmcp";
+connectAttr ":defaultColorMgtGlobals.wsn" "file_albedo.ws";
+connectAttr "place2dTexture1.c" "file_albedo.c";
+connectAttr "place2dTexture1.tf" "file_albedo.tf";
+connectAttr "place2dTexture1.rf" "file_albedo.rf";
+connectAttr "place2dTexture1.mu" "file_albedo.mu";
+connectAttr "place2dTexture1.mv" "file_albedo.mv";
+connectAttr "place2dTexture1.s" "file_albedo.s";
+connectAttr "place2dTexture1.wu" "file_albedo.wu";
+connectAttr "place2dTexture1.wv" "file_albedo.wv";
+connectAttr "place2dTexture1.re" "file_albedo.re";
+connectAttr "place2dTexture1.of" "file_albedo.of";
+connectAttr "place2dTexture1.r" "file_albedo.ro";
+connectAttr "place2dTexture1.n" "file_albedo.n";
+connectAttr "place2dTexture1.vt1" "file_albedo.vt1";
+connectAttr "place2dTexture1.vt2" "file_albedo.vt2";
+connectAttr "place2dTexture1.vt3" "file_albedo.vt3";
+connectAttr "place2dTexture1.vc1" "file_albedo.vc1";
+connectAttr "place2dTexture1.o" "file_albedo.uv";
+connectAttr "place2dTexture1.ofs" "file_albedo.fs";
+connectAttr ":defaultColorMgtGlobals.cme" "file_normal.cme";
+connectAttr ":defaultColorMgtGlobals.cfe" "file_normal.cmcf";
+connectAttr ":defaultColorMgtGlobals.cfp" "file_normal.cmcp";
+connectAttr ":defaultColorMgtGlobals.wsn" "file_normal.ws";
+connectAttr "place2dTexture2.c" "file_normal.c";
+connectAttr "place2dTexture2.tf" "file_normal.tf";
+connectAttr "place2dTexture2.rf" "file_normal.rf";
+connectAttr "place2dTexture2.mu" "file_normal.mu";
+connectAttr "place2dTexture2.mv" "file_normal.mv";
+connectAttr "place2dTexture2.s" "file_normal.s";
+connectAttr "place2dTexture2.wu" "file_normal.wu";
+connectAttr "place2dTexture2.wv" "file_normal.wv";
+connectAttr "place2dTexture2.re" "file_normal.re";
+connectAttr "place2dTexture2.of" "file_normal.of";
+connectAttr "place2dTexture2.r" "file_normal.ro";
+connectAttr "place2dTexture2.n" "file_normal.n";
+connectAttr "place2dTexture2.vt1" "file_normal.vt1";
+connectAttr "place2dTexture2.vt2" "file_normal.vt2";
+connectAttr "place2dTexture2.vt3" "file_normal.vt3";
+connectAttr "place2dTexture2.vc1" "file_normal.vc1";
+connectAttr "place2dTexture2.o" "file_normal.uv";
+connectAttr "place2dTexture2.ofs" "file_normal.fs";
+connectAttr ":defaultColorMgtGlobals.cme" "file_orm.cme";
+connectAttr ":defaultColorMgtGlobals.cfe" "file_orm.cmcf";
+connectAttr ":defaultColorMgtGlobals.cfp" "file_orm.cmcp";
+connectAttr ":defaultColorMgtGlobals.wsn" "file_orm.ws";
+connectAttr "place2dTexture3.c" "file_orm.c";
+connectAttr "place2dTexture3.tf" "file_orm.tf";
+connectAttr "place2dTexture3.rf" "file_orm.rf";
+connectAttr "place2dTexture3.mu" "file_orm.mu";
+connectAttr "place2dTexture3.mv" "file_orm.mv";
+connectAttr "place2dTexture3.s" "file_orm.s";
+connectAttr "place2dTexture3.wu" "file_orm.wu";
+connectAttr "place2dTexture3.wv" "file_orm.wv";
+connectAttr "place2dTexture3.re" "file_orm.re";
+connectAttr "place2dTexture3.of" "file_orm.of";
+connectAttr "place2dTexture3.r" "file_orm.ro";
+connectAttr "place2dTexture3.n" "file_orm.n";
+connectAttr "place2dTexture3.vt1" "file_orm.vt1";
+connectAttr "place2dTexture3.vt2" "file_orm.vt2";
+connectAttr "place2dTexture3.vt3" "file_orm.vt3";
+connectAttr "place2dTexture3.vc1" "file_orm.vc1";
+connectAttr "place2dTexture3.o" "file_orm.uv";
+connectAttr "place2dTexture3.ofs" "file_orm.fs";
+connectAttr ":defaultColorMgtGlobals.cme" "file_diffuse_env.cme";
+connectAttr ":defaultColorMgtGlobals.cfe" "file_diffuse_env.cmcf";
+connectAttr ":defaultColorMgtGlobals.cfp" "file_diffuse_env.cmcp";
+connectAttr ":defaultColorMgtGlobals.wsn" "file_diffuse_env.ws";
+connectAttr "place2dTexture27.c" "file_diffuse_env.c";
+connectAttr "place2dTexture27.tf" "file_diffuse_env.tf";
+connectAttr "place2dTexture27.rf" "file_diffuse_env.rf";
+connectAttr "place2dTexture27.mu" "file_diffuse_env.mu";
+connectAttr "place2dTexture27.mv" "file_diffuse_env.mv";
+connectAttr "place2dTexture27.s" "file_diffuse_env.s";
+connectAttr "place2dTexture27.wu" "file_diffuse_env.wu";
+connectAttr "place2dTexture27.wv" "file_diffuse_env.wv";
+connectAttr "place2dTexture27.re" "file_diffuse_env.re";
+connectAttr "place2dTexture27.of" "file_diffuse_env.of";
+connectAttr "place2dTexture27.r" "file_diffuse_env.ro";
+connectAttr "place2dTexture27.n" "file_diffuse_env.n";
+connectAttr "place2dTexture27.vt1" "file_diffuse_env.vt1";
+connectAttr "place2dTexture27.vt2" "file_diffuse_env.vt2";
+connectAttr "place2dTexture27.vt3" "file_diffuse_env.vt3";
+connectAttr "place2dTexture27.vc1" "file_diffuse_env.vc1";
+connectAttr "place2dTexture27.o" "file_diffuse_env.uv";
+connectAttr "place2dTexture27.ofs" "file_diffuse_env.fs";
+connectAttr ":defaultColorMgtGlobals.cme" "file_specular_env.cme";
+connectAttr ":defaultColorMgtGlobals.cfe" "file_specular_env.cmcf";
+connectAttr ":defaultColorMgtGlobals.cfp" "file_specular_env.cmcp";
+connectAttr ":defaultColorMgtGlobals.wsn" "file_specular_env.ws";
+connectAttr "place2dTexture28.c" "file_specular_env.c";
+connectAttr "place2dTexture28.tf" "file_specular_env.tf";
+connectAttr "place2dTexture28.rf" "file_specular_env.rf";
+connectAttr "place2dTexture28.mu" "file_specular_env.mu";
+connectAttr "place2dTexture28.mv" "file_specular_env.mv";
+connectAttr "place2dTexture28.s" "file_specular_env.s";
+connectAttr "place2dTexture28.wu" "file_specular_env.wu";
+connectAttr "place2dTexture28.wv" "file_specular_env.wv";
+connectAttr "place2dTexture28.re" "file_specular_env.re";
+connectAttr "place2dTexture28.of" "file_specular_env.of";
+connectAttr "place2dTexture28.r" "file_specular_env.ro";
+connectAttr "place2dTexture28.n" "file_specular_env.n";
+connectAttr "place2dTexture28.vt1" "file_specular_env.vt1";
+connectAttr "place2dTexture28.vt2" "file_specular_env.vt2";
+connectAttr "place2dTexture28.vt3" "file_specular_env.vt3";
+connectAttr "place2dTexture28.vc1" "file_specular_env.vc1";
+connectAttr "place2dTexture28.o" "file_specular_env.uv";
+connectAttr "place2dTexture28.ofs" "file_specular_env.fs";
 connectAttr "surfaceShader1.oc" "surfaceShader1SG.ss";
 connectAttr "surfaceShader1SG.msg" "materialInfo3.sg";
 connectAttr "surfaceShader1.msg" "materialInfo3.m";
 connectAttr "surfaceShader1.msg" "materialInfo3.t" -na;
-connectAttr "file29.oc" "lambert2.c";
 connectAttr "lambert2.oc" "lambert2SG.ss";
 connectAttr "lambert2SG.msg" "materialInfo4.sg";
 connectAttr "lambert2.msg" "materialInfo4.m";
-connectAttr "file29.msg" "materialInfo4.t" -na;
-connectAttr ":defaultColorMgtGlobals.cme" "file29.cme";
-connectAttr ":defaultColorMgtGlobals.cfe" "file29.cmcf";
-connectAttr ":defaultColorMgtGlobals.cfp" "file29.cmcp";
-connectAttr ":defaultColorMgtGlobals.wsn" "file29.ws";
-connectAttr "place2dTexture29.c" "file29.c";
-connectAttr "place2dTexture29.tf" "file29.tf";
-connectAttr "place2dTexture29.rf" "file29.rf";
-connectAttr "place2dTexture29.mu" "file29.mu";
-connectAttr "place2dTexture29.mv" "file29.mv";
-connectAttr "place2dTexture29.s" "file29.s";
-connectAttr "place2dTexture29.wu" "file29.wu";
-connectAttr "place2dTexture29.wv" "file29.wv";
-connectAttr "place2dTexture29.re" "file29.re";
-connectAttr "place2dTexture29.of" "file29.of";
-connectAttr "place2dTexture29.r" "file29.ro";
-connectAttr "place2dTexture29.n" "file29.n";
-connectAttr "place2dTexture29.vt1" "file29.vt1";
-connectAttr "place2dTexture29.vt2" "file29.vt2";
-connectAttr "place2dTexture29.vt3" "file29.vt3";
-connectAttr "place2dTexture29.vc1" "file29.vc1";
-connectAttr "place2dTexture29.o" "file29.uv";
-connectAttr "place2dTexture29.ofs" "file29.fs";
 connectAttr "directionalLightShape2.ltd" "GLSLShader2.Light_1_connected_light";
 connectAttr "directionalLightShape1.ltd" "GLSLShader2.Light_0_connected_light";
 connectAttr "GLSLShader2.oc" "GLSLShader2SG.ss";
@@ -69247,6 +68604,62 @@ connectAttr "GLSLShader3.oc" "GLSLShader3SG.ss";
 connectAttr "GLSLShader3SG.msg" "materialInfo6.sg";
 connectAttr "GLSLShader3.msg" "materialInfo6.m";
 connectAttr "polySurfaceShape1.o" "polyNormal1.ip";
+connectAttr ":defaultColorMgtGlobals.cme" "file_brdf.cme";
+connectAttr ":defaultColorMgtGlobals.cfe" "file_brdf.cmcf";
+connectAttr ":defaultColorMgtGlobals.cfp" "file_brdf.cmcp";
+connectAttr ":defaultColorMgtGlobals.wsn" "file_brdf.ws";
+connectAttr "place2dTexture31.c" "file_brdf.c";
+connectAttr "place2dTexture31.tf" "file_brdf.tf";
+connectAttr "place2dTexture31.rf" "file_brdf.rf";
+connectAttr "place2dTexture31.mu" "file_brdf.mu";
+connectAttr "place2dTexture31.mv" "file_brdf.mv";
+connectAttr "place2dTexture31.s" "file_brdf.s";
+connectAttr "place2dTexture31.wu" "file_brdf.wu";
+connectAttr "place2dTexture31.wv" "file_brdf.wv";
+connectAttr "place2dTexture31.re" "file_brdf.re";
+connectAttr "place2dTexture31.of" "file_brdf.of";
+connectAttr "place2dTexture31.r" "file_brdf.ro";
+connectAttr "place2dTexture31.n" "file_brdf.n";
+connectAttr "place2dTexture31.vt1" "file_brdf.vt1";
+connectAttr "place2dTexture31.vt2" "file_brdf.vt2";
+connectAttr "place2dTexture31.vt3" "file_brdf.vt3";
+connectAttr "place2dTexture31.vc1" "file_brdf.vc1";
+connectAttr "place2dTexture31.o" "file_brdf.uv";
+connectAttr "place2dTexture31.ofs" "file_brdf.fs";
+connectAttr ":defaultColorMgtGlobals.cme" "file_emissive.cme";
+connectAttr ":defaultColorMgtGlobals.cfe" "file_emissive.cmcf";
+connectAttr ":defaultColorMgtGlobals.cfp" "file_emissive.cmcp";
+connectAttr ":defaultColorMgtGlobals.wsn" "file_emissive.ws";
+connectAttr "place2dTexture32.c" "file_emissive.c";
+connectAttr "place2dTexture32.tf" "file_emissive.tf";
+connectAttr "place2dTexture32.rf" "file_emissive.rf";
+connectAttr "place2dTexture32.mu" "file_emissive.mu";
+connectAttr "place2dTexture32.mv" "file_emissive.mv";
+connectAttr "place2dTexture32.s" "file_emissive.s";
+connectAttr "place2dTexture32.wu" "file_emissive.wu";
+connectAttr "place2dTexture32.wv" "file_emissive.wv";
+connectAttr "place2dTexture32.re" "file_emissive.re";
+connectAttr "place2dTexture32.of" "file_emissive.of";
+connectAttr "place2dTexture32.r" "file_emissive.ro";
+connectAttr "place2dTexture32.n" "file_emissive.n";
+connectAttr "place2dTexture32.vt1" "file_emissive.vt1";
+connectAttr "place2dTexture32.vt2" "file_emissive.vt2";
+connectAttr "place2dTexture32.vt3" "file_emissive.vt3";
+connectAttr "place2dTexture32.vc1" "file_emissive.vc1";
+connectAttr "place2dTexture32.o" "file_emissive.uv";
+connectAttr "place2dTexture32.ofs" "file_emissive.fs";
+connectAttr "file_albedo.msg" "MayaNodeEditorSavedTabsInfo.tgi[0].ni[0].dn";
+connectAttr "place2dTexture1.msg" "MayaNodeEditorSavedTabsInfo.tgi[0].ni[1].dn";
+connectAttr "file_emissive.msg" "MayaNodeEditorSavedTabsInfo.tgi[0].ni[2].dn";
+connectAttr "file_brdf.msg" "MayaNodeEditorSavedTabsInfo.tgi[0].ni[3].dn";
+connectAttr "place2dTexture31.msg" "MayaNodeEditorSavedTabsInfo.tgi[0].ni[4].dn"
+		;
+connectAttr "place2dTexture32.msg" "MayaNodeEditorSavedTabsInfo.tgi[0].ni[5].dn"
+		;
+connectAttr ":defaultArnoldDisplayDriver.msg" ":defaultArnoldRenderOptions.drivers"
+		 -na;
+connectAttr ":defaultArnoldFilter.msg" ":defaultArnoldRenderOptions.filt";
+connectAttr ":defaultArnoldDriver.msg" ":defaultArnoldRenderOptions.drvr";
 connectAttr "node_damagedHelmet_FBXASC0456514SG.pa" ":renderPartition.st" -na;
 connectAttr "GLSLShader1SG.pa" ":renderPartition.st" -na;
 connectAttr "surfaceShader1SG.pa" ":renderPartition.st" -na;
@@ -69288,44 +68701,25 @@ connectAttr "place2dTexture26.msg" ":defaultRenderUtilityList1.u" -na;
 connectAttr "place2dTexture27.msg" ":defaultRenderUtilityList1.u" -na;
 connectAttr "place2dTexture28.msg" ":defaultRenderUtilityList1.u" -na;
 connectAttr "place2dTexture29.msg" ":defaultRenderUtilityList1.u" -na;
+connectAttr "place2dTexture30.msg" ":defaultRenderUtilityList1.u" -na;
+connectAttr "place2dTexture31.msg" ":defaultRenderUtilityList1.u" -na;
+connectAttr "place2dTexture32.msg" ":defaultRenderUtilityList1.u" -na;
 connectAttr "defaultRenderLayer.msg" ":defaultRenderingList1.r" -na;
 connectAttr "directionalLightShape1.ltd" ":lightList1.l" -na;
 connectAttr "directionalLightShape2.ltd" ":lightList1.l" -na;
 connectAttr "pointLightShape1.ltd" ":lightList1.l" -na;
 connectAttr "spotLightShape1.ltd" ":lightList1.l" -na;
-connectAttr "file1.msg" ":defaultTextureList1.tx" -na;
-connectAttr "file2.msg" ":defaultTextureList1.tx" -na;
-connectAttr "file3.msg" ":defaultTextureList1.tx" -na;
-connectAttr "file4.msg" ":defaultTextureList1.tx" -na;
+connectAttr "file_albedo.msg" ":defaultTextureList1.tx" -na;
+connectAttr "file_normal.msg" ":defaultTextureList1.tx" -na;
+connectAttr "file_orm.msg" ":defaultTextureList1.tx" -na;
 connectAttr "envCube1.msg" ":defaultTextureList1.tx" -na;
-connectAttr "file5.msg" ":defaultTextureList1.tx" -na;
-connectAttr "file6.msg" ":defaultTextureList1.tx" -na;
-connectAttr "file7.msg" ":defaultTextureList1.tx" -na;
-connectAttr "file8.msg" ":defaultTextureList1.tx" -na;
-connectAttr "file9.msg" ":defaultTextureList1.tx" -na;
-connectAttr "file10.msg" ":defaultTextureList1.tx" -na;
 connectAttr "envCube2.msg" ":defaultTextureList1.tx" -na;
-connectAttr "file11.msg" ":defaultTextureList1.tx" -na;
-connectAttr "file12.msg" ":defaultTextureList1.tx" -na;
-connectAttr "file13.msg" ":defaultTextureList1.tx" -na;
-connectAttr "file14.msg" ":defaultTextureList1.tx" -na;
-connectAttr "file15.msg" ":defaultTextureList1.tx" -na;
-connectAttr "file16.msg" ":defaultTextureList1.tx" -na;
 connectAttr "layeredTexture1.msg" ":defaultTextureList1.tx" -na;
 connectAttr "envCube3.msg" ":defaultTextureList1.tx" -na;
-connectAttr "file17.msg" ":defaultTextureList1.tx" -na;
-connectAttr "file18.msg" ":defaultTextureList1.tx" -na;
-connectAttr "file19.msg" ":defaultTextureList1.tx" -na;
-connectAttr "file20.msg" ":defaultTextureList1.tx" -na;
-connectAttr "file21.msg" ":defaultTextureList1.tx" -na;
-connectAttr "file22.msg" ":defaultTextureList1.tx" -na;
-connectAttr "file23.msg" ":defaultTextureList1.tx" -na;
-connectAttr "file24.msg" ":defaultTextureList1.tx" -na;
-connectAttr "file25.msg" ":defaultTextureList1.tx" -na;
-connectAttr "file26.msg" ":defaultTextureList1.tx" -na;
-connectAttr "file27.msg" ":defaultTextureList1.tx" -na;
-connectAttr "file28.msg" ":defaultTextureList1.tx" -na;
-connectAttr "file29.msg" ":defaultTextureList1.tx" -na;
+connectAttr "file_diffuse_env.msg" ":defaultTextureList1.tx" -na;
+connectAttr "file_specular_env.msg" ":defaultTextureList1.tx" -na;
+connectAttr "file_brdf.msg" ":defaultTextureList1.tx" -na;
+connectAttr "file_emissive.msg" ":defaultTextureList1.tx" -na;
 connectAttr "directionalLight1.iog" ":defaultLightSet.dsm" -na;
 connectAttr "directionalLight2.iog" ":defaultLightSet.dsm" -na;
 connectAttr "pointLight1.iog" ":defaultLightSet.dsm" -na;
