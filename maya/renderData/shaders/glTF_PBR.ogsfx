@@ -18,13 +18,17 @@
 #define HAS_METALROUGHNESSMAP
 #define HAS_OCCLUSIONMAP
 #define USE_TEX_LOD
-
 #define MANUAL_SRGB
 #define SRGB_FAST_APPROXIMATION
 
 uniform mat4 u_MVPMatrix : WorldViewProjection;
 uniform mat4 u_ModelMatrix : World;
-uniform mat4 u_CameraMatrix : ViewInverse;
+uniform mat4 u_ModelMatrixIT : WorldInverseTranspose;
+
+uniform vec3 u_CameraPos : ViewPosition 
+<
+    string UIWidget = "None"; 
+>;
 
 uniform vec3 u_LightColor 
 <
@@ -43,9 +47,11 @@ uniform vec3 u_LightDir
 
 uniform textureCube u_DiffuseEnvTexture
 <
-  string UIName = "Diffuse env map";
-  string ResourceType = "Cube";
-  string UIGroup = "PBR Material";
+    string UIName = "Diffuse env map";
+    string ResourceType = "Cube";
+    string UIGroup = "PBR IBL";
+
+    int UIOrder = 2001;
 >;
 
 uniform samplerCube u_DiffuseEnvSampler = sampler_state
@@ -57,7 +63,8 @@ uniform textureCube u_SpecularEnvTexture
 <
     string UIName = "Specular env map";
     string ResourceType = "Cube";
-    string UIGroup = "PBR Material";
+    string UIGroup = "PBR IBL";
+    int UIOrder = 2002;
 >;
 
 uniform samplerCube u_SpecularEnvSampler = sampler_state
@@ -69,7 +76,8 @@ uniform texture2D u_brdfTexture
 <
     string UIName = "BRDF LUT";
     string ResourceType = "2D";
-	string UIGroup = "PBR Material";
+    string UIGroup = "PBR IBL";
+    int UIOrder = 2003;
 >;
 
 uniform sampler2D u_brdfLUT = sampler_state
@@ -87,9 +95,11 @@ uniform sampler2D u_brdfLUT = sampler_state
 #ifdef HAS_BASECOLORMAP
 uniform texture2D u_BaseColorTexture
 <
-    string UIName = "Base Color Map";
+    string UIName = "Base color map";
     string ResourceType = "2D";
+    string ResourceName = "../white_color.png";
 	string UIGroup = "PBR Material";
+    int UIOrder = 1001;
 >;
 
 uniform sampler2D u_BaseColorSampler = sampler_state
@@ -101,9 +111,11 @@ uniform sampler2D u_BaseColorSampler = sampler_state
 #ifdef HAS_NORMALMAP
 uniform texture2D u_NormalTexture
 <
-    string UIName = "Normal Map";
+    string UIName = "Normal map";
     string ResourceType = "2D";
+    string ResourceName = "zero_normal.png";
     string UIGroup = "PBR Material";
+    int UIOrder = 1501;
 >;
 
 uniform sampler2D u_NormalSampler = sampler_state
@@ -113,18 +125,21 @@ uniform sampler2D u_NormalSampler = sampler_state
 
 uniform float u_NormalScale
 <
-    string UIName = "Normal Scale";
+    string UIName = "Normal scale";
     string UIGroup = "PBR Material";
->;
+    int UIOrder = 1502;
+> = 1;
 #endif
 
 #ifdef HAS_EMISSIVEMAP
 
 uniform texture2D u_EmissiveTexture
 <
-    string UIName = "Emissive Map";
+    string UIName = "Emissive map";
     string ResourceType = "2D";
+    string ResourceName = "white_color.png";
 	string UIGroup = "PBR Material";
+    int UIOrder = 1601;
 >;
 
 uniform sampler2D u_EmissiveSampler = sampler_state
@@ -132,34 +147,56 @@ uniform sampler2D u_EmissiveSampler = sampler_state
   Texture = <u_EmissiveTexture>;
 };
 
-uniform vec3 u_EmissiveFactor 
+uniform vec3 u_EmissiveColor 
 <
-    string UIName = "Emissive Factor";
+    string UIName = "Emissive color factor";
     string UIGroup = "PBR Material";
-> = {1,1,1};
+    string UIWidget = "ColorPicker";
+    int UIOrder = 1602;
+> = {0,0,0};
 
 #endif
 
 #ifdef HAS_METALROUGHNESSMAP
-uniform texture2D u_MetallicRoughnessTexture
+uniform texture2D u_MetallicTexture
 <
-    string UIName = "Roughness(G) Metallic(B)";
+    string UIName = "Metallic map (B)";
     string ResourceType = "2D";
+    string ResourceName = "white_color.png";
     string UIGroup = "PBR Material";
+    int UIOrder = 1201;
 >;
 
-uniform sampler2D u_MetallicRoughnessSampler = sampler_state
+uniform sampler2D u_MetallicSampler = sampler_state
 {
-  Texture = <u_MetallicRoughnessTexture>;
+  Texture = <u_MetallicTexture>;
 };
+
+uniform texture2D u_RoughnessTexture
+<
+    string UIName = "Roughness map (G)";
+    string ResourceType = "2D";
+    string ResourceName = "white_color.png";
+    string UIGroup = "PBR Material";
+    int UIOrder = 1203;
+>;
+
+uniform sampler2D u_RoughnessSampler = sampler_state
+{
+  Texture = <u_RoughnessTexture>;
+};
+
+
 #endif
 
 #ifdef HAS_OCCLUSIONMAP
 uniform texture2D u_OcclusionTexture
 <
-    string UIName = "Occlusion map";
+    string UIName = "Occlusion map (R)";
     string ResourceType = "2D";
+    string ResourceName = "white_color.png";
     string UIGroup = "PBR Material";
+    int UIOrder = 1401;
 >;
 uniform sampler2D u_OcclusionSampler = sampler_state
 {
@@ -170,20 +207,31 @@ uniform float u_OcclusionStrength
 <
     string UIName = "Occlusion strength";
     string UIGroup = "PBR Material";
+    int UIOrder = 1402;
 > = 1;
 
 #endif
 
-uniform vec2 u_MetallicRoughnessValues
+uniform float u_MetallicStrength
 <
-    string UIName = "Metallic Roughness";
+    string UIName = "Metallic strength";
     string UIGroup = "PBR Material";
-> = {1,1};
+    int UIOrder = 1202;
+> = 0.5;
 
-uniform vec4 u_BaseColorFactor : DIFFUSE
+uniform float u_RoughnessStrength
 <
-    string UIName = "Base Color Factor";
+    string UIName = "Roughness strength";
     string UIGroup = "PBR Material";
+    int UIOrder = 1302;
+> = 0.5;
+
+uniform vec4 u_BaseColorFactor 
+<
+    string UIName = "Base color factor";
+    string UIGroup = "PBR Material";
+    string UIWidget = "ColorPicker";
+    int UIOrder = 1102;
 > = {1.0, 1.0, 1.0, 1.0};
 
 // debugging flags used for shader output of intermediate PBR variables
@@ -191,23 +239,22 @@ uniform vec4 u_ScaleDiffBaseMR
 <
     string UIName = "Scale Diff Base MR";
     string UIGroup = "PBR Debug";
+    int UIOrder = 3001;
 > = {0.0, 0.0, 0.0, 0.0};
 
 uniform vec4 u_ScaleFGDSpec
 <
     string UIName = "Scale FGD Spec";
     string UIGroup = "PBR Debug";
+    int UIOrder = 3002;
 > = {0.0, 0.0, 0.0, 0.0};
 
-uniform vec4 u_ScaleIBLAmbient
+uniform vec2 u_ScaleIBLAmbient
 <
-    string UIName = "Scale IBL Ambient";
+    string UIName = "Scale IBL AO";
     string UIGroup = "PBR Debug";
-> = {0.0, 0.0, 0.0, 0.0};
-
-// If the user enables viewport gamma correction in Maya's global viewport rendering settings, the shader should not do gamma again
-//uniform bool MayaFullScreenGamma : MayaGammaCorrection < string UIWidget = "None"; > = false;
-
+    int UIOrder = 3003;
+> = {1.0, 1.0};
 
 // Encapsulate the various inputs used by the various functions in the shading equation
 // We store values in this struct to simplify the integration of alternative implementations
@@ -240,7 +287,6 @@ attribute vs_to_ps
 {
     vec3 v_Position : POSITION;
     vec2 v_UV       : TEXCOORD0;
-    vec3 v_CameraPos;
     mat3 v_TBN;
 };
 
@@ -256,14 +302,14 @@ GLSLShader VS
         vec4 pos = u_ModelMatrix * a_Position;
         v_Position = vec3(pos.xyz) / pos.w;
 
-        vec3 normalW = normalize(vec3(u_ModelMatrix * vec4(a_Normal.xyz, 0.0)));
-        vec3 tangentW = normalize(vec3(u_ModelMatrix * vec4(a_Tangent.xyz, 0.0)));
-        vec3 bitangentW = cross(normalW, tangentW) * a_Tangent.w;
+        vec3 normalW = normalize((u_ModelMatrixIT * a_Normal).xyz);
+        vec3 tangentW = normalize((u_ModelMatrix * a_Tangent).xyz);
+        vec3 bitangentW = normalize(cross(normalW, tangentW) * a_Tangent.w);
+
         v_TBN = mat3(tangentW, bitangentW, normalW);
+
         v_UV = vec2(a_UV.x, 1.0 - a_UV.y);
          
-        v_CameraPos = u_CameraMatrix[3].xyz / u_CameraMatrix[3].w;
-
         gl_Position = u_MVPMatrix * a_Position; // needs w for proper perspective correction
     }
 }
@@ -274,6 +320,21 @@ GLSLShader PS
 
     const float M_PI = 3.141592653589793;
     const float c_MinRoughness = 0.04;
+
+    vec4 tex2D(sampler2D s, vec2 uv, vec4 defaultColor) 
+    {
+        return textureSize(s, 0).x > 1 ? texture(s, uv) : defaultColor;         
+    }
+
+    vec4 texCube(samplerCube s, vec3 n, vec4 defaultColor) 
+    {
+        return textureSize(s, 0).x > 1 ? texture(s, n) : defaultColor;         
+    }
+
+    vec4 texCubeLod(samplerCube s, vec3 n, float lod, vec4 defaultColor) 
+    {
+        return textureSize(s, 0).x > 1 ? textureLod(s, n, lod) : defaultColor;         
+    }
 
     vec4 SRGBtoLINEAR(vec4 srgbIn)
     {
@@ -298,10 +359,10 @@ GLSLShader PS
         mat3 tbn = v_TBN;
 
 #ifdef HAS_NORMALMAP
-        vec3 n = texture2D(u_NormalSampler, v_UV).rgb;
+        vec3 n = tex2D(u_NormalSampler, v_UV, vec4(0.5, 0.5, 0.5, 1.0)).rgb;
         n = normalize(tbn * ((2.0 * n - 1.0) * vec3(u_NormalScale, u_NormalScale, 1.0)));
 #else
-        vec3 n = tbn[2].xyz;
+        vec3 n = normalize(tbn[2].xyz);
 #endif
 
         return n;
@@ -312,12 +373,13 @@ GLSLShader PS
     // See our README.md on Environment Maps [3] for additional discussion.
     vec3 getIBLContribution(PBRInfo pbrInputs, vec3 n, vec3 reflection)
     {
-        float mipMax = textureQueryLevels(u_SpecularEnvSampler)-1;
+#ifdef USE_IBL        
+        float mipMax = textureQueryLevels(u_SpecularEnvSampler) - 1;
         float lod = pbrInputs.perceptualRoughness * mipMax;
         // retrieve a scale and bias to F0. See [1], Figure 3
-        vec3 brdf = texture(u_brdfLUT, vec2(pbrInputs.NdotV, 1.0 - pbrInputs.perceptualRoughness)).rgb;
-        vec3 diffuseLight = (texture(u_DiffuseEnvSampler, n)).rgb;
-        vec3 specularLight = (textureLod(u_SpecularEnvSampler, reflection, lod)).rgb;
+        vec3 brdf = tex2D(u_brdfLUT, vec2(pbrInputs.NdotV, 1.0 - pbrInputs.perceptualRoughness), vec4(0)).rgb;
+        vec3 diffuseLight = (texCube(u_DiffuseEnvSampler, n, vec4(0))).rgb;
+        vec3 specularLight = (texCubeLod(u_SpecularEnvSampler, reflection, lod, vec4(0))).rgb;
 
         vec3 diffuse = diffuseLight * pbrInputs.diffuseColor;
         vec3 specular = specularLight * (pbrInputs.specularColor * brdf.x + brdf.y);
@@ -327,6 +389,9 @@ GLSLShader PS
         specular *= u_ScaleIBLAmbient.y;
 
         return diffuse + specular;
+#else
+        return vec3(0);
+#endif
     }
 
     // Basic Lambertian diffuse
@@ -374,14 +439,14 @@ GLSLShader PS
         // Metallic and Roughness material properties are packed together
         // In glTF, these factors can be specified by fixed scalar values
         // or from a metallic-roughness map
-        float perceptualRoughness = u_MetallicRoughnessValues.y;
-        float metallic = u_MetallicRoughnessValues.x;
+        float perceptualRoughness = u_RoughnessStrength;
+        float metallic = u_MetallicStrength;
+
 #ifdef HAS_METALROUGHNESSMAP
         // Roughness is stored in the 'g' channel, metallic is stored in the 'b' channel.
         // This layout intentionally reserves the 'r' channel for (optional) occlusion map data
-        vec4 mrSample = texture(u_MetallicRoughnessSampler, v_UV);
-        perceptualRoughness = mrSample.g * perceptualRoughness;
-        metallic = mrSample.b * metallic;
+        perceptualRoughness = tex2D(u_RoughnessSampler, v_UV, vec4(1)).g * perceptualRoughness;
+        metallic = tex2D(u_MetallicSampler, v_UV, vec4(1)).b * metallic;
 #endif
         perceptualRoughness = clamp(perceptualRoughness, c_MinRoughness, 1.0);
         metallic = clamp(metallic, 0.0, 1.0);
@@ -391,7 +456,7 @@ GLSLShader PS
 
         // The albedo may be defined from a base texture or a flat color
 #ifdef HAS_BASECOLORMAP
-        vec4 baseColor = SRGBtoLINEAR(texture(u_BaseColorSampler, v_UV)) * u_BaseColorFactor;
+        vec4 baseColor = SRGBtoLINEAR(tex2D(u_BaseColorSampler, v_UV, vec4(1))) * u_BaseColorFactor;
 #else
         vec4 baseColor = u_BaseColorFactor;
 #endif
@@ -411,7 +476,7 @@ GLSLShader PS
         vec3 specularEnvironmentR90 = vec3(1.0, 1.0, 1.0) * reflectance90;
 
         vec3 n = getNormal();                             // normal at surface point
-        vec3 v = normalize(v_CameraPos - v_Position);        // Vector from surface point to camera
+        vec3 v = normalize(u_CameraPos - v_Position);        // Vector from surface point to camera
         vec3 l = normalize(u_LightDir);             // Vector from surface point to light
         vec3 h = normalize(l+v);                          // Half vector between both l and v
         vec3 reflection = normalize(-reflect(v, n));
@@ -454,12 +519,12 @@ GLSLShader PS
 
         // Apply optional PBR terms for additional (optional) shading
 #ifdef HAS_OCCLUSIONMAP
-        float ao = texture(u_OcclusionSampler, v_UV).r;
+        float ao = tex2D(u_OcclusionSampler, v_UV, vec4(1)).r;
         color = mix(color, color * ao, u_OcclusionStrength);
 #endif
 
 #ifdef HAS_EMISSIVEMAP
-        vec3 emissive = SRGBtoLINEAR(texture(u_EmissiveSampler, v_UV)).rgb * u_EmissiveFactor;
+        vec3 emissive = SRGBtoLINEAR(tex2D(u_EmissiveSampler, v_UV, vec4(1))).rgb * u_EmissiveColor.rgb;
         color += emissive;
 #endif
 
