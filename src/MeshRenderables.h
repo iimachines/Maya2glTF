@@ -213,6 +213,8 @@ struct VertexBuffer
 	VertexIndexCache cache;
 	IndexVector indices;
 	VertexComponentsMap componentsMap;
+	
+	size_t maxIndex() const { return cache.size(); };
 
 	friend std::ostream& operator <<(std::ostream& out, const VertexBuffer& obj);
 };
