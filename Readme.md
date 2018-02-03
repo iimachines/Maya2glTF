@@ -1,5 +1,7 @@
 # Maya to glTF exporter
 
+![Maya screenshot](/img/maya_screenshot.jpg)
+
 ## Rationale
 
 At **[Wonder Media](https://wondermedia.tv)**, we are specialized in creating realtime interactive 3D animation, for education, events and broadcast television, since 1992. We have developed our own multi-machine real-time 3D puppeteering software called **AnimationNow**, and we are about to upgrade this to make use of up-to-date rendering techniques. 
