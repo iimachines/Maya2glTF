@@ -1,18 +1,24 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27004.2005
+VisualStudioVersion = 15.0.27130.2024
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "maya2glTF", "Maya2glTF.vcxproj", "{3D3A5B08-1250-4371-8B2F-8F0D011DF39C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Maya2016_EXT2-Debug|x64 = Maya2016_EXT2-Debug|x64
+		Maya2016_EXT2-Release|x64 = Maya2016_EXT2-Release|x64
 		Maya2017-Debug|x64 = Maya2017-Debug|x64
 		Maya2017-Release|x64 = Maya2017-Release|x64
 		Maya2018-Debug|x64 = Maya2018-Debug|x64
 		Maya2018-Release|x64 = Maya2018-Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3D3A5B08-1250-4371-8B2F-8F0D011DF39C}.Maya2016_EXT2-Debug|x64.ActiveCfg = Maya2016_EXT2-Debug|x64
+		{3D3A5B08-1250-4371-8B2F-8F0D011DF39C}.Maya2016_EXT2-Debug|x64.Build.0 = Maya2016_EXT2-Debug|x64
+		{3D3A5B08-1250-4371-8B2F-8F0D011DF39C}.Maya2016_EXT2-Release|x64.ActiveCfg = Maya2016_EXT2-Debug|x64
+		{3D3A5B08-1250-4371-8B2F-8F0D011DF39C}.Maya2016_EXT2-Release|x64.Build.0 = Maya2016_EXT2-Debug|x64
 		{3D3A5B08-1250-4371-8B2F-8F0D011DF39C}.Maya2017-Debug|x64.ActiveCfg = Maya2017-Debug|x64
 		{3D3A5B08-1250-4371-8B2F-8F0D011DF39C}.Maya2017-Debug|x64.Build.0 = Maya2017-Debug|x64
 		{3D3A5B08-1250-4371-8B2F-8F0D011DF39C}.Maya2017-Release|x64.ActiveCfg = Maya2017-Release|x64

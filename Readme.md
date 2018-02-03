@@ -18,15 +18,16 @@ Maya interally uses a dataflow architecture (called the *dependency graph*). Thi
 
 I consider this plugin to be in *pre-alpha* stage, use it at your own risk :) 
 
-* Supports **Maya 2017-x64** and **Maya 2018-x64** 
+* Supports **Maya 2016 EXT2, 2017, 2017** (64-bit only)
+    * Maya 2016 is a different product from Maya 2016 EXT2 and is ***not supported***, since I can't find a compatible devkit for it.
 
 * Windows only
     * although the code is written using C++ 17 and should be platform independent, so can be ported by people with this experience (PR welcome! :) 
 
 * Uses the same glTF code as the COLLADA2GLTF project
-    * albeit with some patches of mine.
     
-* Exporting static meshes with POSITION, NORMAL, COLOR, NORMAL, TANGENT, and TEXCOORD attributes (aka semantics) seems to work, although on some meshes the BabylonJS viewer renders incorrectly (the ThreeJS and Cesium viewers render correctly).
+* Exporting static meshes with POSITION, NORMAL, COLOR, NORMAL, TANGENT, and TEXCOORD attributes (aka semantics) seems to work
+    * although on some meshes the BabylonJS viewer renders incorrectly (the ThreeJS and Cesium viewers render correctly).
 
 * Exports the position, rotation and scale of nodes, but no animation yet.
 
@@ -34,9 +35,11 @@ I consider this plugin to be in *pre-alpha* stage, use it at your own risk :)
 
 * Currently Phong, Lambert and Blinn shaders are converted to PBR, but only the color texture and transparency is taken into account (this is mainly done for testing with existing models). 
 
-* Converts the StingrayPBS material to glTF PBR.
-    * You should use the ShaderFX graph in `Maya2glTF\maya\renderData\shaders\glTF_maya_shader.sfx` to emulate the glTF PBR shader
-    * Now since Autodesk cancelled Stingray, we will provide our own `OGSFX/GLSL` and `FX/HLSL` PBR shaders for Maya (this is completed but we are having some colorspace troubles) 
+* Comes with GLSL code with a friendly UI ported from the official Khronos PBR WebGL code.
+    * See `Maya2glTF\maya\renderData\shaders\glTF_PBR.ogsfx`  
+    * To use this hardware shader
+        * make sure the GLSL shader plugin is loaded 
+        * use the *OpenGL/Core Profile* in Preferences/Display 
 
 * Code for exporting blend-shape deltas exists, but is not fully working yet.
 
@@ -55,7 +58,8 @@ I consider this plugin to be in *pre-alpha* stage, use it at your own risk :)
     * It should be easily ported to OSX and Linux, or older versions of Windows.
     * Feel free to provide a patch request, e.g. one that uses CMake :)
 
-* All development happens in the *develop* branch, the *master* branch will contain so called 'stable' code and hot-fixes. 
+* All development happens in the *develop* branch, not the master branch 
+    * (for silly-me historical reasons)
 
 * I assume you already installed a [GIT client for Windows](https://git-scm.com/downloads)
 
@@ -76,7 +80,9 @@ I consider this plugin to be in *pre-alpha* stage, use it at your own risk :)
         * `MAYA_2018_SDK` -> *the `devkitBase` sub-folder of the Maya devkit*, e.g. `C:\dev\Maya-2018-SDK\devkitBase`
     * For Maya 2017:
         * `MAYA_2017_INC` -> *the `include` folder of the devkit*, e.g `C:\dev\Maya-2017-SDK\devkitBase\include`
-        * `MAYA_2017_LIB` -> *the `lib` folder of **your Maya program installation***, e.g. `C:\Program Files\Autodesk\Maya2017\lib`
+        * `MAYA_2017_LIB` -> *the `lib` folder of **your Maya 2017 program installation***, e.g. `C:\Program Files\Autodesk\Maya2017\lib`
+    * For Maya 2016 EXT2:
+        * `MAYA_2016_EXT2` -> *the folder of **your Maya 2016.5 program installation***, e.g. `C:\Program Files\Autodesk\Maya2016.5`
      
 
 * Run the `Developer Command Prompt for VS 2017`, and then clone this repository, including ***all dependencies***. *Oh, did I mention not to forget the dependencies? ;-)*
@@ -93,12 +99,10 @@ I consider this plugin to be in *pre-alpha* stage, use it at your own risk :)
 
 * Next build the `Maya2glTF` plugin itself, by running the following command inside the `Maya2glTF` folder
     ```
-    windows_build_plugin 2018
+    windows_build_plugin *MAYA_VERSION*
     ```
-    or
-    ```
-    windows_build_plugin 2017
-    ```
+
+    Where  *MAYA_VERSION* is either 2016, 2017 or 2018.
     
     Obviously you can also use Visual Studio to build and debug the plugin.
 

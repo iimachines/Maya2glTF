@@ -27,10 +27,10 @@ ExportableMaterial* ExportableResources::getMaterial(const MObject& shaderGroup)
 
 	MFnDependencyNode shaderNode(surfaceShader, &status);
 
-	MString mayaName = shaderNode.absoluteName(&status);
+	MUuid mayaId = shaderNode.uuid(&status);
 	THROW_ON_FAILURE(status);
 
-	const std::string key(mayaName.asChar());
+	const std::string key(mayaId.asString().asChar());
 
 	auto& materialPtr = m_materialMap[key];
 	if (materialPtr)
