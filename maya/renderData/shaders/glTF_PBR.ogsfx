@@ -23,7 +23,7 @@
 
 uniform mat4 u_MVPMatrix : WorldViewProjection;
 uniform mat4 u_ModelMatrix : World;
-uniform mat4 u_ModelMatrixIT : WorldInverseTranspose;
+uniform mat4 u_NormalMatrix : WorldInverseTranspose;
 
 uniform vec3 u_CameraPos : ViewPosition 
 <
@@ -302,7 +302,7 @@ GLSLShader VS
         vec4 pos = u_ModelMatrix * a_Position;
         v_Position = vec3(pos.xyz) / pos.w;
 
-        vec3 normalW = normalize((u_ModelMatrixIT * a_Normal).xyz);
+        vec3 normalW = normalize((u_NormalMatrix * a_Normal).xyz);
         vec3 tangentW = normalize((u_ModelMatrix * a_Tangent).xyz);
         vec3 bitangentW = normalize(cross(normalW, tangentW) * a_Tangent.w);
 
