@@ -19,12 +19,24 @@ ExportableAsset::ExportableAsset(const Arguments& args)
 
 	for (uint selectionIndex = 0; selectionIndex < selection.length(); ++selectionIndex)
 	{
-		MDagPath dagPath;
-		THROW_ON_FAILURE(selection.getDagPath(selectionIndex, dagPath));
+		MObject obj;
+		THROW_ON_FAILURE(selection.getDependNode(selectionIndex, obj));
 
-		cout << prefix << "Processing " << dagPath.partialPathName() << "..." << endl;
+		MStatus status;
+		MFnDependencyNode node(obj, &status);
+		THROW_ON_FAILURE(status);
 
-		addNode(dagPath);
+		if (obj.hasFn(MFn::kDagNode))
+		{
+			MDagPath dagPath;
+			THROW_ON_FAILURE(selection.getDagPath(selectionIndex, dagPath));
+			cout << prefix << "Processing " << dagPath.partialPathName() << "..." << endl;
+			addNode(dagPath);
+		}
+		else
+		{
+			cerr << prefix << "WARNING: Skipping '" << node.name() << "' since it is not a DAG node" << endl;
+		}
 	}
 }
 
