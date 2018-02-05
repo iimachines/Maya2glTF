@@ -34,7 +34,21 @@ ExportablePrimitive::ExportablePrimitive(
 
 	auto& vertexIndices = vertexBuffer.indices;
 
-	if (vertexBuffer.maxIndex() <= std::numeric_limits<uint16>::max())
+	if (resources.arguments().force32bitIndices ||
+		vertexBuffer.maxIndex() > std::numeric_limits<uint16>::max())
+	{
+		// Use 32-bit indices
+		auto spanIndices = reinterpret_span<uint8>(span(vertexIndices));
+		m_data.insert(m_data.end(), spanIndices.begin(), spanIndices.end());
+
+		glIndices = std::make_unique<GLTF::Accessor>(
+			GLTF::Accessor::Type::SCALAR, WebGL::UNSIGNED_INT,
+			&m_data[0], static_cast<int>(vertexIndices.size()),
+			WebGL::ELEMENT_ARRAY_BUFFER);
+
+		glPrimitive.indices = glIndices.get();
+	}
+	else
 	{
 		// Use 16-bit indices
 		std::vector<uint16> shortIndices(vertexIndices.size());
@@ -46,19 +60,6 @@ ExportablePrimitive::ExportablePrimitive(
 
 		glIndices = std::make_unique<GLTF::Accessor>(
 			GLTF::Accessor::Type::SCALAR, WebGL::UNSIGNED_SHORT,
-			&m_data[0], static_cast<int>(vertexIndices.size()),
-			WebGL::ELEMENT_ARRAY_BUFFER);
-
-		glPrimitive.indices = glIndices.get();
-	}
-	else
-	{
-		// Use 32-bit indices
-		auto spanIndices = reinterpret_span<uint8>(span(vertexIndices));
-		m_data.insert(m_data.end(), spanIndices.begin(), spanIndices.end());
-
-		glIndices = std::make_unique<GLTF::Accessor>(
-			GLTF::Accessor::Type::SCALAR, WebGL::UNSIGNED_INT,
 			&m_data[0], static_cast<int>(vertexIndices.size()),
 			WebGL::ELEMENT_ARRAY_BUFFER);
 

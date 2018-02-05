@@ -24,6 +24,9 @@ public:
 	/** Convert any material into the scene to a glTF PBR material */
 	bool forcePbrMaterials = false;
 
+	/** Always use 32-bit indices, even when 16-bit would be sufficient */
+	bool force32bitIndices = false;
+
 	/** If non-null, dump the Maya intermediate objects to the stream */
 	IndentableStream* dumpMaya;
 	

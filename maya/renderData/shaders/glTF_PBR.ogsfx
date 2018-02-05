@@ -93,7 +93,6 @@ uniform texture2D u_BaseColorTexture
 <
     string UIName = "Base color map (sRGB)";
     string ResourceType = "2D";
-    string ResourceName = "../white_color.png";
 	string UIGroup = "PBR Material";
     int UIOrder = 1001;
 >;
@@ -109,7 +108,6 @@ uniform texture2D u_NormalTexture
 <
     string UIName = "Normal map (LIN)";
     string ResourceType = "2D";
-    string ResourceName = "zero_normal.png";
     string UIGroup = "PBR Material";
     int UIOrder = 1501;
 >;
@@ -133,7 +131,6 @@ uniform texture2D u_EmissiveTexture
 <
     string UIName = "Emissive map (sRGB)";
     string ResourceType = "2D";
-    string ResourceName = "white_color.png";
 	string UIGroup = "PBR Material";
     int UIOrder = 1601;
 >;
@@ -158,7 +155,6 @@ uniform texture2D u_MetallicTexture
 <
     string UIName = "Metallic map (B,LIN)";
     string ResourceType = "2D";
-    string ResourceName = "white_color.png";
     string UIGroup = "PBR Material";
     int UIOrder = 1201;
 >;
@@ -172,7 +168,6 @@ uniform texture2D u_RoughnessTexture
 <
     string UIName = "Roughness map (G,LIN)";
     string ResourceType = "2D";
-    string ResourceName = "white_color.png";
     string UIGroup = "PBR Material";
     int UIOrder = 1203;
 >;
@@ -190,7 +185,6 @@ uniform texture2D u_OcclusionTexture
 <
     string UIName = "Occlusion map (R,LIN)";
     string ResourceType = "2D";
-    string ResourceName = "white_color.png";
     string UIGroup = "PBR Material";
     int UIOrder = 1401;
 >;
@@ -544,11 +538,23 @@ GLSLShader PS
     }
 }
 
-technique Main
+technique Solid
 {
   pass p0
   {
     VertexShader (in vs_input, out vs_to_ps) = VS;
     PixelShader (in vs_to_ps, out ps_output) = PS;
   }
+}
+
+technique Transparent
+<
+    string Transparency = "Transparent";
+>
+{
+    pass p0
+    {
+        VertexShader (in vs_input, out vs_to_ps) = VS;
+        PixelShader (in vs_to_ps, out ps_output) = PS;
+    }
 }

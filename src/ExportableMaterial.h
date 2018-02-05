@@ -28,13 +28,15 @@ public:
 
 protected:
 	Float4 m_glBaseColorFactor;
-	Float3 m_glEmissiveFactor;
+	Float4 m_glEmissiveFactor;
 	GLTF::MaterialPBR m_glMaterial;
 	GLTF::MaterialPBR::MetallicRoughness m_glMetallicRoughness;
+	
 	GLTF::MaterialPBR::Texture m_glBaseColorTexture;
+	GLTF::MaterialPBR::Texture m_glMetallicRoughnessTexture;
 	GLTF::MaterialPBR::Texture m_glNormalTexture;
-
-	bool loadNormalTexture(ExportableResources& resources, const MObject& obj);
+	GLTF::MaterialPBR::Texture m_glEmissiveTexture;
+	GLTF::MaterialPBR::Texture m_glOcclusionTexture;
 };
 
 class ExportableDefaultMaterial : public ExportableMaterialBasePBR
