@@ -4,6 +4,73 @@
 #include "MayaException.h"
 #include "ExportableResources.h"
 #include "Arguments.h"
+#include "filepath.h"
+
+ExportableTexture::ExportableTexture(ExportableResources& resources, const MObject& obj, const char* attributeName)
+	: glTexture(nullptr)
+	, glSampler(nullptr)
+{
+	connectedObject = DagHelper::findNodeConnectedTo(obj, attributeName);
+	if (connectedObject.isNull())
+		return;
+
+	MStatus status;
+	MFnDependencyNode connectedNode(connectedObject, &status);
+	THROW_ON_FAILURE(status);
+
+	const auto apiType = connectedObject.apiType();
+	if (apiType != MFn::kFileTexture)
+	{
+		MayaException::printError(formatted(
+			"Unsupported texture node '%s' #%d",
+			connectedObject.apiTypeStr(), apiType));
+		return;
+	}
+
+	if (!DagHelper::getPlugValue(connectedObject, "fileTextureName", imageFilePath))
+	{
+		MayaException::printError(
+			formatted("Failed to get %s.fileTextureName", connectedNode.name()));
+		return;
+	}
+
+	int filterType = IMAGE_FILTER_MipMap;
+	DagHelper::getPlugValue(connectedObject, "filterType", filterType);
+
+	int uWrap = false;
+	int vWrap = false;
+	int uMirror = false;
+	int vMirror = false;
+
+	DagHelper::getPlugValue(connectedObject, "wrapU", uWrap);
+	DagHelper::getPlugValue(connectedObject, "wrapV", vWrap);
+	DagHelper::getPlugValue(connectedObject, "mirrorU", uMirror);
+	DagHelper::getPlugValue(connectedObject, "mirrorV", vMirror);
+
+	cout << prefix << "Found texture '" << imageFilePath << "'"
+		<< " with filter type = " << filterType
+		<< ", image wrapping = " << uWrap << " " << vWrap << ", mirror = " << uMirror << " " << vMirror << endl;
+
+	auto uTiling = uWrap * IMAGE_TILING_Wrap + uMirror * IMAGE_TILING_Mirror;
+	auto vTiling = vWrap * IMAGE_TILING_Wrap + vMirror * IMAGE_TILING_Mirror;
+
+	glSampler = resources.getSampler(
+		static_cast<ImageFilterKind>(filterType),
+		static_cast<ImageTilingFlags>(uTiling),
+		static_cast<ImageTilingFlags>(vTiling));
+	assert(glSampler);
+
+	const auto imagePtr = resources.getImage(imageFilePath.asChar());
+	if (!imagePtr)
+		return;
+
+	glTexture = resources.getTexture(imagePtr, glSampler);
+	assert(glTexture);
+}
+
+ExportableTexture::~ExportableTexture()
+{
+}
 
 ExportableMaterial::~ExportableMaterial()
 {
@@ -14,75 +81,18 @@ std::unique_ptr<ExportableMaterial> ExportableMaterial::from(ExportableResources
 	if (shaderNode.typeName() == "GLSLShader" || resources.arguments().forcePbrMaterials)
 		return std::make_unique<ExportableMaterialPBR>(resources, shaderNode);
 
-	cerr << prefix 
-		<< "WARNING: unsupported shader node type: " << shaderNode.typeName().asChar() << " #" << shaderNode.type() 
+	cerr << prefix
+		<< "WARNING: unsupported shader node type: " << shaderNode.typeName().asChar() << " #" << shaderNode.type()
 		<< "Either use the Maya2glTF GLSLShader, or pass the -forcePbrMaterials (-fpm) flag"
 		<< endl;
 
 	return nullptr;
 }
 
-bool ExportableMaterial::tryCreateTexture(
-	ExportableResources& resources,
-	const MObject& obj,
-	const char* attributeName,
-	GLTF::Texture* &texturePtr)
-{
-	MObject fileTextureObj = DagHelper::findNodeConnectedTo(obj, attributeName);
-	if (fileTextureObj.isNull())
-		return false;
-
-	const auto apiType = fileTextureObj.apiType();
-	if (apiType != MFn::kFileTexture)
-	{
-		cout << "WARNING: Unsupported texture node '" << fileTextureObj.apiTypeStr() << " #" << apiType << endl;
-		return false;
-	}
-
-	MString filename;
-	if (!DagHelper::getPlugValue(fileTextureObj, "fileTextureName", filename))
-		return false;
-
-	int filterType = IMAGE_FILTER_MipMap;
-	DagHelper::getPlugValue(fileTextureObj, "filterType", filterType);
-
-	int uWrap = false;
-	int vWrap = false;
-	int uMirror = false;
-	int vMirror = false;
-
-	DagHelper::getPlugValue(fileTextureObj, "wrapU", uWrap);
-	DagHelper::getPlugValue(fileTextureObj, "wrapV", vWrap);
-	DagHelper::getPlugValue(fileTextureObj, "mirrorU", uMirror);
-	DagHelper::getPlugValue(fileTextureObj, "mirrorV", vMirror);
-
-	cout << prefix << "Found texture '" << filename << "'" 
-		<< " with filter type = " << filterType 
-		<< ", image wrapping = " << uWrap << " " << vWrap << ", mirror = " << uMirror << " " << vMirror << endl;
-
-	const auto imagePtr = resources.getImage(filename.asChar());
-	if (!imagePtr)
-		return false;
-
-	auto uTiling = uWrap * IMAGE_TILING_Wrap + uMirror * IMAGE_TILING_Mirror;
-	auto vTiling = vWrap * IMAGE_TILING_Wrap + vMirror * IMAGE_TILING_Mirror;
-
-	auto samplerPtr = resources.getSampler(
-		static_cast<ImageFilterKind>(filterType),
-		static_cast<ImageTilingFlags>(uTiling),
-		static_cast<ImageTilingFlags>(vTiling));
-	assert(samplerPtr);
-
-	texturePtr = resources.getTexture(imagePtr, samplerPtr);
-	assert(texturePtr);
-
-	return true;
-}
-
 bool ExportableMaterial::tryCreateNormalTexture(
-	ExportableResources& resources, 
+	ExportableResources& resources,
 	const MObject& shaderObject,
-	float& normalScale, 
+	float& normalScale,
 	GLTF::Texture*& outputTexture)
 {
 	MObject normalCamera = DagHelper::findSourceNodeConnectedTo(shaderObject, "normalCamera");
@@ -92,11 +102,12 @@ bool ExportableMaterial::tryCreateNormalTexture(
 	if (!getScalar(normalCamera, "bumpDepth", normalScale))
 		return false;
 
-	if (!tryCreateTexture(resources, normalCamera, "bumpValue", outputTexture))
+	const ExportableTexture bumpTexture(resources, normalCamera, "bumpValue");
+	if (!outputTexture)
 		return false;
-
+	
+	outputTexture = bumpTexture;
 	return true;
-
 }
 
 bool ExportableMaterial::getScalar(const MObject& obj, const char* attributeName, float& scalar)
@@ -143,7 +154,7 @@ ExportableMaterialPBR::ExportableMaterialPBR(ExportableResources& resources, con
 	}
 }
 
-template<class MFnShader> 
+template<class MFnShader>
 void ExportableMaterialPBR::convert(ExportableResources& resources, const MObject& shaderObject)
 {
 	MStatus status;
@@ -155,8 +166,8 @@ void ExportableMaterialPBR::convert(ExportableResources& resources, const MObjec
 	m_glMetallicRoughness.metallicFactor = 0;
 	m_glMaterial.metallicRoughness = &m_glMetallicRoughness;
 
-	GLTF::Texture* colorTexture = nullptr;
-	if (tryCreateTexture(resources, shaderObject, "color", colorTexture))
+	const ExportableTexture colorTexture(resources, shaderObject, "color");
+	if (colorTexture)
 	{
 		m_glBaseColorTexture.texture = colorTexture;
 		m_glMetallicRoughness.baseColorTexture = &m_glBaseColorTexture;
@@ -165,7 +176,7 @@ void ExportableMaterialPBR::convert(ExportableResources& resources, const MObjec
 	// TODO: Currently we expect the alpha channel of the color texture to hold the transparency.
 	const bool hasTransparencyTexture = shader.findPlug("transparency").isConnected();
 
-	const auto color = colorTexture ? MColor(1,1,1) : shader.color(&status);
+	const auto color = colorTexture ? MColor(1, 1, 1) : shader.color(&status);
 
 	const auto diffuseFactor = shader.diffuseCoeff(&status);
 	const auto transparency = hasTransparencyTexture ? 0 : shader.transparency(&status).r;
@@ -178,15 +189,15 @@ void ExportableMaterialPBR::convert(ExportableResources& resources, const MObjec
 	}
 
 	// TODO: Support MASK alphaMode and alphaCutoff
-	
+
 	// TODO: Support double-sides materials.
 
-	m_glBaseColorFactor = 
-	{ 
-		color.r * diffuseFactor, 
-		color.g * diffuseFactor, 
-		color.b * diffuseFactor, 
-		1 - transparency 
+	m_glBaseColorFactor =
+	{
+		color.r * diffuseFactor,
+		color.g * diffuseFactor,
+		color.b * diffuseFactor,
+		1 - transparency
 	};
 
 	m_glMetallicRoughness.baseColorFactor = &m_glBaseColorFactor[0];
@@ -207,107 +218,6 @@ void ExportableMaterialPBR::convert(ExportableResources& resources, const MObjec
 
 void ExportableMaterialPBR::loadPBR(ExportableResources& resources, const MFnDependencyNode& shaderNode)
 {
-	/*
-	u_OcclusionTexture_Name
-	u_OcclusionTexture_Type
-	u_OcclusionTexture
-	u_OcclusionTextureR
-	u_OcclusionTextureG
-	u_OcclusionTextureB
-	u_OcclusionStrength_Name
-	u_OcclusionStrength_Type
-	u_OcclusionStrength
-	u_BaseColorFactor_Name
-	u_BaseColorFactor_Type
-	u_BaseColorFactor
-	u_BaseColorFactorRGB
-	u_BaseColorFactorR
-	u_BaseColorFactorG
-	u_BaseColorFactorB
-	u_BaseColorFactorA
-	u_ScaleDiffBaseMR_Name
-	u_ScaleDiffBaseMR_Type
-	u_ScaleDiffBaseMR
-	u_ScaleDiffBaseMRXYZ
-	u_ScaleDiffBaseMRX
-	u_ScaleDiffBaseMRY
-	u_ScaleDiffBaseMRZ
-	u_ScaleDiffBaseMRW
-	u_ScaleFGDSpec_Name
-	u_ScaleFGDSpec_Type
-	u_ScaleFGDSpec
-	u_ScaleFGDSpecXYZ
-	u_ScaleFGDSpecX
-	u_ScaleFGDSpecY
-	u_ScaleFGDSpecZ
-	u_ScaleFGDSpecW
-	u_LightDir_Name
-	u_LightDir_Type
-	u_LightDir
-	u_LightDirX
-	u_LightDirY
-	u_LightDirZ
-	u_NormalTexture_Name
-	u_NormalTexture_Type
-	u_NormalTexture
-	u_NormalTextureR
-	u_NormalTextureG
-	u_NormalTextureB
-	u_NormalScale_Name
-	u_NormalScale_Type
-	u_NormalScale
-	u_DiffuseEnvTexture_Name
-	u_DiffuseEnvTexture_Type
-	u_DiffuseEnvTexture
-	u_DiffuseEnvTextureR
-	u_DiffuseEnvTextureG
-	u_DiffuseEnvTextureB
-	u_SpecularEnvTexture_Name
-	u_SpecularEnvTexture_Type
-	u_SpecularEnvTexture
-	u_SpecularEnvTextureR
-	u_SpecularEnvTextureG
-	u_SpecularEnvTextureB
-	u_brdfTexture_Name
-	u_brdfTexture_Type
-	u_brdfTexture
-	u_brdfTextureR
-	u_brdfTextureG
-	u_brdfTextureB
-	u_MetallicTexture_Name
-	u_MetallicTexture_Type
-	u_MetallicTexture
-	u_MetallicTextureR
-	u_MetallicTextureG
-	u_MetallicTextureB
-	u_MetallicStrength_Name
-	u_MetallicStrength_Type
-	u_MetallicStrength
-	u_RoughnessTexture_Name
-	u_RoughnessTexture_Type
-	u_RoughnessTexture
-	u_RoughnessTextureR
-	u_RoughnessTextureG
-	u_RoughnessTextureB
-	u_RoughnessStrength_Name
-	u_RoughnessStrength_Type
-	u_RoughnessStrength
-	u_EmissiveColor_Name
-	u_EmissiveColor_Type
-	u_EmissiveColor
-	u_EmissiveColorR
-	u_EmissiveColorG
-	u_EmissiveColorB
-	u_ScaleIBL_Occl_Name
-	u_ScaleIBL_Occl_Type
-	u_ScaleIBL_Occl
-	u_ScaleIBL_OcclXYZ
-	u_ScaleIBL_OcclX
-	u_ScaleIBL_OcclY
-	u_ScaleIBL_OcclZ
-	u_ScaleIBL_OcclW
-
-	*/
 	MStatus status;
 	const auto shaderObject = shaderNode.object(&status);
 	THROW_ON_FAILURE(status);
@@ -320,8 +230,8 @@ void ExportableMaterialPBR::loadPBR(ExportableResources& resources, const MFnDep
 		m_glMaterial.metallicRoughness = &m_glMetallicRoughness;
 	}
 
-	GLTF::Texture* baseColorTexture = nullptr;
-	if (tryCreateTexture(resources, shaderObject, "u_BaseColorTexture", baseColorTexture))
+	const ExportableTexture baseColorTexture(resources, shaderObject, "u_BaseColorTexture");
+	if (baseColorTexture)
 	{
 		m_glBaseColorTexture.texture = baseColorTexture;
 		m_glMetallicRoughness.baseColorTexture = &m_glBaseColorTexture;
@@ -336,20 +246,72 @@ void ExportableMaterialPBR::loadPBR(ExportableResources& resources, const MFnDep
 		m_glMaterial.metallicRoughness = &m_glMetallicRoughness;
 	}
 
-	GLTF::Texture* roughnessTexture = nullptr;
-	GLTF::Texture* metallicTexture = nullptr;
-	if (tryCreateTexture(resources, shaderObject, "u_RoughnessTexture", roughnessTexture) ||
-		tryCreateTexture(resources, shaderObject, "u_MetallicTexture", metallicTexture))
+	const ExportableTexture roughnessTexture(resources, shaderObject, "u_RoughnessTexture");
+	const ExportableTexture metallicTexture(resources, shaderObject, "u_MetallicTexture");
+	if (roughnessTexture || metallicTexture)
 	{
-		if (roughnessTexture == metallicTexture)
+		// TODO: Test this code!
+		if (!metallicTexture || roughnessTexture == metallicTexture)
 		{
 			m_glMetallicRoughnessTexture.texture = roughnessTexture;
-			m_glMetallicRoughness.metallicRoughnessTexture = &m_glMetallicRoughnessTexture;
+		}
+		else if (!roughnessTexture)
+		{
+			m_glMetallicRoughnessTexture.texture = metallicTexture;
 		}
 		else
 		{
-			cerr << prefix << "WARNING: The roughness and metallic texture must use the same file and samplers" << endl;
+			cerr << prefix << "WARNING: Merging roughness and metallic into one texture" << endl;
+
+			MImage metallicImage;
+			MImage roughnessImage;
+
+			THROW_ON_FAILURE(metallicImage.readFromTextureNode(metallicTexture.connectedObject));
+			THROW_ON_FAILURE(roughnessImage.readFromTextureNode(roughnessTexture.connectedObject));
+
+			unsigned width;
+			unsigned height;
+			THROW_ON_FAILURE(metallicImage.getSize(width, height));
+
+			unsigned width2;
+			unsigned height2;
+			THROW_ON_FAILURE(roughnessImage.getSize(width2, height2));
+
+			if (width != width2 || height != height2)
+			{
+				MayaException::printError(formatted("Images '%s' and '%s' have different size, not merging",
+					metallicTexture.imageFilePath.asChar(),
+					roughnessTexture.imageFilePath.asChar()));
+			}
+			else
+			{
+				// Merge metallic into roughness
+				auto metallicPixels = reinterpret_cast<uint32_t*>(metallicImage.pixels());
+				auto roughnessPixels = reinterpret_cast<uint32_t*>(roughnessImage.pixels());
+				__int64 pixelCount = width * height;
+				while (--pixelCount >= 0)
+				{
+					*roughnessPixels++ |= *metallicPixels++;
+				}
+
+				// TODO: Add argument for output image file mime-type
+				const path roughnessPath{ roughnessTexture.imageFilePath.asChar() };
+				const path imageExtension { roughnessPath.extension() };
+				MString mergedImagePath{ generateTempPath(imageExtension).c_str() };
+
+				cout << prefix << "Saving merged roughness-metalic texture to " << mergedImagePath << endl;
+				roughnessImage.writeToFile(mergedImagePath, imageExtension.c_str());
+
+				const auto imagePtr = resources.getImage(mergedImagePath.asChar());
+				assert(imagePtr);
+
+				const auto texturePtr = resources.getTexture(imagePtr, roughnessTexture.glSampler);
+				assert(texturePtr);
+
+				m_glMetallicRoughnessTexture.texture = texturePtr;
+			}
 		}
+		m_glMetallicRoughness.metallicRoughnessTexture = &m_glMetallicRoughnessTexture;
 	}
 
 	// Emissive 
@@ -359,8 +321,8 @@ void ExportableMaterialPBR::loadPBR(ExportableResources& resources, const MFnDep
 		m_glMaterial.emissiveFactor = &m_glEmissiveFactor[0];
 	}
 
-	GLTF::Texture* emissiveTexture = nullptr;
-	if (tryCreateTexture(resources, shaderObject, "u_EmissiveTexture", emissiveTexture))
+	const ExportableTexture emissiveTexture(resources, shaderObject, "u_EmissiveTexture");
+	if (emissiveTexture)
 	{
 		m_glEmissiveTexture.texture = baseColorTexture;
 		m_glMaterial.emissiveTexture = &m_glEmissiveTexture;
@@ -369,8 +331,8 @@ void ExportableMaterialPBR::loadPBR(ExportableResources& resources, const MFnDep
 	// Ambient occlusion
 	getScalar(shaderObject, "u_OcclusionStrength", m_glOcclusionTexture.scale);
 
-	GLTF::Texture* occlusionTexture = nullptr;
-	if (tryCreateTexture(resources, shaderObject, "u_OcclusionTexture", occlusionTexture))
+	const ExportableTexture occlusionTexture(resources, shaderObject, "u_OcclusionTexture");
+	if (occlusionTexture)
 	{
 		m_glOcclusionTexture.texture = occlusionTexture;
 		m_glMaterial.occlusionTexture = &m_glOcclusionTexture;
@@ -379,8 +341,8 @@ void ExportableMaterialPBR::loadPBR(ExportableResources& resources, const MFnDep
 	// Normal
 	getScalar(shaderObject, "u_NormalScale", m_glNormalTexture.scale);
 
-	GLTF::Texture* normalTexture = nullptr;
-	if (tryCreateTexture(resources, shaderObject, "u_NormalTexture", normalTexture))
+	const ExportableTexture normalTexture(resources, shaderObject, "u_NormalTexture");
+	if (normalTexture)
 	{
 		m_glNormalTexture.texture = normalTexture;
 		m_glMaterial.normalTexture = &m_glNormalTexture;

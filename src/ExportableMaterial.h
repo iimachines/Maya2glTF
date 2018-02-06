@@ -4,6 +4,21 @@
 
 class ExportableResources;
 
+class ExportableTexture
+{
+public:
+	ExportableTexture(ExportableResources& resources, const MObject& obj, const char* attributeName);
+	virtual ~ExportableTexture();
+
+	GLTF::Texture* glTexture;
+	GLTF::Sampler* glSampler;
+
+	MObject connectedObject;
+	MString imageFilePath;
+
+	operator GLTF::Texture*() const { return glTexture; }
+};
+
 class ExportableMaterial
 {
 public:
@@ -14,7 +29,8 @@ public:
 	static std::unique_ptr<ExportableMaterial> from(ExportableResources& resources, const MFnDependencyNode& shaderNode);
 
 protected:
-	static bool tryCreateTexture(ExportableResources& resources, const MObject& obj, const char* attributeName, GLTF::Texture*& outputTexture);
+	//static bool tryCreateTexture(ExportableResources& resources, const MObject& obj, const char* attributeName, GLTF::Texture*& outputTexture, MString& outputTexturePath);
+	//static bool tryCreateTexture(ExportableResources& resources, const MObject& obj, const char* attributeName, GLTF::Texture*& outputTexture);
 	static bool tryCreateNormalTexture(ExportableResources& resources, const MObject& obj, float& normalScale, GLTF::Texture*& outputTexture);
 
 	static bool getScalar(const MObject& shaderObject, const char* attributeName, float& scalar);
@@ -54,6 +70,7 @@ public:
 
 private:
 	void loadPBR(ExportableResources& resources, const MFnDependencyNode& shaderNode);
+
 	template<class MFnShader> void convert(ExportableResources& resources, const MObject& shaderObject);
 };
 

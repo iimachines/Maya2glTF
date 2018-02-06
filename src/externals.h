@@ -84,3 +84,4 @@
 #include <maya/MFnLambertShader.h>
 #include <maya/MFnBlinnShader.h>
 #include <maya/MUuid.h>
+#include <maya/MImage.h>
