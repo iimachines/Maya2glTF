@@ -7,7 +7,7 @@
 #include "MeshBlendShapeWeights.h"
 #include "IndentableStream.h"
 
-MeshBlendShapes::MeshBlendShapes(MObject blendShapeNode)
+MeshBlendShapes::MeshBlendShapes(MObject blendShapeNode, const Arguments& args)
 {
 	MStatus status;
 
@@ -54,7 +54,7 @@ MeshBlendShapes::MeshBlendShapes(MObject blendShapeNode)
 	// Clear all weights to reconstruct base mesh
 	weightPlugs.clearWeightsExceptFor(-1);
 
-	m_baseShape = std::make_unique<MeshShape>(outputMesh, true);
+	m_baseShape = std::make_unique<MeshShape>(outputMesh, args, true);
 
 	const auto numWeights = weightPlugs.numWeights();
 
@@ -62,7 +62,7 @@ MeshBlendShapes::MeshBlendShapes(MObject blendShapeNode)
 	{
 		weightPlugs.clearWeightsExceptFor(i);
 		auto weightPlug = weightPlugs.getWeightPlug(i);
-		m_entries.emplace_back(std::make_unique<MeshBlendShapeEntry>(outputMesh, weightPlug));
+		m_entries.emplace_back(std::make_unique<MeshBlendShapeEntry>(outputMesh, args, weightPlug));
 	}
 }
 

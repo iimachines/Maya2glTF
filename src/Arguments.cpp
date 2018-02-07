@@ -16,6 +16,7 @@ namespace flag
 	const auto forcePbrMaterials = "fpm";
 	const auto force32bitIndices = "i32";
 	const auto assignObjectNames = "aon";
+	const auto scaleFactor = "sf";
 }
 
 MSyntax Arguments::createSyntax()
@@ -30,6 +31,9 @@ MSyntax Arguments::createSyntax()
 	ASSERT_SUCCESS(status);
 
 	status = syntax.addFlag(flag::sceneName, "sceneName", MSyntax::MArgType::kString);
+	ASSERT_SUCCESS(status);
+
+	status = syntax.addFlag(flag::scaleFactor, "scaleFactor", MSyntax::MArgType::kDouble);
 	ASSERT_SUCCESS(status);
 
 	status = syntax.addFlag(flag::glb, "binary", MSyntax::MArgType::kNoArg);
@@ -81,7 +85,13 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 		throw MayaException(status, "Missing argument -outputFolder");
 
 	status = adb.getFlagArgument(flag::outputFolder, 0, outputFolder);
-	THROW_ON_FAILURE(status);
+	THROW_ON_FAILURE(status);  
+
+	if (adb.isFlagSet(flag::scaleFactor))
+	{
+		status = adb.getFlagArgument(flag::scaleFactor, 0, scaleFactor);
+		THROW_ON_FAILURE(status);
+	}
 
 	glb = adb.isFlagSet(flag::glb);
 

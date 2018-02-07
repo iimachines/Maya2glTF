@@ -5,10 +5,12 @@
 #include "MeshRenderables.h"
 #include "MeshShapeCollection.h"
 
+class Arguments;
+
 class Mesh
 {
 public:
-	Mesh(const MDagPath& dagPath);
+	Mesh(const MDagPath& dagPath, const Arguments& args);
 	virtual ~Mesh();
 
 	void dump(IndentableStream& cout, const std::string& name) const;

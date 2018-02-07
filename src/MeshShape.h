@@ -7,7 +7,7 @@
 class MeshShape
 {
 public:
-	MeshShape(const MFnMesh& mesh, bool isBlendShape);
+	MeshShape(const MFnMesh& mesh, const Arguments& args, const bool isBlendShape);
 	virtual ~MeshShape();
 
 	void dump(class IndentableStream& out, const std::string& name) const;

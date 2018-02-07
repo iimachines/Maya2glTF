@@ -15,10 +15,12 @@ inline VertexComponents componentsAt(const VertexComponents& elements, const siz
 	return elements.subspan(vertexIndex*count, count);
 }
 
+class Arguments;
+
 class MeshVertices
 {
 public:
-	MeshVertices(const MeshSemantics& names, const MFnMesh& mesh, MSpace::Space space = MSpace::kTransform);
+	MeshVertices(const MeshSemantics& names, const MFnMesh& mesh, const Arguments& args, MSpace::Space space = MSpace::kTransform);
 	virtual ~MeshVertices();
 
 	const VertexElementsPerSetIndexTable& table() const { return m_table; }

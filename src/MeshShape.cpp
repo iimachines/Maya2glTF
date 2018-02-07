@@ -2,10 +2,10 @@
 #include "MeshShape.h"
 #include "IndentableStream.h"
 
-MeshShape::MeshShape(const MFnMesh& fnMesh, const bool isBlendShape): isBlendShape(isBlendShape)
+MeshShape::MeshShape(const MFnMesh& fnMesh, const Arguments& args, const bool isBlendShape): isBlendShape(isBlendShape)
 {
 	m_semantics.reset(new MeshSemantics(fnMesh, isBlendShape));
-	m_vertices.reset(new MeshVertices(*m_semantics, fnMesh));
+	m_vertices.reset(new MeshVertices(*m_semantics, fnMesh, args));
 	m_indices.reset(new MeshIndices(*m_semantics, fnMesh));
 }
 

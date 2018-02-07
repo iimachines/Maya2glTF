@@ -10,7 +10,7 @@ ExportableMesh::ExportableMesh(const MDagPath& shapeDagPath, ExportableResources
 {
 	handleNameAssignment(resources, glMesh);
 
-	Mesh mayaMesh(shapeDagPath);
+	Mesh mayaMesh(shapeDagPath, resources.arguments());
 
 	const Arguments& args = resources.arguments();
 

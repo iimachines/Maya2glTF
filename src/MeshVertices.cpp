@@ -5,8 +5,9 @@
 #include "spans.h"
 #include "DagHelper.h"
 #include "IndentableStream.h"
+#include "Arguments.h"
 
-MeshVertices::MeshVertices(const MeshSemantics& semantics, const MFnMesh& mesh, const MSpace::Space space)
+MeshVertices::MeshVertices(const MeshSemantics& semantics, const MFnMesh& mesh, const Arguments& args, const MSpace::Space space)
 {
 	MStatus status;
 
@@ -16,9 +17,11 @@ MeshVertices::MeshVertices(const MeshSemantics& semantics, const MFnMesh& mesh, 
 	const int numPoints = mPoints.length();
 	m_positions.reserve(numPoints);
 
+	const auto positionScale = args.scaleFactor;
+
 	for (int i = 0; i < numPoints; ++i)
 	{
-		const auto& p = mPoints[i];
+		const auto p = mPoints[i] * positionScale;
 		m_positions.push_back({static_cast<float>(p.x), static_cast<float>(p.y), static_cast<float>(p.z)});
 	}
 

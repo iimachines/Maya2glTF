@@ -1,21 +1,21 @@
 #include "externals.h"
 #include "Mesh.h"
 #include "MayaException.h"
-#include <any>
+#include "Arguments.h"
 
-Mesh::Mesh(const MDagPath& dagPath)
+Mesh::Mesh(const MDagPath& dagPath, const Arguments& args)
 {
 	MStatus status;
 
 	const MFnMesh fnMesh(dagPath, &status);
 	THROW_ON_FAILURE(status);
 
-	m_shape = std::make_unique<MeshShape>(fnMesh, false);
+	m_shape = std::make_unique<MeshShape>(fnMesh, args, false);
 
 	MObject blendShapeController = tryExtractBlendController(fnMesh);
 	if (!blendShapeController.isNull())
 	{
-		m_blendShapes = std::make_unique<MeshBlendShapes>(blendShapeController);
+		m_blendShapes = std::make_unique<MeshBlendShapes>(blendShapeController, args);
 	}
 
 	auto instanceNumber = dagPath.instanceNumber(&status);

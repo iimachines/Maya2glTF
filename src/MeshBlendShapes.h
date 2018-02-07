@@ -3,7 +3,9 @@
 
 struct MeshBlendShapeEntry
 {
-	MeshBlendShapeEntry(const MFnMesh& fnMesh, const MPlug weightPlug) : shape(fnMesh, true), weightPlug(weightPlug)
+	MeshBlendShapeEntry(const MFnMesh& fnMesh, const Arguments& args, const MPlug& weightPlug)
+	: shape(fnMesh, args, true)
+	, weightPlug(weightPlug)
 	{
 	}
 
@@ -16,7 +18,7 @@ typedef std::vector<std::unique_ptr<MeshBlendShapeEntry>> MeshBlendShapeEntries;
 class MeshBlendShapes
 {
 public:
-	MeshBlendShapes(MObject blendShapeNode);
+	MeshBlendShapes(MObject blendShapeNode, const Arguments& args);
 	virtual ~MeshBlendShapes();
 
 	void dump(class IndentableStream& cout, const std::string& name) const;

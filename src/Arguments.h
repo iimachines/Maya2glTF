@@ -39,6 +39,9 @@ public:
 	/** By default the Maya node name is not assigned to the GLTF node name */
 	bool assignObjectNames = false;
 
+	/** The scale factor to apply to the vertex positions */
+	double scaleFactor = 1;
+
 private:
 	static std::unique_ptr<IndentableStream> getOutputStream(const MArgDatabase& adb, const char* arg, const char *outputName, std::ofstream& fileOutputStream);
 
