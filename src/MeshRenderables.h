@@ -203,7 +203,7 @@ struct VertexHashers
 
 typedef std::vector<VertexSlot> VertexLayout;
 
-typedef std::unordered_map<IndexVector, Index, CollectionHashers> VertexIndexCache;
+typedef std::unordered_map<FloatVector, Index, CollectionHashers> VertexIndexCache;
 
 // TODO: Use valarrays here?
 typedef std::unordered_map<VertexSlot, FloatVector, VertexHashers> VertexComponentsMap;

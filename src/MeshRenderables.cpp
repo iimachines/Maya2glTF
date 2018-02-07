@@ -31,12 +31,20 @@ MeshRenderables::MeshRenderables(
 
 	auto primitiveVertexIndex = 0;
 
-	auto maxVertexElementCount = shapeCollection.maxVertexElementCount();
-
-	IndexVector vertexIndexKey;
+	const auto maxVertexElementCount = shapeCollection.maxVertexElementCount();
+	const auto maxVertexComponentCount = maxVertexElementCount * 4; // TODO: Compute this
+	FloatVector vertexIndexKey;
 	VertexLayout vertexLayout;
-	vertexIndexKey.reserve(maxVertexElementCount);
 	vertexLayout.reserve(maxVertexElementCount);
+	vertexIndexKey.reserve(maxVertexComponentCount);
+
+	const auto semanticsMask = -1;
+	//	= (1 << Semantic::POSITION)
+	//	| (1 << Semantic::TEXCOORD)
+	//	| (1 << Semantic::NORMAL)
+	//	| (1 << Semantic::COLOR)
+
+	//;
 
 	for (auto primitiveIndex = 0; primitiveIndex < primitiveCount; ++primitiveIndex)
 	{
@@ -55,25 +63,34 @@ MeshRenderables::MeshRenderables(
 				const auto& shapeIndicesTable = shapes.at(shapeIndex)->indices().table();
 				for (auto semanticIndex = 0; semanticIndex < shapeIndicesTable.size(); ++semanticIndex)
 				{
-					const auto & indicesPerSet = shapeIndicesTable[semanticIndex];
-
-					for (auto setIndex = 0; setIndex < indicesPerSet.size(); ++setIndex)
+					if (semanticsMask & (1<<semanticIndex))
 					{
-						const auto& indices = indicesPerSet.at(setIndex);
-						const auto index = indices[primitiveVertexIndex];
-						const int isUsed = index >= 0;
-						vertexSignature.slotUsage <<= 1;
-						vertexSignature.slotUsage |= isUsed;
-						if (isUsed)
+						const auto & indicesPerSet = shapeIndicesTable[semanticIndex];
+
+						for (auto setIndex = 0; setIndex < indicesPerSet.size(); ++setIndex)
 						{
-							auto semantic = Semantic::from(semanticIndex);
-							vertexLayout.emplace_back(shapeIndex, semantic, setIndex);
-							vertexIndexKey.push_back(index);
+							const auto& indices = indicesPerSet.at(setIndex);
+							const auto index = indices[primitiveVertexIndex];
+							const int isUsed = index >= 0;
+							vertexSignature.slotUsage <<= 1;
+							vertexSignature.slotUsage |= isUsed;
+							if (isUsed)
+							{
+								auto semantic = Semantic::from(semanticIndex);
+								vertexLayout.emplace_back(shapeIndex, semantic, setIndex);
+
+								const auto& elementIndices = shapeCollection.indicesAt(shapeIndex, semantic, setIndex);
+								const auto vertexIndex = elementIndices.at(primitiveVertexIndex);
+								const auto& vertexElements = shapeCollection.vertexElementsAt(shapeIndex, semantic, setIndex);
+								const auto& source = componentsAt(vertexElements, vertexIndex, semantic);
+								vertexIndexKey.insert(vertexIndexKey.end(), source.begin(), source.end());
+							}
 						}
 					}
 				}
 			}
 
+			// Check if a vertex with exactly the same components already exists. 
 			VertexBuffer& vertexBuffer = m_table[vertexSignature];
 
 			auto& componentsMap = vertexBuffer.componentsMap;
@@ -88,6 +105,7 @@ MeshRenderables::MeshRenderables(
 				sharedVertexIndex = static_cast<VertexIndex>(vertexBuffer.cache.size());
 				vertexBuffer.cache[vertexIndexKey] = sharedVertexIndex;
 
+				// Build the vertex.
 				for (auto&& slot : vertexLayout)
 				{
 					const auto& elementIndices = shapeCollection.indicesAt(slot.shapeIndex, slot.semantic, slot.setIndex);
