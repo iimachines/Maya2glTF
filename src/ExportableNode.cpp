@@ -4,9 +4,12 @@
 #include "ExportableResources.h"
 #include "Arguments.h"
 
-ExportableNode::ExportableNode(MDagPath dagPath, MString name, ExportableResources& resources)
+ExportableNode::ExportableNode(MDagPath dagPath, ExportableResources& resources)
+	: ExportableObject(dagPath.node())
 {
 	MStatus status;
+
+	handleNameAssignment(resources, glNode);
 
 	glNode.transform = &m_matrix;
 
@@ -36,7 +39,7 @@ ExportableNode::ExportableNode(MDagPath dagPath, MString name, ExportableResourc
 	}
 	break;
 	default:
-		cerr << "glTF2Maya: skipping '" << name.asChar() << "', it is not supported" << endl;
+		cerr << "glTF2Maya: skipping '" << name() << "', it is not supported" << endl;
 		break;
 	}
 }
@@ -59,5 +62,5 @@ std::unique_ptr<ExportableNode> ExportableNode::from(MDagPath dagPath, Exportabl
 		return nullptr;
 	}
 
-	return std::make_unique<ExportableNode>(dagPath, name, usedShaderNames);
+	return std::make_unique<ExportableNode>(dagPath, usedShaderNames);
 }

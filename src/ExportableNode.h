@@ -1,12 +1,12 @@
 #pragma once
 
-#include "ExportableItem.h"	
+#include "ExportableObject.h"	
 #include "ExportableMesh.h"
 
-class ExportableNode : public ExportableItem
+class ExportableNode : public ExportableObject
 {
 public:
-	ExportableNode(MDagPath dagPath, MString name, ExportableResources& resources);
+	ExportableNode(MDagPath dagPath, ExportableResources& resources);
 	~ExportableNode();
 
 	static std::unique_ptr<ExportableNode> from(MDagPath dagPath, ExportableResources& resources);

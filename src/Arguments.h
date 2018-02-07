@@ -33,7 +33,11 @@ public:
 	/** If non-null, dump the GLTF JSON to the stream */
 	IndentableStream* dumpGLTF;
 
+	/** By default a single GLTF file is exported; pass -separate to move the binary buffers to a separate BIN file */
 	bool separate = false;
+
+	/** By default the Maya node name is not assigned to the GLTF node name */
+	bool assignObjectNames = false;
 
 private:
 	static std::unique_ptr<IndentableStream> getOutputStream(const MArgDatabase& adb, const char* arg, const char *outputName, std::ofstream& fileOutputStream);

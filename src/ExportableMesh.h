@@ -1,12 +1,12 @@
 #pragma once
-#include "ExportableItem.h"
+#include "ExportableObject.h"
 
 class ExportableResources;
 class ExportablePrimitive;
 class Arguments;
 class Mesh;
 
-class ExportableMesh : public ExportableItem
+class ExportableMesh : public ExportableObject
 {
 public:
 	ExportableMesh(const MDagPath& shapeDagPath, ExportableResources& resources);

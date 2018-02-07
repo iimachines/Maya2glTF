@@ -1,11 +1,9 @@
 #pragma once
 
-#include "sceneTypes.h"
-
 class ExportableItem
 {
 public:
-	ExportableItem() {}
+	ExportableItem();
 	virtual ~ExportableItem() = 0;
 
 private:

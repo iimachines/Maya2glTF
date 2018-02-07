@@ -368,6 +368,8 @@ if errorlevel 1 (exit /b 100)
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\color.cpp" />
+    <ClCompile Include="src\ExportableObject.cpp" />
+    <ClCompile Include="src\ExportableTexture.cpp" />
     <ClCompile Include="src\filepath.cpp" />
     <ClCompile Include="src\IndentableStream.cpp" />
     <ClCompile Include="src\MeshShapeCollection.cpp" />
@@ -413,6 +415,8 @@ if errorlevel 1 (exit /b 100)
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\color.h" />
+    <ClInclude Include="src\ExportableObject.h" />
+    <ClInclude Include="src\ExportableTexture.h" />
     <ClInclude Include="src\filepath.h" />
     <ClInclude Include="src\hashers.h" />
     <ClInclude Include="src\MeshShapeCollection.h" />

@@ -15,6 +15,7 @@ namespace flag
 	const auto colorizeMaterials = "cm";
 	const auto forcePbrMaterials = "fpm";
 	const auto force32bitIndices = "i32";
+	const auto assignObjectNames = "aon";
 }
 
 MSyntax Arguments::createSyntax()
@@ -55,6 +56,9 @@ MSyntax Arguments::createSyntax()
 	status = syntax.addFlag(flag::force32bitIndices, "force32bitIndices", MSyntax::MArgType::kNoArg);
 	ASSERT_SUCCESS(status);
 
+	status = syntax.addFlag(flag::assignObjectNames, "assignObjectNames", MSyntax::MArgType::kNoArg);
+	ASSERT_SUCCESS(status);
+
 	syntax.useSelectionAsDefault(true);
 
 	return syntax;
@@ -92,6 +96,7 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	colorizeMaterials = adb.isFlagSet(flag::colorizeMaterials);
 	forcePbrMaterials = adb.isFlagSet(flag::forcePbrMaterials);
 	force32bitIndices = adb.isFlagSet(flag::force32bitIndices);
+	assignObjectNames = adb.isFlagSet(flag::assignObjectNames);
 
 	if (adb.isFlagSet(flag::sceneName))
 	{
