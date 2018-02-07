@@ -22,14 +22,14 @@ public:
 	assert(MStatus::kSuccess == (__expression__));
 
 #define THROW_ON_FAILURE(__expression__) { \
-	MStatus __status__ = (__expression__); \
+	const MStatus __status__ = (__expression__); /* NOLINT */ \
 	ASSERT_SUCCESS(__status__); \
 	if (MStatus::kSuccess != __status__) \
 		MayaException::throwIt(__status__, "", __FILE__, __LINE__, __FUNCTION__); \
 }
 
 #define THROW_ON_FAILURE_WITH(__expression__, __message__) { \
-	MStatus __status__ = (__expression__); \
+	const MStatus __status__ = (__expression__); /* NOLINT */ \
 	ASSERT_SUCCESS(__status__); \
 	if (MStatus::kSuccess != __status__) \
 		MayaException::throwIt(__status__, (__message__)__FILE__, __LINE__, __FUNCTION__); \
