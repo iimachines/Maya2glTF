@@ -175,8 +175,10 @@ void ExportableMaterialPBR::loadPBR(ExportableResources& resources, const MFnDep
 	// Roughness and metallic 
 	m_glMetallicRoughness.roughnessFactor = 0.5f;
 	m_glMetallicRoughness.metallicFactor = 0.5f;
-	if (getScalar(shaderObject, "u_RoughnessStrength", m_glMetallicRoughness.roughnessFactor) ||
-		getScalar(shaderObject, "u_MetallicStrength", m_glMetallicRoughness.metallicFactor))
+	const auto hasRoughnessStrength = getScalar(shaderObject, "u_RoughnessStrength", m_glMetallicRoughness.roughnessFactor);
+	const auto hasMetallicStrength = getScalar(shaderObject, "u_MetallicStrength", m_glMetallicRoughness.metallicFactor);
+
+	if (hasRoughnessStrength || hasMetallicStrength)
 	{
 		m_glMaterial.metallicRoughness = &m_glMetallicRoughness;
 	}
