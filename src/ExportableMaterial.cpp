@@ -228,7 +228,7 @@ void ExportableMaterialPBR::loadPBR(ExportableResources& resources, const MFnDep
 				__int64 pixelCount = width * height;
 				while (--pixelCount >= 0)
 				{
-					*roughnessPixels++ |= *metallicPixels++;
+					*roughnessPixels++ = (*roughnessPixels & 0xff00) | (*metallicPixels++ & 0xff0000);
 				}
 
 				// TODO: Add argument for output image file mime-type
