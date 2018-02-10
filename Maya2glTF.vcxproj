@@ -409,6 +409,7 @@ if errorlevel 1 (exit /b 100)
   <ItemGroup>
     <None Include=".gitignore" />
     <None Include="LICENSE" />
+    <None Include="maya\renderData\shaders\glTF_PBR.ogsfx" />
     <None Include="Readme.md" />
     <None Include="mel\create-PBR-spheres.mel" />
     <None Include="mel\test-iteration.mel" />
