@@ -3,7 +3,7 @@
 #include "ExportablePrimitive.h"
 #include "ExportableResources.h"
 #include "ExportableMaterial.h"
-#include "spans.h"
+#include "Spans.h"
 #include "Arguments.h"
 
 using namespace GLTF::Constants;

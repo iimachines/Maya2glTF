@@ -14,7 +14,7 @@ MIT License: http://www.opensource.org/licenses/mit-license.php
 #ifndef __DAG_HELPER_INCLUDED__
 #define __DAG_HELPER_INCLUDED__
 
-#include "basicTypes.h"
+#include "BasicTypes.h"
 
 struct DagHelper
 {

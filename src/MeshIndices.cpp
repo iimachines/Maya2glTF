@@ -1,7 +1,7 @@
 #include "externals.h"
 #include "MeshIndices.h"
 #include "MayaException.h"
-#include "spans.h"
+#include "Spans.h"
 #include "dump.h"
 
 MeshIndices::MeshIndices(const MeshSemantics& semantics, const MFnMesh& fnMesh)

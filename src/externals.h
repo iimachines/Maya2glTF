@@ -1,5 +1,8 @@
 #pragma once
 
+#define MNoVersionString
+#define MNoPluginEntry
+
 #include <csignal>
 #include <iostream>
 #include <sstream>
@@ -10,7 +13,11 @@
 #include <memory>
 #include <iomanip>
 #include <fstream>
-#include <filesystem>
+#if __has_include(<filesystem>)
+    #include <filesystem>
+#else
+    #include <experimental/filesystem>
+#endif
 #include <cstdarg>
 #include <unordered_set>
 #include <unordered_map>

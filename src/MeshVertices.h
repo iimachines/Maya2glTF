@@ -1,6 +1,6 @@
 #pragma once
 
-#include "sceneTypes.h"
+#include "SceneTypes.h"
 #include "MeshSemantics.h"
 
 /** The vertices of a single Maya mesh (components stored sequentially, ie [x0, y0, z0, x1, y1, z1, ...])  */

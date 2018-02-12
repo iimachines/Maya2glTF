@@ -1,7 +1,7 @@
 #pragma once
 
-#include "basicTypes.h"
-#include "spans.h"
+#include "BasicTypes.h"
+#include "Spans.h"
 
 struct CollectionHashers
 {

@@ -1,12 +1,13 @@
 #include "externals.h"
 #include "IndentableStream.h"
+#include <time.h>
 
 ostream& prefix(ostream& stream)
 {
 	tm buf;
 	const auto now = std::chrono::system_clock::now();
 	const auto time = std::chrono::system_clock::to_time_t(now);
-	localtime_s(&buf, &time);
+	localtime_r(&time, &buf);
 	stream << "maya2glTF [" << std::put_time(&buf, "%T") << "] ";
 	return stream;
 }
