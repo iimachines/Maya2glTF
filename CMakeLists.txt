@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.9)
 project(Maya2glTF)
 
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -Wextra")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -Wl,-rpath='${ORIGIN}'")
 
 if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17")
@@ -16,10 +16,14 @@ set(DEPENDENCY_DIR dependencies)
 
 # GLTF
 include_directories(${DEPENDENCY_DIR}/COLLADA2GLTF/GLTF/include)
-add_subdirectory(${DEPENDENCY_DIR}/COLLADA2GLTF/GLTF)
+#add_subdirectory(${DEPENDENCY_DIR}/COLLADA2GLTF/GLTF)
+#find_library(GLTF NAMES GLTF PATHS ${DEPENDENCY_DIR}/COLLADA2GLTF/GLTF)
 
 # RapidJSON
 include_directories(${DEPENDENCY_DIR}/COLLADA2GLTF/GLTF/dependencies/rapidjson/include)
+
+# DRACO
+include_directories(${DEPENDENCY_DIR}/COLLADA2GLTF/GLTF/dependencies/draco/src)
 
 # COVEO
 include_directories(${DEPENDENCY_DIR}/cpp-linq/lib)
@@ -27,8 +31,25 @@ include_directories(${DEPENDENCY_DIR}/cpp-linq/lib)
 # GSL
 include_directories(${DEPENDENCY_DIR}/GSL/include)
 
-# DRACO
-include_directories(${DEPENDENCY_DIR}/COLLADA2GLTF/GLTF/dependencies/draco/src)
-
 # Maya2glTF
-add_subdirectory(src)
+#add_subdirectory(src)
+file(GLOB Maya2glTF_SRC
+        "src/*.cpp"
+        "include/*.h")
+
+file(GLOB ${GLTF_SRC} "${DEPENDENCY_DIR}/COLLADA2GLTF/GLTF/src/*.cpp" "${DEPENDENCY_DIR}/COLLADA2GLTF/GLTF/include/*.h")
+
+set(SOURCE_FILES ${Maya2glTF_SRC} ${GLTF_SRC})
+
+find_package(Maya REQUIRED)
+
+include_directories(${MAYA_INCLUDE_DIR})
+link_directories(${MAYA_LIBRARY_DIR})
+
+add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES})
+
+target_link_libraries(${PROJECT_NAME} ${MAYA_LIBRARIES})
+
+MAYA_PLUGIN(${PROJECT_NAME})
+
+install(TARGETS ${PROJECT_NAME} ${MAYA_TARGET_TYPE} DESTINATION plug-ins)
