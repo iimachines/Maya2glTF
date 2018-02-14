@@ -7,7 +7,11 @@ ostream& prefix(ostream& stream)
 	tm buf;
 	const auto now = std::chrono::system_clock::now();
 	const auto time = std::chrono::system_clock::to_time_t(now);
+#if defined(_WIN32) || defined(_WIN64)
+	localtime_s(&buf, &time);
+#else
 	localtime_r(&time, &buf);
+#endif
 	stream << "maya2glTF [" << std::put_time(&buf, "%T") << "] ";
 	return stream;
 }
@@ -38,4 +42,3 @@ std::basic_streambuf<char>::int_type IndentationBuffer::overflow(const int_type 
 
 	return traits_type::not_eof(c);
 }
-
