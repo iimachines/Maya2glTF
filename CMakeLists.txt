@@ -26,6 +26,7 @@ target_include_directories(GLTF PUBLIC include)
 include_directories(SYSTEM ${DEPENDENCY_DIR}/COLLADA2GLTF/GLTF/dependencies/rapidjson/include)
 
 # DRACO
+add_definitions(-DDRACO_POINT_CLOUD_COMPRESSION_SUPPORTED)
 include_directories(${DEPENDENCY_DIR}/COLLADA2GLTF/GLTF/dependencies/draco/src)
 add_subdirectory(${DEPENDENCY_DIR}/COLLADA2GLTF/GLTF/dependencies/draco)
 # file(GLOB DRACO_SRC
