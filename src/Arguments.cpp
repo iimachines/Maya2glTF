@@ -17,6 +17,8 @@ namespace flag
 	const auto force32bitIndices = "i32";
 	const auto assignObjectNames = "aon";
 	const auto scaleFactor = "sf";
+	const auto mikkelsenTangentSpace = "mts";
+	const auto mikkelsenTangentAngularThreshold = "mta";
 }
 
 MSyntax Arguments::createSyntax()
@@ -61,6 +63,12 @@ MSyntax Arguments::createSyntax()
 	ASSERT_SUCCESS(status);
 
 	status = syntax.addFlag(flag::assignObjectNames, "assignObjectNames", MSyntax::MArgType::kNoArg);
+	ASSERT_SUCCESS(status);
+
+	status = syntax.addFlag(flag::mikkelsenTangentSpace, "mikkelsenTangentSpace", MSyntax::MArgType::kNoArg);
+	ASSERT_SUCCESS(status);
+
+	status = syntax.addFlag(flag::mikkelsenTangentAngularThreshold, "mikkelsenTangentAngularThreshold", MSyntax::MArgType::kDouble);
 	ASSERT_SUCCESS(status);
 
 	syntax.useSelectionAsDefault(true);
@@ -129,12 +137,25 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 		sceneName = fileName.substr(0, lastindex).c_str();
 	}
 
+	mikkelsenTangentAngularThreshold = 0;
+
+	if (adb.isFlagSet(flag::mikkelsenTangentSpace))
+	{
+		mikkelsenTangentAngularThreshold = 180;
+	}
+
+	if (adb.isFlagSet(flag::mikkelsenTangentAngularThreshold))
+	{
+		status = adb.getFlagArgument(flag::mikkelsenTangentAngularThreshold, 0, mikkelsenTangentAngularThreshold);
+		THROW_ON_FAILURE(status);
+	}
+
 	// For debugging, dump the arguments again
 	MStringArray selectedObjects;
 	status = selection.getSelectionStrings(selectedObjects);
 	THROW_ON_FAILURE(status);
 
-	cout << prefix << "Using arguments -sn " << sceneName << " -of " << outputFolder << " " << selectedObjects << endl;
+	cout << prefix << "Exporting " << selectedObjects << " to " << outputFolder << "/" << sceneName << "..." << endl;
 }
 
 Arguments::~Arguments()
