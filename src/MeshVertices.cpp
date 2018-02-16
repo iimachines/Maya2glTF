@@ -34,7 +34,7 @@ struct MikkTSpaceVectors
 
 	MikkTSpaceVectors(const MeshIndices& meshIndices, VertexElementsPerSetIndexTable& vertexTable, const int setIndex)
 	{
-		const auto numTangents = meshIndices.vertexCount() * 3;
+		const auto numTangents = meshIndices.maxVertexCount();
 
 		// HACK: We assume the indices arrays are large enough here...
 		assert(meshIndices.indicesAt(Semantic::TANGENT, setIndex).size() >= numTangents);
@@ -60,6 +60,7 @@ struct MikkTSpaceContext : SMikkTSpaceContext
 		: triangleCount(meshIndices.primitiveCount())
 		, indices(meshIndices, setIndex)
 		, vectors(meshIndices, vertexTable, setIndex)
+		, interface {}
 	{
 		m_pInterface = &interface;
 		m_pUserData = this;

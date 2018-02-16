@@ -24,7 +24,7 @@ static gsl::span<const MColor> span(const MColorArray& marray)
 template<typename T, typename S>
 static gsl::span<const T> reinterpret_span(const gsl::span<S>& span)
 {
-	assert(sizeof(S) % sizeof(T) == 0);
+	assert(sizeof(S) >= sizeof(T) ? sizeof(S) % sizeof(T) == 0 : sizeof(T) % sizeof(S) == 0);
 
 	if (span.empty())
 		return gsl::span<T>();

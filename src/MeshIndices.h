@@ -48,9 +48,9 @@ public:
 
 	// TODO: Support other primitives
 	auto primitiveKind() const { return TRIANGLE_LIST; }
-	auto perPrimitiveVertexCount() const { return m_TriangleCount; }
-	auto primitiveCount() const { return m_table.at(Semantic::POSITION).at(0).size() / perPrimitiveVertexCount(); }
-	auto vertexCount() const { return perPrimitiveVertexCount() * primitiveCount(); }
+	auto perPrimitiveVertexCount() const { return 3; }
+	auto primitiveCount() const { return m_TriangleCount; }
+	auto maxVertexCount() const { return perPrimitiveVertexCount() * primitiveCount(); }
 
 	const IndexVector& indicesAt(const size_t semanticIndex, const size_t setIndex) const
 	{
