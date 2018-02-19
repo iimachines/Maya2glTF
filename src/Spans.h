@@ -24,7 +24,7 @@ static gsl::span<const MColor> span(const MColorArray& marray)
 template<typename T, typename S>
 static gsl::span<const T> reinterpret_span(const gsl::span<S>& span)
 {
-	assert(sizeof(S) >= sizeof(T) ? sizeof(S) % sizeof(T) == 0 : sizeof(T) % sizeof(S) == 0);
+	assert(sizeof(S) % sizeof(T) == 0);
 
 	if (span.empty())
 		return gsl::span<T>();
@@ -33,14 +33,6 @@ static gsl::span<const T> reinterpret_span(const gsl::span<S>& span)
 	const S* end_ptr = bgn_ptr + span.size();
 
 	return gsl::make_span(reinterpret_cast<const T*>(bgn_ptr), reinterpret_cast<const T*>(end_ptr));
-}
-
-template<typename T>
-static gsl::span<T> mutable_span(const gsl::span<const T>& span)
-{
-	const T* bgn_ptr = &span[0];
-	const T* end_ptr = bgn_ptr + span.size();
-	return gsl::make_span(const_cast<T*>(bgn_ptr), const_cast<T*>(end_ptr));
 }
 
 static std::size_t hash_value(const gsl::span<const uint32>& span)

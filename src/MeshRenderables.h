@@ -1,6 +1,6 @@
 #pragma once
 
-#include "sceneTypes.h"
+#include "SceneTypes.h"
 #include "hashers.h"
 #include "dump.h"
 

@@ -2,7 +2,12 @@
 #include "BasicTypes.h"
 
 // <0 means an invalid index
-typedef __int32 Index;
+#if defined(_WIN32) || defined(_WIN64)
+	typedef unsigned __int32 Index;
+#else
+	#include <stdint.h>
+	typedef uint32_t Index;
+#endif
 
 /** Maya uses strings to identify color and texture-coordinate sets. We use indices */
 typedef int SetIndex;

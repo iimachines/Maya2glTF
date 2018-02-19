@@ -225,7 +225,11 @@ void ExportableMaterialPBR::loadPBR(ExportableResources& resources, const MFnDep
 				// Merge metallic into roughness
 				auto metallicPixels = reinterpret_cast<uint32_t*>(metallicImage.pixels());
 				auto roughnessPixels = reinterpret_cast<uint32_t*>(roughnessImage.pixels());
-				__int64 pixelCount = width * height;
+				#if defined(_WIN32) || defined(_WIN64)
+					__int64 pixelCount = width * height;
+                #else
+					uint64_t pixelCount = width * height;
+                #endif
 				while (--pixelCount >= 0)
 				{
 					*roughnessPixels++ = (*roughnessPixels & 0xff00) | (*metallicPixels++ & 0xff0000);

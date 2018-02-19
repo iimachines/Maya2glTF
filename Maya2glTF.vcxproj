@@ -367,14 +367,6 @@ if errorlevel 1 (exit /b 100)
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\mikktspace.c">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2017-Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2016_EXT2-Release|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2016_EXT2-Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2017-Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2018-Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2018-Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="src\color.cpp" />
     <ClCompile Include="src\ExportableObject.cpp" />
     <ClCompile Include="src\ExportableTexture.cpp" />
@@ -423,7 +415,6 @@ if errorlevel 1 (exit /b 100)
     <None Include="mel\test-iteration.mel" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\mikktspace.h" />
     <ClInclude Include="src\color.h" />
     <ClInclude Include="src\ExportableObject.h" />
     <ClInclude Include="src\ExportableTexture.h" />

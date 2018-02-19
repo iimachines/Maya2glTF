@@ -1,6 +1,6 @@
 #pragma once
 
-#include "indentableStream.h"
+#include "IndentableStream.h"
 
 /*
  * Workaround for plugin not printing to cout/cerr in debug builds

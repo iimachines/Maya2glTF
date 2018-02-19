@@ -26,34 +26,18 @@ uniform mat4 u_ModelMatrix : World;
 uniform mat4 u_NormalMatrix : WorldInverseTranspose;
 uniform mat4 u_CameraMatrix : ViewInverse;
 
-uniform vec3 u_LightColor : LightColor
+uniform vec3 u_LightColor
 <
 	string UIName = "Light Color";
 	string UIWidget = "ColorPicker";
     string UIGroup = "PBR Light";
-	string Object = "directionalLight1";
 > = {1.0, 1.0, 1.0};
 
-uniform float u_LightIntensity : LightIntensity
-<
-	string UIName = "Light Intensity";
-    string UIGroup = "PBR Light";
-	float UIMin = 0;
-	float UISoftMin = 0;
-	float UIMax = 10;
-	float UISoftMax = 10;
-	float UIStep = 0.001;
-	string UIWidget = "Slider";
-	string Object = "directionalLight1";
-> = {1.0};
-
-uniform vec3 u_LightDir : Direction
+uniform vec3 u_LightDir
 <
 	string UIName = "Light Direction";
-	string Space = "World";
     string UIGroup = "PBR Light";
-	string Object = "directionalLight1";
-> = {0,-1,0};
+> = {0,1,0};
 
 #ifdef USE_IBL
 
@@ -523,7 +507,7 @@ GLSLShader PS
 
         vec3 n = getNormal();                             // normal at surface point
         vec3 v = normalize(v_CameraPos - v_Position);        // Vector from surface point to camera
-        vec3 l = normalize(-u_LightDir);             // Vector from surface point to light
+        vec3 l = normalize(u_LightDir);             // Vector from surface point to light
         vec3 h = normalize(l+v);                          // Half vector between both l and v
         vec3 reflection = normalize(-reflect(v, n));
 
@@ -556,7 +540,7 @@ GLSLShader PS
         // Calculation of analytical lighting contribution
         vec3 diffuseContrib = (1.0 - F) * diffuse(pbrInputs);
         vec3 specContrib = F * G * D / (4.0 * NdotL * NdotV);
-        vec3 color = NdotL * u_LightColor * u_LightIntensity * (diffuseContrib + specContrib);
+        vec3 color = NdotL * u_LightColor * (diffuseContrib + specContrib);
 
         // Calculate lighting contribution from image based lighting source (IBL)
 #ifdef USE_IBL

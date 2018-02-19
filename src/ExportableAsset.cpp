@@ -155,7 +155,7 @@ void ExportableAsset::save()
 		const auto& jsonString = m_rawJsonString;
 
 		std::ofstream file;
-		create(file, outputPath.string(), ios::out | (args.glb ? ios::binary : 0));
+		create(file, outputPath.string(), ios::out | (args.glb ? ios::binary : ios::app));
 
 		if (args.glb)
 		{
@@ -220,7 +220,7 @@ void ExportableAsset::create(std::ofstream& file, const std::string& path, const
 	{
 		std::ostringstream ss;
 		ss << "Couldn't write to '" << path << "'";
-		throw std::exception(ss.str().c_str());
+		throw std::runtime_error(ss.str().c_str());
 	}
 }
 

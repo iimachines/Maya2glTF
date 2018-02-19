@@ -8,10 +8,18 @@
   void operator=(const TypeName&) = delete
 #endif
 
-typedef unsigned __int8 uint8;
-typedef unsigned __int16 uint16;
-typedef unsigned __int32 uint32;
-typedef unsigned __int64 uint64;
+#if defined(_WIN32) || defined(_WIN64)
+	typedef unsigned __int8 uint8;
+	typedef unsigned __int16 uint16;
+	typedef unsigned __int32 uint32;
+	typedef unsigned __int64 uint64;
+#else
+	#include <stdint.h>
+	typedef uint8_t uint8;
+	typedef uint16_t uint16;
+	typedef uint32_t uint32;
+	typedef uint64_t uint64;
+#endif
 
 typedef std::string Name;
 typedef std::vector<Name> NameVector;

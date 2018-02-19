@@ -1,6 +1,6 @@
 #pragma once
 
-#include "sceneTypes.h"
+#include "SceneTypes.h"
 #include "IndentableStream.h"
 
 template<typename ... Args>
