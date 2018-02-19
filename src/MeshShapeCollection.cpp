@@ -14,7 +14,7 @@ MeshShapeCollection::MeshShapeCollection(const MeshShape& mainShape, const MeshB
 	m_offsets.mainMeshOffset = 0;
 	m_shapes.push_back(&mainShape);
 
-	const auto vertexCount = mainShape.indices().vertexCount();
+	const auto vertexCount = mainShape.indices().maxVertexCount();
 
 	// Verify that all blend-shapes have the same "topology"
 	if (hasBlendShapes)
@@ -24,7 +24,7 @@ MeshShapeCollection::MeshShapeCollection(const MeshShape& mainShape, const MeshB
 
 		const auto* baseShape = maybeBlendShapes->baseShape();
 
-		if (baseShape->indices().vertexCount() != vertexCount)
+		if (baseShape->indices().maxVertexCount() != vertexCount)
 			throw std::runtime_error(formatted("Base shape '%s' has different topology from '%s'!",
 				mainShape.dagPath().fullPathName().asChar(), baseShape->dagPath().fullPathName().asChar()));
 
@@ -35,7 +35,7 @@ MeshShapeCollection::MeshShapeCollection(const MeshShape& mainShape, const MeshB
 		for (auto&& entry : maybeBlendShapes->entries())
 		{
 			const auto& shape = entry->shape;
-			if (shape.indices().vertexCount() != vertexCount)
+			if (shape.indices().maxVertexCount() != vertexCount)
 				throw std::runtime_error(formatted("Blend shape '%s' has different topology from '%s'!",
 					mainShape.dagPath().fullPathName().asChar(), shape.dagPath().fullPathName().asChar()));
 

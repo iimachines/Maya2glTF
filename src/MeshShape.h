@@ -24,5 +24,16 @@ private:
 	std::unique_ptr<MeshSemantics> m_semantics;
 	std::unique_ptr<MeshVertices> m_vertices;
 	std::unique_ptr<MeshIndices> m_indices;
+
+	//static VertexComponents getElementComponents(
+	//	const struct SMikkTSpaceContext * pContext,
+	//	Semantic::Kind semantic, SetIndex setIndex,
+	//	const int iFace, const int iVert);
+
+	//static void copyElementComponentsTo(
+	//	const struct SMikkTSpaceContext * pContext,
+	//	Semantic::Kind semantic, SetIndex setIndex,
+	//	const int iFace, const int iVert,
+	//	gsl::span<float> target);
 };
 
