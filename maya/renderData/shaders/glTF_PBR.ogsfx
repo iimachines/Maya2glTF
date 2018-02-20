@@ -20,12 +20,16 @@
 #define USE_TEX_LOD
 #define MANUAL_SRGB
 #define SRGB_FAST_APPROXIMATION
+#undef USE_LIGHT_BINDING
+
+#define M_PI 3.141592653589793
 
 uniform mat4 u_MVPMatrix : WorldViewProjection;
 uniform mat4 u_ModelMatrix : World;
 uniform mat4 u_NormalMatrix : WorldInverseTranspose;
 uniform mat4 u_CameraMatrix : ViewInverse;
 
+#ifdef USE_LIGHT_BINDING
 uniform vec3 u_LightColor : LightColor
 <
 	string UIName = "Light Color";
@@ -54,6 +58,44 @@ uniform vec3 u_LightDir : Direction
     string UIGroup = "PBR Light";
 	string Object = "directionalLight1";
 > = {0,-1,0};
+#else
+uniform vec3 u_LightColor 
+<
+	string UIName = "Light Color";
+	string UIWidget = "ColorPicker";
+    string UIGroup = "PBR Light";
+> = {1.0, 1.0, 1.0};
+
+uniform float u_LightIntensity 
+<
+	string UIName = "Light Intensity";
+    string UIGroup = "PBR Light";
+	float UIMin = 0;
+	float UISoftMin = 0;
+	float UIMax = 10;
+	float UISoftMax = 10;
+	float UIStep = 0.001;
+	string UIWidget = "Slider";
+> = {1.0};
+
+uniform float u_LightRotation
+<
+	string UIName = "Light rotation (deg)";
+    string UIGroup = "PBR Light";
+	string UIWidget = "Slider";
+	float UIMin = 0;
+	float UIMax = 360;
+> = 75;
+
+uniform float u_LightPitch
+<
+	string UIName = "Light pitch (deg)";
+    string UIGroup = "PBR Light";
+	string UIWidget = "Slider";
+	float UIMin = -90;
+	float UIMax = 90;
+> = 40;
+#endif
 
 #ifdef USE_IBL
 
@@ -305,6 +347,9 @@ attribute vs_to_ps
     vec2  v_UV        : TEXCOORD0;
     float v_BinormalSign;
     mat3  v_TBN;
+#ifndef USE_LIGHT_BINDING
+    vec3  v_LightDir;
+#endif
 };
 
 attribute ps_output
@@ -330,6 +375,11 @@ GLSLShader VS
 
         v_UV = vec2(a_UV.x, 1.0 - a_UV.y);
 
+#ifndef USE_LIGHT_BINDING
+        float rot = u_LightRotation * M_PI / 180;
+        float pitch = u_LightPitch * M_PI / 180;
+        v_LightDir = vec3(sin(rot) * cos(pitch), sin(pitch), cos(rot) * cos(pitch));
+#endif
         gl_Position = u_MVPMatrix * a_Position; // needs w for proper perspective correction
     }
 }
@@ -338,7 +388,6 @@ GLSLShader PS
 {
 #extension GL_ARB_texture_query_levels : enable
 
-    const float M_PI = 3.141592653589793;
     const float c_MinRoughness = 0.04;
 
     // In a normal map, (128, 128, 255) means no deviation from the standard normal
@@ -523,7 +572,12 @@ GLSLShader PS
 
         vec3 n = getNormal();                             // normal at surface point
         vec3 v = normalize(v_CameraPos - v_Position);        // Vector from surface point to camera
-        vec3 l = normalize(-u_LightDir);             // Vector from surface point to light
+#ifdef USE_LIGHT_BINDING
+        // Vector from surface point to light
+        vec3 l = normalize(-u_LightDir);             
+#else
+        vec3 l = normalize(v_LightDir);             
+#endif
         vec3 h = normalize(l+v);                          // Half vector between both l and v
         vec3 reflection = normalize(-reflect(v, n));
 

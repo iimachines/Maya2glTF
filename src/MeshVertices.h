@@ -16,11 +16,12 @@ inline VertexComponents componentsAt(const VertexComponents& elements, const siz
 }
 
 class Arguments;
+class MeshIndices;
 
 class MeshVertices
 {
 public:
-	MeshVertices(const MeshSemantics& names, const MFnMesh& mesh, const Arguments& args, MSpace::Space space = MSpace::kTransform);
+	MeshVertices(const MeshIndices& meshIndices, const MFnMesh& mesh, const Arguments& args, MSpace::Space space = MSpace::kTransform);
 	virtual ~MeshVertices();
 
 	const VertexElementsPerSetIndexTable& table() const { return m_table; }
@@ -33,8 +34,11 @@ public:
 	}
 
 private:
+	friend class MeshShape;
+
 	PositionVector m_positions;
 	NormalVector m_normals;
+
 	std::map<SetIndex, TangentVector> m_tangentSets;
 	std::map<SetIndex, TexCoordVector> m_uvSets;
 	std::map<SetIndex, ColorVector> m_colorSets;
