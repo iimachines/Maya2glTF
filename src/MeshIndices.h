@@ -35,7 +35,7 @@ typedef std::map<InstanceIndex, MeshShading> MeshShadingPerInstance;
 class MeshIndices
 {
 public:
-	MeshIndices(const MeshSemantics* meshSemantics, const MFnMesh& fnMesh);
+	MeshIndices(const MeshSemantics& setNames, const MFnMesh& fnMesh);
 	virtual ~MeshIndices();
 
 	const VertexElementIndicesPerSetIndexTable& table() const
@@ -43,14 +43,13 @@ public:
 		return m_table;
 	}
 
-	const std::string meshName;
-	const MeshSemantics& semantics;
+	std::string meshName;
 
 	// TODO: Support other primitives
 	auto primitiveKind() const { return TRIANGLE_LIST; }
 	auto perPrimitiveVertexCount() const { return 3; }
-	auto primitiveCount() const { return m_TriangleCount; }
-	auto maxVertexCount() const { return perPrimitiveVertexCount() * primitiveCount(); }
+	auto primitiveCount() const { return m_table.at(Semantic::POSITION).at(0).size() / perPrimitiveVertexCount(); }
+	auto vertexCount() const { return perPrimitiveVertexCount() * primitiveCount(); }
 
 	const IndexVector& indicesAt(const size_t semanticIndex, const size_t setIndex) const
 	{
@@ -62,7 +61,6 @@ public:
 	void dump(class IndentableStream& cout, const std::string& name) const;
 
 private:
-	int m_TriangleCount;
 	VertexElementIndicesPerSetIndexTable m_table;
 	MeshShadingPerInstance m_shadingPerInstance;
 

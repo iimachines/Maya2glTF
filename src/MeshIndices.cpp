@@ -4,9 +4,8 @@
 #include "Spans.h"
 #include "dump.h"
 
-MeshIndices::MeshIndices(const MeshSemantics* meshSemantics, const MFnMesh& fnMesh)
-	: meshName(fnMesh.partialPathName().asChar())
-	, semantics(*meshSemantics)
+MeshIndices::MeshIndices(const MeshSemantics& semantics, const MFnMesh& fnMesh)
+	:meshName(fnMesh.partialPathName().asChar())
 {
 	MStatus status;
 
@@ -16,29 +15,23 @@ MeshIndices::MeshIndices(const MeshSemantics* meshSemantics, const MFnMesh& fnMe
 
 	const auto numPolygons = fnMesh.numPolygons();
 
-	for (unsigned instanceIndex = 0; instanceIndex < instanceCount; ++instanceIndex)
+	for (unsigned instanceIndex=0; instanceIndex<instanceCount; ++instanceIndex)
 	{
 		auto& shading = m_shadingPerInstance[instanceIndex];
 		THROW_ON_FAILURE(fnMesh.getConnectedShaders(instanceIndex, shading.shaderGroups, mapPolygonToShaderPerInstance[instanceIndex]));
 		shading.primitiveToShaderIndexMap.reserve(numPolygons * 2);
 	}
 
-	m_TriangleCount = 0;
-	for (MItMeshPolygon itPoly(fnMesh.object()); !itPoly.isDone(); itPoly.next())
-	{
-		int triangleCount;
-		THROW_ON_FAILURE(itPoly.numTriangles(triangleCount));
-		m_TriangleCount += triangleCount;
-	}
 
-	for (auto kind = 0; kind < Semantic::COUNT; ++kind)
+	// Reserve space for the indices, we assume every polygon is a quad.
+	for (auto kind = 0; kind<Semantic::COUNT; ++kind)
 	{
 		auto& indexSet = m_table.at(kind);
 		const auto n = semantics.descriptions(Semantic::from(kind)).size();
-		for (auto set = 0; set < n; ++set)
+		for (auto set = 0; set<n; ++set)
 		{
 			IndexVector indices;
-			indices.reserve(m_TriangleCount * 3);
+			indices.reserve(numPolygons * 6);
 			indexSet.push_back(indices);
 		}
 	}
@@ -54,7 +47,7 @@ MeshIndices::MeshIndices(const MeshSemantics* meshSemantics, const MFnMesh& fnMe
 
 	const auto colorSetCount = colorSemantics.size();
 	const auto uvSetCount = uvSetSemantics.size();
-
+	
 	const auto numVertices = fnMesh.numVertices(&status);
 	THROW_ON_FAILURE(status);
 
@@ -63,7 +56,7 @@ MeshIndices::MeshIndices(const MeshSemantics* meshSemantics, const MFnMesh& fnMe
 	MPointArray triangleVertexPoints;
 	MIntArray triangleVertexIndices;
 	MIntArray polygonVertexIndices;
-
+	
 	for (MItMeshPolygon itPoly(fnMesh.object()); !itPoly.isDone(); itPoly.next())
 	{
 		const auto polygonIndex = itPoly.index(&status);
@@ -77,7 +70,7 @@ MeshIndices::MeshIndices(const MeshSemantics* meshSemantics, const MFnMesh& fnMe
 		// we just need the triangles using face-vertex-indices
 		THROW_ON_FAILURE(itPoly.getVertices(polygonVertexIndices));
 		const int numPolygonVertices = polygonVertexIndices.length();
-		for (auto polygonVertexIndex = 0; polygonVertexIndex < numPolygonVertices; ++polygonVertexIndex)
+		for (auto polygonVertexIndex = 0; polygonVertexIndex<numPolygonVertices; ++polygonVertexIndex)
 		{
 			const auto meshVertexIndex = polygonVertexIndices[polygonVertexIndex];
 			localPolygonVertices[meshVertexIndex] = polygonVertexIndex;
@@ -93,14 +86,14 @@ MeshIndices::MeshIndices(const MeshSemantics* meshSemantics, const MFnMesh& fnMe
 
 		for (auto localTriangleIndex = 0; localTriangleIndex < numTrianglesInPolygon; ++localTriangleIndex)
 		{
-			for (unsigned instanceIndex = 0; instanceIndex < instanceCount; ++instanceIndex)
+			for (unsigned instanceIndex = 0; instanceIndex<instanceCount; ++instanceIndex)
 			{
 				auto& shading = m_shadingPerInstance[instanceIndex];
 				const auto shaderIndex = mapPolygonToShaderPerInstance.at(instanceIndex)[polygonIndex];
 				shading.primitiveToShaderIndexMap.push_back(shaderIndex);
 			}
 
-			for (auto i = 0; i < 3; ++i, ++triangleVertexIndex)
+			for (auto i = 0; i<3; ++i, ++triangleVertexIndex)
 			{
 				const auto meshVertexIndex = triangleVertexIndices[triangleVertexIndex];
 				const auto localVertexIndex = localPolygonVertices[meshVertexIndex];
@@ -113,7 +106,7 @@ MeshIndices::MeshIndices(const MeshSemantics* meshSemantics, const MFnMesh& fnMe
 				THROW_ON_FAILURE(status);
 				normals.push_back(normalIndex);
 
-				for (auto setIndex = 0; setIndex < colorSetCount; ++setIndex)
+				for (auto setIndex=0; setIndex<colorSetCount; ++setIndex)
 				{
 					int colorIndex;
 					auto& colorSetName = colorSemantics[setIndex].setName;
@@ -131,7 +124,7 @@ MeshIndices::MeshIndices(const MeshSemantics* meshSemantics, const MFnMesh& fnMe
 					}
 				}
 
-				for (auto setIndex = 0; setIndex < uvSetCount; ++setIndex)
+				for (auto setIndex = 0; setIndex<uvSetCount; ++setIndex)
 				{
 					int uvIndex;
 					auto& uvSetName = uvSetSemantics[setIndex].setName;

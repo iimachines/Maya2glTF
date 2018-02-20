@@ -39,9 +39,6 @@ public:
 	/** By default the Maya node name is not assigned to the GLTF node name */
 	bool assignObjectNames = false;
 
-	/** When non-0, instead of using Maya's tangents, use tangents as computed in Morten Mikkelsen's thesis http://image.diku.dk/projects/media/morten.mikkelsen.08.pdf*/
-	double mikkelsenTangentAngularThreshold = 0;
-
 	/** The scale factor to apply to the vertex positions */
 	double scaleFactor = 1;
 
