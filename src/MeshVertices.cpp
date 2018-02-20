@@ -125,10 +125,17 @@ struct MikkTSpaceContext : SMikkTSpaceContext
 	static void setTSpaceBasic(const SMikkTSpaceContext* pContext, const float fvTangent[], const float fSign, const int iFace, const int iVert)
 	{
 		const auto context = static_cast<const MikkTSpaceContext*>(pContext);
+
 		// Re-index
 		const auto index = iFace * 3 + iVert;
 		context->indices.tangents[index] = index;
-		context->vectors.tangents[index] = { fvTangent[0],fvTangent[1],fvTangent[2],fSign };
+
+		const auto tx = fvTangent[0];
+		const auto ty = fvTangent[1];
+		const auto tz = fvTangent[2];
+		const auto tl = sqrtf(tx*tx + ty * ty + tz * tz);
+
+		context->vectors.tangents[index] = { tx / tl, ty / tl, tz / tl, fSign };
 	}
 };
 
