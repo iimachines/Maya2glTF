@@ -39,6 +39,15 @@ public:
 	/** By default the Maya node name is not assigned to the GLTF node name */
 	bool assignObjectNames = false;
 
+	/** Generate debug tangent vector lines? */
+	bool debugTangentVectors = false;
+
+	/** Generate debug normal vector lines? */
+	bool debugNormalVectors = false;
+
+	/** The length of the debugging vectors */
+	double debugVectorLength = 0.1;
+
 	/** When non-0, instead of using Maya's tangents, use tangents as computed in Morten Mikkelsen's thesis http://image.diku.dk/projects/media/morten.mikkelsen.08.pdf*/
 	double mikkelsenTangentAngularThreshold = 0;
 

@@ -19,14 +19,17 @@ namespace flag
 	const auto scaleFactor = "sf";
 	const auto mikkelsenTangentSpace = "mts";
 	const auto mikkelsenTangentAngularThreshold = "mta";
+
+	const auto debugTangentVectors = "dtv";
+	const auto debugNormalVectors = "dnv";
+	const auto debugVectorLength = "dvl";
 }
 
 MSyntax Arguments::createSyntax()
 {
-	MStatus status;
 	MSyntax syntax;
 
-	status = syntax.setObjectType(MSyntax::MObjectFormat::kSelectionList, 1);
+	MStatus status = syntax.setObjectType(MSyntax::MObjectFormat::kSelectionList, 1);
 	ASSERT_SUCCESS(status);
 
 	status = syntax.addFlag(flag::outputFolder, "outputFolder", MSyntax::MArgType::kString);
@@ -65,10 +68,22 @@ MSyntax Arguments::createSyntax()
 	status = syntax.addFlag(flag::assignObjectNames, "assignObjectNames", MSyntax::MArgType::kNoArg);
 	ASSERT_SUCCESS(status);
 
+	status = syntax.addFlag(flag::assignObjectNames, "assignObjectNames", MSyntax::MArgType::kNoArg);
+	ASSERT_SUCCESS(status);
+
 	status = syntax.addFlag(flag::mikkelsenTangentSpace, "mikkelsenTangentSpace", MSyntax::MArgType::kNoArg);
 	ASSERT_SUCCESS(status);
 
 	status = syntax.addFlag(flag::mikkelsenTangentAngularThreshold, "mikkelsenTangentAngularThreshold", MSyntax::MArgType::kDouble);
+	ASSERT_SUCCESS(status);
+
+	status = syntax.addFlag(flag::debugNormalVectors, "debugNormalVectors", MSyntax::MArgType::kNoArg);
+	ASSERT_SUCCESS(status);
+
+	status = syntax.addFlag(flag::debugTangentVectors, "debugTangentVectors", MSyntax::MArgType::kNoArg);
+	ASSERT_SUCCESS(status);
+
+	status = syntax.addFlag(flag::debugVectorLength, "debugVectorLength", MSyntax::MArgType::kDouble);
 	ASSERT_SUCCESS(status);
 
 	syntax.useSelectionAsDefault(true);
@@ -125,7 +140,7 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	{
 		// Use filename without extension of current scene file.
 		MFileIO fileIO;
-		const auto currentFilePath = fileIO.currentFile();
+		const auto currentFilePath = MFileIO::currentFile();
 		
 		MFileObject fileObj;
 		fileObj.setFullName(currentFilePath);
@@ -133,7 +148,7 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 		// Remove extension from filename. I really miss C#!
 		std::string fileName(fileObj.name().asChar());
 
-		const auto lastindex = fileName.find_last_of(".");
+		const auto lastindex = fileName.find_last_of('.');
 		sceneName = fileName.substr(0, lastindex).c_str();
 	}
 
@@ -150,7 +165,16 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 		THROW_ON_FAILURE(status);
 	}
 
-	// For debugging, dump the arguments again
+	debugTangentVectors = adb.isFlagSet(flag::debugTangentVectors);
+	debugNormalVectors = adb.isFlagSet(flag::debugNormalVectors);
+
+	if (adb.isFlagSet(flag::debugVectorLength))
+	{
+		status = adb.getFlagArgument(flag::debugVectorLength, 0, debugVectorLength);
+		THROW_ON_FAILURE(status);
+	}
+
+	// For debugging, dump some arguments again
 	MStringArray selectedObjects;
 	status = selection.getSelectionStrings(selectedObjects);
 	THROW_ON_FAILURE(status);
@@ -198,6 +222,6 @@ std::unique_ptr<IndentableStream> Arguments::getOutputStream(const MArgDatabase&
 		}
 	}
 
-	return out ? move(std::make_unique<IndentableStream>(*out)) : nullptr;
+	return out ? std::make_unique<IndentableStream>(*out) : nullptr;
 }
 
