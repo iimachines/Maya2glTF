@@ -41,7 +41,7 @@ private:
 	}
 
 	template<typename T>
-	std::unique_ptr<GLTF::Accessor> createAccessor(
+	std::unique_ptr<GLTF::Accessor> createFloatAccessor(
 		const Semantic::Kind semantic, 
 		const gsl::span<T>& buffer)
 	{
@@ -70,6 +70,11 @@ private:
 			return nullptr;
 		}
 
-		return createAccessor(name(semantic), type, GLTF::Constants::WebGL::FLOAT, GLTF::Constants::WebGL::ARRAY_BUFFER, buffer, dimension(semantic));
+		return createAccessor(name(semantic), 
+			type, 
+			GLTF::Constants::WebGL::FLOAT, 
+			GLTF::Constants::WebGL::ARRAY_BUFFER, 
+			reinterpret_span<float>(buffer), 
+			dimension(semantic));
 	}
 };

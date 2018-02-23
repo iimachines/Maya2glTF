@@ -58,7 +58,7 @@ ExportablePrimitive::ExportablePrimitive(
 		const auto& slot = pair.first;
 		if (slot.shapeIndex == 0)
 		{
-			auto accessor = createAccessor(slot.semantic, span(pair.second));
+			auto accessor = createFloatAccessor(slot.semantic, span(pair.second));
 			glPrimitive.attributes[glTFattributeName(slot.semantic, slot.setIndex)] = accessor.get();
 			glAccessorTable[slot.semantic].emplace_back(move(accessor));
 		}
@@ -107,10 +107,10 @@ ExportablePrimitive::ExportablePrimitive(
 		linePoints[offset + 1] = point;
 	}
 
-	glIndices = createAccessor("indices", GLTF::Accessor::Type::SCALAR, WebGL::UNSIGNED_INT, WebGL::ELEMENT_ARRAY_BUFFER, span(lineIndices), 1);
+	glIndices = createAccessor("indices", GLTF::Accessor::Type::SCALAR, WebGL::UNSIGNED_SHORT, WebGL::ELEMENT_ARRAY_BUFFER, span(lineIndices), 1);
 	glPrimitive.indices = glIndices.get();
 
-	auto accessor = createAccessor(Semantic::Kind::POSITION, span(linePoints));
+	auto accessor = createFloatAccessor(Semantic::Kind::POSITION, span(linePoints));
 	glPrimitive.attributes[glTFattributeName(Semantic::Kind::POSITION, 0)] = accessor.get();
 	glAccessorTable[vectorSlot.semantic].emplace_back(move(accessor));
 }
