@@ -72,13 +72,16 @@ public:
 	bool debugNormalVectors = false;
 
 	/** The length of the debugging vectors */
-	double debugVectorLength = 0.1;
+	float debugVectorLength = 0.1f;
 
 	/** When non-0, instead of using Maya's tangents, use tangents as computed in Morten Mikkelsen's thesis http://image.diku.dk/projects/media/morten.mikkelsen.08.pdf*/
-	double mikkelsenTangentAngularThreshold = 0;
+	float mikkelsenTangentAngularThreshold = 0;
 
 	/** The scale factor to apply to the vertex positions */
-	double scaleFactor = 1;
+	float scaleFactor = 1;
+
+	/** The opacity factor to apply to the material */
+	float opacityFactor = 1;
 
 private:
 	std::ofstream m_mayaOutputFileStream;

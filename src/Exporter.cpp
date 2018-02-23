@@ -8,14 +8,6 @@
 #include "ExportableAsset.h"
 #include "ExportableResources.h"
 
-typedef void(*SignalHandlerPointer)(int);
-
-void SignalHandler(int signal)
-{
-	MayaException::printError("An Access Violation occurred! Please save your work to a new file since data might have been corrupted!");
-	assert(false);
-}
-
 Exporter::Exporter()
 {
 }
@@ -29,13 +21,58 @@ void* Exporter::createInstance()
 	return new Exporter();
 }
 
+void Exporter::printFatalError()
+{
+	std::stringstream ss;
+	ss << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
+	ss << "Ouch something went really wrong (an access violation occurred) :-(  " << endl;
+	ss << "Your Maya scene might be corrupt! Save to a *temp* file, and restart " << endl;
+	ss << "We're sorry for the inconvenience. Please file a bug report at:      " << endl;
+	ss << "https://github.com/Ziriax/Maya2glTF/issues                           " << endl;
+	ss << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
+
+	const auto message = ss.str();
+	cerr << message << endl;
+
+	const auto command = MString("print ") + escaped(message).c_str();
+	MGlobal::executeCommand(command);
+}
+
+#ifdef _MSC_VER
+
+#include <windows.h>
+#include <excpt.h>
+
+int filter(const unsigned int code, struct _EXCEPTION_POINTERS *ep)
+{
+	return code == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH;
+}
+
 MStatus Exporter::doIt(const MArgList& args)
 {
-	const auto previousHandler = signal(SIGSEGV, SignalHandler);
+	__try
+	{
+		auto status = run(args);
+		return status;
+	}
+	__except (filter(GetExceptionCode(), GetExceptionInformation())) 
+	{
+		printFatalError();
+
+		assert(false);
+		return MStatus::kFailure;
+	}
+}
+
+#else
+
+MStatus Exporter::doIt(const MArgList& args)
+{
 	auto status = run(args);
-	signal(SIGSEGV, previousHandler);
 	return status;
 }
+
+#endif
 
 bool Exporter::isUndoable() const
 {

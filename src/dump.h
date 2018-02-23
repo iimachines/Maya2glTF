@@ -89,6 +89,9 @@ static void dump_vertex_table(std::ostream& out, const std::string& name, const 
 	}
 
 	out << endl << undent << "}";
+
 }
 
 void dump_array(std::ostream& out, const std::string& name, const MStringArray& items);
+
+std::string escaped(const std::string& s);

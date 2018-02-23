@@ -21,6 +21,5 @@ public:
 
 private:
 	MStatus run(const MArgList& args);
-
-	class ExportableMesh* exportMesh(const MDagPath& dagPath);
+	static void printFatalError();
 };

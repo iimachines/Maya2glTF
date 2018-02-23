@@ -1,6 +1,6 @@
 //Maya ASCII 2017ff05 scene
-//Name: SmoothTetrahedron.ma
-//Last modified: Fri, Feb 23, 2018 06:54:24 PM
+//Name: FlatTetrahedron.ma
+//Last modified: Fri, Feb 23, 2018 07:14:30 PM
 //Codeset: 1252
 requires maya "2017ff05";
 requires "stereoCamera" "10.0";
@@ -13,13 +13,13 @@ fileInfo "osv" "Microsoft Windows 8 Business Edition, 64-bit  (Build 9200)\n";
 createNode transform -s -n "persp";
 	rename -uid "8D64F57A-42D9-6117-25FD-C89FB2E0CD10";
 	setAttr ".v" no;
-	setAttr ".t" -type "double3" 3.7492452962506198 1.7164548567368469 -1.1852334054350022 ;
-	setAttr ".r" -type "double3" -24.338352729640373 108.19999999998115 0 ;
+	setAttr ".t" -type "double3" 2.8086187028706169 1.2886260759216293 -1.2198031939253859 ;
+	setAttr ".r" -type "double3" -23.738352729640511 114.5999999999776 0 ;
 createNode camera -s -n "perspShape" -p "persp";
 	rename -uid "59353843-4B1F-9C6E-2ECF-CC968828FA2E";
 	setAttr -k off ".v" no;
 	setAttr ".fl" 34.999999999999993;
-	setAttr ".coi" 4.1648955875251819;
+	setAttr ".coi" 3.2010734057461852;
 	setAttr ".imn" -type "string" "persp";
 	setAttr ".den" -type "string" "persp_depth";
 	setAttr ".man" -type "string" "persp_mask";
@@ -117,9 +117,25 @@ createNode polyNormalPerVertex -n "polyNormalPerVertex1";
 	setAttr ".uopa" yes;
 	setAttr -s 4 ".vn";
 	setAttr ".vn[0].nxyz" -type "float3" -0.47140449 -0.33333337 -0.81649661 ;
+	setAttr -s 3 ".vn[0].vfnl";
+	setAttr ".vn[0].vfnl[0].fnxy" -type "float3" 1e+020 1e+020 1e+020 ;
+	setAttr ".vn[0].vfnl[1].fnxy" -type "float3" 1e+020 1e+020 1e+020 ;
+	setAttr ".vn[0].vfnl[3].fnxy" -type "float3" 1e+020 1e+020 1e+020 ;
 	setAttr ".vn[1].nxyz" -type "float3" -0.47140449 -0.33333343 0.81649655 ;
+	setAttr -s 3 ".vn[1].vfnl";
+	setAttr ".vn[1].vfnl[0].fnxy" -type "float3" 1e+020 1e+020 1e+020 ;
+	setAttr ".vn[1].vfnl[1].fnxy" -type "float3" 1e+020 1e+020 1e+020 ;
+	setAttr ".vn[1].vfnl[2].fnxy" -type "float3" 1e+020 1e+020 1e+020 ;
 	setAttr ".vn[2].nxyz" -type "float3" 0.9428091 -0.33333337 1.1920928e-007 ;
+	setAttr -s 3 ".vn[2].vfnl";
+	setAttr ".vn[2].vfnl[0].fnxy" -type "float3" 1e+020 1e+020 1e+020 ;
+	setAttr ".vn[2].vfnl[2].fnxy" -type "float3" 1e+020 1e+020 1e+020 ;
+	setAttr ".vn[2].vfnl[3].fnxy" -type "float3" 1e+020 1e+020 1e+020 ;
 	setAttr ".vn[3].nxyz" -type "float3" 5.9604652e-008 1 5.9604652e-008 ;
+	setAttr -s 3 ".vn[3].vfnl";
+	setAttr ".vn[3].vfnl[1].fnxy" -type "float3" 1e+020 1e+020 1e+020 ;
+	setAttr ".vn[3].vfnl[2].fnxy" -type "float3" 1e+020 1e+020 1e+020 ;
+	setAttr ".vn[3].vfnl[3].fnxy" -type "float3" 1e+020 1e+020 1e+020 ;
 createNode script -n "uiConfigurationScriptNode";
 	rename -uid "7259A08F-4B12-229B-8BD4-FB902C3A621C";
 	setAttr ".b" -type "string" (
@@ -238,4 +254,4 @@ connectAttr "polyPyramid1.out" "polyNormalPerVertex1.ip";
 connectAttr "polyNormalPerVertex1.out" "polyColorPerVertex1.ip";
 connectAttr "defaultRenderLayer.msg" ":defaultRenderingList1.r" -na;
 connectAttr "pPyramidShape1.iog" ":initialShadingGroup.dsm" -na;
-// End of SmoothTetrahedron.ma
+// End of FlatTetrahedron.ma

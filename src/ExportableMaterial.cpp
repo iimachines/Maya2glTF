@@ -115,9 +115,10 @@ void ExportableMaterialPBR::convert(ExportableResources& resources, const MObjec
 
 	const auto diffuseFactor = shader.diffuseCoeff(&status);
 	const auto transparency = hasTransparencyTexture ? 0 : shader.transparency(&status).r;
+	const auto opacity = (1 - transparency) * resources.arguments().opacityFactor;
 
 	// TODO: Currently we don't actually check the pixels of the transparency texture.
-	const auto isTransparent = hasTransparencyTexture || transparency != 0;
+	const auto isTransparent = hasTransparencyTexture || opacity < 1;
 	if (isTransparent)
 	{
 		m_glMaterial.alphaMode = "BLEND";
@@ -132,7 +133,7 @@ void ExportableMaterialPBR::convert(ExportableResources& resources, const MObjec
 		color.r * diffuseFactor,
 		color.g * diffuseFactor,
 		color.b * diffuseFactor,
-		1 - transparency
+		opacity
 	};
 
 	m_glMetallicRoughness.baseColorFactor = &m_glBaseColorFactor[0];
@@ -158,11 +159,17 @@ void ExportableMaterialPBR::loadPBR(ExportableResources& resources, const MFnDep
 	THROW_ON_FAILURE(status);
 
 	// Base color 
-	m_glBaseColorFactor = { 1, 1, 1, 1 };
+	m_glBaseColorFactor = { 1, 1, 1, resources.arguments().opacityFactor };
 	if (getColor(shaderObject, "u_BaseColorFactor", m_glBaseColorFactor))
 	{
 		m_glMetallicRoughness.baseColorFactor = &m_glBaseColorFactor[0];
 		m_glMaterial.metallicRoughness = &m_glMetallicRoughness;
+	}
+
+	// TODO: Add transparency texture to our shader!
+	if (m_glBaseColorFactor[3] != 1)
+	{
+		m_glMaterial.alphaMode = "BLEND";
 	}
 
 	const ExportableTexture baseColorTexture(resources, shaderObject, "u_BaseColorTexture");

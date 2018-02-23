@@ -21,6 +21,7 @@ namespace flag
 	const auto scaleFactor = "sf";
 	const auto mikkelsenTangentSpace = "mts";
 	const auto mikkelsenTangentAngularThreshold = "mta";
+	const auto globalOpacityFactor = "gof";
 
 	const auto debugTangentVectors = "dtv";
 	const auto debugNormalVectors = "dnv";
@@ -81,6 +82,7 @@ SyntaxFactory::SyntaxFactory()
 	registerFlag(ss, flag::debugNormalVectors, "debugNormalVectors", kNoArg);
 	registerFlag(ss, flag::debugTangentVectors, "debugTangentVectors", kNoArg);
 	registerFlag(ss, flag::debugVectorLength, "debugVectorLength", kDouble);
+	registerFlag(ss, flag::globalOpacityFactor, "globalOpacityFactor", kDouble);
 
 	m_usage = ss.str();
 }
@@ -164,6 +166,15 @@ public:
 
 		const auto status = adb.getFlagArgument(shortName, 0, value);
 		throwOnArgument(status, shortName);
+		return true;
+	}
+
+	bool optional(const char* shortName, float& value) const
+	{
+		double temp;
+		if (!optional(shortName, temp))
+			return false;
+		value = static_cast<float>(temp);
 		return true;
 	}
 
@@ -268,6 +279,8 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	force32bitIndices = adb.isFlagSet(flag::force32bitIndices);
 	assignObjectNames = adb.isFlagSet(flag::assignObjectNames);
 
+	adb.optional(flag::globalOpacityFactor, opacityFactor);
+
 	if (!adb.optional(flag::sceneName, sceneName))
 	{
 		// Use filename without extension of current scene file.
@@ -284,7 +297,7 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 		sceneName = fileName.substr(0, lastindex).c_str();
 	}
 
-	mikkelsenTangentAngularThreshold = adb.isFlagSet(flag::mikkelsenTangentSpace) ? 180 : 0;
+	mikkelsenTangentAngularThreshold = adb.isFlagSet(flag::mikkelsenTangentSpace) ? 180.0f : 0.0f;
 	adb.optional(flag::mikkelsenTangentAngularThreshold, mikkelsenTangentAngularThreshold);
 
 	debugTangentVectors = adb.isFlagSet(flag::debugTangentVectors);
