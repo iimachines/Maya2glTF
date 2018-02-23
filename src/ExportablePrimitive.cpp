@@ -38,14 +38,7 @@ ExportablePrimitive::ExportablePrimitive(
 		vertexBuffer.maxIndex() > std::numeric_limits<uint16>::max())
 	{
 		// Use 32-bit indices
-		auto spanIndices = reinterpret_span<uint8>(span(vertexIndices));
-		m_data.insert(m_data.end(), spanIndices.begin(), spanIndices.end());
-
-		glIndices = std::make_unique<GLTF::Accessor>(
-			GLTF::Accessor::Type::SCALAR, WebGL::UNSIGNED_INT,
-			&m_data[0], static_cast<int>(vertexIndices.size()),
-			WebGL::ELEMENT_ARRAY_BUFFER);
-
+		glIndices = createAccessor("indices", GLTF::Accessor::Type::SCALAR, WebGL::UNSIGNED_INT, WebGL::ELEMENT_ARRAY_BUFFER, span(vertexIndices), 1);
 		glPrimitive.indices = glIndices.get();
 	}
 	else
@@ -53,16 +46,7 @@ ExportablePrimitive::ExportablePrimitive(
 		// Use 16-bit indices
 		std::vector<uint16> shortIndices(vertexIndices.size());
 		std::copy(vertexIndices.begin(), vertexIndices.end(), shortIndices.begin());
-
-		auto spanIndices = reinterpret_span<uint8>(span(shortIndices));
-		m_data.insert(m_data.end(), spanIndices.begin(), spanIndices.end());
-
-
-		glIndices = std::make_unique<GLTF::Accessor>(
-			GLTF::Accessor::Type::SCALAR, WebGL::UNSIGNED_SHORT,
-			&m_data[0], static_cast<int>(vertexIndices.size()),
-			WebGL::ELEMENT_ARRAY_BUFFER);
-
+		glIndices = createAccessor("indices", GLTF::Accessor::Type::SCALAR, WebGL::UNSIGNED_SHORT, WebGL::ELEMENT_ARRAY_BUFFER, span(shortIndices), 1);
 		glPrimitive.indices = glIndices.get();
 	}
 
@@ -70,55 +54,71 @@ ExportablePrimitive::ExportablePrimitive(
 	// TODO: Derived blend shape deltas!
 	for (auto && pair: vertexBuffer.componentsMap)
 	{
+
 		const auto& slot = pair.first;
 		if (slot.shapeIndex == 0)
 		{
-			const auto& components = pair.second;
-			const int offset = static_cast<int>(m_data.size());
-			const int count = static_cast<int>(components.size() / slot.dimension());
-			auto spanComponents = reinterpret_span<uint8>(span(components));
-			m_data.insert(m_data.end(), spanComponents.begin(), spanComponents.end());
-
-			auto accessor = createAccessor(slot.semantic, offset, count);
+			auto accessor = createFloatAccessor(slot.semantic, span(pair.second));
 			glPrimitive.attributes[glTFattributeName(slot.semantic, slot.setIndex)] = accessor.get();
 			glAccessorTable[slot.semantic].emplace_back(move(accessor));
 		}
 	}
 }
 
-ExportablePrimitive::~ExportablePrimitive()
+ExportablePrimitive::ExportablePrimitive(
+	const VertexBuffer& vertexBuffer, 
+	ExportableResources& resources,
+	const Semantic::Kind debugSemantic,
+	const double debugLineLength,
+	const Color debugLineColor)
 {
-}
+	glPrimitive.mode = GLTF::Primitive::LINES;
 
-std::unique_ptr<GLTF::Accessor> ExportablePrimitive::createAccessor(const Semantic::Kind semantic, const int offset, const int count)
-{
-	auto data = &m_data[offset];
+	const auto positionSlot = VertexSlot(0, Semantic::POSITION, 0);
+	const auto vectorSlot = VertexSlot(0, debugSemantic, 0);
+	const auto positions = reinterpret_span<Position>(vertexBuffer.componentsMap.at(positionSlot));
+	const auto vectorComponents = vertexBuffer.componentsMap.at(vectorSlot);
+	const auto vectorDimension = Semantic::dimension(debugSemantic);
+	const auto lineCount = positions.size();
+	const auto elementCount = lineCount * 2;
+	std::vector<uint16> lineIndices(elementCount);
+	std::vector<Position> linePoints(elementCount);
+	std::vector<Color> lineColors(elementCount);
 
-	GLTF::Accessor::Type type;
+	iota(lineIndices.begin(), lineIndices.end(), 0);
+	fill(lineColors.begin(), lineColors.end(), debugLineColor);
 
-	switch (semantic)
+	// Add a line from each point
+	const float length = static_cast<float>(debugLineLength);
+	for (auto lineIndex = 0; lineIndex < lineCount; ++lineIndex)
 	{
-	case Semantic::POSITION:
-		type = GLTF::Accessor::Type::VEC3;
-		break;
-	case Semantic::NORMAL:
-		type = GLTF::Accessor::Type::VEC3;
-		break;
-	case Semantic::TEXCOORD:
-		type = GLTF::Accessor::Type::VEC2;
-		break;
-	case Semantic::TANGENT:
-		// TODO: For exporting morph targets, use VEC3
-		type = GLTF::Accessor::Type::VEC4;
-		break;
-	case Semantic::COLOR:
-		type = GLTF::Accessor::Type::VEC4;
-		break;
-	default:
-		assert(false);
-		return nullptr;
+		const auto offset = lineIndex * 2;
+
+		const auto vectorOffset = vectorDimension * lineIndex;
+		const auto vx = vectorComponents[vectorOffset + 0];
+		const auto vy = vectorComponents[vectorOffset + 1];
+		const auto vz = vectorComponents[vectorOffset + 2];
+
+		auto point = positions[lineIndex];
+		linePoints[offset + 0] = point;
+
+		point[0] += vx * length;
+		point[1] += vy * length;
+		point[2] += vz * length;
+		linePoints[offset + 1] = point;
 	}
 
-	return std::make_unique<GLTF::Accessor>(type, WebGL::FLOAT, data, count, WebGL::ARRAY_BUFFER);
+	glIndices = createAccessor("indices", GLTF::Accessor::Type::SCALAR, WebGL::UNSIGNED_SHORT, WebGL::ELEMENT_ARRAY_BUFFER, span(lineIndices), 1);
+	glPrimitive.indices = glIndices.get();
+
+	auto pointAccessor = createFloatAccessor(Semantic::Kind::POSITION, span(linePoints));
+	glPrimitive.attributes[glTFattributeName(Semantic::Kind::POSITION, 0)] = pointAccessor.get();
+	glAccessorTable[Semantic::Kind::POSITION].emplace_back(move(pointAccessor));
+
+	auto colorAccessor = createFloatAccessor(Semantic::Kind::COLOR, span(lineColors));
+	glPrimitive.attributes[glTFattributeName(Semantic::Kind::COLOR, 0)] = colorAccessor.get();
+	glAccessorTable[Semantic::Kind::COLOR].emplace_back(move(colorAccessor));
 }
+
+ExportablePrimitive::~ExportablePrimitive() = default;
 

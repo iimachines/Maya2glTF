@@ -3,6 +3,8 @@
 #include "MayaException.h"
 #include "IndentableStream.h"
 
+using namespace std::experimental;
+
 namespace flag
 {
 	const auto outputFolder = "of";
@@ -19,92 +21,253 @@ namespace flag
 	const auto scaleFactor = "sf";
 	const auto mikkelsenTangentSpace = "mts";
 	const auto mikkelsenTangentAngularThreshold = "mta";
+	const auto globalOpacityFactor = "gof";
+
+	const auto debugTangentVectors = "dtv";
+	const auto debugNormalVectors = "dnv";
+	const auto debugVectorLength = "dvl";
 }
 
-MSyntax Arguments::createSyntax()
+inline const char* getArgTypeName(const MSyntax::MArgType argType)
 {
-	MStatus status;
-	MSyntax syntax;
+	switch (argType)
+	{
+	case MSyntax::kNoArg:
+		return "flag";
+	case MSyntax::kBoolean:
+		return "boolean";
+	case MSyntax::kLong:
+		return "integer";
+	case MSyntax::kDouble:
+		return "float";
+	case MSyntax::kString:
+		return "string";
+	case MSyntax::kUnsigned:
+		return "unsigned";
+	case MSyntax::kDistance:
+		return "distance";
+	case MSyntax::kAngle:;
+		return "angle";
+	case MSyntax::kTime:
+		return "time";
+	case MSyntax::kSelectionItem:
+		return "selectionItem";
+	default:
+		return nullptr;
+	}
+}
 
-	status = syntax.setObjectType(MSyntax::MObjectFormat::kSelectionList, 1);
-	ASSERT_SUCCESS(status);
+SyntaxFactory::SyntaxFactory()
+{
+	auto status = setObjectType(kSelectionList, 1);
+	THROW_ON_FAILURE(status);
 
-	status = syntax.addFlag(flag::outputFolder, "outputFolder", MSyntax::MArgType::kString);
-	ASSERT_SUCCESS(status);
+	useSelectionAsDefault(true);
 
-	status = syntax.addFlag(flag::sceneName, "sceneName", MSyntax::MArgType::kString);
-	ASSERT_SUCCESS(status);
+	std::stringstream ss;
+	registerFlag(ss, flag::outputFolder, "outputFolder", kString);
+	registerFlag(ss, flag::sceneName, "sceneName", kString);
+	registerFlag(ss, flag::scaleFactor, "scaleFactor", kDouble);
+	registerFlag(ss, flag::glb, "binary", kNoArg);
+	registerFlag(ss, flag::dumpGLTF, "dumpGTLF", kString);
+	registerFlag(ss, flag::dumpMaya, "dumpMaya", kString);
+	registerFlag(ss, flag::separate, "separate", kNoArg);
+	registerFlag(ss, flag::defaultMaterial, "defaultMaterial", kNoArg);
+	registerFlag(ss, flag::colorizeMaterials, "colorizeMaterials", kNoArg);
+	registerFlag(ss, flag::forcePbrMaterials, "forcePbrMaterials", kNoArg);
+	registerFlag(ss, flag::force32bitIndices, "force32bitIndices", kNoArg);
+	registerFlag(ss, flag::assignObjectNames, "assignObjectNames", kNoArg);
+	registerFlag(ss, flag::mikkelsenTangentSpace, "mikkelsenTangentSpace", kNoArg);
+	registerFlag(ss, flag::mikkelsenTangentAngularThreshold, "mikkelsenTangentAngularThreshold", kDouble);
+	registerFlag(ss, flag::debugNormalVectors, "debugNormalVectors", kNoArg);
+	registerFlag(ss, flag::debugTangentVectors, "debugTangentVectors", kNoArg);
+	registerFlag(ss, flag::debugVectorLength, "debugVectorLength", kDouble);
+	registerFlag(ss, flag::globalOpacityFactor, "globalOpacityFactor", kDouble);
 
-	status = syntax.addFlag(flag::scaleFactor, "scaleFactor", MSyntax::MArgType::kDouble);
-	ASSERT_SUCCESS(status);
+	m_usage = ss.str();
+}
 
-	status = syntax.addFlag(flag::glb, "binary", MSyntax::MArgType::kNoArg);
-	ASSERT_SUCCESS(status);
+SyntaxFactory::~SyntaxFactory()
+{
+}
 
-	status = syntax.addFlag(flag::dumpGLTF, "dumpGTLF", MSyntax::MArgType::kString);
-	ASSERT_SUCCESS(status);
-
-	status = syntax.addFlag(flag::dumpMaya, "dumpMaya", MSyntax::MArgType::kString);
-	ASSERT_SUCCESS(status);
-
-	status = syntax.addFlag(flag::separate, "separate", MSyntax::MArgType::kNoArg);
-	ASSERT_SUCCESS(status);
-
-	status = syntax.addFlag(flag::defaultMaterial, "defaultMaterial", MSyntax::MArgType::kNoArg);
-	ASSERT_SUCCESS(status);
-
-	status = syntax.addFlag(flag::colorizeMaterials, "colorizeMaterials", MSyntax::MArgType::kNoArg);
-	ASSERT_SUCCESS(status);
-
-	status = syntax.addFlag(flag::forcePbrMaterials, "forcePbrMaterials", MSyntax::MArgType::kNoArg);
-	ASSERT_SUCCESS(status);
-
-	status = syntax.addFlag(flag::force32bitIndices, "force32bitIndices", MSyntax::MArgType::kNoArg);
-	ASSERT_SUCCESS(status);
-
-	status = syntax.addFlag(flag::assignObjectNames, "assignObjectNames", MSyntax::MArgType::kNoArg);
-	ASSERT_SUCCESS(status);
-
-	status = syntax.addFlag(flag::mikkelsenTangentSpace, "mikkelsenTangentSpace", MSyntax::MArgType::kNoArg);
-	ASSERT_SUCCESS(status);
-
-	status = syntax.addFlag(flag::mikkelsenTangentAngularThreshold, "mikkelsenTangentAngularThreshold", MSyntax::MArgType::kDouble);
-	ASSERT_SUCCESS(status);
-
-	syntax.useSelectionAsDefault(true);
-
+const SyntaxFactory& SyntaxFactory::get()
+{
+	static SyntaxFactory syntax;
 	return syntax;
 }
+
+MSyntax SyntaxFactory::createSyntax()
+{
+	return static_cast<MSyntax>(get());
+}
+
+void SyntaxFactory::registerFlag(std::stringstream& ss, const char* shortName, const char* longName, const MArgType argType1)
+{
+	m_argNames[shortName] = longName;
+
+	auto status = addFlag(shortName, longName, argType1);
+	THROW_ON_FAILURE(status);
+
+	const auto name1 = getArgTypeName(argType1);
+
+	ss << "-" << std::setw(5) << std::left <<  shortName << longName;
+
+	if (name1)
+	{
+		ss << ": " << name1;
+	}
+	ss << endl;
+
+	ss.flush();
+}
+
+class ArgChecker
+{
+public:
+	ArgChecker(const MSyntax &syntax, const MArgList &argList, MStatus& status)
+		:adb(syntax, argList, &status)
+	{
+		// TODO: How to provide more error information about what arguments are wrong?
+		throwOnFailure(status, "Invalid arguments");
+	}
+
+	void getObjects(MSelectionList& selection) const
+	{
+		throwOnFailure(adb.getObjects(selection), "failed to get selection");
+
+		if (selection.length() < 1)
+			throwOnFailure(MStatus::kInvalidParameter, "At least one object must be selected or passed to the command");
+	}
+
+	bool isFlagSet(const char* shortName) const
+	{
+		MStatus status;
+		const auto result = adb.isFlagSet(shortName, &status);
+		throwOnArgument(status, shortName);
+		return result;
+	}
+
+	template<typename T>
+	void required(const char* shortName, T& value) const
+	{
+		if (!isFlagSet(shortName))
+			throwInvalid(shortName, "Missing argument");
+
+		const auto status = adb.getFlagArgument(shortName, 0, value);
+		throwOnArgument(status, shortName);
+	}
+
+	template<typename T>
+	bool optional(const char* shortName, T& value) const
+	{
+		if (!adb.isFlagSet(shortName))
+			return false;
+
+		const auto status = adb.getFlagArgument(shortName, 0, value);
+		throwOnArgument(status, shortName);
+		return true;
+	}
+
+	bool optional(const char* shortName, float& value) const
+	{
+		double temp;
+		if (!optional(shortName, temp))
+			return false;
+		value = static_cast<float>(temp);
+		return true;
+	}
+
+	std::unique_ptr<IndentableStream> getOutputStream(const char* arg, const char *outputName, path outputFolder, std::ofstream& fileOutputStream) const
+	{
+		std::ostream* out = nullptr;
+
+		if (adb.isFlagSet(arg))
+		{
+			MString argPath;
+			if (adb.getFlagArgument(arg, 0, argPath).error() || argPath.toLowerCase() == "console")
+			{
+				out = &cout;
+			}
+			else if (argPath.length() == 0 || argPath.substring(0, 0) == "-")
+			{
+				throwInvalid(arg, "requires an output filepath argument, or just 'console' to print to Maya's console window");
+			}
+			else
+			{
+				const path argumentPath(argPath.asChar());
+				const path absolutePath = argumentPath.is_relative()
+					? outputFolder / argumentPath
+					: argumentPath;
+
+				cout << prefix << "Writing " << outputName << " output to file " << absolutePath << endl;
+
+				fileOutputStream.open(absolutePath);
+				out = &fileOutputStream;
+			}
+		}
+
+		return out ? std::make_unique<IndentableStream>(*out) : nullptr;
+	}
+
+private:
+	MArgDatabase adb;
+
+	static void throwOnFailure(MStatus status, const char* message)
+	{
+		if (status.error())
+		{
+			const auto statusStr = status.errorString().asChar();
+			const auto usageStr = SyntaxFactory::get().usage();
+			throw MayaException(status, 
+				formatted("%s (%s)\nUsage:\n%s", message, statusStr, usageStr));
+		}
+	}
+
+	static void throwUsage(const char* message)
+	{
+		const auto usageStr = SyntaxFactory::get().usage();
+		throw MayaException(MStatus::kFailure, 
+			formatted("%s\nUsage:\n%s", message, usageStr));
+	}
+
+	static void throwOnArgument(MStatus status, const char* shortArgName)
+	{
+		if (status.error())
+		{
+			const auto longArgName = SyntaxFactory::get().longArgName(shortArgName);
+			const auto statusStr = status.errorString().asChar();
+			const auto usageStr = SyntaxFactory::get().usage();
+			throw MayaException(status, 
+				formatted("-%s (%s): %s\nUsage:\n%s", shortArgName, longArgName, statusStr, usageStr));
+		}
+	}
+
+	static void throwInvalid(const char* shortArgName, const char* message = "Invalid parameter")
+	{
+		const auto longArgName = SyntaxFactory::get().longArgName(shortArgName);
+		const auto usageStr = SyntaxFactory::get().usage();
+
+		throw MayaException(MStatus::kInvalidParameter,
+			formatted("%s -%s (%s)\nUsage:\n%s", message, shortArgName, longArgName, usageStr));
+	}
+};
 
 Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 {
 	MStatus status;
-	MArgDatabase adb(syntax, args, &status);
+	ArgChecker adb(syntax, args, status);
 
-	// TODO: How to provide more error information about what arguments are wrong?
-	if (status.error())
-		throw MayaException(status, "Invalid arguments");
+	adb.getObjects(selection);
 
-	status = adb.getObjects(selection);
-	if (status.error() || selection.length() < 1)
-		throw MayaException(status, "At least one object must be selected or passed to the command");
-
-	if (!adb.isFlagSet(flag::outputFolder))
-		throw MayaException(status, "Missing argument -outputFolder");
-
-	status = adb.getFlagArgument(flag::outputFolder, 0, outputFolder);
-	THROW_ON_FAILURE(status);  
-
-	if (adb.isFlagSet(flag::scaleFactor))
-	{
-		status = adb.getFlagArgument(flag::scaleFactor, 0, scaleFactor);
-		THROW_ON_FAILURE(status);
-	}
+	adb.required(flag::outputFolder, outputFolder);
+	adb.optional(flag::scaleFactor, scaleFactor);
 
 	glb = adb.isFlagSet(flag::glb);
 
-	m_mayaOutputStream = getOutputStream(adb, flag::dumpMaya, "Maya debug", m_mayaOutputFileStream);
-	m_gltfOutputStream = getOutputStream(adb, flag::dumpGLTF, "glTF debug", m_gltfOutputFileStream);
+	const path outputFolderPath(outputFolder.asChar());
+	m_mayaOutputStream = adb.getOutputStream(flag::dumpMaya, "Maya debug", outputFolderPath, m_mayaOutputFileStream);
+	m_gltfOutputStream = adb.getOutputStream(flag::dumpGLTF, "glTF debug", outputFolderPath, m_gltfOutputFileStream);
 
 	dumpMaya = m_mayaOutputStream.get();
 	dumpGLTF = m_gltfOutputStream.get();
@@ -116,41 +279,33 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	force32bitIndices = adb.isFlagSet(flag::force32bitIndices);
 	assignObjectNames = adb.isFlagSet(flag::assignObjectNames);
 
-	if (adb.isFlagSet(flag::sceneName))
-	{
-		status = adb.getFlagArgument(flag::sceneName, 0, sceneName);
-		THROW_ON_FAILURE(status);
-	}
-	else
+	adb.optional(flag::globalOpacityFactor, opacityFactor);
+
+	if (!adb.optional(flag::sceneName, sceneName))
 	{
 		// Use filename without extension of current scene file.
 		MFileIO fileIO;
-		const auto currentFilePath = fileIO.currentFile();
-		
+		const auto currentFilePath = MFileIO::currentFile();
+
 		MFileObject fileObj;
 		fileObj.setFullName(currentFilePath);
 
 		// Remove extension from filename. I really miss C#!
 		std::string fileName(fileObj.name().asChar());
 
-		const auto lastindex = fileName.find_last_of(".");
+		const auto lastindex = fileName.find_last_of('.');
 		sceneName = fileName.substr(0, lastindex).c_str();
 	}
 
-	mikkelsenTangentAngularThreshold = 0;
+	mikkelsenTangentAngularThreshold = adb.isFlagSet(flag::mikkelsenTangentSpace) ? 180.0f : 0.0f;
+	adb.optional(flag::mikkelsenTangentAngularThreshold, mikkelsenTangentAngularThreshold);
 
-	if (adb.isFlagSet(flag::mikkelsenTangentSpace))
-	{
-		mikkelsenTangentAngularThreshold = 180;
-	}
+	debugTangentVectors = adb.isFlagSet(flag::debugTangentVectors);
+	debugNormalVectors = adb.isFlagSet(flag::debugNormalVectors);
 
-	if (adb.isFlagSet(flag::mikkelsenTangentAngularThreshold))
-	{
-		status = adb.getFlagArgument(flag::mikkelsenTangentAngularThreshold, 0, mikkelsenTangentAngularThreshold);
-		THROW_ON_FAILURE(status);
-	}
+	adb.optional(flag::debugVectorLength, debugVectorLength);
 
-	// For debugging, dump the arguments again
+	// For debugging, dump some arguments again
 	MStringArray selectedObjects;
 	status = selection.getSelectionStrings(selectedObjects);
 	THROW_ON_FAILURE(status);
@@ -171,33 +326,5 @@ Arguments::~Arguments()
 		m_gltfOutputFileStream.flush();
 		m_gltfOutputFileStream.close();
 	}
-}
-
-std::unique_ptr<IndentableStream> Arguments::getOutputStream(const MArgDatabase& adb, const char* arg, const char *outputName, std::ofstream& fileOutputStream)
-{
-	std::ostream* out = nullptr;
-
-	if (adb.isFlagSet(arg))
-	{
-		MString path;
-		if (adb.getFlagArgument(arg, 0, path).error() || path.toLowerCase() == "console")
-		{
-			out = &cout;
-		}
-		else if (path.length() == 0 || path.substring(0, 0) == "-")
-		{
-			throw MayaException(MStatus::kInvalidParameter, 
-				formatted("%s requires an output filepath argument, or just 'console' to print to Maya's console window", arg));
-		}
-		else
-		{
-			cout << prefix << "Writing " << outputName << " output to file " << path.asChar() << endl;
-
-			fileOutputStream.open(path.asChar());
-			out = &fileOutputStream;
-		}
-	}
-
-	return out ? move(std::make_unique<IndentableStream>(*out)) : nullptr;
 }
 

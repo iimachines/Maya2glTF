@@ -58,9 +58,6 @@ I consider this plugin to be in *pre-alpha* stage, use it at your own risk :)
     * It should be easily ported to OSX and Linux, or older versions of Windows.
     * Feel free to provide a patch request, e.g. one that uses CMake :)
 
-* All development happens in the *develop* branch, not the master branch 
-    * (for silly-me historical reasons)
-
 * I assume you already installed a [GIT client for Windows](https://git-scm.com/downloads)
 
 * Install **[Visual Studio 2017](https://www.visualstudio.com/downloads)**

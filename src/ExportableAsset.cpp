@@ -17,6 +17,11 @@ ExportableAsset::ExportableAsset(const Arguments& args)
 
 	auto& selection = args.selection;
 
+	if (args.dumpMaya)
+	{
+		*args.dumpMaya << "{" << indent << endl;
+	}
+
 	for (uint selectionIndex = 0; selectionIndex < selection.length(); ++selectionIndex)
 	{
 		MObject obj;
@@ -37,6 +42,11 @@ ExportableAsset::ExportableAsset(const Arguments& args)
 		{
 			cerr << prefix << "WARNING: Skipping '" << node.name() << "' since it is not a DAG node" << endl;
 		}
+	}
+
+	if (args.dumpMaya)
+	{
+		*args.dumpMaya << undent << "}" << endl;
 	}
 }
 
@@ -126,17 +136,13 @@ void ExportableAsset::save()
 
 	if (!options.embeddedBuffers) {
 
-		if (buffer->data)
+		if (buffer->data && buffer->byteLength)
 		{
 			path uri = outputFolder / buffer->uri;
 			std::ofstream file;
 			create(file, uri.generic_string(), ios::out | ios::binary);
 			file.write(reinterpret_cast<char*>(buffer->data), buffer->byteLength);
 			file.close();
-		}
-		else
-		{
-			MayaException::printError(formatted("Buffer '%s' with URI '%s' has no data!", buffer->name, buffer->uri));
 		}
 	}
 

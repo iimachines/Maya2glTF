@@ -12,7 +12,7 @@ void MayaException::throwIt(const MStatus status, const std::string& message, co
 
 MStatus MayaException::printError(const std::string& message, MStatus status)
 {
-	MGlobal::executeCommand(MString("*** ERROR *** \"") + message.c_str() + "\"");
+	MGlobal::executeCommand(MString("error \"") + message.c_str() + "\"");
 	cerr << prefix << "*** ERROR *** " << message << endl;
 	return status;
 }

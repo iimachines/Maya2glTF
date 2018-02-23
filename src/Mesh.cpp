@@ -35,13 +35,11 @@ void Mesh::dump(IndentableStream& out, const std::string& name) const
 	out << quoted(name) << ": {" << endl << indent;
 
 	m_shape->dump(out, "shape");
-	
-	out << "," << endl;
 
 	if (m_blendShapes)
 	{
-		m_blendShapes->dump(out, "blendShapes");
 		out << "," << endl;
+		m_blendShapes->dump(out, "blendShapes");
 	}
 
 	//m_renderables->dump(cout, "renderables", subIndent);

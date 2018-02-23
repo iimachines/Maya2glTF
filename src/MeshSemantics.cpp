@@ -60,16 +60,18 @@ void MeshSemantics::dump(class IndentableStream& out, const std::string& name) c
 {
 	out << quoted(name) << ": {" << endl << indent;
 
+	JsonSeparator sep(",\n");
+
 	for (int semanticIndex = 0; semanticIndex < Semantic::COUNT; ++semanticIndex)
 	{
 		const auto semanticKind = Semantic::from(semanticIndex);
 
 		for (auto&& semantic : m_table.at(semanticKind))
 		{
+			out << sep;
 			semantic.dump(out, Semantic::name(semanticKind));
-			out << "," << endl;
 		}
 	}
 
-	out << undent << '}';
+	out << endl << undent << '}';
 }

@@ -54,18 +54,20 @@ static void dump_index_table(std::ostream& out, const std::string& name, const s
 {
 	out << quoted(name) << ": {" << endl << indent;
 
+	JsonSeparator sep(",\n");
+
 	for (int semanticIndex = 0; semanticIndex < Semantic::COUNT; ++semanticIndex)
 	{
 		const auto semanticKind = Semantic::from(semanticIndex);
 
 		for (auto&& components : table.at(semanticKind))
 		{
+			out << sep;
 			dump_iterable(out, Semantic::name(semanticKind), components, indicesPerPrimitive, precision);
-			out << "," << endl;
 		}
 	}
 
-	out << undent << "}";
+	out << endl << undent << "}";
 }
 
 template<typename T>
@@ -73,18 +75,23 @@ static void dump_vertex_table(std::ostream& out, const std::string& name, const 
 {
 	out << quoted(name) << ": {" << endl << indent;
 
+	JsonSeparator sep(",\n");
+
 	for (int semanticIndex = 0; semanticIndex < Semantic::COUNT; ++semanticIndex)
 	{
 		const auto semanticKind = Semantic::from(semanticIndex);
 
 		for (auto&& components : table.at(semanticKind))
 		{
+			out << sep;
 			dump_iterable(out, Semantic::name(semanticKind), components, dimension(semanticKind), precision);
-			out << "," << endl;
 		}
 	}
 
-	out << undent << "}";
+	out << endl << undent << "}";
+
 }
 
 void dump_array(std::ostream& out, const std::string& name, const MStringArray& items);
+
+std::string escaped(const std::string& s);

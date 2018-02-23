@@ -35,6 +35,12 @@ static gsl::span<const T> reinterpret_span(const gsl::span<S>& span)
 	return gsl::make_span(reinterpret_cast<const T*>(bgn_ptr), reinterpret_cast<const T*>(end_ptr));
 }
 
+template<typename T, typename S>
+static gsl::span<const T> reinterpret_span(const std::vector<S>& data)
+{
+	return reinterpret_span<T>(gsl::make_span(data));
+}
+
 template<typename T>
 static gsl::span<T> mutable_span(const gsl::span<const T>& span)
 {

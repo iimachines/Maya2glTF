@@ -2,13 +2,39 @@
 
 #include "IndentableStream.h"
 
+class SyntaxFactory : MSyntax
+{
+public:
+	SyntaxFactory();
+	~SyntaxFactory();
+
+	const char* usage() const
+	{
+		const auto result = m_usage.c_str();
+		return result;
+	}
+
+	const char* longArgName(const char* shortName) const
+	{
+		const auto longName = m_argNames.at(shortName);
+		return longName;
+	}
+
+	static const SyntaxFactory& get();
+	static MSyntax createSyntax();
+
+private:
+	std::map<const char*, const char*> m_argNames;
+	std::string m_usage;
+
+	void registerFlag(std::stringstream& ss, const char *shortName, const char *longName, MArgType argType1 = kNoArg);
+};
+
 class Arguments
 {
 public:
 	Arguments(const MArgList& args, const MSyntax& syntax);
 	~Arguments();
-
-	static MSyntax createSyntax();
 
 	MString sceneName;
 	MString outputFolder;
@@ -39,15 +65,25 @@ public:
 	/** By default the Maya node name is not assigned to the GLTF node name */
 	bool assignObjectNames = false;
 
+	/** Generate debug tangent vector lines? */
+	bool debugTangentVectors = false;
+
+	/** Generate debug normal vector lines? */
+	bool debugNormalVectors = false;
+
+	/** The length of the debugging vectors */
+	float debugVectorLength = 0.1f;
+
 	/** When non-0, instead of using Maya's tangents, use tangents as computed in Morten Mikkelsen's thesis http://image.diku.dk/projects/media/morten.mikkelsen.08.pdf*/
-	double mikkelsenTangentAngularThreshold = 0;
+	float mikkelsenTangentAngularThreshold = 0;
 
 	/** The scale factor to apply to the vertex positions */
-	double scaleFactor = 1;
+	float scaleFactor = 1;
+
+	/** The opacity factor to apply to the material */
+	float opacityFactor = 1;
 
 private:
-	static std::unique_ptr<IndentableStream> getOutputStream(const MArgDatabase& adb, const char* arg, const char *outputName, std::ofstream& fileOutputStream);
-
 	std::ofstream m_mayaOutputFileStream;
 	std::ofstream m_gltfOutputFileStream;
 

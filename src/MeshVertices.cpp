@@ -119,7 +119,7 @@ struct MikkTSpaceContext : SMikkTSpaceContext
 		const auto index = context->indices.texcoords[iFace * 3 + iVert];
 		const auto& vector = context->vectors.texcoords[index];
 		fvTexcOut[0] = vector[0];
-		fvTexcOut[1] = vector[1];
+		fvTexcOut[1] = 1-vector[1];
 	}
 
 	static void setTSpaceBasic(const SMikkTSpaceContext* pContext, const float fvTangent[], const float fSign, const int iFace, const int iVert)
