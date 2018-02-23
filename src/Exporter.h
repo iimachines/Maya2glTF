@@ -17,9 +17,10 @@ public:
 
 	bool hasSyntax() const override;
 
-	void exportScene(const Arguments& args);
+	static void exportScene(const Arguments& args);
 
 private:
-	class ExportableMesh* exportMesh(const MDagPath& dagPath);
+	MStatus run(const MArgList& args);
 
+	class ExportableMesh* exportMesh(const MDagPath& dagPath);
 };

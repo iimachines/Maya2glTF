@@ -22,36 +22,22 @@ public:
 
 private:
 	template<typename T>
-	gsl::span<uint8> makeBuffer(const gsl::span<T>& span)
-	{
-		auto& buffer = m_bufferMap[m_bufferMap.size()];
-		auto& source = reinterpret_span<uint8>(span);
-		buffer.insert(buffer.end(), source.begin(), source.end());
-		return gsl::make_span(buffer);
-	}
-
-	template<typename T>
-	gsl::span<T> allocBuffer(const size_t capacity)
-	{
-		auto& buffer = m_bufferMap[m_bufferMap.size()];
-		buffer.resize(capacity * sizeof(T));
-		return mutable_span(reinterpret_span<T>(buffer));
-	}
-
-	std::map<size_t, std::vector<uint8>> m_bufferMap;
-
-	template<typename T>
 	std::unique_ptr<GLTF::Accessor> createAccessor(
+		const char* name,
 		GLTF::Accessor::Type type,
 		GLTF::Constants::WebGL componentType,
 		GLTF::Constants::WebGL target,
-		const gsl::span<T>& data)
+		const gsl::span<T>& data,
+		const size_t dimension)
 	{
 		const uint8* ptr = &reinterpret_span<uint8>(data)[0];
-		return std::make_unique<GLTF::Accessor>(type, componentType,
+		auto accessor = std::make_unique<GLTF::Accessor>(type, componentType,
 			const_cast<uint8*>(ptr),
-			static_cast<int>(data.size()),
+			static_cast<int>(data.size() / dimension),
 			target);
+
+		accessor->name = name;
+		return accessor;
 	}
 
 	template<typename T>
@@ -84,6 +70,6 @@ private:
 			return nullptr;
 		}
 
-		return createAccessor(type, GLTF::Constants::WebGL::FLOAT, GLTF::Constants::WebGL::ARRAY_BUFFER, buffer);
+		return createAccessor(name(semantic), type, GLTF::Constants::WebGL::FLOAT, GLTF::Constants::WebGL::ARRAY_BUFFER, buffer, dimension(semantic));
 	}
 };

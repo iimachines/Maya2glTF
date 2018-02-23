@@ -260,7 +260,7 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	force32bitIndices = adb.isFlagSet(flag::force32bitIndices);
 	assignObjectNames = adb.isFlagSet(flag::assignObjectNames);
 
-	if (adb.optional(flag::sceneName, sceneName))
+	if (!adb.optional(flag::sceneName, sceneName))
 	{
 		// Use filename without extension of current scene file.
 		MFileIO fileIO;

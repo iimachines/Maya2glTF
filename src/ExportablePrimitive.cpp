@@ -38,9 +38,7 @@ ExportablePrimitive::ExportablePrimitive(
 		vertexBuffer.maxIndex() > std::numeric_limits<uint16>::max())
 	{
 		// Use 32-bit indices
-		const auto spanIndices = span(vertexIndices);
-		const auto data = makeBuffer(spanIndices);
-		glIndices = createAccessor(GLTF::Accessor::Type::SCALAR, WebGL::UNSIGNED_INT, WebGL::ELEMENT_ARRAY_BUFFER, data);
+		glIndices = createAccessor("indices", GLTF::Accessor::Type::SCALAR, WebGL::UNSIGNED_INT, WebGL::ELEMENT_ARRAY_BUFFER, span(vertexIndices), 1);
 		glPrimitive.indices = glIndices.get();
 	}
 	else
@@ -48,10 +46,7 @@ ExportablePrimitive::ExportablePrimitive(
 		// Use 16-bit indices
 		std::vector<uint16> shortIndices(vertexIndices.size());
 		std::copy(vertexIndices.begin(), vertexIndices.end(), shortIndices.begin());
-		const auto spanIndices = reinterpret_span<uint8>(span(shortIndices));
-		const auto data = makeBuffer(spanIndices);
-
-		glIndices = createAccessor(GLTF::Accessor::Type::SCALAR, WebGL::UNSIGNED_SHORT, WebGL::ELEMENT_ARRAY_BUFFER, data);
+		glIndices = createAccessor("indices", GLTF::Accessor::Type::SCALAR, WebGL::UNSIGNED_SHORT, WebGL::ELEMENT_ARRAY_BUFFER, span(shortIndices), 1);
 		glPrimitive.indices = glIndices.get();
 	}
 
@@ -59,12 +54,11 @@ ExportablePrimitive::ExportablePrimitive(
 	// TODO: Derived blend shape deltas!
 	for (auto && pair: vertexBuffer.componentsMap)
 	{
+
 		const auto& slot = pair.first;
 		if (slot.shapeIndex == 0)
 		{
-			const auto& components = pair.second;
-			const auto data = makeBuffer(gsl::make_span(components));
-			auto accessor = createAccessor(slot.semantic, data);
+			auto accessor = createAccessor(slot.semantic, span(pair.second));
 			glPrimitive.attributes[glTFattributeName(slot.semantic, slot.setIndex)] = accessor.get();
 			glAccessorTable[slot.semantic].emplace_back(move(accessor));
 		}
@@ -86,11 +80,13 @@ ExportablePrimitive::ExportablePrimitive(
 	const auto vectorDimension = Semantic::dimension(debugSemantic);
 	const auto lineCount = positions.size();
 
-	const auto lineIndices = allocBuffer<uint16>(lineCount * 2);
-	const auto linePoints = allocBuffer<Position>(lineCount * 2);
+	std::vector<uint16> lineIndices;
+	std::vector<Position> linePoints;
+	lineIndices.resize(lineCount * 2);
+	linePoints.resize(lineCount * 2);
 
 	// Add a line from each point
-	float length = static_cast<float>(debugLineLength);
+	const float length = static_cast<float>(debugLineLength);
 	for (auto lineIndex = 0; lineIndex < lineCount; ++lineIndex)
 	{
 		const auto offset = lineIndex * 2;
@@ -111,12 +107,10 @@ ExportablePrimitive::ExportablePrimitive(
 		linePoints[offset + 1] = point;
 	}
 
-	const auto indexBuffer = makeBuffer(lineIndices);
-	glIndices = createAccessor(GLTF::Accessor::Type::SCALAR, WebGL::UNSIGNED_INT, WebGL::ELEMENT_ARRAY_BUFFER, indexBuffer);
+	glIndices = createAccessor("indices", GLTF::Accessor::Type::SCALAR, WebGL::UNSIGNED_INT, WebGL::ELEMENT_ARRAY_BUFFER, span(lineIndices), 1);
 	glPrimitive.indices = glIndices.get();
 
-	const auto pointBuffer = makeBuffer(linePoints);
-	auto accessor = createAccessor(Semantic::Kind::POSITION, pointBuffer);
+	auto accessor = createAccessor(Semantic::Kind::POSITION, span(linePoints));
 	glPrimitive.attributes[glTFattributeName(Semantic::Kind::POSITION, 0)] = accessor.get();
 	glAccessorTable[vectorSlot.semantic].emplace_back(move(accessor));
 }

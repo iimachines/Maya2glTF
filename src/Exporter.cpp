@@ -8,6 +8,14 @@
 #include "ExportableAsset.h"
 #include "ExportableResources.h"
 
+typedef void(*SignalHandlerPointer)(int);
+
+void SignalHandler(int signal)
+{
+	MayaException::printError("An Access Violation occurred! Please save your work to a new file since data might have been corrupted!");
+	assert(false);
+}
+
 Exporter::Exporter()
 {
 }
@@ -23,8 +31,30 @@ void* Exporter::createInstance()
 
 MStatus Exporter::doIt(const MArgList& args)
 {
-	SignalHandlers signalHandlers;
+	const auto previousHandler = signal(SIGSEGV, SignalHandler);
+	auto status = run(args);
+	signal(SIGSEGV, previousHandler);
+	return status;
+}
 
+bool Exporter::isUndoable() const
+{
+	return false;
+}
+
+bool Exporter::hasSyntax() const
+{
+	return true;
+}
+
+void Exporter::exportScene(const Arguments& args)
+{
+	ExportableAsset exportableAsset(args);
+	exportableAsset.save();
+}
+
+MStatus Exporter::run(const MArgList& args)
+{
 	try
 	{
 		std::cout << prefix << "Parsing arguments..." << endl;
@@ -49,21 +79,4 @@ MStatus Exporter::doIt(const MArgList& args)
 	{
 		return MayaException::printError("Unexpected fatal error!");
 	}
-}
-
-bool Exporter::isUndoable() const
-{
-	return false;
-}
-
-bool Exporter::hasSyntax() const
-{
-	return true;
-}
-
-void Exporter::exportScene(const Arguments& args)
-{
-	ExportableAsset exportableAsset(args);
-
-	exportableAsset.save();
 }
