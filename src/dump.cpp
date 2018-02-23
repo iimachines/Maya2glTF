@@ -6,12 +6,11 @@ void dump_array(IndentableStream& out, const std::string& name, const MStringArr
 {
 	out << quoted(name) << " : [";
 
-	auto separator = "";
+	JsonSeparator sep(", ");
 
 	for (unsigned i = 0; i < items.length(); ++i)
 	{
-		out << separator << std::quoted(items[i].asChar());
-		separator = ", ";
+		out << sep << std::quoted(items[i].asChar());
 	}
 
 	out << "]";

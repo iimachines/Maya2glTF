@@ -199,8 +199,6 @@ std::ostream& operator<<(std::ostream& out, const VertexBuffer& obj)
 
 	dump_iterable(out, "components", obj.componentsMap, 1);
 
-	out << "," << endl;
-
 	out << undent << '}';
 
 	return out;

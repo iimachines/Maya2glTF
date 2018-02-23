@@ -89,12 +89,10 @@ void MeshBlendShapes::dump(class IndentableStream& out, const std::string& name)
 		out << "base: null";
 	}
 
-	out << "," << endl;
-
 	for (auto i = 0; i < m_entries.size(); ++i)
 	{
-		m_entries.at(i)->shape.dump(out, std::string("target#") + std::to_string(i));
 		out << "," << endl;
+		m_entries.at(i)->shape.dump(out, std::string("target#") + std::to_string(i));
 	}
 
 	out << undent << '}';

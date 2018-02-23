@@ -5,6 +5,25 @@
 /** Prints the common prefix ("maya2glTF@<time>: ") */
 ostream& prefix(ostream& stream);
 
+class JsonSeparator
+{
+public:
+	JsonSeparator(const char* text) :m_text(text), m_current("")
+	{
+	}
+
+	friend ostream& operator<<(ostream& os, JsonSeparator& sep)
+	{
+		os << sep.m_current;
+		sep.m_current = sep.m_text;
+		return os;
+	}
+
+private:
+	const char* m_text;
+	const char* m_current;
+};
+
 class IndentationBuffer : public std::streambuf
 {
 public:
@@ -61,7 +80,7 @@ public:
 	size_t itemsPerLine() const { return m_itemsPerLine; }
 
 	size_t itemsPrecision() const { return m_itemsPrecision; }
-	
+
 private:
 	IndentationBuffer m_indentationBuffer;
 	size_t m_itemsPerLine;

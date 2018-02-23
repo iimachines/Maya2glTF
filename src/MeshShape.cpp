@@ -20,13 +20,12 @@ void MeshShape::dump(IndentableStream& out, const std::string& name) const
 {
 	out << quoted(name) << ": {" << endl << indent;
 
-	out << "isBlendShape: " << isBlendShape << ", " << endl;
+	out << "\"isBlendShape\": " << isBlendShape << ", " << endl;
 	m_semantics->dump(out, "semantics");
 	out << "," << endl;
 	m_vertices->dump(out, "vertices");
 	out << "," << endl;
 	m_indices->dump(out, "indices");
-	out << "," << endl;
 
-	out << undent << '}' << endl;
+	out << endl << undent << '}' << endl;
 }

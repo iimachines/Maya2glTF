@@ -17,6 +17,11 @@ ExportableAsset::ExportableAsset(const Arguments& args)
 
 	auto& selection = args.selection;
 
+	if (args.dumpMaya)
+	{
+		*args.dumpMaya << "{" << indent << endl;
+	}
+
 	for (uint selectionIndex = 0; selectionIndex < selection.length(); ++selectionIndex)
 	{
 		MObject obj;
@@ -37,6 +42,11 @@ ExportableAsset::ExportableAsset(const Arguments& args)
 		{
 			cerr << prefix << "WARNING: Skipping '" << node.name() << "' since it is not a DAG node" << endl;
 		}
+	}
+
+	if (args.dumpMaya)
+	{
+		*args.dumpMaya << undent << "}" << endl;
 	}
 }
 
