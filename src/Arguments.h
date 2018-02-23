@@ -2,13 +2,39 @@
 
 #include "IndentableStream.h"
 
+class SyntaxFactory : MSyntax
+{
+public:
+	SyntaxFactory();
+	~SyntaxFactory();
+
+	const char* usage() const
+	{
+		const auto result = m_usage.c_str();
+		return result;
+	}
+
+	const char* longArgName(const char* shortName) const
+	{
+		const auto longName = m_argNames.at(shortName);
+		return longName;
+	}
+
+	static const SyntaxFactory& get();
+	static MSyntax createSyntax();
+
+private:
+	std::map<const char*, const char*> m_argNames;
+	std::string m_usage;
+
+	void registerFlag(std::stringstream& ss, const char *shortName, const char *longName, MArgType argType1 = kNoArg);
+};
+
 class Arguments
 {
 public:
 	Arguments(const MArgList& args, const MSyntax& syntax);
 	~Arguments();
-
-	static MSyntax createSyntax();
 
 	MString sceneName;
 	MString outputFolder;
@@ -55,8 +81,6 @@ public:
 	double scaleFactor = 1;
 
 private:
-	static std::unique_ptr<IndentableStream> getOutputStream(const MArgDatabase& adb, const char* arg, const char *outputName, std::ofstream& fileOutputStream);
-
 	std::ofstream m_mayaOutputFileStream;
 	std::ofstream m_gltfOutputFileStream;
 

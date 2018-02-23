@@ -12,7 +12,7 @@ MStatus initializePlugin(MObject obj)
 {
 	MStatus status;
 	MFnPlugin plugin(obj, "WonderMedia Maya to glTF 2.0 exporter", version, "Any");
-	status = plugin.registerCommand("maya2glTF", Exporter::createInstance, Arguments::createSyntax);
+	status = plugin.registerCommand("maya2glTF", Exporter::createInstance, SyntaxFactory::createSyntax);
 	CHECK_MSTATUS_AND_RETURN_IT(status);
 	return status;
 }

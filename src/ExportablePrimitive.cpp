@@ -75,7 +75,7 @@ ExportablePrimitive::ExportablePrimitive(
 	const VertexBuffer& vertexBuffer, 
 	ExportableResources& resources,
 	const Semantic::Kind debugSemantic,
-	const float debugLineLength)
+	const double debugLineLength)
 {
 	glPrimitive.mode = GLTF::Primitive::LINES;
 
@@ -90,6 +90,7 @@ ExportablePrimitive::ExportablePrimitive(
 	const auto linePoints = allocBuffer<Position>(lineCount * 2);
 
 	// Add a line from each point
+	float length = static_cast<float>(debugLineLength);
 	for (auto lineIndex = 0; lineIndex < lineCount; ++lineIndex)
 	{
 		const auto offset = lineIndex * 2;
@@ -104,9 +105,9 @@ ExportablePrimitive::ExportablePrimitive(
 		auto point = positions[lineIndex];
 		linePoints[offset + 0] = point;
 
-		point[0] += vx * debugLineLength;
-		point[1] += vy * debugLineLength;
-		point[2] += vz * debugLineLength;
+		point[0] += vx * length;
+		point[1] += vy * length;
+		point[2] += vz * length;
 		linePoints[offset + 1] = point;
 	}
 
