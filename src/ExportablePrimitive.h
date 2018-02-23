@@ -13,7 +13,10 @@ class ExportablePrimitive
 {
 public:
 	ExportablePrimitive(const VertexBuffer& vertexBuffer, ExportableResources& resources);
-	ExportablePrimitive(const VertexBuffer& vertexBuffer, ExportableResources& resources, Semantic::Kind debugSemantic, double debugLineLength);
+	
+	ExportablePrimitive(const VertexBuffer& vertexBuffer, ExportableResources& resources, 
+		const Semantic::Kind debugSemantic, const double debugLineLength, const Color debugLineColor);
+	
 	virtual ~ExportablePrimitive();
 
 	GLTF::Primitive glPrimitive;

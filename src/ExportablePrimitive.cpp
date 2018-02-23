@@ -69,7 +69,8 @@ ExportablePrimitive::ExportablePrimitive(
 	const VertexBuffer& vertexBuffer, 
 	ExportableResources& resources,
 	const Semantic::Kind debugSemantic,
-	const double debugLineLength)
+	const double debugLineLength,
+	const Color debugLineColor)
 {
 	glPrimitive.mode = GLTF::Primitive::LINES;
 
@@ -79,19 +80,19 @@ ExportablePrimitive::ExportablePrimitive(
 	const auto vectorComponents = vertexBuffer.componentsMap.at(vectorSlot);
 	const auto vectorDimension = Semantic::dimension(debugSemantic);
 	const auto lineCount = positions.size();
+	const auto elementCount = lineCount * 2;
+	std::vector<uint16> lineIndices(elementCount);
+	std::vector<Position> linePoints(elementCount);
+	std::vector<Color> lineColors(elementCount);
 
-	std::vector<uint16> lineIndices;
-	std::vector<Position> linePoints;
-	lineIndices.resize(lineCount * 2);
-	linePoints.resize(lineCount * 2);
+	iota(lineIndices.begin(), lineIndices.end(), 0);
+	fill(lineColors.begin(), lineColors.end(), debugLineColor);
 
 	// Add a line from each point
 	const float length = static_cast<float>(debugLineLength);
 	for (auto lineIndex = 0; lineIndex < lineCount; ++lineIndex)
 	{
 		const auto offset = lineIndex * 2;
-		lineIndices[offset + 0] = offset + 0;
-		lineIndices[offset + 1] = offset + 1;
 
 		const auto vectorOffset = vectorDimension * lineIndex;
 		const auto vx = vectorComponents[vectorOffset + 0];
@@ -110,9 +111,13 @@ ExportablePrimitive::ExportablePrimitive(
 	glIndices = createAccessor("indices", GLTF::Accessor::Type::SCALAR, WebGL::UNSIGNED_SHORT, WebGL::ELEMENT_ARRAY_BUFFER, span(lineIndices), 1);
 	glPrimitive.indices = glIndices.get();
 
-	auto accessor = createFloatAccessor(Semantic::Kind::POSITION, span(linePoints));
-	glPrimitive.attributes[glTFattributeName(Semantic::Kind::POSITION, 0)] = accessor.get();
-	glAccessorTable[vectorSlot.semantic].emplace_back(move(accessor));
+	auto pointAccessor = createFloatAccessor(Semantic::Kind::POSITION, span(linePoints));
+	glPrimitive.attributes[glTFattributeName(Semantic::Kind::POSITION, 0)] = pointAccessor.get();
+	glAccessorTable[Semantic::Kind::POSITION].emplace_back(move(pointAccessor));
+
+	auto colorAccessor = createFloatAccessor(Semantic::Kind::COLOR, span(lineColors));
+	glPrimitive.attributes[glTFattributeName(Semantic::Kind::COLOR, 0)] = colorAccessor.get();
+	glAccessorTable[Semantic::Kind::COLOR].emplace_back(move(colorAccessor));
 }
 
 ExportablePrimitive::~ExportablePrimitive() = default;

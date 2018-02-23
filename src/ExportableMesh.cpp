@@ -67,14 +67,16 @@ ExportableMesh::ExportableMesh(const MDagPath& shapeDagPath, ExportableResources
 
 				if (args.debugTangentVectors)
 				{
-					auto debugPrimitive = std::make_unique<ExportablePrimitive>(vertexBuffer, resources, Semantic::Kind::TANGENT, args.debugVectorLength);
+					auto debugPrimitive = std::make_unique<ExportablePrimitive>(
+						vertexBuffer, resources, Semantic::Kind::TANGENT, args.debugVectorLength, Color({ 1,0,0,1 }));
 					glMesh.primitives.push_back(&debugPrimitive->glPrimitive);
 					m_primitives.emplace_back(move(debugPrimitive));
 				}
 
 				if (args.debugNormalVectors)
 				{
-					auto debugPrimitive = std::make_unique<ExportablePrimitive>(vertexBuffer, resources, Semantic::Kind::NORMAL, args.debugVectorLength);
+					auto debugPrimitive = std::make_unique<ExportablePrimitive>(
+						vertexBuffer, resources, Semantic::Kind::NORMAL, args.debugVectorLength, Color({ 1,1,0,1 }));
 					glMesh.primitives.push_back(&debugPrimitive->glPrimitive);
 					m_primitives.emplace_back(move(debugPrimitive));
 				}
