@@ -3,6 +3,8 @@
 #include "MayaException.h"
 #include "IndentableStream.h"
 
+using namespace std::experimental;
+
 namespace flag
 {
 	const auto outputFolder = "of";
@@ -165,26 +167,31 @@ public:
 		return true;
 	}
 
-	std::unique_ptr<IndentableStream> getOutputStream(const char* arg, const char *outputName, std::ofstream& fileOutputStream) const
+	std::unique_ptr<IndentableStream> getOutputStream(const char* arg, const char *outputName, path outputFolder, std::ofstream& fileOutputStream) const
 	{
 		std::ostream* out = nullptr;
 
 		if (adb.isFlagSet(arg))
 		{
-			MString path;
-			if (adb.getFlagArgument(arg, 0, path).error() || path.toLowerCase() == "console")
+			MString argPath;
+			if (adb.getFlagArgument(arg, 0, argPath).error() || argPath.toLowerCase() == "console")
 			{
 				out = &cout;
 			}
-			else if (path.length() == 0 || path.substring(0, 0) == "-")
+			else if (argPath.length() == 0 || argPath.substring(0, 0) == "-")
 			{
 				throwInvalid(arg, "requires an output filepath argument, or just 'console' to print to Maya's console window");
 			}
 			else
 			{
-				cout << prefix << "Writing " << outputName << " output to file " << path.asChar() << endl;
+				const path argumentPath(argPath.asChar());
+				const path absolutePath = argumentPath.is_relative()
+					? outputFolder / argumentPath
+					: argumentPath;
 
-				fileOutputStream.open(path.asChar());
+				cout << prefix << "Writing " << outputName << " output to file " << absolutePath << endl;
+
+				fileOutputStream.open(absolutePath);
 				out = &fileOutputStream;
 			}
 		}
@@ -247,8 +254,9 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 
 	glb = adb.isFlagSet(flag::glb);
 
-	m_mayaOutputStream = adb.getOutputStream(flag::dumpMaya, "Maya debug", m_mayaOutputFileStream);
-	m_gltfOutputStream = adb.getOutputStream(flag::dumpGLTF, "glTF debug", m_gltfOutputFileStream);
+	const path outputFolderPath(outputFolder.asChar());
+	m_mayaOutputStream = adb.getOutputStream(flag::dumpMaya, "Maya debug", outputFolderPath, m_mayaOutputFileStream);
+	m_gltfOutputStream = adb.getOutputStream(flag::dumpGLTF, "glTF debug", outputFolderPath, m_gltfOutputFileStream);
 
 	dumpMaya = m_mayaOutputStream.get();
 	dumpGLTF = m_gltfOutputStream.get();
