@@ -2,31 +2,21 @@
 #include "ExportableNode.h"
 #include "MayaException.h"
 #include "ExportableResources.h"
-#include "Arguments.h"
+#include "ExportableClip.h"
+#include "Transform.h"
 
 ExportableNode::ExportableNode(MDagPath dagPath, ExportableResources& resources)
 	: ExportableObject(dagPath.node())
+	, dagPath(dagPath)
 {
 	MStatus status;
 
 	handleNameAssignment(resources, glNode);
 
+	const auto objectMatrix = Transform::getObjectSpaceMatrix(dagPath);
+	m_matrix = Transform::toGLTF(objectMatrix);
+
 	glNode.transform = &m_matrix;
-
-	MFnDagNode fnDagNode(dagPath, &status);
-	THROW_ON_FAILURE(status);
-
-	auto transform = fnDagNode.transformationMatrix(&status);
-	THROW_ON_FAILURE(status);
-
-	float m[4][4];
-	transform.get(m);
-
-	m_matrix = GLTF::Node::TransformMatrix(
-		m[0][0], m[1][0], m[2][0], m[3][0],
-		m[0][1], m[1][1], m[2][1], m[3][1],
-		m[0][2], m[1][2], m[2][2], m[3][2],
-		m[0][3], m[1][3], m[2][3], m[3][3]);
 
 	dagPath.extendToShape();
 
@@ -63,4 +53,9 @@ std::unique_ptr<ExportableNode> ExportableNode::from(MDagPath dagPath, Exportabl
 	}
 
 	return std::make_unique<ExportableNode>(dagPath, usedShaderNames);
+}
+
+std::unique_ptr<ExportableClip> ExportableNode::createClip(const std::string& clipName, const int frameCount)
+{
+	return std::make_unique<ExportableClip>(*this, clipName, frameCount);
 }

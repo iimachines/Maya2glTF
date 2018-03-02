@@ -2,9 +2,13 @@
 
 global proc maya2glTF_exporter(string $cmd) {
 	print ("Executing "+$cmd+"...\n");
-	if ( catch(`maya2glTF -fpm -sep -outputFolder "c:\\temp\\maya2glTF"`) ) {
+	$min = `playbackOptions -q -min`;
+	$max = `playbackOptions -q -max`;
+	$fps = `currentTimeUnitToFPS`;
+	if ( catch(`maya2glTF -sep -acn "clip" -acs2 $min -ace $max -acr $fps -fpm -outputFolder "C:/dev/glTF-Anim"`) ) {
 		print "Failed!\n";
 	} 
+	
 	print ("Unloading maya2glTF...");
 	unloadPlugin("maya2glTF");
 }

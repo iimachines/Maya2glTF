@@ -2,56 +2,102 @@
 #include "ExportableAsset.h"
 #include "Arguments.h"
 #include "ExportableNode.h"
+#include "ExportableClip.h"
 #include "MayaException.h"
-#include "version.h"
 
 ExportableAsset::ExportableAsset(const Arguments& args)
-	: m_resources(args)
+	: m_resources{ args }
+	, m_currentTime{ MAnimControl::currentTime() }
 {
-	m_glAsset.scenes.push_back(&m_glScene);
-	m_glAsset.scene = 0;
-
-	m_glAsset.metadata = &m_glMetadata;
-	m_glMetadata.generator = "Maya2glTF";
-	m_glMetadata.version = "2.0";
-
-	auto& selection = args.selection;
-
-	if (args.dumpMaya)
+	try
 	{
-		*args.dumpMaya << "{" << indent << endl;
-	}
+		m_glAsset.scenes.push_back(&m_glScene);
+		m_glAsset.scene = 0;
 
-	for (uint selectionIndex = 0; selectionIndex < selection.length(); ++selectionIndex)
-	{
-		MObject obj;
-		THROW_ON_FAILURE(selection.getDependNode(selectionIndex, obj));
+		m_glAsset.metadata = &m_glMetadata;
+		m_glMetadata.generator = "Maya2glTF";
+		m_glMetadata.version = "2.0";
 
-		MStatus status;
-		MFnDependencyNode node(obj, &status);
-		THROW_ON_FAILURE(status);
+		auto& selection = args.selection;
 
-		if (obj.hasFn(MFn::kDagNode))
+		if (args.dumpMaya)
 		{
-			MDagPath dagPath;
-			THROW_ON_FAILURE(selection.getDagPath(selectionIndex, dagPath));
-			cout << prefix << "Processing " << dagPath.partialPathName() << "..." << endl;
-			addNode(dagPath);
+			*args.dumpMaya << "{" << indent << endl;
 		}
-		else
+
+		for (uint selectionIndex = 0; selectionIndex < selection.length(); ++selectionIndex)
 		{
-			cerr << prefix << "WARNING: Skipping '" << node.name() << "' since it is not a DAG node" << endl;
+			MObject obj;
+			THROW_ON_FAILURE(selection.getDependNode(selectionIndex, obj));
+
+			MStatus status;
+			MFnDependencyNode node(obj, &status);
+			THROW_ON_FAILURE(status);
+
+			if (obj.hasFn(MFn::kDagNode))
+			{
+				MDagPath dagPath;
+				THROW_ON_FAILURE(selection.getDagPath(selectionIndex, dagPath));
+				cout << prefix << "Processing " << dagPath.partialPathName() << "..." << endl;
+				addNode(dagPath);
+			}
+			else
+			{
+				cerr << prefix << "WARNING: Skipping '" << node.name() << "' since it is not a DAG node" << endl;
+			}
+		}
+
+		// Now export animations, in one pass over the slow timeline
+		const auto clipCount = args.animationClips.size();
+		if (clipCount)
+		{
+			for (auto& clipArg : args.animationClips)
+			{
+				auto& clips = m_clips[clipArg.name];
+				clips.reserve(m_items.size());
+
+				for (auto& item : m_items)
+				{
+					auto clip = item->createClip(clipArg.name, clipArg.endFrame - clipArg.startFrame);
+					if (clip)
+					{
+						clips.emplace_back(move(clip));
+					}
+				}
+
+				for (auto frameIndex = clipArg.startFrame; frameIndex <= clipArg.endFrame; ++frameIndex)
+				{
+					const MTime frameTime{ frameIndex * clipArg.framesPerSecond };
+					MAnimControl::setCurrentTime(frameTime);
+
+					// TODO: Make this optional, just for debugging
+					M3dView::active3dView().refresh(true, true);
+
+					for (auto& clip : clips)
+					{
+						clip->sampleAt(frameIndex - clipArg.startFrame);
+					}
+				}
+			}
+		}
+
+		if (args.dumpMaya)
+		{
+			*args.dumpMaya << undent << "}" << endl;
 		}
 	}
-
-	if (args.dumpMaya)
+	catch (...)
 	{
-		*args.dumpMaya << undent << "}" << endl;
+		this->~ExportableAsset();
+		throw;
 	}
 }
 
 ExportableAsset::~ExportableAsset()
 {
+	// Restore time
+	MAnimControl::setCurrentTime(m_currentTime);
+	M3dView::active3dView().refresh(true, true);
 }
 
 const std::string& ExportableAsset::prettyJsonString() const

@@ -367,6 +367,7 @@ if errorlevel 1 (exit /b 100)
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\ExportableClip.cpp" />
     <ClCompile Include="src\mikktspace.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2017-Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2016_EXT2-Release|x64'">NotUsing</PrecompiledHeader>
@@ -412,6 +413,7 @@ if errorlevel 1 (exit /b 100)
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2017-Release|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2016_EXT2-Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="src\Transform.cpp" />
     <ClCompile Include="src\version.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -423,6 +425,7 @@ if errorlevel 1 (exit /b 100)
     <None Include="mel\test-iteration.mel" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\ExportableClip.h" />
     <ClInclude Include="src\mikktspace.h" />
     <ClInclude Include="src\color.h" />
     <ClInclude Include="src\ExportableObject.h" />
@@ -458,6 +461,7 @@ if errorlevel 1 (exit /b 100)
     <ClInclude Include="src\externals.h" />
     <ClInclude Include="src\sceneTypes.h" />
     <ClInclude Include="src\spans.h" />
+    <ClInclude Include="src\Transform.h" />
     <ClInclude Include="src\version.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

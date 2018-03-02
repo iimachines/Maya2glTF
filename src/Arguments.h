@@ -27,7 +27,47 @@ private:
 	std::map<const char*, const char*> m_argNames;
 	std::string m_usage;
 
+	void registerFlag(std::stringstream& ss, const char *shortName, const char *longName, bool isMultiUse, MArgType argType1 = kNoArg);
 	void registerFlag(std::stringstream& ss, const char *shortName, const char *longName, MArgType argType1 = kNoArg);
+};
+
+struct AnimClipArg
+{
+	AnimClipArg(const std::string& name, const int startFrame, const int endFrame, const double framesPerSecond)
+		: name{ name }
+		, startFrame{ startFrame }
+		, endFrame{ endFrame }
+		, framesPerSecond{ framesPerSecond }
+	{
+	}
+
+	AnimClipArg(const AnimClipArg& other)
+		: name{ other.name }
+		, startFrame{ other.startFrame }
+		, endFrame{ other.endFrame }
+		, framesPerSecond{ other.framesPerSecond }
+	{
+	}
+
+	AnimClipArg(AnimClipArg&& other) noexcept
+		: name{ std::move(other.name) }
+		, startFrame{ other.startFrame }
+		, endFrame{ other.endFrame }
+		, framesPerSecond{ other.framesPerSecond }
+	{
+	}
+
+	AnimClipArg& operator=(AnimClipArg other)
+	{
+		using std::swap;
+		swap(*this, other);
+		return *this;
+	}
+
+	const std::string name;
+	const int startFrame;
+	const int endFrame;
+	const double framesPerSecond;
 };
 
 class Arguments
@@ -40,7 +80,7 @@ public:
 	MString outputFolder;
 	MSelectionList selection;
 	bool glb = false;
-	
+
 	/** Create a default material for primitives that don't have shading in Maya? */
 	bool defaultMaterial = false;
 
@@ -55,7 +95,7 @@ public:
 
 	/** If non-null, dump the Maya intermediate objects to the stream */
 	IndentableStream* dumpMaya;
-	
+
 	/** If non-null, dump the GLTF JSON to the stream */
 	IndentableStream* dumpGLTF;
 
@@ -82,6 +122,8 @@ public:
 
 	/** The opacity factor to apply to the material */
 	float opacityFactor = 1;
+
+	std::vector<AnimClipArg> animationClips;
 
 private:
 	std::ofstream m_mayaOutputFileStream;

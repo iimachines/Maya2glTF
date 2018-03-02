@@ -11,6 +11,9 @@ public:
 
 	static std::unique_ptr<ExportableNode> from(MDagPath dagPath, ExportableResources& resources);
 
+	virtual std::unique_ptr<ExportableClip> createClip(const std::string& clipName, const int frameCount);
+
+	MDagPath dagPath;
 	GLTF::Node glNode;
 
 private:

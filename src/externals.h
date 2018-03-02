@@ -85,3 +85,7 @@
 #include <maya/MFnBlinnShader.h>
 #include <maya/MUuid.h>
 #include <maya/MImage.h>
+#include <maya/MFloatMatrix.h>
+#include <maya/MTime.h>
+#include <maya/MAnimControl.h>
+#include <maya/M3dView.h>

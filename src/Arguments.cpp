@@ -23,6 +23,11 @@ namespace flag
 	const auto mikkelsenTangentAngularThreshold = "mta";
 	const auto globalOpacityFactor = "gof";
 
+	const auto animationClipNames = "acn";
+	const auto animationClipFrameRate = "acr";
+	const auto animationClipStartFrames = "acs";
+	const auto animationClipEndFrames = "ace";
+
 	const auto debugTangentVectors = "dtv";
 	const auto debugNormalVectors = "dnv";
 	const auto debugVectorLength = "dvl";
@@ -84,6 +89,11 @@ SyntaxFactory::SyntaxFactory()
 	registerFlag(ss, flag::debugVectorLength, "debugVectorLength", kDouble);
 	registerFlag(ss, flag::globalOpacityFactor, "globalOpacityFactor", kDouble);
 
+	registerFlag(ss, flag::animationClipFrameRate, "animationClipFrameRate", true, kDouble);
+	registerFlag(ss, flag::animationClipNames, "animationClipNames", true, kString);
+	registerFlag(ss, flag::animationClipStartFrames, "animationClipStartFrames", true, kLong);
+	registerFlag(ss, flag::animationClipEndFrames, "animationClipEndFrames", true, kLong);
+
 	m_usage = ss.str();
 }
 
@@ -104,19 +114,35 @@ MSyntax SyntaxFactory::createSyntax()
 
 void SyntaxFactory::registerFlag(std::stringstream& ss, const char* shortName, const char* longName, const MArgType argType1)
 {
+	registerFlag(ss, shortName, longName, false, argType1);
+}
+
+void SyntaxFactory::registerFlag(std::stringstream& ss, const char *shortName, const char *longName, const bool isMultiUse, const MArgType argType1)
+{
 	m_argNames[shortName] = longName;
 
 	auto status = addFlag(shortName, longName, argType1);
 	THROW_ON_FAILURE(status);
 
+	if (isMultiUse)
+	{
+		makeFlagMultiUse(shortName);
+	}
+
 	const auto name1 = getArgTypeName(argType1);
 
-	ss << "-" << std::setw(5) << std::left <<  shortName << longName;
+	ss << "-" << std::setw(5) << std::left << shortName << longName;
 
 	if (name1)
 	{
 		ss << ": " << name1;
 	}
+
+	if (isMultiUse)
+	{
+		ss << "+";
+	}
+
 	ss << endl;
 
 	ss.flush();
@@ -148,31 +174,36 @@ public:
 		return result;
 	}
 
+	int flagUsageCount(const char* shortName) const
+	{
+		return adb.numberOfFlagUses(shortName);
+	}
+
 	template<typename T>
-	void required(const char* shortName, T& value) const
+	void required(const char* shortName, T& value, const int index = 0) const
 	{
 		if (!isFlagSet(shortName))
 			throwInvalid(shortName, "Missing argument");
 
-		const auto status = adb.getFlagArgument(shortName, 0, value);
+		const auto status = adb.getFlagArgument(shortName, index, value);
 		throwOnArgument(status, shortName);
 	}
 
 	template<typename T>
-	bool optional(const char* shortName, T& value) const
+	bool optional(const char* shortName, T& value, const int index = 0) const
 	{
 		if (!adb.isFlagSet(shortName))
 			return false;
 
-		const auto status = adb.getFlagArgument(shortName, 0, value);
+		const auto status = adb.getFlagArgument(shortName, index, value);
 		throwOnArgument(status, shortName);
 		return true;
 	}
 
-	bool optional(const char* shortName, float& value) const
+	bool optional(const char* shortName, float& value, const int index = 0) const
 	{
 		double temp;
-		if (!optional(shortName, temp))
+		if (!optional(shortName, temp, index))
 			return false;
 		value = static_cast<float>(temp);
 		return true;
@@ -219,7 +250,7 @@ private:
 		{
 			const auto statusStr = status.errorString().asChar();
 			const auto usageStr = SyntaxFactory::get().usage();
-			throw MayaException(status, 
+			throw MayaException(status,
 				formatted("%s (%s)\nUsage:\n%s", message, statusStr, usageStr));
 		}
 	}
@@ -227,7 +258,7 @@ private:
 	static void throwUsage(const char* message)
 	{
 		const auto usageStr = SyntaxFactory::get().usage();
-		throw MayaException(MStatus::kFailure, 
+		throw MayaException(MStatus::kFailure,
 			formatted("%s\nUsage:\n%s", message, usageStr));
 	}
 
@@ -238,7 +269,7 @@ private:
 			const auto longArgName = SyntaxFactory::get().longArgName(shortArgName);
 			const auto statusStr = status.errorString().asChar();
 			const auto usageStr = SyntaxFactory::get().usage();
-			throw MayaException(status, 
+			throw MayaException(status,
 				formatted("-%s (%s): %s\nUsage:\n%s", shortArgName, longArgName, statusStr, usageStr));
 		}
 	}
@@ -309,6 +340,35 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	MStringArray selectedObjects;
 	status = selection.getSelectionStrings(selectedObjects);
 	THROW_ON_FAILURE(status);
+
+	const auto clipCount = adb.flagUsageCount(flag::animationClipNames);
+	animationClips.reserve(clipCount);
+
+	const auto fpsCount = adb.flagUsageCount(flag::animationClipFrameRate);
+
+	for (int clipIndex = 0; clipIndex < clipCount; ++clipIndex)
+	{
+		double fps;
+		adb.required(flag::animationClipFrameRate, fps, fpsCount == 1 ? 0 : clipIndex);
+
+		MString name;
+		adb.required(flag::animationClipNames, name, clipIndex);
+
+		int start;
+		adb.required(flag::animationClipStartFrames, start, clipIndex);
+
+		int end;
+		adb.required(flag::animationClipEndFrames, end, clipIndex);
+
+		animationClips.emplace_back(name.asChar(), start, end, fps);
+	}
+
+	// Sort clips by starting time.
+	std::sort(animationClips.begin(), animationClips.end(),
+		[](const AnimClipArg& left, const AnimClipArg& right)
+		{
+			return left.startFrame < right.startFrame;
+		});
 
 	cout << prefix << "Exporting " << selectedObjects << " to " << outputFolder << "/" << sceneName << "..." << endl;
 }
