@@ -4,10 +4,13 @@
 #include "ExportablePrimitive.h"
 #include "ExportableResources.h"
 #include "Arguments.h"
+#include "MayaException.h"
 
 ExportableMesh::ExportableMesh(const MDagPath& shapeDagPath, ExportableResources& resources)
 	: ExportableObject(shapeDagPath.node())
 {
+	CONSTRUCTOR_BEGIN();
+
 	handleNameAssignment(resources, glMesh);
 
 	Mesh mayaMesh(shapeDagPath, resources.arguments());
@@ -85,6 +88,8 @@ ExportableMesh::ExportableMesh(const MDagPath& shapeDagPath, ExportableResources
 			}
 		}
 	}
+
+	CONSTRUCTOR_END();
 }
 
 ExportableMesh::~ExportableMesh() = default;

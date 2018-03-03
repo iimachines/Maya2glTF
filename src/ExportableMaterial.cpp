@@ -62,6 +62,8 @@ bool ExportableMaterial::getColor(const MObject& obj, const char* attributeName,
 
 ExportableMaterialPBR::ExportableMaterialPBR(ExportableResources& resources, const MFnDependencyNode& shaderNode)
 {
+	CONSTRUCTOR_BEGIN();
+
 	MStatus status;
 
 	const auto shaderObject = shaderNode.object(&status);
@@ -87,6 +89,8 @@ ExportableMaterialPBR::ExportableMaterialPBR(ExportableResources& resources, con
 		cerr << prefix << "WARNING: skipping unsupported PBR shader type '" << shaderObject.apiTypeStr() << "' #" << shaderType << endl;
 		break;
 	}
+
+	CONSTRUCTOR_END();
 }
 
 template<class MFnShader>

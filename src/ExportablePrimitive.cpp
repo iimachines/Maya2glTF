@@ -5,6 +5,7 @@
 #include "ExportableMaterial.h"
 #include "spans.h"
 #include "Arguments.h"
+#include "MayaException.h"
 
 using namespace GLTF::Constants;
 
@@ -30,6 +31,8 @@ ExportablePrimitive::ExportablePrimitive(
 	const VertexBuffer& vertexBuffer,
 	ExportableResources& resources)
 {
+	CONSTRUCTOR_BEGIN();
+
 	glPrimitive.mode = GLTF::Primitive::TRIANGLES;
 
 	auto& vertexIndices = vertexBuffer.indices;
@@ -63,6 +66,8 @@ ExportablePrimitive::ExportablePrimitive(
 			glAccessorTable[slot.semantic].emplace_back(move(accessor));
 		}
 	}
+
+	CONSTRUCTOR_END();
 }
 
 ExportablePrimitive::ExportablePrimitive(

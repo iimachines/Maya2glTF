@@ -143,6 +143,8 @@ struct MikkTSpaceContext : SMikkTSpaceContext
 
 MeshVertices::MeshVertices(const MeshIndices& meshIndices, const MFnMesh& mesh, const Arguments& args, MSpace::Space space)
 {
+	CONSTRUCTOR_BEGIN();
+
 	MStatus status;
 
 	auto& semantics = meshIndices.semantics;
@@ -271,6 +273,8 @@ MeshVertices::MeshVertices(const MeshIndices& meshIndices, const MFnMesh& mesh, 
 			m_table.at(Semantic::TANGENT).push_back(tangentSpan);
 		}
 	}
+
+	CONSTRUCTOR_END();
 }
 
 MeshVertices::~MeshVertices()

@@ -8,6 +8,8 @@ MeshIndices::MeshIndices(const MeshSemantics* meshSemantics, const MFnMesh& fnMe
 	: meshName(fnMesh.partialPathName().asChar())
 	, semantics(*meshSemantics)
 {
+	CONSTRUCTOR_BEGIN();
+
 	MStatus status;
 
 	const auto instanceCount = fnMesh.instanceCount(false);
@@ -156,6 +158,8 @@ MeshIndices::MeshIndices(const MeshSemantics* meshSemantics, const MFnMesh& fnMe
 			}
 		}
 	}
+
+	CONSTRUCTOR_END();
 }
 
 MeshIndices::~MeshIndices()

@@ -19,7 +19,7 @@ public:
 private:
 	std::unique_ptr<ExportableMesh> m_mesh;
 
-	GLTF::Node::TransformMatrix m_matrix;
+	GLTF::Node::TransformTRS m_transform;
 
 	DISALLOW_COPY_AND_ASSIGN(ExportableNode);
 };

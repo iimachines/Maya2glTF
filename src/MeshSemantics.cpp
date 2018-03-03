@@ -16,6 +16,8 @@ void VertexElementSetDescription::dump(class IndentableStream& out, const std::s
 
 MeshSemantics::MeshSemantics(const MFnMesh& mesh, const bool isBlendShape)
 {
+	CONSTRUCTOR_BEGIN();
+
 	MStatus status;
 
 	m_table[Semantic::POSITION].push_back(
@@ -49,6 +51,8 @@ MeshSemantics::MeshSemantics(const MFnMesh& mesh, const bool isBlendShape)
 				VertexElementSetDescription(Semantic::TANGENT, i, uvSetNames[i].asChar(), mesh.numUVs(uvSetNames[i], &status)));
 		}
 	}
+
+	CONSTRUCTOR_END();
 }
 
 

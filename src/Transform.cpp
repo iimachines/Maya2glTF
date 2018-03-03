@@ -29,6 +29,18 @@ namespace Transform
 			m[0][3], m[1][3], m[2][3], m[3][3]));
 	}
 
+	GLTF::Node::TransformTRS&& toTRS(const MMatrix& matrix, const char* context)
+	{
+		if (!hasOrthogonalAxes(matrix))
+		{
+			cerr << prefix << "WARNING: Skewed/sheared matrices are not representable by glTF! " << context << endl;
+		}
+
+		GLTF::Node::TransformTRS trs;
+		toGLTF(matrix).getTransformTRS(&trs);
+		return std::move(trs);
+	}
+
 	MMatrix&& getObjectSpaceMatrix(MDagPath dagPath)
 	{
 		MStatus status;

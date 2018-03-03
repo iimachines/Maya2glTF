@@ -17,6 +17,8 @@ void MeshBlendShapeWeights::clearWeightsExceptFor(const size_t index) const
 
 MeshBlendShapeWeights::MeshBlendShapeWeights(const MPlug weightArrayPlug):m_weightArrayPlug(weightArrayPlug)
 {
+	CONSTRUCTOR_BEGIN();
+
 	MStatus status;
 
 	// Backup weights and connections.
@@ -44,6 +46,8 @@ MeshBlendShapeWeights::MeshBlendShapeWeights(const MPlug weightArrayPlug):m_weig
 
 		m_originalWeightPlugStates.push_back(state);
 	}
+
+	CONSTRUCTOR_END();
 }
 
 void MeshBlendShapeWeights::breakConnections()

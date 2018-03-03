@@ -9,14 +9,17 @@ ExportableNode::ExportableNode(MDagPath dagPath, ExportableResources& resources)
 	: ExportableObject(dagPath.node())
 	, dagPath(dagPath)
 {
+	CONSTRUCTOR_BEGIN();
+
 	MStatus status;
 
 	handleNameAssignment(resources, glNode);
 
 	const auto objectMatrix = Transform::getObjectSpaceMatrix(dagPath);
-	m_matrix = Transform::toGLTF(objectMatrix);
+	m_transform = Transform::toTRS(objectMatrix, dagPath.fullPathName(&status).asChar());
+	THROW_ON_FAILURE(status);
 
-	glNode.transform = &m_matrix;
+	glNode.transform = &m_transform;
 
 	dagPath.extendToShape();
 
@@ -32,6 +35,8 @@ ExportableNode::ExportableNode(MDagPath dagPath, ExportableResources& resources)
 		cerr << "glTF2Maya: skipping '" << name() << "', it is not supported" << endl;
 		break;
 	}
+
+	CONSTRUCTOR_END();
 }
 
 ExportableNode::~ExportableNode()

@@ -7,9 +7,11 @@
 
 MeshShape::MeshShape(const MFnMesh& fnMesh, const Arguments& args, const bool isBlendShape) : isBlendShape(isBlendShape)
 {
-	m_semantics.reset(new MeshSemantics(fnMesh, isBlendShape));
-	m_indices.reset(new MeshIndices(m_semantics.get(), fnMesh));
-	m_vertices.reset(new MeshVertices(*m_indices, fnMesh, args));
+	CONSTRUCTOR_BEGIN();
+	m_semantics = std::make_unique<MeshSemantics>(fnMesh, isBlendShape);
+	m_indices = std::make_unique<MeshIndices>(m_semantics.get(), fnMesh);
+	m_vertices = std::make_unique<MeshVertices>(*m_indices, fnMesh, args);
+	CONSTRUCTOR_END();
 }
 
 MeshShape::~MeshShape()

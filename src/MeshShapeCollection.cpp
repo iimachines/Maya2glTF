@@ -3,12 +3,15 @@
 #include "MeshShape.h"
 #include "MeshBlendShapes.h"
 #include "dump.h"
+#include "MayaException.h"
 
 MeshShapeCollection::MeshShapeCollection(const MeshShape& mainShape, const MeshBlendShapes* maybeBlendShapes)
 	: mainShape(mainShape)
 	, maybeBlendShapes(maybeBlendShapes)
 	, m_maxVertexElementCount(0)
 {
+	CONSTRUCTOR_BEGIN();
+
 	const auto hasBlendShapes = maybeBlendShapes && !maybeBlendShapes->empty();
 
 	m_offsets.mainMeshOffset = 0;
@@ -54,6 +57,8 @@ MeshShapeCollection::MeshShapeCollection(const MeshShape& mainShape, const MeshB
 	}
 
 	m_maxVertexElementCount = maxVertexElementCount;
+
+	CONSTRUCTOR_END();
 }
 
 MeshShapeCollection::~MeshShapeCollection()

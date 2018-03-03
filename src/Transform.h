@@ -7,4 +7,6 @@ namespace Transform
 	GLTF::Node::TransformMatrix&& toGLTF(const MMatrix& matrix);
 
 	MMatrix&& getObjectSpaceMatrix(MDagPath childPath);
+
+	GLTF::Node::TransformTRS&& toTRS(const MMatrix& matrix, const char* context);
 }

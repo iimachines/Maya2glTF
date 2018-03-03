@@ -6,6 +6,7 @@
 #include "MeshRenderables.h"
 #include "IndentableStream.h"
 #include "dump.h"
+#include "MayaException.h"
 
 using namespace coveo::linq;
 
@@ -15,6 +16,8 @@ MeshRenderables::MeshRenderables(
 	: instanceIndex(instanceIndex)
 	, meshShapesIndices(shapeCollection)
 {
+	CONSTRUCTOR_BEGIN();
+
 	MStatus status;
 
 	const auto& mainIndices = shapeCollection.mainShape.indices();
@@ -168,6 +171,8 @@ MeshRenderables::MeshRenderables(
 			}
 		}
 	}
+
+	CONSTRUCTOR_END();
 }
 
 std::ostream& operator<<(std::ostream& out, const VertexSignature& obj)

@@ -9,6 +9,8 @@
 
 MeshBlendShapes::MeshBlendShapes(MObject blendShapeNode, const Arguments& args)
 {
+	CONSTRUCTOR_BEGIN();
+
 	MStatus status;
 
 	MFnBlendShapeDeformer fnController(blendShapeNode, &status);
@@ -64,6 +66,8 @@ MeshBlendShapes::MeshBlendShapes(MObject blendShapeNode, const Arguments& args)
 		auto weightPlug = weightPlugs.getWeightPlug(i);
 		m_entries.emplace_back(std::make_unique<MeshBlendShapeEntry>(outputMesh, args, weightPlug));
 	}
+
+	CONSTRUCTOR_END();
 }
 
 MeshBlendShapes::~MeshBlendShapes()

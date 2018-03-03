@@ -10,6 +10,8 @@ ExportableTexture::ExportableTexture(ExportableResources& resources, const MObje
 	: glTexture(nullptr)
 	, glSampler(nullptr)
 {
+	CONSTRUCTOR_BEGIN();
+
 	connectedObject = DagHelper::findNodeConnectedTo(obj, attributeName);
 	if (connectedObject.isNull())
 		return;
@@ -66,6 +68,8 @@ ExportableTexture::ExportableTexture(ExportableResources& resources, const MObje
 
 	glTexture = resources.getTexture(imagePtr, glSampler);
 	assert(glTexture);
+
+	CONSTRUCTOR_END();
 }
 
 ExportableTexture::~ExportableTexture()

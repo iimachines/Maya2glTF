@@ -5,6 +5,8 @@
 
 Mesh::Mesh(const MDagPath& dagPath, const Arguments& args)
 {
+	CONSTRUCTOR_BEGIN();
+
 	MStatus status;
 
 	const MFnMesh fnMesh(dagPath, &status);
@@ -24,6 +26,8 @@ Mesh::Mesh(const MDagPath& dagPath, const Arguments& args)
 	m_shapeCollection = std::make_unique<MeshShapeCollection>(*m_shape, m_blendShapes.get());
 
 	m_renderables = std::make_unique<MeshRenderables>(instanceNumber, *m_shapeCollection);
+
+	CONSTRUCTOR_END();
 }
 
 Mesh::~Mesh()
