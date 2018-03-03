@@ -18,29 +18,40 @@ ExportableNode* NodeHierarchy::parentOf(ExportableNode* node) const
 {
 	MStatus status;
 
-	auto& dagPath = node->dagPath;
+	auto parentDagPath = node->dagPath;
 
-	MFnDagNode fnDagNode(dagPath, &status);
-	THROW_ON_FAILURE(status);
-
-	int pathLength = dagPath.pathCount(&status);
-	THROW_ON_FAILURE(status);
+	ExportableNode* parentNode = nullptr;
 
 	// Find first selected ancestor node.
 	// That is our logical parent.
-	while (--pathLength > 0)
+	while(!parentNode)
 	{
-		MDagPath parentDagPath;
-		status = dagPath.getPath(parentDagPath, pathLength);
+		parentDagPath.pop();
+		if (parentDagPath.length() <= 0)
+			break;
 
-		const auto parentNode = lookupNode(parentDagPath.fullPathName(&status).asChar());
+		const std::string parentFullPath { parentDagPath.fullPathName(&status).asChar() };
 		THROW_ON_FAILURE(status);
 
-		if (parentNode)
-			return parentNode;
+		parentNode = lookupNode(parentFullPath);
 	}
 
-	return nullptr;
+	return parentNode;
+}
+
+int NodeHierarchy::distanceToRoot(ExportableNode* node) 
+{
+	int distance;
+	auto dagPath = node->dagPath;
+
+	// Find first selected ancestor node.
+	// That is our logical parent.
+	for (distance=0; dagPath.length() > 0; ++distance) 
+	{
+		dagPath.pop();
+	}
+
+	return distance;
 }
 
 void NodeHierarchy::computeObjectTransforms()

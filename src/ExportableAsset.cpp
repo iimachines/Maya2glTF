@@ -62,6 +62,16 @@ ExportableAsset::ExportableAsset(const Arguments& args)
 	// Connect hierarchy, compute object transforms
 	m_dagNodeTable.computeObjectTransforms();
 
+	// Add root nodes to the scene
+	auto& nodeTable = m_dagNodeTable.table();
+	for (auto& pair: nodeTable)
+	{
+		if (pair.second->parentDagPath.length() == 0)
+		{
+			m_glScene.nodes.push_back(&pair.second->glNode);
+		}
+	}
+
 	// Now export animation clips, in one pass over the slow timeline
 	const auto clipCount = args.animationClips.size();
 	if (clipCount)
@@ -121,7 +131,6 @@ void ExportableAsset::addNode(MDagPath& dagPath)
 
 	if (exportableNode)
 	{
-		m_glScene.nodes.push_back(&exportableNode->glNode);
 		m_dagNodeTable.registerNode(exportableNode.get());
 		m_items.push_back(std::move(exportableNode));
 	}

@@ -2,6 +2,8 @@
 
 class ExportableNode;
 
+typedef std::map<std::string, class ExportableNode*> NodeTable;
+
 // Maps each DAG path to the corresponding node.
 class NodeHierarchy
 {
@@ -12,10 +14,14 @@ public:
 
 	// Returns null if the node has no logical parent.
 	ExportableNode* parentOf(ExportableNode* node) const;
-	
+
+	static int distanceToRoot(ExportableNode* node);
+
 	void computeObjectTransforms();
 
+	const NodeTable& table() const { return m_table; }
+
 private:
-	std::map<std::string, class ExportableNode*> m_table;
+	NodeTable m_table;
 };
 

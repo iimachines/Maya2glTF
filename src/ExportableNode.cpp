@@ -16,6 +16,9 @@ ExportableNode::ExportableNode(MDagPath dagPath, ExportableResources& resources)
 
 	MStatus status;
 
+	glNode.name = dagPath.fullPathName(&status).asChar();
+	THROW_ON_FAILURE(status);
+
 	handleNameAssignment(resources, glNode);
 
 	dagPath.extendToShape();
@@ -44,12 +47,12 @@ std::unique_ptr<ExportableNode> ExportableNode::from(MDagPath dagPath, Exportabl
 {
 	MStatus status;
 
-	MString name = dagPath.partialPathName(&status);
-	THROW_ON_FAILURE(status);
-
 	MObject mayaNode = dagPath.node(&status);
 	if (mayaNode.isNull() || status.error())
 	{
+		MString name = dagPath.fullPathName(&status);
+		THROW_ON_FAILURE(status);
+
 		cerr << "glTF2Maya: skipping '" << name.asChar() << "' as it is not a node" << endl;
 		return nullptr;
 	}
@@ -61,10 +64,11 @@ void ExportableNode::connectToHierarchy(const NodeHierarchy& dagNodeTable)
 {
 	const auto parentNode = dagNodeTable.parentOf(this);
 	parentDagPath = parentNode ? parentNode->dagPath : MDagPath();
+
 	const auto objectMatrix = Transform::getObjectSpaceMatrix(dagPath, parentDagPath);
 
 	MStatus status;
-	transform = Transform::toTRS(objectMatrix, scaleFactor, dagPath.fullPathName(&status).asChar());
+	transform = Transform::toTRS(objectMatrix, scaleFactor, glNode.name.c_str());
 	THROW_ON_FAILURE(status);
 
 	glNode.transform = &transform;
