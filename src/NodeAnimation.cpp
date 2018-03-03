@@ -17,7 +17,7 @@ NodeAnimation::NodeAnimation(
 
 void NodeAnimation::sampleAt(const int frameIndex)
 {
-	const auto objectMatrix = Transform::getObjectSpaceMatrix(node.dagPath);
+	const auto objectMatrix = Transform::getObjectSpaceMatrix(node.dagPath, node.parentDagPath);
 	m_allOrthogonalAxes &= Transform::hasOrthogonalAxes(objectMatrix);
 	m_objectMatrices.at(frameIndex) = objectMatrix;
 }
@@ -66,7 +66,7 @@ void NodeAnimation::exportTo(GLTF::Accessor& timesPerFrame, GLTF::Animation& glA
 	}
 
 	// Now create the glTF animations, but only for those props that animate
-	const auto nodeTRS = node.transform();
+	const auto nodeTRS = node.transform;
 	finish(glAnimation, m_positions, nodeTRS.translation);
 	finish(glAnimation, m_rotations, nodeTRS.rotation);
 	finish(glAnimation, m_scales, nodeTRS.scale);

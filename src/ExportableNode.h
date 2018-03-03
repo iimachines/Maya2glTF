@@ -2,6 +2,7 @@
 
 #include "ExportableObject.h"	
 #include "ExportableMesh.h"
+#include "NodeHierarchy.h"
 
 class ExportableNode : public ExportableObject
 {
@@ -9,19 +10,24 @@ public:
 	ExportableNode(MDagPath dagPath, ExportableResources& resources);
 	~ExportableNode();
 
+	// Phase 1
 	static std::unique_ptr<ExportableNode> from(MDagPath dagPath, ExportableResources& resources);
-
-	std::unique_ptr<NodeAnimation> createAnimation(const int frameCount, const double scaleFactor) override;
 
 	MDagPath dagPath;
 	GLTF::Node glNode;
+	double scaleFactor;
 
-	const GLTF::Node::TransformTRS& transform() const { return m_transform; };
+	// Phase 2
+	void connectToHierarchy(const NodeHierarchy& hierarchy);
+
+	MDagPath parentDagPath;
+	GLTF::Node::TransformTRS transform;
+
+	// Phase 3
+	std::unique_ptr<NodeAnimation> createAnimation(const int frameCount, const double scaleFactor) override;
 
 private:
 	std::unique_ptr<ExportableMesh> m_mesh;
-
-	GLTF::Node::TransformTRS m_transform;
 
 	DISALLOW_COPY_AND_ASSIGN(ExportableNode);
 };

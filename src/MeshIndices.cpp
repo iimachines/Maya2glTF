@@ -12,7 +12,7 @@ MeshIndices::MeshIndices(const MeshSemantics* meshSemantics, const MFnMesh& fnMe
 
 	MStatus status;
 
-	const auto instanceCount = fnMesh.instanceCount(false);
+	const auto instanceCount = fnMesh.instanceCount(true);
 
 	std::vector<MIntArray> mapPolygonToShaderPerInstance(instanceCount);
 

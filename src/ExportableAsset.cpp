@@ -38,16 +38,29 @@ ExportableAsset::ExportableAsset(const Arguments& args)
 
 		if (obj.hasFn(MFn::kDagNode))
 		{
-			MDagPath dagPath;
-			THROW_ON_FAILURE(selection.getDagPath(selectionIndex, dagPath));
-			cout << prefix << "Processing " << dagPath.partialPathName() << "..." << endl;
-			addNode(dagPath);
+			MDagPathArray dagPaths;
+			status = MDagPath::getAllPathsTo(obj, dagPaths);
+			THROW_ON_FAILURE(status);
+
+			for (auto instanceIndex=0U; instanceIndex<dagPaths.length(); ++instanceIndex)
+			{
+				MDagPath dagPath = dagPaths[instanceIndex];
+				const std::string fullPath{ dagPath.fullPathName(&status).asChar() };
+				THROW_ON_FAILURE(status);
+
+				cout << prefix << "Processing " << fullPath << " instance #" << instanceIndex <<  "..." << endl;
+
+				addNode(dagPath);
+			}
 		}
 		else
 		{
 			cerr << prefix << "WARNING: Skipping '" << node.name() << "' since it is not a DAG node" << endl;
 		}
 	}
+
+	// Connect hierarchy, compute object transforms
+	m_dagNodeTable.computeObjectTransforms();
 
 	// Now export animation clips, in one pass over the slow timeline
 	const auto clipCount = args.animationClips.size();
@@ -109,6 +122,7 @@ void ExportableAsset::addNode(MDagPath& dagPath)
 	if (exportableNode)
 	{
 		m_glScene.nodes.push_back(&exportableNode->glNode);
+		m_dagNodeTable.registerNode(exportableNode.get());
 		m_items.push_back(std::move(exportableNode));
 	}
 }

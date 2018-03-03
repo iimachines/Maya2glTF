@@ -4,23 +4,19 @@
 #include "ExportableResources.h"
 #include "NodeAnimation.h"
 #include "Transform.h"
+#include "NodeHierarchy.h"
 #include "Arguments.h"
 
 ExportableNode::ExportableNode(MDagPath dagPath, ExportableResources& resources)
 	: ExportableObject(dagPath.node())
 	, dagPath(dagPath)
+	, scaleFactor(resources.arguments().scaleFactor)
 {
 	CONSTRUCTOR_BEGIN();
 
 	MStatus status;
 
 	handleNameAssignment(resources, glNode);
-
-	const auto objectMatrix = Transform::getObjectSpaceMatrix(dagPath);
-	m_transform = Transform::toTRS(objectMatrix, resources.arguments().scaleFactor, dagPath.fullPathName(&status).asChar());
-	THROW_ON_FAILURE(status);
-
-	glNode.transform = &m_transform;
 
 	dagPath.extendToShape();
 
@@ -59,6 +55,24 @@ std::unique_ptr<ExportableNode> ExportableNode::from(MDagPath dagPath, Exportabl
 	}
 
 	return std::make_unique<ExportableNode>(dagPath, usedShaderNames);
+}
+
+void ExportableNode::connectToHierarchy(const NodeHierarchy& dagNodeTable)
+{
+	const auto parentNode = dagNodeTable.parentOf(this);
+	parentDagPath = parentNode ? parentNode->dagPath : MDagPath();
+	const auto objectMatrix = Transform::getObjectSpaceMatrix(dagPath, parentDagPath);
+
+	MStatus status;
+	transform = Transform::toTRS(objectMatrix, scaleFactor, dagPath.fullPathName(&status).asChar());
+	THROW_ON_FAILURE(status);
+
+	glNode.transform = &transform;
+
+	if (parentNode)
+	{
+		parentNode->glNode.children.push_back(&glNode);
+	}
 }
 
 std::unique_ptr<NodeAnimation> ExportableNode::createAnimation(const int frameCount, const double scaleFactor)

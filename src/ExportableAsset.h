@@ -1,6 +1,7 @@
 #pragma once
 #include "ExportableResources.h"
 #include "ExportableClip.h"
+#include "NodeHierarchy.h"
 
 class Arguments;
 
@@ -23,6 +24,7 @@ private:
 
 	std::vector<std::unique_ptr<ExportableItem>> m_items;
 	std::vector<std::unique_ptr<ExportableClip>> m_clips;
+	NodeHierarchy m_dagNodeTable;
 
 	MTime m_currentTime;
 

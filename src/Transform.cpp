@@ -76,7 +76,7 @@ namespace Transform
 		return toTRS(localMatrix, scaleFactor, precision);
 	}
 
-	MMatrix&& getObjectSpaceMatrix(MDagPath dagPath)
+	MMatrix&& getObjectSpaceMatrix(MDagPath dagPath, MDagPath parentPath)
 	{
 		MStatus status;
 
@@ -86,19 +86,13 @@ namespace Transform
 		auto childWorldMatrix = dagPath.inclusiveMatrix(&status);
 		THROW_ON_FAILURE(status);
 
-		const int pathLength = dagPath.pathCount(&status);
+		const auto parentPathLength = parentPath.length(&status);
 		THROW_ON_FAILURE(status);
 
-		// Root node?
-		if (pathLength == 1)
+		if (parentPathLength == 0)
 			return std::move(childWorldMatrix);
 
-		// Child node.
-		MDagPath parentDagPath;
-		status = dagPath.getPath(parentDagPath, std::max(0, pathLength - 1));
-		THROW_ON_FAILURE(status);
-
-		const auto parentWorldMatrixInverse = parentDagPath.inclusiveMatrixInverse(&status);
+		const auto parentWorldMatrixInverse = parentPath.inclusiveMatrixInverse(&status);
 		THROW_ON_FAILURE(status);
 
 		return std::move(childWorldMatrix * parentWorldMatrixInverse);
