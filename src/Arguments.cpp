@@ -24,13 +24,18 @@ namespace flag
 	const auto globalOpacityFactor = "gof";
 
 	const auto animationClipNames = "acn";
-	const auto animationClipFrameRate = "acr";
-	const auto animationClipStartFrames = "acs";
-	const auto animationClipEndFrames = "ace";
+	const auto animationClipFrameRate = "afr";
+	const auto animationClipStartTime = "ast";
+	const auto animationClipEndTime = "aet";
+
+	const auto initialValuesTime = "ivt";
+
+	const auto redrawViewport = "rvp";
 
 	const auto debugTangentVectors = "dtv";
 	const auto debugNormalVectors = "dnv";
 	const auto debugVectorLength = "dvl";
+
 }
 
 inline const char* getArgTypeName(const MSyntax::MArgType argType)
@@ -91,8 +96,10 @@ SyntaxFactory::SyntaxFactory()
 
 	registerFlag(ss, flag::animationClipFrameRate, "animationClipFrameRate", true, kDouble);
 	registerFlag(ss, flag::animationClipNames, "animationClipNames", true, kString);
-	registerFlag(ss, flag::animationClipStartFrames, "animationClipStartFrames", true, kLong);
-	registerFlag(ss, flag::animationClipEndFrames, "animationClipEndFrames", true, kLong);
+	registerFlag(ss, flag::animationClipStartTime, "animationClipStartTime", true, kTime);
+	registerFlag(ss, flag::animationClipEndTime, "animationClipEndTime", true, kTime);
+
+	registerFlag(ss, flag::initialValuesTime, "initialValuesTime", kTime);
 
 	m_usage = ss.str();
 }
@@ -341,6 +348,12 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	status = selection.getSelectionStrings(selectedObjects);
 	THROW_ON_FAILURE(status);
 
+	// By default use the current time for the initial values.
+	initialValuesTime = MAnimControl::currentTime();
+	adb.optional(flag::initialValuesTime, initialValuesTime);
+
+	adb.optional(flag::redrawViewport, redrawViewport);
+
 	const auto clipCount = adb.flagUsageCount(flag::animationClipNames);
 	animationClips.reserve(clipCount);
 
@@ -354,11 +367,11 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 		MString name;
 		adb.required(flag::animationClipNames, name, clipIndex);
 
-		int start;
-		adb.required(flag::animationClipStartFrames, start, clipIndex);
+		MTime start;
+		adb.required(flag::animationClipStartTime, start, clipIndex);
 
-		int end;
-		adb.required(flag::animationClipEndFrames, end, clipIndex);
+		MTime end;
+		adb.required(flag::animationClipEndTime, end, clipIndex);
 
 		animationClips.emplace_back(name.asChar(), start, end, fps);
 	}
@@ -367,7 +380,7 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	std::sort(animationClips.begin(), animationClips.end(),
 		[](const AnimClipArg& left, const AnimClipArg& right)
 		{
-			return left.startFrame < right.startFrame;
+			return left.startTime < right.endTime;
 		});
 
 	cout << prefix << "Exporting " << selectedObjects << " to " << outputFolder << "/" << sceneName << "..." << endl;

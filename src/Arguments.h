@@ -33,26 +33,26 @@ private:
 
 struct AnimClipArg
 {
-	AnimClipArg(const std::string& name, const int startFrame, const int endFrame, const double framesPerSecond)
+	AnimClipArg(const std::string& name, const MTime& startTime, const MTime& endTime, const double framesPerSecond)
 		: name{ name }
-		, startFrame{ startFrame }
-		, endFrame{ endFrame }
+		, startTime{ startTime }
+		, endTime{ endTime }
 		, framesPerSecond{ framesPerSecond }
 	{
 	}
 
 	AnimClipArg(const AnimClipArg& other)
 		: name{ other.name }
-		, startFrame{ other.startFrame }
-		, endFrame{ other.endFrame }
+		, startTime{ other.startTime }
+		, endTime{ other.endTime }
 		, framesPerSecond{ other.framesPerSecond }
 	{
 	}
 
 	AnimClipArg(AnimClipArg&& other) noexcept
 		: name{ std::move(other.name) }
-		, startFrame{ other.startFrame }
-		, endFrame{ other.endFrame }
+		, startTime{ other.startTime }
+		, endTime{ other.endTime }
 		, framesPerSecond{ other.framesPerSecond }
 	{
 	}
@@ -65,9 +65,19 @@ struct AnimClipArg
 	}
 
 	const std::string name;
-	const int startFrame;
-	const int endFrame;
+	const MTime startTime;
+	const MTime endTime;
 	const double framesPerSecond;
+
+	MTime duration() const
+	{
+		return endTime - startTime;
+	}
+
+	int frameCount() const
+	{
+		return static_cast<int>(ceil(duration().as(MTime::kSeconds) * framesPerSecond));
+	}
 };
 
 class Arguments
@@ -122,6 +132,16 @@ public:
 
 	/** The opacity factor to apply to the material */
 	float opacityFactor = 1;
+
+	/** The time where the 'initial values' of all nodes are to be found (aka neutral base pose) */
+	MTime initialValuesTime;
+
+	/** Redraw the viewport while exporting? True in debug builds by default, false otherwise (for speed) */
+#ifdef _DEBUG
+	bool redrawViewport = true;
+#else
+	bool redrawViewport = false;
+#endif
 
 	std::vector<AnimClipArg> animationClips;
 

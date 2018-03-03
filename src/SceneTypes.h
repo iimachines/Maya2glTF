@@ -8,12 +8,16 @@ typedef __int32 Index;
 typedef int SetIndex;
 
 typedef Float3 Position;
+typedef Float4 Rotation; // a quaternion
+typedef Float3 Scale; 
 typedef Float3 Normal;
 typedef Float2 TexCoord;
 typedef Float4 Tangent;
 typedef Float4 Color;
 
 typedef std::vector<Position> PositionVector;
+typedef std::vector<Rotation> RotationVector;
+typedef std::vector<Scale> ScaleVector;
 typedef std::vector<Normal> NormalVector;
 typedef std::vector<TexCoord> TexCoordVector;
 typedef std::vector<Tangent> TangentVector;
@@ -34,12 +38,6 @@ enum PrimitiveKind
 {
 	// TODO: Support other primitives
 	TRIANGLE_LIST
-};
-
-enum Limitations
-{
-	MAX_TEXTURES_PER_VERTEX = 4,
-	MAX_SKIN_INFLUENCES_PER_VERTEX = 4,
 };
 
 namespace Semantic

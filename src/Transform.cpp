@@ -29,16 +29,51 @@ namespace Transform
 			m[0][3], m[1][3], m[2][3], m[3][3]));
 	}
 
-	GLTF::Node::TransformTRS&& toTRS(const MMatrix& matrix, const char* context)
+	float cleanupScalar(const double v, const double precision)
 	{
-		if (!hasOrthogonalAxes(matrix))
+		return static_cast<float>(round(v * precision) / precision);
+	}
+
+	GLTF::Node::TransformTRS&& toTRS(const MMatrix& localMatrix, const double scaleFactor, const double precision)
+	{
+		MTransformationMatrix mayaLocalMatrix(localMatrix);
+
+		// TODO: We're not using the GLTF code here yet, we got non-normalized rotations...
+		GLTF::Node::TransformTRS trs;
+
+		// Get translation
+		MVector t = mayaLocalMatrix.translation(MSpace::kPostTransform);
+		trs.translation[0] = cleanupScalar(t.x * scaleFactor, precision);
+		trs.translation[1] = cleanupScalar(t.y * scaleFactor, precision);
+		trs.translation[2] = cleanupScalar(t.z*  scaleFactor, precision);
+
+		// Calculate rotation data
+		double qx, qy, qz, qw;
+		mayaLocalMatrix.getRotationQuaternion(qx, qy, qz, qw);
+		trs.rotation[0] = cleanupScalar(qx, precision);
+		trs.rotation[1] = cleanupScalar(qy, precision);
+		trs.rotation[2] = cleanupScalar(qz, precision);
+		trs.rotation[3] = cleanupScalar(qw, precision);
+
+		// Get joint scale
+		double scale[3];
+		mayaLocalMatrix.getScale(scale, MSpace::kPostTransform);
+		trs.scale[0] = cleanupScalar(scale[0], precision);
+		trs.scale[1] = cleanupScalar(scale[1], precision);
+		trs.scale[2] = cleanupScalar(scale[2], precision);
+
+		return std::move(trs);
+	}
+
+	GLTF::Node::TransformTRS&& toTRS(const MMatrix& localMatrix, const double scaleFactor, const char* context, const double precision)
+	{
+		if (!hasOrthogonalAxes(localMatrix))
 		{
+			// TODO: Use SVG to decompose the 3x3 matrix into a product of rotation and scale matrices.
 			cerr << prefix << "WARNING: Skewed/sheared matrices are not representable by glTF! " << context << endl;
 		}
 
-		GLTF::Node::TransformTRS trs;
-		toGLTF(matrix).getTransformTRS(&trs);
-		return std::move(trs);
+		return toTRS(localMatrix, scaleFactor, precision);
 	}
 
 	MMatrix&& getObjectSpaceMatrix(MDagPath dagPath)

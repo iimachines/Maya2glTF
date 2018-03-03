@@ -2,10 +2,11 @@
 
 global proc maya2glTF_exporter(string $cmd) {
 	print ("Executing "+$cmd+"...\n");
+	$cur = `playbackOptions -q -ast`;
 	$min = `playbackOptions -q -min`;
 	$max = `playbackOptions -q -max`;
 	$fps = `currentTimeUnitToFPS`;
-	if ( catch(`maya2glTF -sep -acn "clip" -acs $min -ace $max -acr $fps -fpm -outputFolder "C:/temp/glTF"`) ) {
+	if ( catch(`maya2glTF -sep -acn "clip" -ivt $cur -ast $min -aet $max -afr $fps -fpm -outputFolder "C:/temp/glTF"`) ) {
 		print "Failed!\n";
 	} 
 	

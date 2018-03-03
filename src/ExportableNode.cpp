@@ -2,8 +2,9 @@
 #include "ExportableNode.h"
 #include "MayaException.h"
 #include "ExportableResources.h"
-#include "ExportableClip.h"
+#include "NodeAnimation.h"
 #include "Transform.h"
+#include "Arguments.h"
 
 ExportableNode::ExportableNode(MDagPath dagPath, ExportableResources& resources)
 	: ExportableObject(dagPath.node())
@@ -16,7 +17,7 @@ ExportableNode::ExportableNode(MDagPath dagPath, ExportableResources& resources)
 	handleNameAssignment(resources, glNode);
 
 	const auto objectMatrix = Transform::getObjectSpaceMatrix(dagPath);
-	m_transform = Transform::toTRS(objectMatrix, dagPath.fullPathName(&status).asChar());
+	m_transform = Transform::toTRS(objectMatrix, resources.arguments().scaleFactor, dagPath.fullPathName(&status).asChar());
 	THROW_ON_FAILURE(status);
 
 	glNode.transform = &m_transform;
@@ -60,7 +61,7 @@ std::unique_ptr<ExportableNode> ExportableNode::from(MDagPath dagPath, Exportabl
 	return std::make_unique<ExportableNode>(dagPath, usedShaderNames);
 }
 
-std::unique_ptr<ExportableClip> ExportableNode::createClip(const std::string& clipName, const int frameCount)
+std::unique_ptr<NodeAnimation> ExportableNode::createAnimation(const int frameCount, const double scaleFactor)
 {
-	return std::make_unique<ExportableClip>(*this, clipName, frameCount);
+	return std::make_unique<NodeAnimation>(*this, frameCount, scaleFactor);
 }

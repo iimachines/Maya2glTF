@@ -1,5 +1,6 @@
 #pragma once
 #include "ExportableResources.h"
+#include "ExportableClip.h"
 
 class Arguments;
 
@@ -21,9 +22,9 @@ private:
 	ExportableResources m_resources;
 
 	std::vector<std::unique_ptr<ExportableItem>> m_items;
+	std::vector<std::unique_ptr<ExportableClip>> m_clips;
 
 	MTime m_currentTime;
-	std::map<std::string, std::vector<std::unique_ptr<ExportableClip>>> m_clips;
 
 	std::string m_rawJsonString;
 	mutable std::string m_prettyJsonString;

@@ -50,3 +50,12 @@ template<typename T, size_t N>
 struct array_size<std::array<T, N> > {
 	static size_t const size = N;
 };
+
+
+template<typename T, size_t N>
+const std::array<T,N>&& reinterpret_array(const T(&items)[N])
+{
+	return std::move(*reinterpret_cast<const std::array<T, N>*>(items));
+}
+
+

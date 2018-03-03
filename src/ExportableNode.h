@@ -11,10 +11,12 @@ public:
 
 	static std::unique_ptr<ExportableNode> from(MDagPath dagPath, ExportableResources& resources);
 
-	virtual std::unique_ptr<ExportableClip> createClip(const std::string& clipName, const int frameCount);
+	std::unique_ptr<NodeAnimation> createAnimation(const int frameCount, const double scaleFactor) override;
 
 	MDagPath dagPath;
 	GLTF::Node glNode;
+
+	const GLTF::Node::TransformTRS& transform() const { return m_transform; };
 
 private:
 	std::unique_ptr<ExportableMesh> m_mesh;

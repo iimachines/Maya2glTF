@@ -368,6 +368,7 @@ if errorlevel 1 (exit /b 100)
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\ExportableClip.cpp" />
+    <ClCompile Include="src\NodeAnimation.cpp" />
     <ClCompile Include="src\mikktspace.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2017-Release|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2016_EXT2-Release|x64'">NotUsing</PrecompiledHeader>
@@ -419,13 +420,17 @@ if errorlevel 1 (exit /b 100)
   <ItemGroup>
     <None Include=".gitignore" />
     <None Include="LICENSE" />
+    <None Include="maya\mel\test-iteration.mel" />
     <None Include="maya\renderData\shaders\glTF_PBR.ogsfx" />
     <None Include="Readme.md" />
     <None Include="mel\create-PBR-spheres.mel" />
     <None Include="mel\test-iteration.mel" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\accessors.h" />
     <ClInclude Include="src\ExportableClip.h" />
+    <ClInclude Include="src\NodeAnimation.h" />
+    <ClInclude Include="src\PropAnimation.h" />
     <ClInclude Include="src\mikktspace.h" />
     <ClInclude Include="src\color.h" />
     <ClInclude Include="src\ExportableObject.h" />
@@ -462,6 +467,7 @@ if errorlevel 1 (exit /b 100)
     <ClInclude Include="src\sceneTypes.h" />
     <ClInclude Include="src\spans.h" />
     <ClInclude Include="src\Transform.h" />
+    <ClInclude Include="src\time.h" />
     <ClInclude Include="src\version.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

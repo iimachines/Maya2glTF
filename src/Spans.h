@@ -1,5 +1,7 @@
 #pragma once
 
+#include "basicTypes.h"
+
 template<typename T>
 static gsl::span<const T> span(const std::vector<T>& vec)
 {
@@ -49,7 +51,7 @@ static gsl::span<T> mutable_span(const gsl::span<const T>& span)
 	return gsl::make_span(const_cast<T*>(bgn_ptr), const_cast<T*>(end_ptr));
 }
 
-static std::size_t hash_value(const gsl::span<const uint32>& span)
+static std::size_t hash_value(const gsl::span<const uint32_t>& span)
 {
 	std::size_t seed = span.size();
 	for (auto& i : span) {

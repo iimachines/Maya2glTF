@@ -2,8 +2,7 @@
 #include "MeshRenderables.h"
 #include "ExportablePrimitive.h"
 #include "ExportableResources.h"
-#include "ExportableMaterial.h"
-#include "spans.h"
+#include "accessors.h"
 #include "Arguments.h"
 #include "MayaException.h"
 
@@ -41,7 +40,7 @@ ExportablePrimitive::ExportablePrimitive(
 		vertexBuffer.maxIndex() > std::numeric_limits<uint16>::max())
 	{
 		// Use 32-bit indices
-		glIndices = createAccessor("indices", GLTF::Accessor::Type::SCALAR, WebGL::UNSIGNED_INT, WebGL::ELEMENT_ARRAY_BUFFER, span(vertexIndices), 1);
+		glIndices = contiguousAccessor("indices", GLTF::Accessor::Type::SCALAR, WebGL::UNSIGNED_INT, WebGL::ELEMENT_ARRAY_BUFFER, span(vertexIndices), 1);
 		glPrimitive.indices = glIndices.get();
 	}
 	else
@@ -49,7 +48,7 @@ ExportablePrimitive::ExportablePrimitive(
 		// Use 16-bit indices
 		std::vector<uint16> shortIndices(vertexIndices.size());
 		std::copy(vertexIndices.begin(), vertexIndices.end(), shortIndices.begin());
-		glIndices = createAccessor("indices", GLTF::Accessor::Type::SCALAR, WebGL::UNSIGNED_SHORT, WebGL::ELEMENT_ARRAY_BUFFER, span(shortIndices), 1);
+		glIndices = contiguousAccessor("indices", GLTF::Accessor::Type::SCALAR, WebGL::UNSIGNED_SHORT, WebGL::ELEMENT_ARRAY_BUFFER, span(shortIndices), 1);
 		glPrimitive.indices = glIndices.get();
 	}
 
@@ -61,7 +60,7 @@ ExportablePrimitive::ExportablePrimitive(
 		const auto& slot = pair.first;
 		if (slot.shapeIndex == 0)
 		{
-			auto accessor = createFloatAccessor(slot.semantic, span(pair.second));
+			auto accessor = contiguousElementAccessor(slot.semantic, span(pair.second));
 			glPrimitive.attributes[glTFattributeName(slot.semantic, slot.setIndex)] = accessor.get();
 			glAccessorTable[slot.semantic].emplace_back(move(accessor));
 		}
@@ -113,14 +112,14 @@ ExportablePrimitive::ExportablePrimitive(
 		linePoints[offset + 1] = point;
 	}
 
-	glIndices = createAccessor("indices", GLTF::Accessor::Type::SCALAR, WebGL::UNSIGNED_SHORT, WebGL::ELEMENT_ARRAY_BUFFER, span(lineIndices), 1);
+	glIndices = contiguousAccessor("indices", GLTF::Accessor::Type::SCALAR, WebGL::UNSIGNED_SHORT, WebGL::ELEMENT_ARRAY_BUFFER, span(lineIndices), 1);
 	glPrimitive.indices = glIndices.get();
 
-	auto pointAccessor = createFloatAccessor(Semantic::Kind::POSITION, span(linePoints));
+	auto pointAccessor = contiguousElementAccessor(Semantic::Kind::POSITION, span(linePoints));
 	glPrimitive.attributes[glTFattributeName(Semantic::Kind::POSITION, 0)] = pointAccessor.get();
 	glAccessorTable[Semantic::Kind::POSITION].emplace_back(move(pointAccessor));
 
-	auto colorAccessor = createFloatAccessor(Semantic::Kind::COLOR, span(lineColors));
+	auto colorAccessor = contiguousElementAccessor(Semantic::Kind::COLOR, span(lineColors));
 	glPrimitive.attributes[glTFattributeName(Semantic::Kind::COLOR, 0)] = colorAccessor.get();
 	glAccessorTable[Semantic::Kind::COLOR].emplace_back(move(colorAccessor));
 }

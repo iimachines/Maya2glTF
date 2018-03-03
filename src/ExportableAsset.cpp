@@ -2,8 +2,8 @@
 #include "ExportableAsset.h"
 #include "Arguments.h"
 #include "ExportableNode.h"
-#include "ExportableClip.h"
 #include "MayaException.h"
+#include "time.h"
 
 ExportableAsset::ExportableAsset(const Arguments& args)
 	: m_resources{ args }
@@ -24,6 +24,8 @@ ExportableAsset::ExportableAsset(const Arguments& args)
 	{
 		*args.dumpMaya << "{" << indent << endl;
 	}
+
+	setCurrentTime(args.initialValuesTime, args.redrawViewport);
 
 	for (uint selectionIndex = 0; selectionIndex < selection.length(); ++selectionIndex)
 	{
@@ -47,38 +49,15 @@ ExportableAsset::ExportableAsset(const Arguments& args)
 		}
 	}
 
-	// Now export animations, in one pass over the slow timeline
+	// Now export animation clips, in one pass over the slow timeline
 	const auto clipCount = args.animationClips.size();
 	if (clipCount)
 	{
 		for (auto& clipArg : args.animationClips)
 		{
-			auto& clips = m_clips[clipArg.name];
-			clips.reserve(m_items.size());
-
-			for (auto& item : m_items)
-			{
-				const auto frameCount = clipArg.endFrame - clipArg.startFrame + 1;
-				auto clip = item->createClip(clipArg.name, frameCount);
-				if (clip)
-				{
-					clips.emplace_back(move(clip));
-				}
-			}
-
-			for (auto frameIndex = clipArg.startFrame; frameIndex <= clipArg.endFrame; ++frameIndex)
-			{
-				const MTime frameTime{ frameIndex * clipArg.framesPerSecond };
-				MAnimControl::setCurrentTime(frameTime);
-
-				// TODO: Make this optional, just for debugging
-				M3dView::active3dView().refresh(true, true);
-
-				for (auto& clip : clips)
-				{
-					clip->sampleAt(frameIndex - clipArg.startFrame);
-				}
-			}
+			auto clip = std::make_unique<ExportableClip>(args, clipArg, m_items);
+			m_glAsset.animations.push_back(&clip->glAnimation);
+			m_clips.emplace_back(move(clip));
 		}
 	}
 
@@ -93,8 +72,7 @@ ExportableAsset::ExportableAsset(const Arguments& args)
 ExportableAsset::~ExportableAsset()
 {
 	// Restore time
-	MAnimControl::setCurrentTime(m_currentTime);
-	M3dView::active3dView().refresh(true, true);
+	setCurrentTime(m_currentTime, true);
 }
 
 const std::string& ExportableAsset::prettyJsonString() const

@@ -1,6 +1,6 @@
 #include "externals.h"
 #include "ExportableItem.h"
-#include "ExportableClip.h"
+#include "NodeAnimation.h"
 
 ExportableItem::ExportableItem()
 {
@@ -10,7 +10,7 @@ ExportableItem::~ExportableItem()
 {
 }
 
-std::unique_ptr<ExportableClip> ExportableItem::createClip(const std::string& clipName, const int frameCount)
+std::unique_ptr<NodeAnimation> ExportableItem::createAnimation(const int frameCount, const double scaleFactor)
 {
 	return nullptr;
 }
