@@ -17,7 +17,7 @@ namespace Transform
 	}
 
 
-	GLTF::Node::TransformMatrix&& toGLTF(const MMatrix& matrix)
+	GLTF::Node::TransformMatrix toGLTF(const MMatrix& matrix)
 	{
 		float m[4][4];
 		matrix.get(m);
@@ -34,7 +34,7 @@ namespace Transform
 		return static_cast<float>(round(v * precision) / precision);
 	}
 
-	GLTF::Node::TransformTRS&& toTRS(const MMatrix& localMatrix, const double scaleFactor, const double precision)
+	GLTF::Node::TransformTRS toTRS(const MMatrix& localMatrix, const double scaleFactor, const double precision)
 	{
 		MTransformationMatrix mayaLocalMatrix(localMatrix);
 
@@ -65,7 +65,7 @@ namespace Transform
 		return std::move(trs);
 	}
 
-	GLTF::Node::TransformTRS&& toTRS(const MMatrix& localMatrix, const double scaleFactor, const char* context, const double precision)
+	GLTF::Node::TransformTRS toTRS(const MMatrix& localMatrix, const double scaleFactor, const char* context, const double precision)
 	{
 		if (!hasOrthogonalAxes(localMatrix))
 		{
@@ -73,10 +73,10 @@ namespace Transform
 			cerr << prefix << "WARNING: Skewed/sheared matrices are not representable by glTF! " << context << endl;
 		}
 
-		return toTRS(localMatrix, scaleFactor, precision);
+		return std::move(toTRS(localMatrix, scaleFactor, precision));
 	}
 
-	MMatrix&& getObjectSpaceMatrix(MDagPath dagPath, MDagPath parentPath)
+	MMatrix getObjectSpaceMatrix(MDagPath dagPath, MDagPath parentPath)
 	{
 		MStatus status;
 
