@@ -1,0 +1,50 @@
+global proc assign_glTF_PBR_material_and_textures(
+    string $objectName,
+    string $shaderPath
+)
+{
+    // get current selection if $objectName is not specified
+    if ($objectName == "")
+    {
+        string $ls[] = `ls -sl`;
+        if (size($ls) > 0)
+            $objectName = $ls[0];
+    }
+
+    if($objectName == "")
+    {
+        print "No node specified...\n";
+    }
+    else
+    {
+        loadPlugin "glslShader.mll";
+        source "createAndAssignShader.mel";
+
+        string $sh = `shadingNode -asShader GLSLShader`;
+        setAttr -type "string" ($sh+".shader") $shaderPath;
+        assignCreatedShader "GLSLShader" "" $sh $objectName;
+
+        string $attrNames[] = {
+            "u_BaseColorTexture",
+            "u_MetallicTexture",
+            "u_RoughnessTexture",
+            "u_OcclusionTexture",
+            "u_NormalTexture",
+            "u_EmissiveTexture",
+            "u_DiffuseEnvTexture",
+            "u_SpecularEnvTexture",
+            "u_brdfTexture"
+        };
+
+        for ($i = 0; $i < size($attrNames); ++$i)
+        {
+            string $shAttrName = ($sh+"."+$attrNames[$i]);
+            string $filePath[] = `fileDialog2 -cap ("Open '"+$shAttrName+"'") -fm 1`;
+            if(size($filePath) > 0)
+            {
+                string $fileNode = `createRenderNodeCB -as2DTexture "" file ("defaultNavigation -force true -connectToExisting -source %node -destination "+$shAttrName+";")`;
+                setAttr -type "string" ($fileNode+".fileTextureName") $filePath[0];
+            }
+        }
+    }
+}
