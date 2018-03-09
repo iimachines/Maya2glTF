@@ -11,39 +11,69 @@ global proc assign_glTF_PBR_material_and_textures(
             $objectName = $ls[0];
     }
 
-    if($objectName == "")
+    if ($objectName == "")
+        error "No node to apply material to specified";
+
+    if (!`filetest -f $shaderPath`)
+        error "Invalid shader path, file not found";
+
+    loadPlugin "glslShader.mll";
+    source "createAndAssignShader.mel";
+
+    // create new glTF PBR GLSL shader
+    string $sh = `shadingNode -asShader GLSLShader`;
+    setAttr -type "string" ($sh+".shader") $shaderPath;
+    assignCreatedShader "GLSLShader" "" $sh $objectName;
+
+    string $attrNames[] = {
+        "u_BaseColorTexture",
+        "u_MetallicTexture",
+        "u_RoughnessTexture",
+        "u_OcclusionTexture",
+        "u_NormalTexture",
+        "u_EmissiveTexture",
+        "u_DiffuseEnvTexture",
+        "u_SpecularEnvTexture",
+        "u_brdfTexture"
+    };
+
+    string $attrExprs[] = {
+        "base[\\W\\d_]*color",
+        "metallic",
+        "roughness",
+        "occlusion",
+        "normal",
+        "emissive",
+        "diffuse[\\W\\d_]*env",
+        "specular[\\W\\d_]*env",
+        "brdf"
+    };
+
+    // sanity check
+    if (size($attrNames) != size($attrExprs))
+        error "script bug";
+
+    // request texture paths
+    string $filePaths[] = `fileDialog2 -fm 4`;
+    if (size($filePaths) <= 0)
+        return;
+
+    // match texture paths to material texture attributes
+    for ($i = 0; $i < size($attrNames); ++$i)
     {
-        print "No node specified...\n";
-    }
-    else
-    {
-        loadPlugin "glslShader.mll";
-        source "createAndAssignShader.mel";
+        string $attrExpr = $attrExprs[$i];
 
-        string $sh = `shadingNode -asShader GLSLShader`;
-        setAttr -type "string" ($sh+".shader") $shaderPath;
-        assignCreatedShader "GLSLShader" "" $sh $objectName;
-
-        string $attrNames[] = {
-            "u_BaseColorTexture",
-            "u_MetallicTexture",
-            "u_RoughnessTexture",
-            "u_OcclusionTexture",
-            "u_NormalTexture",
-            "u_EmissiveTexture",
-            "u_DiffuseEnvTexture",
-            "u_SpecularEnvTexture",
-            "u_brdfTexture"
-        };
-
-        for ($i = 0; $i < size($attrNames); ++$i)
+        for ($j = 0; $j < size($filePaths); ++$j)
         {
-            string $shAttrName = ($sh+"."+$attrNames[$i]);
-            string $filePath[] = `fileDialog2 -cap ("Open '"+$shAttrName+"'") -fm 1`;
-            if(size($filePath) > 0)
+            string $filePath = $filePaths[$j];
+            string $filePathLower = `tolower $filePath`;
+
+            if (`match $attrExpr $filePathLower` != "")
             {
+                string $shAttrName = ($sh+"."+$attrNames[$i]);
                 string $fileNode = `createRenderNodeCB -as2DTexture "" file ("defaultNavigation -force true -connectToExisting -source %node -destination "+$shAttrName+";")`;
-                setAttr -type "string" ($fileNode+".fileTextureName") $filePath[0];
+                setAttr -type "string" ($fileNode+".fileTextureName") $filePath;
+                break;
             }
         }
     }
