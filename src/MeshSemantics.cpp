@@ -14,29 +14,26 @@ void VertexElementSetDescription::dump(class IndentableStream& out, const std::s
 	out << undent << '}';
 }
 
-MeshSemantics::MeshSemantics(const MFnMesh& mesh, const bool isBlendShape)
+MeshSemantics::MeshSemantics(const MFnMesh& mesh, const int shapeIndex)
 {
 	CONSTRUCTOR_BEGIN();
 
 	MStatus status;
 
-	m_table[Semantic::POSITION].push_back(
-		VertexElementSetDescription(Semantic::POSITION, 0, "", mesh.numVertices(&status)));
+	m_table[Semantic::POSITION].emplace_back(Semantic::POSITION, 0, "", mesh.numVertices(&status));
 	THROW_ON_FAILURE(status);
 
-	m_table[Semantic::NORMAL].push_back(
-		VertexElementSetDescription(Semantic::NORMAL, 0, "", mesh.numNormals(&status)));
+	m_table[Semantic::NORMAL].emplace_back(Semantic::NORMAL, 0, "", mesh.numNormals(&status));
 	THROW_ON_FAILURE(status);
 
-	if (!isBlendShape)
+	if (shapeIndex == 0)
 	{
 		MStringArray colorSetNames;
 		THROW_ON_FAILURE(mesh.getColorSetNames(colorSetNames));
 
 		for (unsigned i = 0; i < colorSetNames.length(); ++i)
 		{
-			m_table[Semantic::COLOR].push_back(
-				VertexElementSetDescription(Semantic::COLOR, i, colorSetNames[i].asChar(), mesh.numColors(colorSetNames[i], &status)));
+			m_table[Semantic::COLOR].emplace_back(Semantic::COLOR, i, colorSetNames[i].asChar(), mesh.numColors(colorSetNames[i], &status));
 			THROW_ON_FAILURE(status);
 		}
 
@@ -45,10 +42,18 @@ MeshSemantics::MeshSemantics(const MFnMesh& mesh, const bool isBlendShape)
 
 		for (unsigned i = 0; i < uvSetNames.length(); ++i)
 		{
-			m_table[Semantic::TEXCOORD].push_back(
-				VertexElementSetDescription(Semantic::TEXCOORD, i, uvSetNames[i].asChar(), mesh.numUVs(uvSetNames[i], &status)));
-			m_table[Semantic::TANGENT].push_back(
-				VertexElementSetDescription(Semantic::TANGENT, i, uvSetNames[i].asChar(), mesh.numUVs(uvSetNames[i], &status)));
+			m_table[Semantic::TEXCOORD].emplace_back(Semantic::TEXCOORD, i, uvSetNames[i].asChar(), mesh.numUVs(uvSetNames[i], &status));
+			m_table[Semantic::TANGENT].emplace_back(Semantic::TANGENT, i, uvSetNames[i].asChar(), mesh.numUVs(uvSetNames[i], &status));
+		}
+	}
+	else
+	{
+		MStringArray uvSetNames;
+		THROW_ON_FAILURE(mesh.getUVSetNames(uvSetNames));
+
+		for (unsigned i = 0; i < uvSetNames.length(); ++i)
+		{
+			m_table[Semantic::TANGENT].emplace_back(Semantic::TANGENT, i, uvSetNames[i].asChar(), mesh.numUVs(uvSetNames[i], &status));
 		}
 	}
 

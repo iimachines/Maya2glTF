@@ -29,6 +29,6 @@ public:
 private:
 	std::unique_ptr<ExportableMesh> m_mesh;
 
-	DISALLOW_COPY_AND_ASSIGN(ExportableNode);
+	DISALLOW_COPY_MOVE_ASSIGN(ExportableNode);
 };
 

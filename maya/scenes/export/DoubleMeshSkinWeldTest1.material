@@ -1,0 +1,26 @@
+material DoubleMeshSkinWeldTest1/phong2
+{
+	technique
+	{
+		pass
+		{
+			ambient 0 0 0 1
+			diffuse 0.8 0 0 1
+			specular 0.5 0.5 0.5 0.5 40
+			emissive 0 0 0
+		}
+	}
+}
+material DoubleMeshSkinWeldTest1/phong1
+{
+	technique
+	{
+		pass
+		{
+			ambient 0 0 0 1
+			diffuse 0 0.8 0 1
+			specular 0.5 0.5 0.5 0.5 40
+			emissive 0 0 0
+		}
+	}
+}

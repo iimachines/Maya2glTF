@@ -60,11 +60,12 @@ MeshBlendShapes::MeshBlendShapes(MObject blendShapeNode, const Arguments& args)
 
 	const auto numWeights = weightPlugs.numWeights();
 
-	for (auto i = 0; i < numWeights; i++)
+	for (auto shapeIndex = 0; shapeIndex < numWeights; shapeIndex++)
 	{
-		weightPlugs.clearWeightsExceptFor(i);
-		auto weightPlug = weightPlugs.getWeightPlug(i);
-		m_entries.emplace_back(std::make_unique<MeshBlendShapeEntry>(outputMesh, args, weightPlug));
+		weightPlugs.clearWeightsExceptFor(shapeIndex);
+		auto weightPlug = weightPlugs.getWeightPlug(shapeIndex);
+		// NOTE: shape index 0 means the base shape, 1 the first blend shape, etc...
+		m_entries.emplace_back(std::make_unique<MeshBlendShapeEntry>(outputMesh, shapeIndex+1, args, weightPlug));
 	}
 
 	CONSTRUCTOR_END();

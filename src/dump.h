@@ -71,9 +71,11 @@ static void dump_index_table(std::ostream& out, const std::string& name, const s
 }
 
 template<typename T>
-static void dump_vertex_table(std::ostream& out, const std::string& name, const std::array<T, Semantic::COUNT>& table, const size_t precision = 3)
+static void dump_vertex_table(std::ostream& out, const std::string& name, const std::array<T, Semantic::COUNT>& table, const int shapeIndex, const size_t precision = 3)
 {
 	out << quoted(name) << ": {" << endl << indent;
+
+	out << "\"shapeIndex\": " << shapeIndex << ", " << endl;
 
 	JsonSeparator sep(",\n");
 
@@ -84,7 +86,7 @@ static void dump_vertex_table(std::ostream& out, const std::string& name, const 
 		for (auto&& components : table.at(semanticKind))
 		{
 			out << sep;
-			dump_iterable(out, Semantic::name(semanticKind), components, dimension(semanticKind), precision);
+			dump_iterable(out, Semantic::name(semanticKind), components, dimension(semanticKind, shapeIndex), precision);
 		}
 	}
 

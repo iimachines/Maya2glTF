@@ -2,19 +2,11 @@
 #include "Exporter.h"
 #include "MayaException.h"
 #include "Arguments.h"
-#include "SignalHandlers.h"
-#include "ExportableMesh.h"
-#include "ExportableNode.h"
 #include "ExportableAsset.h"
-#include "ExportableResources.h"
 
-Exporter::Exporter()
-{
-}
+Exporter::Exporter() = default;
 
-Exporter::~Exporter()
-{
-}
+Exporter::~Exporter() = default;
 
 void* Exporter::createInstance()
 {

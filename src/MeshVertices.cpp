@@ -1,9 +1,8 @@
 #include "externals.h"
 #include "MeshVertices.h"
 #include "MayaException.h"
-#include "Dump.h"
+#include "dump.h"
 #include "spans.h"
-#include "DagHelper.h"
 #include "IndentableStream.h"
 #include "Arguments.h"
 #include "MeshIndices.h"
@@ -30,7 +29,7 @@ struct MikkTSpaceVectors
 	gsl::span<const Position> positions;
 	gsl::span<const Normal> normals;
 	gsl::span<const TexCoord> texcoords;
-	gsl::span<Tangent> tangents;
+	gsl::span<float> tangentComponents;
 
 	MikkTSpaceVectors(const MeshIndices& meshIndices, VertexElementsPerSetIndexTable& vertexTable, const int setIndex)
 	{
@@ -42,13 +41,14 @@ struct MikkTSpaceVectors
 		positions = reinterpret_span<Position>(vertexTable.at(Semantic::POSITION).at(0));
 		normals = reinterpret_span<Normal>(vertexTable.at(Semantic::NORMAL).at(0));
 		texcoords = reinterpret_span<TexCoord>(vertexTable.at(Semantic::TEXCOORD).at(setIndex));
-		tangents = mutable_span(reinterpret_span<Tangent>(vertexTable.at(Semantic::TANGENT).at(setIndex)));
+		tangentComponents = mutable_span(vertexTable.at(Semantic::TANGENT).at(setIndex));
 	}
 };
 
 struct MikkTSpaceContext : SMikkTSpaceContext
 {
 	const size_t triangleCount;
+	const bool shapeIndex;
 	MikkTSpaceIndices indices;
 	MikkTSpaceVectors vectors;
 	SMikkTSpaceInterface interface;
@@ -56,8 +56,11 @@ struct MikkTSpaceContext : SMikkTSpaceContext
 	MikkTSpaceContext(
 		const MeshIndices& meshIndices,
 		VertexElementsPerSetIndexTable& vertexTable,
-		const int setIndex)
-		: triangleCount(meshIndices.primitiveCount())
+		const int setIndex,
+		const bool shapeIndex)
+		: SMikkTSpaceContext{}
+		, triangleCount(meshIndices.primitiveCount())
+		, shapeIndex(shapeIndex)
 		, indices(meshIndices, setIndex)
 		, vectors(meshIndices, vertexTable, setIndex)
 		, interface {}
@@ -119,7 +122,7 @@ struct MikkTSpaceContext : SMikkTSpaceContext
 		const auto index = context->indices.texcoords[iFace * 3 + iVert];
 		const auto& vector = context->vectors.texcoords[index];
 		fvTexcOut[0] = vector[0];
-		fvTexcOut[1] = 1-vector[1];
+		fvTexcOut[1] = 1 - vector[1];
 	}
 
 	static void setTSpaceBasic(const SMikkTSpaceContext* pContext, const float fvTangent[], const float fSign, const int iFace, const int iVert)
@@ -135,13 +138,31 @@ struct MikkTSpaceContext : SMikkTSpaceContext
 		const auto tz = fvTangent[2];
 		const auto tl = sqrtf(tx*tx + ty * ty + tz * tz);
 
-		context->vectors.tangents[index] = { tx / tl, ty / tl, tz / tl, fSign };
+		if (tl < 1e-9)
+		{
+			std::cerr << prefix << "WARNING: MikkTSpace generated zero tangent for face #" << iFace << " and vertex # " << iVert << endl;
+		}
+
+		if (context->shapeIndex == 0)
+		{
+			float *p = &context->vectors.tangentComponents[index * array_size<MainShapeTangent>::size];
+			*p++ = tx / tl;
+			*p++ = ty / tl;
+			*p++ = tz / tl;
+			*p = fSign;
+		}
+		else
+		{
+			float *p = &context->vectors.tangentComponents[index * array_size<BlendShapeTangent>::size];
+			*p++ = tx / tl;
+			*p++ = ty / tl;
+			*p++ = tz / tl;
+		}
 	}
 };
 
-
-
-MeshVertices::MeshVertices(const MeshIndices& meshIndices, const MFnMesh& mesh, const Arguments& args, MSpace::Space space)
+MeshVertices::MeshVertices(const MeshIndices& meshIndices, const MFnMesh& mesh, const int shapeIndex, const Arguments& args, MSpace::Space space)
+	:shapeIndex(shapeIndex)
 {
 	CONSTRUCTOR_BEGIN();
 
@@ -246,12 +267,12 @@ MeshVertices::MeshVertices(const MeshIndices& meshIndices, const MFnMesh& mesh, 
 			const auto numTangents = numTriangles * 3;
 
 			auto& tangentSet = m_tangentSets[semantic.setIndex];
-			tangentSet.resize(numTangents);
+			tangentSet.resize(numTangents * dimension(Semantic::TANGENT, shapeIndex));
 
-			const auto tangentSpan = reinterpret_span<float>(span(tangentSet));
+			const auto tangentSpan = span(tangentSet);
 			m_table.at(Semantic::TANGENT).push_back(tangentSpan);
 
-			MikkTSpaceContext context(meshIndices, m_table, semantic.setIndex);
+			MikkTSpaceContext context(meshIndices, m_table, semantic.setIndex, shapeIndex);
 			context.computeTangents(args.mikkelsenTangentAngularThreshold);
 		}
 		else
@@ -259,17 +280,23 @@ MeshVertices::MeshVertices(const MeshIndices& meshIndices, const MFnMesh& mesh, 
 			const int numTangents = mTangents.length();
 
 			auto& tangentSet = m_tangentSets[semantic.setIndex];
-			tangentSet.reserve(numTangents);
+			tangentSet.reserve(numTangents * dimension(Semantic::TANGENT, shapeIndex));
 
 			for (int i = 0; i < numTangents; ++i)
 			{
 				const auto& t = mTangents[i];
 				const auto rht = 2 * mesh.isRightHandedTangent(i, &semantic.setName, &status) - 1.0f;
 				THROW_ON_FAILURE(status);
-				tangentSet.push_back({ t.x, t.y, t.z, rht });
+				tangentSet.push_back(t.x);
+				tangentSet.push_back(t.y);
+				tangentSet.push_back(t.z);
+				if (shapeIndex == 0)
+				{
+					tangentSet.push_back(rht);
+				}
 			}
 
-			const auto tangentSpan = reinterpret_span<float>(span(tangentSet));
+			const auto tangentSpan = span(tangentSet);
 			m_table.at(Semantic::TANGENT).push_back(tangentSpan);
 		}
 	}
@@ -277,11 +304,7 @@ MeshVertices::MeshVertices(const MeshIndices& meshIndices, const MFnMesh& mesh, 
 	CONSTRUCTOR_END();
 }
 
-MeshVertices::~MeshVertices()
-{
-}
-
 void MeshVertices::dump(IndentableStream& out, const std::string& name) const
 {
-	dump_vertex_table(out, name, m_table);
+	dump_vertex_table(out, name, m_table, shapeIndex);
 }

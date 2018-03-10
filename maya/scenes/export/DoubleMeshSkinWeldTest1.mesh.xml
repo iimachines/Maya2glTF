@@ -1,0 +1,99 @@
+<mesh>
+    <sharedgeometry vertexcount="6">
+        <vertexbuffer positions="true">
+            <vertex>
+                <position x="-0.5" y="2" z="0" />
+            </vertex>
+            <vertex>
+                <position x="0.5" y="2" z="0" />
+            </vertex>
+            <vertex>
+                <position x="0" y="4" z="0" />
+            </vertex>
+            <vertex>
+                <position x="0" y="0" z="0" />
+            </vertex>
+            <vertex>
+                <position x="-0.5" y="2" z="0" />
+            </vertex>
+            <vertex>
+                <position x="0.5" y="2" z="0" />
+            </vertex>
+        </vertexbuffer>
+        <vertexbuffer normals="true">
+            <vertex>
+                <normal x="0" y="0" z="1" />
+            </vertex>
+            <vertex>
+                <normal x="0" y="0" z="1" />
+            </vertex>
+            <vertex>
+                <normal x="0" y="0" z="1" />
+            </vertex>
+            <vertex>
+                <normal x="0" y="0" z="1" />
+            </vertex>
+            <vertex>
+                <normal x="0" y="0" z="1" />
+            </vertex>
+            <vertex>
+                <normal x="0" y="0" z="1" />
+            </vertex>
+        </vertexbuffer>
+        <vertexbuffer texture_coord_dimensions_0="2" tangents="true" texture_coords="1">
+            <vertex>
+                <texcoord u="0.375" v="1" />
+                <tangent x="1" y="0" z="0" />
+            </vertex>
+            <vertex>
+                <texcoord u="0.625" v="1" />
+                <tangent x="1" y="0" z="0" />
+            </vertex>
+            <vertex>
+                <texcoord u="0.5" v="0.75" />
+                <tangent x="1" y="0" z="0" />
+            </vertex>
+            <vertex>
+                <texcoord u="0.5" v="1" />
+                <tangent x="1" y="0" z="0" />
+            </vertex>
+            <vertex>
+                <texcoord u="0.375" v="0.75" />
+                <tangent x="1" y="0" z="0" />
+            </vertex>
+            <vertex>
+                <texcoord u="0.625" v="0.75" />
+                <tangent x="1" y="0" z="0" />
+            </vertex>
+        </vertexbuffer>
+    </sharedgeometry>
+    <submeshes>
+        <submesh material="DoubleMeshSkinWeldTest1/lambert1" usesharedvertices="true" use32bitindexes="true" operationtype="triangle_list">
+            <faces count="1">
+                <face v1="1" v2="2" v3="0" />
+            </faces>
+            <boneassignments />
+        </submesh>
+        <submesh material="DoubleMeshSkinWeldTest1/lambert1" usesharedvertices="true" use32bitindexes="true" operationtype="triangle_list">
+            <faces count="1">
+                <face v1="3" v2="5" v3="4" />
+            </faces>
+            <boneassignments />
+        </submesh>
+    </submeshes>
+    <skeletonlink name="DoubleMeshSkinWeldTest1.skeleton" />
+    <boneassignments>
+        <vertexboneassignment vertexindex="0" boneindex="1" weight="0.5" />
+        <vertexboneassignment vertexindex="0" boneindex="2" weight="0.5" />
+        <vertexboneassignment vertexindex="1" boneindex="1" weight="0.5" />
+        <vertexboneassignment vertexindex="1" boneindex="2" weight="0.5" />
+        <vertexboneassignment vertexindex="2" boneindex="3" weight="0.5" />
+        <vertexboneassignment vertexindex="2" boneindex="4" weight="0.5" />
+        <vertexboneassignment vertexindex="3" boneindex="0" weight="0.9" />
+        <vertexboneassignment vertexindex="3" boneindex="1" weight="0.1" />
+        <vertexboneassignment vertexindex="4" boneindex="1" weight="0.5" />
+        <vertexboneassignment vertexindex="4" boneindex="2" weight="0.5" />
+        <vertexboneassignment vertexindex="5" boneindex="1" weight="0.5" />
+        <vertexboneassignment vertexindex="5" boneindex="2" weight="0.5" />
+    </boneassignments>
+</mesh>

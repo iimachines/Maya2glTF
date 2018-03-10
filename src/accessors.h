@@ -51,6 +51,7 @@ std::unique_ptr<GLTF::Accessor> contiguousChannelAccessor(
 template<typename T>
 std::unique_ptr<GLTF::Accessor> contiguousElementAccessor(
 	const Semantic::Kind semantic,
+	const int shapeIndex,
 	const gsl::span<T>& data)
 {
 	GLTF::Accessor::Type type;
@@ -83,5 +84,5 @@ std::unique_ptr<GLTF::Accessor> contiguousElementAccessor(
 		GLTF::Constants::WebGL::FLOAT,
 		GLTF::Constants::WebGL::ARRAY_BUFFER,
 		reinterpret_span<float>(data),
-		dimension(semantic));
+		dimension(semantic, shapeIndex));
 }

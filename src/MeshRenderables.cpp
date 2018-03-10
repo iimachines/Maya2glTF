@@ -85,7 +85,7 @@ MeshRenderables::MeshRenderables(
 								const auto& elementIndices = shapeCollection.indicesAt(shapeIndex, semantic, setIndex);
 								const auto vertexIndex = elementIndices.at(primitiveVertexIndex);
 								const auto& vertexElements = shapeCollection.vertexElementsAt(shapeIndex, semantic, setIndex);
-								const auto& source = componentsAt(vertexElements, vertexIndex, semantic);
+								const auto& source = componentsAt(vertexElements, vertexIndex, semantic, shapeIndex);
 								vertexIndexKey.insert(vertexIndexKey.end(), source.begin(), source.end());
 							}
 						}
@@ -100,13 +100,13 @@ MeshRenderables::MeshRenderables(
 
 			VertexIndex sharedVertexIndex;
 
-			const auto itSharedIndex = vertexBuffer.cache.find(vertexIndexKey);
+			const auto itSharedIndex = vertexBuffer.vertexToIndexMapping.find(vertexIndexKey);
 
-			if (itSharedIndex == vertexBuffer.cache.end())
+			if (itSharedIndex == vertexBuffer.vertexToIndexMapping.end())
 			{
 				// No vertex with same indices found, create a new output vertex index.
-				sharedVertexIndex = static_cast<VertexIndex>(vertexBuffer.cache.size());
-				vertexBuffer.cache[vertexIndexKey] = sharedVertexIndex;
+				sharedVertexIndex = static_cast<VertexIndex>(vertexBuffer.vertexToIndexMapping.size());
+				vertexBuffer.vertexToIndexMapping[vertexIndexKey] = sharedVertexIndex;
 
 				// Build the vertex.
 				for (auto&& slot : vertexLayout)
@@ -114,7 +114,7 @@ MeshRenderables::MeshRenderables(
 					const auto& elementIndices = shapeCollection.indicesAt(slot.shapeIndex, slot.semantic, slot.setIndex);
 					const auto vertexIndex = elementIndices.at(primitiveVertexIndex);
 					const auto& vertexElements = shapeCollection.vertexElementsAt(slot.shapeIndex, slot.semantic, slot.setIndex);
-					const auto& source = componentsAt(vertexElements, vertexIndex, slot.semantic);
+					const auto& source = componentsAt(vertexElements, vertexIndex, slot.semantic, slot.shapeIndex);
 					auto& target = componentsMap[slot];
 					if (target.empty())
 					{
@@ -198,7 +198,7 @@ std::ostream& operator<<(std::ostream& out, const VertexBuffer& obj)
 {
 	out << '{' << endl << indent;
 
-	dump_iterable(out, "indices", obj.indices, obj.indices.size() / obj.cache.size(), 0);
+	dump_iterable(out, "indices", obj.indices, obj.indices.size() / obj.vertexToIndexMapping.size(), 0);
 
 	out << "," << endl;
 
@@ -208,11 +208,4 @@ std::ostream& operator<<(std::ostream& out, const VertexBuffer& obj)
 
 	return out;
 }
-//
-//std::ostream& operator<<(std::ostream& out, const MeshRenderables& obj)
-//{
-//	dump_iterable(out, "renderables", obj.m_table, 1);
-//	return out;
-//}
-
 

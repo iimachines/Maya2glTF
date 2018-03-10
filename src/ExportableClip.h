@@ -18,5 +18,5 @@ private:
 
 	std::vector<std::unique_ptr<NodeAnimation>> m_nodeAnimations;
 
-	DISALLOW_COPY_AND_ASSIGN(ExportableClip);
+	DISALLOW_COPY_MOVE_ASSIGN(ExportableClip);
 };

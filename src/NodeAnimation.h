@@ -58,5 +58,5 @@ private:
 		}
 	}
 
-	DISALLOW_COPY_AND_ASSIGN(NodeAnimation);
+	DISALLOW_COPY_MOVE_ASSIGN(NodeAnimation);
 };

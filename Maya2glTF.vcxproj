@@ -429,6 +429,7 @@ if errorlevel 1 (exit /b 100)
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\accessors.h" />
+    <ClInclude Include="src\macros.h" />
     <ClInclude Include="src\NodeHierarchy.h" />
     <ClInclude Include="src\ExportableClip.h" />
     <ClInclude Include="src\NodeAnimation.h" />

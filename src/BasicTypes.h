@@ -1,12 +1,6 @@
 #pragma once
 
-#ifndef DISALLOW_COPY_AND_ASSIGN
-// A macro to disallow the copy constructor and operator= functions
-// This should be used in the private: declarations for a class
-#define DISALLOW_COPY_AND_ASSIGN(TypeName) \
-  TypeName(const TypeName&) = delete;      \
-  void operator=(const TypeName&) = delete
-#endif
+#include "macros.h"
 
 typedef unsigned __int8 uint8;
 typedef unsigned __int16 uint16;
@@ -57,5 +51,4 @@ const std::array<T,N>&& reinterpret_array(const T(&items)[N])
 {
 	return std::move(*reinterpret_cast<const std::array<T, N>*>(items));
 }
-
 

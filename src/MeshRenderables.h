@@ -31,37 +31,8 @@ struct VertexSignature
 	{
 	}
 
-
-	VertexSignature(const VertexSignature& other)
-		: shaderIndex(other.shaderIndex)
-		, slotUsage(other.slotUsage)
-	{
-	}
-
-	VertexSignature(VertexSignature&& other) noexcept
-		: shaderIndex(other.shaderIndex)
-		, slotUsage(other.slotUsage)
-	{
-	}
-
-	VertexSignature& operator=(const VertexSignature& other)
-	{
-		if (this == &other)
-			return *this;
-		shaderIndex = other.shaderIndex;
-		slotUsage = other.slotUsage;
-		return *this;
-	}
-
-	VertexSignature& operator=(VertexSignature&& other) noexcept
-	{
-		if (this == &other)
-			return *this;
-		shaderIndex = other.shaderIndex;
-		slotUsage = other.slotUsage;
-		return *this;
-	}
-
+	DEFAULT_COPY_MOVE_ASSIGN_DESTRUCT(VertexSignature);
+	
 	friend bool operator==(const VertexSignature& lhs, const VertexSignature& rhs)
 	{
 		return lhs.shaderIndex == rhs.shaderIndex
@@ -106,6 +77,10 @@ struct VertexSignature
 
 struct VertexSlot
 {
+	ShapeIndex shapeIndex;
+	Semantic::Kind semantic;
+	SetIndex setIndex;
+
 	VertexSlot()
 		: shapeIndex(-1)
 		, semantic(Semantic::Kind::INVALID)
@@ -120,16 +95,7 @@ struct VertexSlot
 	{
 	}
 
-	VertexSlot(const VertexSlot& slot)
-		: shapeIndex(slot.shapeIndex)
-		, semantic(slot.semantic)
-		, setIndex(slot.setIndex)
-	{
-	}
-
-	ShapeIndex shapeIndex;
-	Semantic::Kind semantic;
-	SetIndex setIndex;
+	DEFAULT_COPY_MOVE_ASSIGN_DESTRUCT(VertexSlot);
 
 	friend std::ostream& operator <<(std::ostream& out, const VertexSlot& slot);
 
@@ -184,7 +150,7 @@ struct VertexSlot
 
 	size_t dimension() const
 	{
-		return Semantic::dimension(semantic);
+		return Semantic::dimension(semantic, shapeIndex);
 	}
 };
 
@@ -203,18 +169,18 @@ struct VertexHashers
 
 typedef std::vector<VertexSlot> VertexLayout;
 
-typedef std::unordered_map<FloatVector, Index, CollectionHashers> VertexIndexCache;
+typedef std::unordered_map<FloatVector, Index, CollectionHashers> VertexToIndexMapping;
 
 // TODO: Use valarrays here?
 typedef std::unordered_map<VertexSlot, FloatVector, VertexHashers> VertexComponentsMap;
 
 struct VertexBuffer
 {
-	VertexIndexCache cache;
+	VertexToIndexMapping vertexToIndexMapping;
 	IndexVector indices;
 	VertexComponentsMap componentsMap;
 	
-	size_t maxIndex() const { return cache.size(); };
+	size_t maxIndex() const { return vertexToIndexMapping.size(); };
 
 	friend std::ostream& operator <<(std::ostream& out, const VertexBuffer& obj);
 };
@@ -227,16 +193,17 @@ class MeshRenderables
 {
 public:
 	MeshRenderables(
-		const InstanceIndex instanceIndex,
-		const MeshShapeCollection& shapes);
+		InstanceIndex instanceIndex,
+		const MeshShapeCollection& shapeCollection);
+
+	~MeshRenderables() = default;
 
 	const InstanceIndex instanceIndex;
 	const MeshShapeCollection& meshShapesIndices;
 
 	const VertexBufferTable& table() const { return m_table; }
 
-	friend std::ostream& operator <<(std::ostream& out, const MeshRenderables& obj);
-
 protected:
+	DISALLOW_COPY_MOVE_ASSIGN(MeshRenderables);
 	VertexBufferTable m_table;
 };

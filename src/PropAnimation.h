@@ -1,4 +1,6 @@
 #pragma once
+
+#include "macros.h"
 #include "accessors.h"
 
 class ExportableNode;
@@ -41,5 +43,5 @@ public:
 private:
 	std::unique_ptr<GLTF::Accessor> m_outputs;
 
-	DISALLOW_COPY_AND_ASSIGN(PropAnimation);
+	DISALLOW_COPY_MOVE_ASSIGN(PropAnimation);
 };

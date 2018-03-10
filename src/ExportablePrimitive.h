@@ -12,14 +12,24 @@ class ExportableResources;
 class ExportablePrimitive
 {
 public:
-	ExportablePrimitive(const VertexBuffer& vertexBuffer, ExportableResources& resources);
+	ExportablePrimitive(
+		const VertexBuffer& vertexBuffer, 
+		ExportableResources& resources);
 	
-	ExportablePrimitive(const VertexBuffer& vertexBuffer, ExportableResources& resources, 
-		const Semantic::Kind debugSemantic, const double debugLineLength, const Color debugLineColor);
+	ExportablePrimitive(
+		const VertexBuffer& vertexBuffer, 
+		ExportableResources& resources,
+		Semantic::Kind debugSemantic,
+		int debugShapeIndex,
+		double debugLineLength,
+		Color debugLineColor);
 	
 	virtual ~ExportablePrimitive();
 
 	GLTF::Primitive glPrimitive;
 	std::unique_ptr<GLTF::Accessor> glIndices;
 	MeshAccessorPerSetIndexTable glAccessorTable;
+
+private:
+	DISALLOW_COPY_MOVE_ASSIGN(ExportablePrimitive);
 };

@@ -20,6 +20,7 @@ public:
 	static void exportScene(const Arguments& args);
 
 private:
+	DISALLOW_COPY_MOVE_ASSIGN(Exporter);
 	MStatus run(const MArgList& args);
 	static void printFatalError();
 };

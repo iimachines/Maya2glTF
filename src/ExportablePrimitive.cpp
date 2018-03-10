@@ -56,11 +56,10 @@ ExportablePrimitive::ExportablePrimitive(
 	// TODO: Derived blend shape deltas!
 	for (auto && pair: vertexBuffer.componentsMap)
 	{
-
 		const auto& slot = pair.first;
 		if (slot.shapeIndex == 0)
 		{
-			auto accessor = contiguousElementAccessor(slot.semantic, span(pair.second));
+			auto accessor = contiguousElementAccessor(slot.semantic, slot.shapeIndex, span(pair.second));
 			glPrimitive.attributes[glTFattributeName(slot.semantic, slot.setIndex)] = accessor.get();
 			glAccessorTable[slot.semantic].emplace_back(move(accessor));
 		}
@@ -73,6 +72,7 @@ ExportablePrimitive::ExportablePrimitive(
 	const VertexBuffer& vertexBuffer, 
 	ExportableResources& resources,
 	const Semantic::Kind debugSemantic,
+	const int debugShapeIndex,
 	const double debugLineLength,
 	const Color debugLineColor)
 {
@@ -82,7 +82,7 @@ ExportablePrimitive::ExportablePrimitive(
 	const auto vectorSlot = VertexSlot(0, debugSemantic, 0);
 	const auto positions = reinterpret_span<Position>(vertexBuffer.componentsMap.at(positionSlot));
 	const auto vectorComponents = vertexBuffer.componentsMap.at(vectorSlot);
-	const auto vectorDimension = Semantic::dimension(debugSemantic);
+	const auto vectorDimension = dimension(debugSemantic, debugShapeIndex);
 	const auto lineCount = positions.size();
 	const auto elementCount = lineCount * 2;
 	std::vector<uint16> lineIndices(elementCount);
@@ -115,11 +115,11 @@ ExportablePrimitive::ExportablePrimitive(
 	glIndices = contiguousAccessor("indices", GLTF::Accessor::Type::SCALAR, WebGL::UNSIGNED_SHORT, WebGL::ELEMENT_ARRAY_BUFFER, span(lineIndices), 1);
 	glPrimitive.indices = glIndices.get();
 
-	auto pointAccessor = contiguousElementAccessor(Semantic::Kind::POSITION, span(linePoints));
+	auto pointAccessor = contiguousElementAccessor(Semantic::Kind::POSITION, 0, span(linePoints));
 	glPrimitive.attributes[glTFattributeName(Semantic::Kind::POSITION, 0)] = pointAccessor.get();
 	glAccessorTable[Semantic::Kind::POSITION].emplace_back(move(pointAccessor));
 
-	auto colorAccessor = contiguousElementAccessor(Semantic::Kind::COLOR, span(lineColors));
+	auto colorAccessor = contiguousElementAccessor(Semantic::Kind::COLOR, 0, span(lineColors));
 	glPrimitive.attributes[glTFattributeName(Semantic::Kind::COLOR, 0)] = colorAccessor.get();
 	glAccessorTable[Semantic::Kind::COLOR].emplace_back(move(colorAccessor));
 }

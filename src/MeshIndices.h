@@ -1,5 +1,6 @@
 #pragma once
 
+#include "macros.h"
 #include "sceneTypes.h"
 #include "MeshSemantics.h"
 
@@ -47,10 +48,10 @@ public:
 	const MeshSemantics& semantics;
 
 	// TODO: Support other primitives
-	auto primitiveKind() const { return TRIANGLE_LIST; }
-	auto perPrimitiveVertexCount() const { return 3; }
-	auto primitiveCount() const { return m_TriangleCount; }
-	auto maxVertexCount() const { return perPrimitiveVertexCount() * primitiveCount(); }
+	PrimitiveKind primitiveKind() const { return TRIANGLE_LIST; }
+	int perPrimitiveVertexCount() const { return 3; }
+	int primitiveCount() const { return m_TriangleCount; }
+	int maxVertexCount() const { return perPrimitiveVertexCount() * primitiveCount(); }
 
 	const IndexVector& indicesAt(const size_t semanticIndex, const size_t setIndex) const
 	{
@@ -66,6 +67,6 @@ private:
 	VertexElementIndicesPerSetIndexTable m_table;
 	MeshShadingPerInstance m_shadingPerInstance;
 
-	DISALLOW_COPY_AND_ASSIGN(MeshIndices);
+	DISALLOW_COPY_MOVE_ASSIGN(MeshIndices);
 };
 

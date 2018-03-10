@@ -1,5 +1,6 @@
 #pragma once
 
+#include "macros.h"
 #include "sceneTypes.h"
 #include "MeshSemantics.h"
 
@@ -9,9 +10,9 @@ typedef gsl::span<const float> VertexComponents;
 typedef std::vector<VertexComponents> VertexElementsPerSetIndex;
 typedef std::array<VertexElementsPerSetIndex, Semantic::COUNT> VertexElementsPerSetIndexTable;
 
-inline VertexComponents componentsAt(const VertexComponents& elements, const size_t vertexIndex, const Semantic::Kind semantic)
+inline VertexComponents componentsAt(const VertexComponents& elements, const size_t vertexIndex, const Semantic::Kind semantic, const int shapeIndex)
 {
-	const auto count = Semantic::dimension(semantic);
+	const auto count = dimension(semantic, shapeIndex);
 	return elements.subspan(vertexIndex*count, count);
 }
 
@@ -21,8 +22,10 @@ class MeshIndices;
 class MeshVertices
 {
 public:
-	MeshVertices(const MeshIndices& meshIndices, const MFnMesh& mesh, const Arguments& args, MSpace::Space space = MSpace::kTransform);
-	virtual ~MeshVertices();
+	MeshVertices(const MeshIndices& meshIndices, const MFnMesh& mesh, int shapeIndex, const Arguments& args, MSpace::Space space = MSpace::kTransform);
+	virtual ~MeshVertices() = default;
+
+	const int shapeIndex;
 
 	const VertexElementsPerSetIndexTable& table() const { return m_table; }
 
@@ -39,11 +42,11 @@ private:
 	PositionVector m_positions;
 	NormalVector m_normals;
 
-	std::map<SetIndex, TangentVector> m_tangentSets;
+	std::map<SetIndex, FloatVector> m_tangentSets;
 	std::map<SetIndex, TexCoordVector> m_uvSets;
 	std::map<SetIndex, ColorVector> m_colorSets;
 
 	VertexElementsPerSetIndexTable m_table;
 
-	DISALLOW_COPY_AND_ASSIGN(MeshVertices);
+	DISALLOW_COPY_MOVE_ASSIGN(MeshVertices);
 };

@@ -1,7 +1,5 @@
 #pragma once
 
-#include "basicTypes.h"
-
 template<typename T>
 static gsl::span<const T> span(const std::vector<T>& vec)
 {
