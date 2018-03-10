@@ -66,6 +66,8 @@ MeshIndices::MeshIndices(const MeshSemantics* meshSemantics, const MFnMesh& fnMe
 	MIntArray triangleVertexIndices;
 	MIntArray polygonVertexIndices;
 
+	m_triangleToFaceIndexMap.reserve(m_TriangleCount);
+
 	for (MItMeshPolygon itPoly(fnMesh.object()); !itPoly.isDone(); itPoly.next())
 	{
 		const auto polygonIndex = itPoly.index(&status);
@@ -95,6 +97,8 @@ MeshIndices::MeshIndices(const MeshSemantics* meshSemantics, const MFnMesh& fnMe
 
 		for (auto localTriangleIndex = 0; localTriangleIndex < numTrianglesInPolygon; ++localTriangleIndex)
 		{
+			m_triangleToFaceIndexMap.emplace_back(polygonIndex);
+
 			for (unsigned instanceIndex = 0; instanceIndex < instanceCount; ++instanceIndex)
 			{
 				auto& shading = m_shadingPerInstance[instanceIndex];
@@ -162,9 +166,7 @@ MeshIndices::MeshIndices(const MeshSemantics* meshSemantics, const MFnMesh& fnMe
 	CONSTRUCTOR_END();
 }
 
-MeshIndices::~MeshIndices()
-{
-}
+MeshIndices::~MeshIndices() = default;
 
 void MeshIndices::dump(IndentableStream& out, const std::string& name) const
 {

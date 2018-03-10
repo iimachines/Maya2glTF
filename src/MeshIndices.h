@@ -23,6 +23,11 @@ typedef std::vector<IndexVector> VertexElementIndicesPerSetIndex;
 typedef std::array<VertexElementIndicesPerSetIndex, Semantic::COUNT> VertexElementIndicesPerSetIndexTable;
 typedef std::vector<bool> ShaderUsageVector;
 
+// Maya face index
+typedef int FaceIndex;
+typedef int TriangleIndex;
+typedef std::vector<FaceIndex> TriangleToFaceIndexMap;
+
 struct MeshShading
 {
 	MObjectArray shaderGroups;
@@ -58,6 +63,11 @@ public:
 		return m_table.at(semanticIndex).at(setIndex);
 	}
 
+	FaceIndex triangleToFaceIndex(TriangleIndex triangleIndex) const
+	{
+		return m_triangleToFaceIndexMap.at(triangleIndex);
+	}
+
 	const MeshShadingPerInstance& shadingPerInstance() const { return m_shadingPerInstance; }
 
 	void dump(class IndentableStream& cout, const std::string& name) const;
@@ -66,6 +76,7 @@ private:
 	int m_TriangleCount;
 	VertexElementIndicesPerSetIndexTable m_table;
 	MeshShadingPerInstance m_shadingPerInstance;
+	TriangleToFaceIndexMap m_triangleToFaceIndexMap;
 
 	DISALLOW_COPY_MOVE_ASSIGN(MeshIndices);
 };

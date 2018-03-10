@@ -53,6 +53,10 @@ struct MikkTSpaceContext : SMikkTSpaceContext
 	MikkTSpaceVectors vectors;
 	SMikkTSpaceInterface interface;
 
+	// TODO: It seems MikkTSpace can generate zero tangents for some degenerate triangles, although it does contain code to deal with these.
+	// NOTE: Cleaning up the mesh with Maya seems to fix this.
+	mutable std::vector<int> invalidTriangleIndices;
+
 	MikkTSpaceContext(
 		const MeshIndices& meshIndices,
 		VertexElementsPerSetIndexTable& vertexTable,
@@ -88,7 +92,7 @@ struct MikkTSpaceContext : SMikkTSpaceContext
 
 	static int getNumFaces(const SMikkTSpaceContext * pContext)
 	{
-		auto count = static_cast<const MikkTSpaceContext*>(pContext)->triangleCount;
+		const auto count = reinterpret_cast<const MikkTSpaceContext*>(pContext)->triangleCount;
 		return static_cast<int>(count);
 	}
 
@@ -99,7 +103,7 @@ struct MikkTSpaceContext : SMikkTSpaceContext
 
 	static void getPosition(const SMikkTSpaceContext * pContext, float fvPosOut[], const int iFace, const int iVert)
 	{
-		const auto context = static_cast<const MikkTSpaceContext*>(pContext);
+		const auto context = reinterpret_cast<const MikkTSpaceContext*>(pContext);
 		const auto index = context->indices.positions[iFace * 3 + iVert];
 		const auto& vector = context->vectors.positions[index];
 		fvPosOut[0] = vector[0];
@@ -109,7 +113,7 @@ struct MikkTSpaceContext : SMikkTSpaceContext
 
 	static void getNormal(const SMikkTSpaceContext* pContext, float fvNormOut[], const int iFace, const int iVert)
 	{
-		const auto context = static_cast<const MikkTSpaceContext*>(pContext);
+		const auto context = reinterpret_cast<const MikkTSpaceContext*>(pContext);
 		const auto index = context->indices.normals[iFace * 3 + iVert];
 		const auto& vector = context->vectors.normals[index];
 		fvNormOut[0] = vector[0];
@@ -118,7 +122,7 @@ struct MikkTSpaceContext : SMikkTSpaceContext
 	}
 	static void getTexCoord(const SMikkTSpaceContext* pContext, float fvTexcOut[], const int iFace, const int iVert)
 	{
-		const auto context = static_cast<const MikkTSpaceContext*>(pContext);
+		const auto context = reinterpret_cast<const MikkTSpaceContext*>(pContext);
 		const auto index = context->indices.texcoords[iFace * 3 + iVert];
 		const auto& vector = context->vectors.texcoords[index];
 		fvTexcOut[0] = vector[0];
@@ -127,7 +131,7 @@ struct MikkTSpaceContext : SMikkTSpaceContext
 
 	static void setTSpaceBasic(const SMikkTSpaceContext* pContext, const float fvTangent[], const float fSign, const int iFace, const int iVert)
 	{
-		const auto context = static_cast<const MikkTSpaceContext*>(pContext);
+		const auto context = reinterpret_cast<const MikkTSpaceContext*>(pContext);
 
 		// Re-index
 		const auto index = iFace * 3 + iVert;
@@ -136,27 +140,26 @@ struct MikkTSpaceContext : SMikkTSpaceContext
 		const auto tx = fvTangent[0];
 		const auto ty = fvTangent[1];
 		const auto tz = fvTangent[2];
-		const auto tl = sqrtf(tx*tx + ty * ty + tz * tz);
 
-		if (tl < 1e-9)
+		if (tx == 0 && ty == 0 && tz == 0)
 		{
-			std::cerr << prefix << "WARNING: MikkTSpace generated zero tangent for face #" << iFace << " and vertex # " << iVert << endl;
+			context->invalidTriangleIndices.push_back(iFace);
 		}
 
 		if (context->shapeIndex == 0)
 		{
 			float *p = &context->vectors.tangentComponents[index * array_size<MainShapeTangent>::size];
-			*p++ = tx / tl;
-			*p++ = ty / tl;
-			*p++ = tz / tl;
+			*p++ = tx;
+			*p++ = ty;
+			*p++ = tz;
 			*p = fSign;
 		}
 		else
 		{
 			float *p = &context->vectors.tangentComponents[index * array_size<BlendShapeTangent>::size];
-			*p++ = tx / tl;
-			*p++ = ty / tl;
-			*p++ = tz / tl;
+			*p++ = tx;
+			*p++ = ty;
+			*p++ = tz;
 		}
 	}
 };
@@ -274,6 +277,23 @@ MeshVertices::MeshVertices(const MeshIndices& meshIndices, const MFnMesh& mesh, 
 
 			MikkTSpaceContext context(meshIndices, m_table, semantic.setIndex, shapeIndex);
 			context.computeTangents(args.mikkelsenTangentAngularThreshold);
+
+			if (!context.invalidTriangleIndices.empty())
+			{
+				// Don't flood the console output if too many faces are invalid.
+				if (context.invalidTriangleIndices.size() > 10)
+					context.invalidTriangleIndices.resize(10);
+
+				std::stringstream ss;
+				ss << "select -r";
+				for (auto triangleIndex: context.invalidTriangleIndices)
+				{
+					ss << ' ' << mesh.name() << ".f[" << meshIndices.triangleToFaceIndex(triangleIndex) << "]";
+				}
+				ss << ";";
+
+				MayaException::printError(formatted("MikkTSpace generated zero tangents!\nCleanup your mesh and try again please.\nUse the following command select the first invalid faces:\n%s\n", ss.str().c_str()));
+			}
 		}
 		else
 		{
