@@ -68,10 +68,10 @@ void ExportableNode::connectToHierarchy(const NodeHierarchy& dagNodeTable)
 	const auto objectMatrix = Transform::getObjectSpaceMatrix(dagPath, parentDagPath);
 
 	MStatus status;
-	transform = Transform::toTRS(objectMatrix, scaleFactor, glNode.name.c_str());
+	initialTransform = Transform::toTRS(objectMatrix, scaleFactor, glNode.name.c_str());
 	THROW_ON_FAILURE(status);
 
-	glNode.transform = &transform;
+	glNode.transform = &initialTransform;
 
 	if (parentNode)
 	{

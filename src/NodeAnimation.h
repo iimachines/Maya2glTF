@@ -4,6 +4,7 @@
 #include "sceneTypes.h"
 
 class ExportableNode;
+class ExportableMesh;
 
 class NodeAnimation
 {
@@ -18,44 +19,32 @@ public:
 	virtual void exportTo(GLTF::Accessor& timesPerFrame, GLTF::Animation& glAnimation);
 
 	const ExportableNode& node;
+	const ExportableMesh* mesh;
 
 private:
 	const double m_scaleFactor;
 	bool m_allOrthogonalAxes;
 	std::vector<MMatrix> m_objectMatrices;
+	std::vector<float> m_targetWeights;
 
-	typedef PropAnimation<Position> AnimatedT;
-	typedef PropAnimation<Rotation> AnimatedR;
-	typedef PropAnimation<Scale> AnimatedS;
+	typedef PropAnimation AnimatedT;
+	typedef PropAnimation AnimatedR;
+	typedef PropAnimation AnimatedS;
+	typedef PropAnimation AnimatedW;
 
 	std::unique_ptr<AnimatedT> m_positions;
 	std::unique_ptr<AnimatedR> m_rotations;
 	std::unique_ptr<AnimatedS> m_scales;
+	std::unique_ptr<AnimatedW> m_weights;
 
-	template<typename T, int N>
-	void finish(GLTF::Animation& glAnimation, std::unique_ptr<PropAnimation<T>>& animatedProp, const float (&baseValues)[N])
+	void finish(GLTF::Animation& glAnimation,
+		std::unique_ptr<PropAnimation>& animatedProp,
+		const gsl::span<const float>& baseValues) const;
+
+	template<int N>
+	void finish(GLTF::Animation& glAnimation, std::unique_ptr<PropAnimation>& animatedProp, const float(&baseValues)[N])
 	{
-		auto& values = animatedProp->valuesPerFrame;
-		const bool isAnimated = std::any_of(values.begin(), values.end(), [baseValues](auto& value) 
-		{
-			for (int i = N; --i >= 0;)
-			{
-				if (std::abs(baseValues[i] - value[i]) > 1e-9)
-					return true;
-			}
-
-			return false;
-		});
-
-		if (isAnimated)
-		{
-			animatedProp->finish();
-			glAnimation.channels.push_back(&animatedProp->glChannel);
-		}
-		else
-		{
-			animatedProp.release();
-		}
+		finish(glAnimation, animatedProp, gsl::make_span(&baseValues[0], N));
 	}
 
 	DISALLOW_COPY_MOVE_ASSIGN(NodeAnimation);

@@ -5,13 +5,13 @@
 
 class ExportableNode;
 
-template<typename T>
 class PropAnimation
 {
 public:
-	PropAnimation(GLTF::Accessor& timesPerFrame, const GLTF::Node& node, const GLTF::Animation::Path path, const char* interpolation = "LINEAR")
+	PropAnimation(GLTF::Accessor& timesPerFrame, const GLTF::Node& node, const GLTF::Animation::Path path, const size_t dimension, const char* interpolation = "LINEAR")
+		:dimension(dimension)
 	{
-		valuesPerFrame.reserve(timesPerFrame.count);
+		componentValuesPerFrame.reserve(timesPerFrame.count * dimension);
 
 		glTarget.node = &const_cast<GLTF::Node&>(node);
 		glTarget.path = path;
@@ -23,18 +23,28 @@ public:
 		glSampler.interpolation = interpolation;
 	}
 
-	std::vector<T> valuesPerFrame;
+	~PropAnimation() = default;
+
+	const size_t dimension;
+
+	std::vector<float> componentValuesPerFrame;
 
 	GLTF::Animation::Channel glChannel;
 	GLTF::Animation::Sampler glSampler;
 	GLTF::Animation::Channel::Target glTarget;
+
+	template<std::ptrdiff_t Extent>
+	void append(const gsl::span<const float, Extent>& components)
+	{
+		std::copy(components.begin(), components.end(), std::back_inserter(componentValuesPerFrame));
+	}
 
 	void finish()
 	{
 		if (!m_outputs)
 		{
 			// TODO: Allow passing name of node+path for debugging
-			m_outputs = contiguousChannelAccessor(nullptr, span(valuesPerFrame));
+			m_outputs = contiguousChannelAccessor(nullptr, span(componentValuesPerFrame), dimension);
 		}
 
 		glSampler.output = m_outputs.get();

@@ -92,6 +92,8 @@ ExportableMesh::ExportableMesh(const MDagPath& shapeDagPath, ExportableResources
 			{
 				if (shape->shapeIndex.isBlendShapeIndex())
 				{
+					m_weightPlugs.emplace_back(shape->weightPlug);
+					m_initialWeights.emplace_back(shape->initialWeight);
 					glMesh.weights.emplace_back(shape->initialWeight);
 				}
 			}
@@ -102,3 +104,18 @@ ExportableMesh::ExportableMesh(const MDagPath& shapeDagPath, ExportableResources
 }
 
 ExportableMesh::~ExportableMesh() = default;
+
+std::vector<float> ExportableMesh::getCurrentWeights() const
+{
+	std::vector<float> weights;
+	weights.reserve(m_weightPlugs.size());
+
+	for(auto& plug: m_weightPlugs)
+	{
+		float weight;
+		THROW_ON_FAILURE(plug.getValue(weight));
+		weights.emplace_back(weight);
+	}
+
+	return move(weights);
+}

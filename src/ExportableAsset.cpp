@@ -79,8 +79,11 @@ ExportableAsset::ExportableAsset(const Arguments& args)
 		for (auto& clipArg : args.animationClips)
 		{
 			auto clip = std::make_unique<ExportableClip>(args, clipArg, m_items);
-			m_glAsset.animations.push_back(&clip->glAnimation);
-			m_clips.emplace_back(move(clip));
+			if (!clip->glAnimation.channels.empty())
+			{
+				m_glAsset.animations.push_back(&clip->glAnimation);
+				m_clips.emplace_back(move(clip));
+			}
 		}
 	}
 

@@ -37,7 +37,7 @@ ExportableClip::ExportableClip(const Arguments& args, const AnimClipArg& clipArg
 		}
 	}
 
-	m_inputs = contiguousChannelAccessor("times", span(m_timesPerFrame));
+	m_inputs = contiguousChannelAccessor("times", span(m_timesPerFrame), 1);
 
 	for (auto& nodeAnimation : m_nodeAnimations)
 	{
@@ -45,6 +45,4 @@ ExportableClip::ExportableClip(const Arguments& args, const AnimClipArg& clipArg
 	}
 }
 
-ExportableClip::~ExportableClip()
-{
-}
+ExportableClip::~ExportableClip() = default;

@@ -3,9 +3,10 @@
 #include "spans.h"
 #include "sceneTypes.h"
 
-inline GLTF::Accessor::Type getAccessorType(const int dimension)
+inline GLTF::Accessor::Type getAccessorType(const size_t dimension)
 {
 	// HACK: We assume SCALAR == 0 here...
+	assert(dimension >= 1 && dimension <= 4);
 	const auto type = static_cast<GLTF::Accessor::Type>(dimension - 1);
 	return type;
 }
@@ -33,22 +34,18 @@ std::unique_ptr<GLTF::Accessor> contiguousAccessor(
 	return accessor;
 }
 
-template<typename T>
-std::unique_ptr<GLTF::Accessor> contiguousChannelAccessor(
+inline std::unique_ptr<GLTF::Accessor> contiguousChannelAccessor(
 	const char* name,
-	const gsl::span<T>& data,
+	const gsl::span<const float>& data,
+	const size_t dimension,
 	GLTF::Constants::WebGL target = static_cast<GLTF::Constants::WebGL>(-1))
 {
-	const auto dimension = sizeof(T) / sizeof(float);
-	assert(sizeof(T) % sizeof(float) == 0);
-	assert(dimension >= 1 && dimension <= 4);
-
 	return contiguousAccessor(name,
 		getAccessorType(dimension),
 		GLTF::Constants::WebGL::FLOAT,
 		target,
 		data,
-		1);
+		dimension);
 }
 
 template<typename T>

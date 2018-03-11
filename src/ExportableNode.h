@@ -10,6 +10,8 @@ public:
 	ExportableNode(MDagPath dagPath, ExportableResources& resources);
 	~ExportableNode();
 
+	ExportableMesh* mesh() const { return m_mesh.get(); }
+
 	// Phase 1
 	static std::unique_ptr<ExportableNode> from(MDagPath dagPath, ExportableResources& resources);
 
@@ -21,7 +23,7 @@ public:
 	void connectToHierarchy(const NodeHierarchy& hierarchy);
 
 	MDagPath parentDagPath;
-	GLTF::Node::TransformTRS transform;
+	GLTF::Node::TransformTRS initialTransform;
 
 	// Phase 3
 	std::unique_ptr<NodeAnimation> createAnimation(const int frameCount, const double scaleFactor) override;
