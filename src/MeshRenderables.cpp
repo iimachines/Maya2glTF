@@ -160,11 +160,23 @@ MeshRenderables::MeshRenderables(
 					const VertexSlot mainSlot(ShapeIndex::main(), targetSlot.semantic, targetSlot.setIndex);
 					const FloatVector& mainComponents = compMap.at(mainSlot);
 					FloatVector& targetComponents = slotCompPair.second;
-					const auto componentCount = mainComponents.size();
-					assert(componentCount == targetComponents.size());
-					for (size_t i=0; i<componentCount; ++i)
+
+					// The annoying fact that TANGENTs have dimension 4 in the main shape and 3 in the targets requires this hacky code.
+					const auto mainDimension = mainSlot.dimension();
+					const auto targetDimension = targetSlot.dimension();
+					const auto sharedDimension = std::min(mainDimension, targetDimension);
+					const auto mainComponentCount = mainComponents.size();
+					const auto targetComponentCount = targetComponents.size();
+					assert(mainComponentCount / mainDimension == targetComponentCount / targetDimension);
+
+					for (size_t mainIndex = 0U, targetIndex = 0U; 
+						mainIndex < mainComponentCount; 
+						mainIndex += mainDimension, targetIndex += targetDimension )
 					{
-						targetComponents[i] -= mainComponents[i];
+						for (size_t dimension=0; dimension<sharedDimension; ++dimension)
+						{
+							targetComponents[targetIndex+dimension] -= mainComponents[mainIndex + dimension];
+						}
 					}
 				}
 			}
