@@ -7,6 +7,7 @@
 #include "MayaException.h"
 
 using namespace GLTF::Constants;
+using namespace coveo::linq;
 
 namespace Semantic
 {
@@ -52,16 +53,65 @@ ExportablePrimitive::ExportablePrimitive(
 		glPrimitive.indices = glIndices.get();
 	}
 
+	auto componentsPerShapeIndex
+		= from(vertexBuffer.componentsMap)
+		| group_by([](auto& pair) { return pair.first.shapeIndex; })
+		| to_vector();
+
+	// Allocate a glTF morph-target for each blend-shape
+	const auto shapeCount = componentsPerShapeIndex.size();
+	if (shapeCount > 1)
+	{
+		glTargetTable.reserve(shapeCount - 1);
+		for (size_t i = 1; i < shapeCount; ++i)
+		{
+			auto glTarget = std::make_unique<GLTF::Primitive::Target>();
+			glPrimitive.targets.emplace_back(glTarget.get());
+			glTargetTable.emplace_back(move(glTarget));
+		}
+	}
+
+	const auto mainShapeSemanticSet = resources.arguments().meshPrimitiveAttributes;
+	const auto blendShapeSemanticSet = mainShapeSemanticSet & 
+		MeshPrimitiveAttributeSet 
+		{ 
+			1 << Semantic::POSITION | 
+			1 << Semantic::NORMAL | 
+			1 << Semantic::TANGENT 
+		};
+
 	// Extract main shape vertices
 	// TODO: Derived blend shape deltas!
-	for (auto && pair: vertexBuffer.componentsMap)
+	for (auto && group: componentsPerShapeIndex)
 	{
-		const auto& slot = pair.first;
-		if (slot.shapeIndex == 0)
+		const auto shapeIndex = group.first;
+		if (shapeIndex == 0)
 		{
-			auto accessor = contiguousElementAccessor(slot.semantic, slot.shapeIndex, span(pair.second));
-			glPrimitive.attributes[glTFattributeName(slot.semantic, slot.setIndex)] = accessor.get();
-			glAccessorTable[slot.semantic].emplace_back(move(accessor));
+			for (auto && pair : group.second) 
+			{
+				auto& slot = pair.first;
+				if (mainShapeSemanticSet.test(slot.semantic))
+				{
+					auto accessor = contiguousElementAccessor(slot.semantic, slot.shapeIndex, span(pair.second));
+					glPrimitive.attributes[glTFattributeName(slot.semantic, slot.setIndex)] = accessor.get();
+					glAccessors.emplace_back(std::move(accessor));
+				}
+			}
+		}
+		else
+		{
+			auto& glTarget = glTargetTable.at(shapeIndex - 1);
+
+			for (auto && pair : group.second)
+			{
+				auto& slot = pair.first;
+				if (blendShapeSemanticSet.test(slot.semantic))
+				{
+					auto accessor = contiguousElementAccessor(slot.semantic, slot.shapeIndex, span(pair.second));
+					glTarget->attributes[glTFattributeName(slot.semantic, slot.setIndex)] = accessor.get();
+					glAccessors.emplace_back(std::move(accessor));
+				}
+			}
 		}
 	}
 
@@ -117,11 +167,11 @@ ExportablePrimitive::ExportablePrimitive(
 
 	auto pointAccessor = contiguousElementAccessor(Semantic::Kind::POSITION, 0, span(linePoints));
 	glPrimitive.attributes[glTFattributeName(Semantic::Kind::POSITION, 0)] = pointAccessor.get();
-	glAccessorTable[Semantic::Kind::POSITION].emplace_back(move(pointAccessor));
+	glAccessors.emplace_back(move(pointAccessor));
 
 	auto colorAccessor = contiguousElementAccessor(Semantic::Kind::COLOR, 0, span(lineColors));
 	glPrimitive.attributes[glTFattributeName(Semantic::Kind::COLOR, 0)] = colorAccessor.get();
-	glAccessorTable[Semantic::Kind::COLOR].emplace_back(move(colorAccessor));
+	glAccessors.emplace_back(move(colorAccessor));
 }
 
 ExportablePrimitive::~ExportablePrimitive() = default;

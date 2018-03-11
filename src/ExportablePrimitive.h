@@ -4,8 +4,7 @@
 #include "MeshRenderables.h"
 #include "ExportableMesh.h"
 
-typedef std::vector<std::unique_ptr<GLTF::Accessor>> MeshAccessorPerSetIndex;
-typedef std::array<MeshAccessorPerSetIndex, Semantic::COUNT> MeshAccessorPerSetIndexTable;
+typedef std::vector<std::unique_ptr<GLTF::Primitive::Target>> BlendShapeToTargetTable;
 
 class ExportableResources;
 
@@ -28,8 +27,10 @@ public:
 
 	GLTF::Primitive glPrimitive;
 	std::unique_ptr<GLTF::Accessor> glIndices;
-	MeshAccessorPerSetIndexTable glAccessorTable;
+	BlendShapeToTargetTable glTargetTable;
 
 private:
+	std::vector<std::unique_ptr<GLTF::Accessor>> glAccessors;
+
 	DISALLOW_COPY_MOVE_ASSIGN(ExportablePrimitive);
 };

@@ -1,6 +1,10 @@
 #pragma once
 
+#include <utility>
 #include "IndentableStream.h"
+#include "sceneTypes.h"
+
+typedef std::bitset<Semantic::COUNT> MeshPrimitiveAttributeSet;
 
 class SyntaxFactory : MSyntax
 {
@@ -24,6 +28,8 @@ public:
 	static MSyntax createSyntax();
 
 private:
+	DISALLOW_COPY_MOVE_ASSIGN(SyntaxFactory);
+
 	std::map<const char*, const char*> m_argNames;
 	std::string m_usage;
 
@@ -33,41 +39,20 @@ private:
 
 struct AnimClipArg
 {
-	AnimClipArg(const std::string& name, const MTime& startTime, const MTime& endTime, const double framesPerSecond)
-		: name{ name }
+	AnimClipArg(std::string name, const MTime& startTime, const MTime& endTime, const double framesPerSecond)
+		: name{std::move(name)}
 		, startTime{ startTime }
 		, endTime{ endTime }
 		, framesPerSecond{ framesPerSecond }
 	{
 	}
 
-	AnimClipArg(const AnimClipArg& other)
-		: name{ other.name }
-		, startTime{ other.startTime }
-		, endTime{ other.endTime }
-		, framesPerSecond{ other.framesPerSecond }
-	{
-	}
+	DEFAULT_COPY_MOVE_ASSIGN_DESTRUCT(AnimClipArg);
 
-	AnimClipArg(AnimClipArg&& other) noexcept
-		: name{ std::move(other.name) }
-		, startTime{ other.startTime }
-		, endTime{ other.endTime }
-		, framesPerSecond{ other.framesPerSecond }
-	{
-	}
-
-	AnimClipArg& operator=(AnimClipArg other)
-	{
-		using std::swap;
-		swap(*this, other);
-		return *this;
-	}
-
-	const std::string name;
-	const MTime startTime;
-	const MTime endTime;
-	const double framesPerSecond;
+	std::string name;
+	MTime startTime;
+	MTime endTime;
+	double framesPerSecond;
 
 	MTime duration() const
 	{
@@ -133,6 +118,9 @@ public:
 	/** The opacity factor to apply to the material */
 	float opacityFactor = 1;
 
+	/** The semantics (aka glTF attributes) that should be exported. Defaults to all semantics contained in the mesh */
+	MeshPrimitiveAttributeSet meshPrimitiveAttributes;
+
 	/** The time where the 'initial values' of all nodes are to be found (aka neutral base pose) */
 	MTime initialValuesTime;
 
@@ -146,6 +134,8 @@ public:
 	std::vector<AnimClipArg> animationClips;
 
 private:
+	DISALLOW_COPY_MOVE_ASSIGN(Arguments);
+
 	std::ofstream m_mayaOutputFileStream;
 	std::ofstream m_gltfOutputFileStream;
 

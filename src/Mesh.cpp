@@ -25,7 +25,7 @@ Mesh::Mesh(const MDagPath& dagPath, const Arguments& args)
 
 	m_shapeCollection = std::make_unique<MeshShapeCollection>(*m_shape, m_blendShapes.get());
 
-	m_renderables = std::make_unique<MeshRenderables>(instanceNumber, *m_shapeCollection);
+	m_renderables = std::make_unique<MeshRenderables>(instanceNumber, *m_shapeCollection, args);
 
 	CONSTRUCTOR_END();
 }

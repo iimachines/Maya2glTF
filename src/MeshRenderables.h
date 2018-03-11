@@ -6,6 +6,7 @@
 
 class MeshShape;
 class MeshBlendShapes;
+class Arguments;
 
 typedef int ShapeIndex;
 typedef int VertexIndex;
@@ -194,7 +195,8 @@ class MeshRenderables
 public:
 	MeshRenderables(
 		InstanceIndex instanceIndex,
-		const MeshShapeCollection& shapeCollection);
+		const MeshShapeCollection& shapeCollection,
+		const Arguments& args);
 
 	~MeshRenderables() = default;
 

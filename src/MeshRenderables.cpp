@@ -7,12 +7,14 @@
 #include "IndentableStream.h"
 #include "dump.h"
 #include "MayaException.h"
+#include "Arguments.h"
 
 using namespace coveo::linq;
 
 MeshRenderables::MeshRenderables(
 	const InstanceIndex instanceIndex,
-	const MeshShapeCollection& shapeCollection)
+	const MeshShapeCollection& shapeCollection,
+	const Arguments& args)
 	: instanceIndex(instanceIndex)
 	, meshShapesIndices(shapeCollection)
 {
@@ -41,13 +43,7 @@ MeshRenderables::MeshRenderables(
 	vertexLayout.reserve(maxVertexElementCount);
 	vertexIndexKey.reserve(maxVertexComponentCount);
 
-	const auto semanticsMask = -1;
-	//	= (1 << Semantic::POSITION)
-	//	| (1 << Semantic::TEXCOORD)
-	//	| (1 << Semantic::NORMAL)
-	//	| (1 << Semantic::COLOR)
-
-	//;
+	const auto semanticsMask = args.meshPrimitiveAttributes;
 
 	for (auto primitiveIndex = 0; primitiveIndex < primitiveCount; ++primitiveIndex)
 	{
@@ -66,7 +62,7 @@ MeshRenderables::MeshRenderables(
 				const auto& shapeIndicesTable = shapes.at(shapeIndex)->indices().table();
 				for (auto semanticIndex = 0; semanticIndex < shapeIndicesTable.size(); ++semanticIndex)
 				{
-					if (semanticsMask & (1<<semanticIndex))
+					if (semanticsMask.test(semanticIndex))
 					{
 						const auto & indicesPerSet = shapeIndicesTable[semanticIndex];
 
@@ -134,7 +130,7 @@ MeshRenderables::MeshRenderables(
 	}
 
 	// Now subtract the blend-shape-base mesh from the blend-shape-targets,
-	// and delete the base-mesh
+	// and delete the base-mesh of each blend-shape-targets 
 	const auto& meshOffsets = shapeCollection.offsets();
 	if (meshOffsets.baseShapeOffset > 0)
 	{

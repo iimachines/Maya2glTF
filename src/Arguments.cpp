@@ -36,6 +36,7 @@ namespace flag
 	const auto debugNormalVectors = "dnv";
 	const auto debugVectorLength = "dvl";
 
+	const auto meshPrimitiveAttributes = "mpa";
 }
 
 inline const char* getArgTypeName(const MSyntax::MArgType argType)
@@ -101,6 +102,8 @@ SyntaxFactory::SyntaxFactory()
 
 	registerFlag(ss, flag::initialValuesTime, "initialValuesTime", kTime);
 
+	registerFlag(ss, flag::meshPrimitiveAttributes, "meshPrimitiveAttributes", kString);
+	
 	m_usage = ss.str();
 }
 
@@ -248,9 +251,6 @@ public:
 		return out ? std::make_unique<IndentableStream>(*out) : nullptr;
 	}
 
-private:
-	MArgDatabase adb;
-
 	static void throwOnFailure(MStatus status, const char* message)
 	{
 		if (status.error())
@@ -289,6 +289,9 @@ private:
 		throw MayaException(MStatus::kInvalidParameter,
 			formatted("%s -%s (%s)\nUsage:\n%s", message, shortArgName, longArgName, usageStr));
 	}
+
+	private:
+	MArgDatabase adb;
 };
 
 Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
@@ -354,6 +357,28 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 
 	adb.optional(flag::redrawViewport, redrawViewport);
 
+	// Parse mesh primitive attributes
+	MString attrs;
+	if (adb.optional(flag::meshPrimitiveAttributes, attrs))
+	{
+		MStringArray parts;
+		status = attrs.split('|', parts);
+		ArgChecker::throwOnArgument(status, flag::meshPrimitiveAttributes);
+		for (auto i = 0U; i < parts.length(); ++i)
+		{
+			const auto kind = Semantic::parse(parts[i].asChar());
+			meshPrimitiveAttributes[kind] = true;
+		}
+	}
+	else
+	{
+		for (auto kind: Semantic::kinds())
+		{
+			meshPrimitiveAttributes[kind] = true;
+		}
+	}
+
+	// Parse animation clips
 	const auto clipCount = adb.flagUsageCount(flag::animationClipNames);
 	animationClips.reserve(clipCount);
 

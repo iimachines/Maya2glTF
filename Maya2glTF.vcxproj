@@ -397,6 +397,7 @@ if errorlevel 1 (exit /b 100)
     <ClCompile Include="src\MeshBlendShapes.cpp" />
     <ClCompile Include="src\MeshShape.cpp" />
     <ClCompile Include="src\MeshRenderables.cpp" />
+    <ClCompile Include="src\sceneTypes.cpp" />
     <ClCompile Include="src\SignalHandlers.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\dump.cpp" />

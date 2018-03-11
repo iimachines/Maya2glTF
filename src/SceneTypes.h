@@ -54,6 +54,9 @@ namespace Semantic
 		COUNT
 	};
 
+	typedef std::array<Kind, COUNT> SemanticKinds;
+	const SemanticKinds& kinds();
+
 	inline Kind from(int s)
 	{
 		assert(s >= 0 && s < COUNT);
@@ -85,6 +88,16 @@ namespace Semantic
 		case TANGENT:	return "TANGENT";
 		default: assert(false); return "UNKNOWN";
 		}
+	}
+
+	inline Kind parse(const std::string& s)
+	{
+		for (auto kind: kinds())
+		{
+			if (s == name(kind))
+				return kind;
+		}
+		return INVALID;
 	}
 
 	template<typename T>
