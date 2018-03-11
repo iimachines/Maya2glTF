@@ -7,12 +7,14 @@
 class MeshShape
 {
 public:
-	MeshShape(const MFnMesh& fnMesh, const Arguments& args, int shapeIndex);
+	MeshShape(const MFnMesh& fnMesh, const Arguments& args, ShapeIndex shapeIndex, const MPlug& weightPlug);
 	virtual ~MeshShape() = default;
 
 	void dump(class IndentableStream& out, const std::string& name) const;
 
-	const int shapeIndex;
+	const ShapeIndex shapeIndex; 
+	const MPlug weightPlug; // isNull of main shape
+
 	const MDagPath& dagPath() const { return m_dagPath; }
 	const MeshSemantics& semantics() const { return *m_semantics; }
 	const MeshVertices& vertices() const { return *m_vertices; }
@@ -27,4 +29,9 @@ private:
 
 	DISALLOW_COPY_MOVE_ASSIGN(MeshShape);
 };
+
+// main-shape followed by blend-shapes.
+// TODO: Use a map?
+typedef std::vector<std::unique_ptr<MeshShape>> MeshShapes;
+
 

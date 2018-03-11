@@ -1,9 +1,7 @@
 #pragma once
 
 #include "MeshShape.h"
-#include "MeshBlendShapes.h"
 #include "MeshRenderables.h"
-#include "MeshShapeCollection.h"
 
 class Arguments;
 
@@ -11,24 +9,28 @@ class Mesh
 {
 public:
 	Mesh(const MDagPath& dagPath, const Arguments& args);
-	virtual ~Mesh();
+	~Mesh();
 
-	void dump(IndentableStream& cout, const std::string& name) const;
+	void dump(IndentableStream& out, const std::string& name) const;
 
-	const MeshShape* shape() const { return m_shape.get(); }
+	bool isEmpty() const { return m_shapes.empty(); }
 
-	/** null if the mesh has no blend-shapes */
-	const MeshBlendShapes* blendShapes() const { return m_blendShapes.get(); }
+	const MeshShape& shape() const { return *m_shapes.at(0); }
+
+	const MeshShapes& shapes() const { return m_shapes; }
 
 	const MeshRenderables& renderables() const { return *m_renderables; }
 
 private:
-	static MObject tryExtractBlendController(const MFnMesh& fnMesh);
+	DISALLOW_COPY_MOVE_ASSIGN(Mesh);
 
-private:
-	std::unique_ptr<MeshShape> m_shape;
-	std::unique_ptr<MeshBlendShapes> m_blendShapes;
-	std::unique_ptr<MeshShapeCollection> m_shapeCollection;
+	MeshShapes m_shapes;
 	std::unique_ptr<MeshRenderables> m_renderables;
+
+	MObject m_tempOutputMesh;
+
+	MObject getOrCreateOutputShape(MPlug& outputGeometryPlug, MObject& createdMesh) const;
+
+	static MObject tryExtractBlendController(const MFnMesh& fnMesh);
 };
 

@@ -1,8 +1,7 @@
 #include "externals.h"
 #include "MeshIndices.h"
 #include "MeshVertices.h"
-#include "MeshShape.h"
-#include "MeshShapeCollection.h"
+#include "Mesh.h"
 #include "MeshRenderables.h"
 #include "IndentableStream.h"
 #include "dump.h"
@@ -13,16 +12,15 @@ using namespace coveo::linq;
 
 MeshRenderables::MeshRenderables(
 	const InstanceIndex instanceIndex,
-	const MeshShapeCollection& shapeCollection,
+	const MeshShapes& meshShapes,
 	const Arguments& args)
 	: instanceIndex(instanceIndex)
-	, meshShapesIndices(shapeCollection)
 {
 	CONSTRUCTOR_BEGIN();
 
 	MStatus status;
 
-	const auto& mainIndices = shapeCollection.mainShape.indices();
+	const auto& mainIndices = meshShapes.at(0)->indices();
 
 	auto& shadingPerInstance = mainIndices.shadingPerInstance();
 
@@ -32,12 +30,23 @@ MeshRenderables::MeshRenderables(
 	const auto vertexCount = mainIndices.maxVertexCount();
 	const auto perPrimitiveVertexCount = mainIndices.perPrimitiveVertexCount();
 
-	auto shapes = shapeCollection.shapes();
-
 	auto primitiveVertexIndex = 0;
 
-	const auto maxVertexElementCount = shapeCollection.maxVertexElementCount();
-	const auto maxVertexComponentCount = maxVertexElementCount * 4; // TODO: Compute this
+	size_t maxVertexElementCount = 0;
+	size_t maxVertexComponentCount = 0;
+
+	for (auto& shape : meshShapes)
+	{
+		auto& indicesTable = shape->indices().table();
+
+		for (auto semanticIndex=0U; semanticIndex<indicesTable.size(); ++semanticIndex)
+		{
+			const auto elementCount = indicesTable.at(semanticIndex).size();
+			maxVertexElementCount += elementCount;
+			maxVertexComponentCount += elementCount * dimension(Semantic::from(semanticIndex), shape->shapeIndex);
+		}
+	}
+
 	FloatVector vertexIndexKey;
 	VertexLayout vertexLayout;
 	vertexLayout.reserve(maxVertexElementCount);
@@ -57,10 +66,13 @@ MeshRenderables::MeshRenderables(
 			vertexLayout.clear();
 			vertexIndexKey.clear();
 
-			for (auto shapeIndex = 0; shapeIndex < shapes.size(); ++shapeIndex)
+			for (auto shapeIndex = 0U; shapeIndex < meshShapes.size(); ++shapeIndex)
 			{
-				const auto& shapeIndicesTable = shapes.at(shapeIndex)->indices().table();
-				for (auto semanticIndex = 0; semanticIndex < shapeIndicesTable.size(); ++semanticIndex)
+				auto& shape = meshShapes.at(shapeIndex);
+				const auto& shapeIndicesTable = shape->indices().table();
+				const auto& shapeVerticesTable = shape->vertices().table();
+
+				for (auto semanticIndex = 0U; semanticIndex < shapeIndicesTable.size(); ++semanticIndex)
 				{
 					if (semanticsMask.test(semanticIndex))
 					{
@@ -76,12 +88,12 @@ MeshRenderables::MeshRenderables(
 							if (isUsed)
 							{
 								auto semantic = Semantic::from(semanticIndex);
-								vertexLayout.emplace_back(shapeIndex, semantic, setIndex);
+								vertexLayout.emplace_back(ShapeIndex::shape(shapeIndex), semantic, setIndex);
 
-								const auto& elementIndices = shapeCollection.indicesAt(shapeIndex, semantic, setIndex);
+								const auto& elementIndices = shapeIndicesTable.at(semantic).at(setIndex);
 								const auto vertexIndex = elementIndices.at(primitiveVertexIndex);
-								const auto& vertexElements = shapeCollection.vertexElementsAt(shapeIndex, semantic, setIndex);
-								const auto& source = componentsAt(vertexElements, vertexIndex, semantic, shapeIndex);
+								const auto& vertexElements = shapeVerticesTable.at(semantic).at(setIndex);
+								const auto& source = componentsAt(vertexElements, vertexIndex, semantic, shape->shapeIndex);
 								vertexIndexKey.insert(vertexIndexKey.end(), source.begin(), source.end());
 							}
 						}
@@ -107,9 +119,11 @@ MeshRenderables::MeshRenderables(
 				// Build the vertex.
 				for (auto&& slot : vertexLayout)
 				{
-					const auto& elementIndices = shapeCollection.indicesAt(slot.shapeIndex, slot.semantic, slot.setIndex);
+					auto& shape = meshShapes.at(slot.shapeIndex.arrayIndex());
+
+					const auto& elementIndices = shape->indices().indicesAt(slot.semantic, slot.setIndex);
 					const auto vertexIndex = elementIndices.at(primitiveVertexIndex);
-					const auto& vertexElements = shapeCollection.vertexElementsAt(slot.shapeIndex, slot.semantic, slot.setIndex);
+					const auto& vertexElements = shape->vertices().vertexElementComponentsAt(slot.semantic, slot.setIndex);
 					const auto& source = componentsAt(vertexElements, vertexIndex, slot.semantic, slot.shapeIndex);
 					auto& target = componentsMap[slot];
 					if (target.empty())
@@ -129,41 +143,30 @@ MeshRenderables::MeshRenderables(
 		}
 	}
 
-	// Now subtract the blend-shape-base mesh from the blend-shape-targets,
-	// and delete the base-mesh of each blend-shape-targets 
-	const auto& meshOffsets = shapeCollection.offsets();
-	if (meshOffsets.baseShapeOffset > 0)
+	// Now compute the blend-shape vector-deltas by subtracting the blend-shape-base mesh from the blend-shape-targets
+	if (meshShapes.size() > 1)
 	{
 		for (auto&& pair : m_table)
 		{
 			VertexBuffer& buffer = pair.second;
-			//VertexLayout& layout = buffer.layout;
 			VertexComponentsMap& compMap = buffer.componentsMap;
 
-			auto baseShapeSlots = from(compMap)
-				| select([](const auto& pair) { return pair.first; })
-				| where([meshOffsets](const VertexSlot& slot) {return slot.shapeIndex == meshOffsets.baseShapeOffset; })
-				| to_vector();
-
-			for (const VertexSlot& baseSlot : baseShapeSlots)
+			for (auto&& slotCompPair: compMap)
 			{
-				auto& baseComps = compMap.at(baseSlot);
-				auto count = baseComps.size();
+				auto& targetSlot = slotCompPair.first;
 
-				for (int blendShapeIndex: from_int_range(meshOffsets.blendShapeOffset, meshOffsets.blendShapeCount))
+				if (targetSlot.shapeIndex.isBlendShapeIndex())
 				{
-					VertexSlot shapeSlot = baseSlot;
-					shapeSlot.shapeIndex = blendShapeIndex;
-					auto& shapeComps = compMap.at(shapeSlot);
-
-					for (auto index=0; index<count; ++index)
+					const VertexSlot mainSlot(ShapeIndex::main(), targetSlot.semantic, targetSlot.setIndex);
+					const FloatVector& mainComponents = compMap.at(mainSlot);
+					FloatVector& targetComponents = slotCompPair.second;
+					const auto componentCount = mainComponents.size();
+					assert(componentCount == targetComponents.size());
+					for (size_t i=0; i<componentCount; ++i)
 					{
-						shapeComps[index] -= baseComps[index];
+						targetComponents[i] -= mainComponents[i];
 					}
 				}
-
-				// Remove base components.
-				compMap.erase(baseSlot);
 			}
 		}
 	}

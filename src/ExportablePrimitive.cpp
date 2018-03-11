@@ -85,32 +85,18 @@ ExportablePrimitive::ExportablePrimitive(
 	for (auto && group: componentsPerShapeIndex)
 	{
 		const auto shapeIndex = group.first;
-		if (shapeIndex == 0)
-		{
-			for (auto && pair : group.second) 
-			{
-				auto& slot = pair.first;
-				if (mainShapeSemanticSet.test(slot.semantic))
-				{
-					auto accessor = contiguousElementAccessor(slot.semantic, slot.shapeIndex, span(pair.second));
-					glPrimitive.attributes[glTFattributeName(slot.semantic, slot.setIndex)] = accessor.get();
-					glAccessors.emplace_back(std::move(accessor));
-				}
-			}
-		}
-		else
-		{
-			auto& glTarget = glTargetTable.at(shapeIndex - 1);
 
-			for (auto && pair : group.second)
+		auto& glAttributes = shapeIndex.isMainShapeIndex() ? glPrimitive.attributes : glTargetTable.at(shapeIndex.targetIndex())->attributes;
+		auto& semanticSet = shapeIndex.isMainShapeIndex() ? mainShapeSemanticSet : blendShapeSemanticSet;
+
+		for (auto && pair : group.second) 
+		{
+			auto& slot = pair.first;
+			if (semanticSet.test(slot.semantic))
 			{
-				auto& slot = pair.first;
-				if (blendShapeSemanticSet.test(slot.semantic))
-				{
-					auto accessor = contiguousElementAccessor(slot.semantic, slot.shapeIndex, span(pair.second));
-					glTarget->attributes[glTFattributeName(slot.semantic, slot.setIndex)] = accessor.get();
-					glAccessors.emplace_back(std::move(accessor));
-				}
+				auto accessor = contiguousElementAccessor(slot.semantic, slot.shapeIndex, span(pair.second));
+				glAttributes[glTFattributeName(slot.semantic, slot.setIndex)] = accessor.get();
+				glAccessors.emplace_back(std::move(accessor));
 			}
 		}
 	}
@@ -122,14 +108,14 @@ ExportablePrimitive::ExportablePrimitive(
 	const VertexBuffer& vertexBuffer, 
 	ExportableResources& resources,
 	const Semantic::Kind debugSemantic,
-	const int debugShapeIndex,
+	const ShapeIndex& debugShapeIndex,
 	const double debugLineLength,
 	const Color debugLineColor)
 {
 	glPrimitive.mode = GLTF::Primitive::LINES;
 
-	const auto positionSlot = VertexSlot(0, Semantic::POSITION, 0);
-	const auto vectorSlot = VertexSlot(0, debugSemantic, 0);
+	const auto positionSlot = VertexSlot(ShapeIndex::main(), Semantic::POSITION, 0);
+	const auto vectorSlot = VertexSlot(ShapeIndex::main(), debugSemantic, 0);
 	const auto positions = reinterpret_span<Position>(vertexBuffer.componentsMap.at(positionSlot));
 	const auto vectorComponents = vertexBuffer.componentsMap.at(vectorSlot);
 	const auto vectorDimension = dimension(debugSemantic, debugShapeIndex);
@@ -165,11 +151,11 @@ ExportablePrimitive::ExportablePrimitive(
 	glIndices = contiguousAccessor("indices", GLTF::Accessor::Type::SCALAR, WebGL::UNSIGNED_SHORT, WebGL::ELEMENT_ARRAY_BUFFER, span(lineIndices), 1);
 	glPrimitive.indices = glIndices.get();
 
-	auto pointAccessor = contiguousElementAccessor(Semantic::Kind::POSITION, 0, span(linePoints));
+	auto pointAccessor = contiguousElementAccessor(Semantic::Kind::POSITION, ShapeIndex::main(), span(linePoints));
 	glPrimitive.attributes[glTFattributeName(Semantic::Kind::POSITION, 0)] = pointAccessor.get();
 	glAccessors.emplace_back(move(pointAccessor));
 
-	auto colorAccessor = contiguousElementAccessor(Semantic::Kind::COLOR, 0, span(lineColors));
+	auto colorAccessor = contiguousElementAccessor(Semantic::Kind::COLOR, ShapeIndex::main(), span(lineColors));
 	glPrimitive.attributes[glTFattributeName(Semantic::Kind::COLOR, 0)] = colorAccessor.get();
 	glAccessors.emplace_back(move(colorAccessor));
 }

@@ -19,7 +19,7 @@ public:
 		const VertexBuffer& vertexBuffer, 
 		ExportableResources& resources,
 		Semantic::Kind debugSemantic,
-		int debugShapeIndex,
+		const ShapeIndex& debugShapeIndex,
 		double debugLineLength,
 		Color debugLineColor);
 	

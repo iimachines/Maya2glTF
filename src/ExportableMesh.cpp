@@ -13,20 +13,20 @@ ExportableMesh::ExportableMesh(const MDagPath& shapeDagPath, ExportableResources
 
 	handleNameAssignment(resources, glMesh);
 
-	Mesh mayaMesh(shapeDagPath, resources.arguments());
+	auto mayaMesh = std::make_unique<Mesh>(shapeDagPath, resources.arguments());
 
 	const Arguments& args = resources.arguments();
 
 	if (args.dumpMaya)
 	{
-		mayaMesh.dump(*args.dumpMaya, shapeDagPath.fullPathName().asChar());
+		mayaMesh->dump(*args.dumpMaya, shapeDagPath.fullPathName().asChar());
 	}
 
-	const MeshShape* mainShape = mayaMesh.shape();
-	if (mainShape)
+	if (!mayaMesh->isEmpty())
 	{
-		const auto& renderables = mayaMesh.renderables();
-		const auto& shadingMap = mainShape->indices().shadingPerInstance();
+		auto& mainShape = mayaMesh->shape();
+		const auto& renderables = mayaMesh->renderables();
+		const auto& shadingMap = mainShape.indices().shadingPerInstance();
 		const auto& shading = shadingMap.at(renderables.instanceIndex);
 		const auto shaderCount = static_cast<int>(shading.shaderGroups.length());
 
@@ -71,7 +71,7 @@ ExportableMesh::ExportableMesh(const MDagPath& shapeDagPath, ExportableResources
 				if (args.debugTangentVectors)
 				{
 					auto debugPrimitive = std::make_unique<ExportablePrimitive>(
-						vertexBuffer, resources, Semantic::Kind::TANGENT, 0, args.debugVectorLength, Color({ 1,0,0,1 }));
+						vertexBuffer, resources, Semantic::Kind::TANGENT, ShapeIndex::main(), args.debugVectorLength, Color({ 1,0,0,1 }));
 					glMesh.primitives.push_back(&debugPrimitive->glPrimitive);
 					m_primitives.emplace_back(move(debugPrimitive));
 				}
@@ -79,7 +79,7 @@ ExportableMesh::ExportableMesh(const MDagPath& shapeDagPath, ExportableResources
 				if (args.debugNormalVectors)
 				{
 					auto debugPrimitive = std::make_unique<ExportablePrimitive>(
-						vertexBuffer, resources, Semantic::Kind::NORMAL, 0, args.debugVectorLength, Color({ 1,1,0,1 }));
+						vertexBuffer, resources, Semantic::Kind::NORMAL, ShapeIndex::main(), args.debugVectorLength, Color({ 1,1,0,1 }));
 					glMesh.primitives.push_back(&debugPrimitive->glPrimitive);
 					m_primitives.emplace_back(move(debugPrimitive));
 				}

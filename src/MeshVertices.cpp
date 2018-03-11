@@ -48,7 +48,7 @@ struct MikkTSpaceVectors
 struct MikkTSpaceContext : SMikkTSpaceContext
 {
 	const size_t triangleCount;
-	const bool shapeIndex;
+	const ShapeIndex shapeIndex;
 	MikkTSpaceIndices indices;
 	MikkTSpaceVectors vectors;
 	SMikkTSpaceInterface interface;
@@ -61,7 +61,7 @@ struct MikkTSpaceContext : SMikkTSpaceContext
 		const MeshIndices& meshIndices,
 		VertexElementsPerSetIndexTable& vertexTable,
 		const int setIndex,
-		const bool shapeIndex)
+		const ShapeIndex& shapeIndex)
 		: SMikkTSpaceContext{}
 		, triangleCount(meshIndices.primitiveCount())
 		, shapeIndex(shapeIndex)
@@ -146,25 +146,30 @@ struct MikkTSpaceContext : SMikkTSpaceContext
 			context->invalidTriangleIndices.push_back(iFace);
 		}
 
-		if (context->shapeIndex == 0)
+		if (context->shapeIndex.isMainShapeIndex())
 		{
 			float *p = &context->vectors.tangentComponents[index * array_size<MainShapeTangent>::size];
-			*p++ = tx;
-			*p++ = ty;
-			*p++ = tz;
-			*p = fSign;
+			p[0] = tx;
+			p[1] = ty;
+			p[2] = tz;
+			p[3] = fSign;
 		}
 		else
 		{
 			float *p = &context->vectors.tangentComponents[index * array_size<BlendShapeTangent>::size];
-			*p++ = tx;
-			*p++ = ty;
-			*p++ = tz;
+			p[0] = tx;
+			p[1] = ty;
+			p[2] = tz;
 		}
 	}
 };
 
-MeshVertices::MeshVertices(const MeshIndices& meshIndices, const MFnMesh& mesh, const int shapeIndex, const Arguments& args, MSpace::Space space)
+MeshVertices::MeshVertices(
+	const MeshIndices& meshIndices, 
+	const MFnMesh& mesh, 
+	ShapeIndex shapeIndex, 
+	const Arguments& args, 
+	MSpace::Space space)
 	:shapeIndex(shapeIndex)
 {
 	CONSTRUCTOR_BEGIN();
@@ -310,7 +315,8 @@ MeshVertices::MeshVertices(const MeshIndices& meshIndices, const MFnMesh& mesh, 
 				tangentSet.push_back(t.x);
 				tangentSet.push_back(t.y);
 				tangentSet.push_back(t.z);
-				if (shapeIndex == 0)
+
+				if (shapeIndex.isMainShapeIndex())
 				{
 					tangentSet.push_back(rht);
 				}

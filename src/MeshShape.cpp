@@ -4,10 +4,12 @@
 #include "Arguments.h"
 #include "MayaException.h"
 
-MeshShape::MeshShape(const MFnMesh& fnMesh, const Arguments& args, const int shapeIndex) : shapeIndex(shapeIndex)
+MeshShape::MeshShape(const MFnMesh& fnMesh, const Arguments& args, ShapeIndex shapeIndex, const MPlug& weightPlug) 
+: shapeIndex(shapeIndex)
+, weightPlug(weightPlug)
 {
 	CONSTRUCTOR_BEGIN();
-	m_semantics = std::make_unique<MeshSemantics>(fnMesh, shapeIndex);
+	m_semantics = std::make_unique<MeshSemantics>(fnMesh);
 	m_indices = std::make_unique<MeshIndices>(m_semantics.get(), fnMesh);
 	m_vertices = std::make_unique<MeshVertices>(*m_indices, fnMesh, shapeIndex, args);
 	CONSTRUCTOR_END();

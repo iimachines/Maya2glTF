@@ -71,11 +71,11 @@ static void dump_index_table(std::ostream& out, const std::string& name, const s
 }
 
 template<typename T>
-static void dump_vertex_table(std::ostream& out, const std::string& name, const std::array<T, Semantic::COUNT>& table, const int shapeIndex, const size_t precision = 3)
+static void dump_vertex_table(std::ostream& out, const std::string& name, const std::array<T, Semantic::COUNT>& table, const ShapeIndex& shapeIndex, const size_t precision = 3)
 {
 	out << quoted(name) << ": {" << endl << indent;
 
-	out << "\"shapeIndex\": " << shapeIndex << ", " << endl;
+	out << "\"blendShapeIndex\": " << shapeIndex.arrayIndex() << ", " << endl;
 
 	JsonSeparator sep(",\n");
 

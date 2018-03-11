@@ -56,7 +56,7 @@ public:
 	PrimitiveKind primitiveKind() const { return TRIANGLE_LIST; }
 	int perPrimitiveVertexCount() const { return 3; }
 	int primitiveCount() const { return m_TriangleCount; }
-	int maxVertexCount() const { return perPrimitiveVertexCount() * primitiveCount(); }
+	size_t maxVertexCount() const { return perPrimitiveVertexCount() * primitiveCount(); }
 
 	const IndexVector& indicesAt(const size_t semanticIndex, const size_t setIndex) const
 	{

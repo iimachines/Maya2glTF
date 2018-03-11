@@ -29,7 +29,7 @@ typedef std::array<VertexComponentSetDescriptionPerSetIndex, Semantic::COUNT> Ve
 class MeshSemantics
 {
 public:
-	MeshSemantics(const MFnMesh& mesh, int shapeIndex);
+	MeshSemantics(const MFnMesh& mesh);
 	virtual ~MeshSemantics();
 
 	const VertexComponentSetDescriptionPerSetIndexTable& table() const { return m_table; }

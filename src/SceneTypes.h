@@ -1,5 +1,6 @@
 #pragma once
 #include "basicTypes.h"
+#include "ShapeIndex.h"
 
 // <0 means an invalid index
 typedef __int32 Index;
@@ -64,7 +65,7 @@ namespace Semantic
 	}
 
 	// Get the number of float components per semantic 
-	inline int dimension(const Kind s, const int shapeIndex)
+	inline int dimension(const Kind s, const ShapeIndex& shapeIndex)
 	{
 		switch (s)
 		{
@@ -72,7 +73,7 @@ namespace Semantic
 		case NORMAL:	return array_size<Normal>::size;
 		case COLOR:		return array_size<Color>::size;
 		case TEXCOORD:	return array_size<TexCoord>::size;
-		case TANGENT:	return shapeIndex > 0 ? array_size<BlendShapeTangent>::size : array_size<MainShapeTangent>::size;
+		case TANGENT:	return shapeIndex.isBlendShapeIndex() ? array_size<BlendShapeTangent>::size : array_size<MainShapeTangent>::size;
 		default: assert(false); return 0;
 		}
 	}
@@ -113,3 +114,4 @@ namespace Semantic
 		return count;
 	}
 }
+

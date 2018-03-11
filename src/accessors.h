@@ -51,7 +51,7 @@ std::unique_ptr<GLTF::Accessor> contiguousChannelAccessor(
 template<typename T>
 std::unique_ptr<GLTF::Accessor> contiguousElementAccessor(
 	const Semantic::Kind semantic,
-	const int shapeIndex,
+	const ShapeIndex& shapeIndex,
 	const gsl::span<T>& data)
 {
 	GLTF::Accessor::Type type;

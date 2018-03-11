@@ -3,12 +3,10 @@
 #include "sceneTypes.h"
 #include "hashers.h"
 #include "dump.h"
+#include "MeshShape.h"
 
-class MeshShape;
-class MeshBlendShapes;
 class Arguments;
 
-typedef int ShapeIndex;
 typedef int VertexIndex;
 
 // TODO: We currently do not support more than 64 slots per vertex.
@@ -83,13 +81,13 @@ struct VertexSlot
 	SetIndex setIndex;
 
 	VertexSlot()
-		: shapeIndex(-1)
+		: shapeIndex(ShapeIndex::invalid())
 		, semantic(Semantic::Kind::INVALID)
 		, setIndex(-1)
 	{
 	}
 
-	VertexSlot(const ShapeIndex shapeIndex, const Semantic::Kind semantic, const SetIndex setIndex)
+	VertexSlot(const ShapeIndex& shapeIndex, const Semantic::Kind semantic, const SetIndex setIndex)
 		: shapeIndex(shapeIndex)
 		, semantic(semantic)
 		, setIndex(setIndex)
@@ -143,7 +141,7 @@ struct VertexSlot
 	friend std::size_t hash_value(const VertexSlot& obj)
 	{
 		std::size_t seed = 0x7732D720;
-		seed ^= (seed << 6) + (seed >> 2) + 0x6654736D + static_cast<std::size_t>(obj.shapeIndex);
+		seed ^= (seed << 6) + (seed >> 2) + 0x6654736D + hash_value(obj.shapeIndex);
 		seed ^= (seed << 6) + (seed >> 2) + 0x1BF620AC + static_cast<std::size_t>(obj.semantic);
 		seed ^= (seed << 6) + (seed >> 2) + 0x54A5F37C + static_cast<std::size_t>(obj.setIndex);
 		return seed;
@@ -188,20 +186,17 @@ struct VertexBuffer
 
 typedef std::unordered_map<VertexSignature, VertexBuffer, VertexHashers> VertexBufferTable;
 
-class MeshShapeCollection;
-
 class MeshRenderables
 {
 public:
 	MeshRenderables(
 		InstanceIndex instanceIndex,
-		const MeshShapeCollection& shapeCollection,
+		const MeshShapes& meshShapes,
 		const Arguments& args);
 
 	~MeshRenderables() = default;
 
 	const InstanceIndex instanceIndex;
-	const MeshShapeCollection& meshShapesIndices;
 
 	const VertexBufferTable& table() const { return m_table; }
 

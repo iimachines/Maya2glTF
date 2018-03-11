@@ -10,7 +10,7 @@ typedef gsl::span<const float> VertexComponents;
 typedef std::vector<VertexComponents> VertexElementsPerSetIndex;
 typedef std::array<VertexElementsPerSetIndex, Semantic::COUNT> VertexElementsPerSetIndexTable;
 
-inline VertexComponents componentsAt(const VertexComponents& elements, const size_t vertexIndex, const Semantic::Kind semantic, const int shapeIndex)
+inline VertexComponents componentsAt(const VertexComponents& elements, const size_t vertexIndex, const Semantic::Kind semantic, const ShapeIndex& shapeIndex)
 {
 	const auto count = dimension(semantic, shapeIndex);
 	return elements.subspan(vertexIndex*count, count);
@@ -22,14 +22,14 @@ class MeshIndices;
 class MeshVertices
 {
 public:
-	MeshVertices(const MeshIndices& meshIndices, const MFnMesh& mesh, int shapeIndex, const Arguments& args, MSpace::Space space = MSpace::kTransform);
+	MeshVertices(const MeshIndices& meshIndices, const MFnMesh& mesh, ShapeIndex shapeIndex, const Arguments& args, MSpace::Space space = MSpace::kTransform);
 	virtual ~MeshVertices() = default;
 
-	const int shapeIndex;
+	const ShapeIndex shapeIndex; 
 
 	const VertexElementsPerSetIndexTable& table() const { return m_table; }
 
-	void dump(class IndentableStream& cout, const std::string& name) const;
+	void dump(class IndentableStream& out, const std::string& name) const;
 	
 	const VertexComponents& vertexElementComponentsAt(const size_t semanticIndex, const size_t setIndex) const
 	{
