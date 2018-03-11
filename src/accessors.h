@@ -3,6 +3,12 @@
 #include "spans.h"
 #include "sceneTypes.h"
 
+inline GLTF::Accessor::Type getAccessorType(const int dimension)
+{
+	// HACK: We assume SCALAR == 0 here...
+	const auto type = static_cast<GLTF::Accessor::Type>(dimension - 1);
+	return type;
+}
 
 template<typename T>
 std::unique_ptr<GLTF::Accessor> contiguousAccessor(
@@ -37,11 +43,8 @@ std::unique_ptr<GLTF::Accessor> contiguousChannelAccessor(
 	assert(sizeof(T) % sizeof(float) == 0);
 	assert(dimension >= 1 && dimension <= 4);
 
-	// HACK: We assume SCALAR == 0 here...
-	const auto type = static_cast<GLTF::Accessor::Type>(dimension-1);
-
 	return contiguousAccessor(name,
-		type,
+		getAccessorType(dimension),
 		GLTF::Constants::WebGL::FLOAT,
 		target,
 		data,
@@ -54,33 +57,8 @@ std::unique_ptr<GLTF::Accessor> contiguousElementAccessor(
 	const ShapeIndex& shapeIndex,
 	const gsl::span<T>& data)
 {
-	GLTF::Accessor::Type type;
-
-	switch (semantic)
-	{
-	case Semantic::POSITION:
-		type = GLTF::Accessor::Type::VEC3;
-		break;
-	case Semantic::NORMAL:
-		type = GLTF::Accessor::Type::VEC3;
-		break;
-	case Semantic::TEXCOORD:
-		type = GLTF::Accessor::Type::VEC2;
-		break;
-	case Semantic::TANGENT:
-		// TODO: For exporting morph targets, use VEC3
-		type = GLTF::Accessor::Type::VEC4;
-		break;
-	case Semantic::COLOR:
-		type = GLTF::Accessor::Type::VEC4;
-		break;
-	default:
-		assert(false);
-		return nullptr;
-	}
-
 	return contiguousAccessor(name(semantic),
-		type,
+		getAccessorType(dimension(semantic, shapeIndex)),
 		GLTF::Constants::WebGL::FLOAT,
 		GLTF::Constants::WebGL::ARRAY_BUFFER,
 		reinterpret_span<float>(data),

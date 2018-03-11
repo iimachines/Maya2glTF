@@ -80,8 +80,6 @@ ExportablePrimitive::ExportablePrimitive(
 			1 << Semantic::TANGENT 
 		};
 
-	// Extract main shape vertices
-	// TODO: Derived blend shape deltas!
 	for (auto && group: componentsPerShapeIndex)
 	{
 		const auto shapeIndex = group.first;

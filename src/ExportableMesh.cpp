@@ -6,6 +6,7 @@
 #include "Arguments.h"
 #include "MayaException.h"
 
+
 ExportableMesh::ExportableMesh(const MDagPath& shapeDagPath, ExportableResources& resources)
 	: ExportableObject(shapeDagPath.node())
 {
@@ -85,6 +86,14 @@ ExportableMesh::ExportableMesh(const MDagPath& shapeDagPath, ExportableResources
 				}
 
 				++vertexBufferIndex;
+			}
+
+			for (auto&& shape: mayaMesh->shapes())
+			{
+				if (shape->shapeIndex.isBlendShapeIndex())
+				{
+					glMesh.weights.emplace_back(shape->initialWeight);
+				}
 			}
 		}
 	}

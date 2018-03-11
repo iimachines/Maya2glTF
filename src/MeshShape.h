@@ -14,6 +14,7 @@ public:
 
 	const ShapeIndex shapeIndex; 
 	const MPlug weightPlug; // isNull of main shape
+	const float initialWeight = 0; 
 
 	const MDagPath& dagPath() const { return m_dagPath; }
 	const MeshSemantics& semantics() const { return *m_semantics; }
