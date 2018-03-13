@@ -37,6 +37,9 @@ namespace flag
 	const auto debugVectorLength = "dvl";
 
 	const auto meshPrimitiveAttributes = "mpa";
+
+	const auto blendFinalMesh = "bfm";
+	const auto ignoreMeshDeformers = "imd";
 }
 
 inline const char* getArgTypeName(const MSyntax::MArgType argType)
@@ -103,6 +106,10 @@ SyntaxFactory::SyntaxFactory()
 	registerFlag(ss, flag::initialValuesTime, "initialValuesTime", kTime);
 
 	registerFlag(ss, flag::meshPrimitiveAttributes, "meshPrimitiveAttributes", kString);
+
+	registerFlag(ss, flag::blendFinalMesh, "blendFinalMesh", kNoArg);
+
+	registerFlag(ss, flag::ignoreMeshDeformers, "ignoreMeshDeformers", true, kString);
 	
 	m_usage = ss.str();
 }
@@ -219,7 +226,7 @@ public:
 		return true;
 	}
 
-	std::unique_ptr<IndentableStream> getOutputStream(const char* arg, const char *outputName, path outputFolder, std::ofstream& fileOutputStream) const
+	std::unique_ptr<IndentableStream> getOutputStream(const char* arg, const char *outputName, const path& outputFolder, std::ofstream& fileOutputStream) const
 	{
 		std::ostream* out = nullptr;
 
@@ -251,7 +258,7 @@ public:
 		return out ? std::make_unique<IndentableStream>(*out) : nullptr;
 	}
 
-	static void throwOnFailure(MStatus status, const char* message)
+	static void throwOnFailure(const MStatus& status, const char* message)
 	{
 		if (status.error())
 		{
@@ -269,7 +276,7 @@ public:
 			formatted("%s\nUsage:\n%s", message, usageStr));
 	}
 
-	static void throwOnArgument(MStatus status, const char* shortArgName)
+	static void throwOnArgument(const MStatus& status, const char* shortArgName)
 	{
 		if (status.error())
 		{
@@ -296,6 +303,8 @@ public:
 
 Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 {
+	// ReSharper disable CppExpressionWithoutSideEffects
+
 	MStatus status;
 	ArgChecker adb(syntax, args, status);
 
@@ -319,6 +328,7 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	forcePbrMaterials = adb.isFlagSet(flag::forcePbrMaterials);
 	force32bitIndices = adb.isFlagSet(flag::force32bitIndices);
 	assignObjectNames = adb.isFlagSet(flag::assignObjectNames);
+	blendFinalMesh = adb.isFlagSet(flag::blendFinalMesh);
 
 	adb.optional(flag::globalOpacityFactor, opacityFactor);
 
@@ -356,6 +366,15 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	adb.optional(flag::initialValuesTime, initialValuesTime);
 
 	adb.optional(flag::redrawViewport, redrawViewport);
+
+	// Parse mesh deformers to ignore
+	const auto deformerNameCount = adb.flagUsageCount(flag::ignoreMeshDeformers);
+	for (auto deformerNameIndex = 0; deformerNameIndex < deformerNameCount; ++deformerNameIndex)
+	{
+		MString deformerName;
+		adb.required(flag::ignoreMeshDeformers, deformerName, deformerNameIndex);
+		ignoreMeshDeformers.add(deformerName);
+	}
 
 	// Parse mesh primitive attributes
 	MString attrs;

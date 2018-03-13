@@ -31,6 +31,6 @@ private:
 
 	MObject getOrCreateOutputShape(MPlug& outputGeometryPlug, MObject& createdMesh) const;
 
-	static MObject tryExtractBlendController(const MFnMesh& fnMesh);
+	static MObject tryExtractBlendShapeDeformer(const MFnMesh& fnMesh, const MSelectionList& ignoredDeformers);
 };
 

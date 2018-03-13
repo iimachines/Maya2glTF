@@ -4,6 +4,7 @@
 #include "Arguments.h"
 #include "MayaUtils.h"
 #include "MeshBlendShapeWeights.h"
+#include "DagHelper.h"
 
 Mesh::Mesh(const MDagPath& dagPath, const Arguments& args)
 {
@@ -11,12 +12,12 @@ Mesh::Mesh(const MDagPath& dagPath, const Arguments& args)
 
 	MStatus status;
 
-	const MFnMesh fnMesh(dagPath, &status);
+	MFnMesh fnMesh(dagPath, &status);
 	THROW_ON_FAILURE(status);
 
-	MObject blendShapeController = tryExtractBlendController(fnMesh);
+	MObject blendShapeDeformer = tryExtractBlendShapeDeformer(fnMesh, args.ignoreMeshDeformers);
 
-	if (blendShapeController.isNull())
+	if (blendShapeDeformer.isNull())
 	{
 		// Single shape
 		m_shapes.emplace_back(std::make_unique<MeshShape>(fnMesh, args, ShapeIndex::main(), MPlug()));
@@ -24,34 +25,43 @@ Mesh::Mesh(const MDagPath& dagPath, const Arguments& args)
 	else
 	{
 		// Shape with morph targets.
-		MFnBlendShapeDeformer fnController(blendShapeController, &status);
+		MFnBlendShapeDeformer fnBlendShapeDeformer(blendShapeDeformer, &status);
 		THROW_ON_FAILURE(status);
 
-		const auto controllerName = fnController.name().asChar();
-		cout << prefix << "Processing blend shapes of " << controllerName << "..." << endl;
+		const auto deformerName = fnBlendShapeDeformer.name().asChar();
+		cout << prefix << "Processing blend shapes of " << deformerName << "..." << endl;
 
-		MPlug weightArrayPlug = fnController.findPlug("weight", &status);
+		const MPlug weightArrayPlug = fnBlendShapeDeformer.findPlug("weight", &status);
 		THROW_ON_FAILURE(status);
 
-		MPlug outputGeometryPlugs = fnController.findPlug("outputGeometry", &status);
-		THROW_ON_FAILURE(status);
+		std::unique_ptr<MFnMesh> fnDeformedMesh;
 
-		const auto outputGeometryPlugsDimension = outputGeometryPlugs.evaluateNumElements(&status);
-		THROW_ON_FAILURE(status);
+		if (args.blendFinalMesh)
+		{
+			fnDeformedMesh = std::make_unique<MFnMesh>(dagPath, &status);
+		}
+		else
+		{
+			MPlug outputGeometryPlugs = fnBlendShapeDeformer.findPlug("outputGeometry", &status);
+			THROW_ON_FAILURE(status);
 
-		if (outputGeometryPlugsDimension == 0)
-			THROW_ON_FAILURE_WITH(MStatus::kFailure, formatted("Output geometry of %s is not connected to anything!", controllerName));
+			const auto outputGeometryPlugsDimension = outputGeometryPlugs.evaluateNumElements(&status);
+			THROW_ON_FAILURE(status);
 
-		MPlug outputGeometryPlug = outputGeometryPlugs.elementByPhysicalIndex(0, &status);
-		THROW_ON_FAILURE(status);
+			if (outputGeometryPlugsDimension == 0)
+				THROW_ON_FAILURE_WITH(MStatus::kFailure, formatted("Output geometry of %s is not connected to anything!", deformerName));
 
-		MObject outputShape = getOrCreateOutputShape(outputGeometryPlug, m_tempOutputMesh);
+			MPlug outputGeometryPlug = outputGeometryPlugs.elementByPhysicalIndex(0, &status);
+			THROW_ON_FAILURE(status);
 
-		if (outputShape.isNull())
-			THROW_ON_FAILURE_WITH(MStatus::kFailure, formatted("Could not get output geometry of %s!", controllerName));
+			MObject outputShape = getOrCreateOutputShape(outputGeometryPlug, m_tempOutputMesh);
 
-		MFnMesh outputMesh(outputShape, &status);
-		THROW_ON_FAILURE(status);
+			if (outputShape.isNull())
+				THROW_ON_FAILURE_WITH(MStatus::kFailure, formatted("Could not get output geometry of %s!", deformerName));
+
+			fnDeformedMesh = std::make_unique<MFnMesh>(outputShape, &status);
+			THROW_ON_FAILURE(status);
+		}
 
 		// We use the MeshBlendShapeWeights helper class to manipulate the weights 
 		// in order to reconstruct the geometry of deleted blend shape targets.
@@ -63,7 +73,7 @@ Mesh::Mesh(const MDagPath& dagPath, const Arguments& args)
 		weightPlugs.clearWeightsExceptFor(-1);
 
 		// Reconstruct base mesh
-		m_shapes.emplace_back(std::make_unique<MeshShape>(outputMesh, args, ShapeIndex::main(), MPlug()));
+		m_shapes.emplace_back(std::make_unique<MeshShape>(*fnDeformedMesh, args, ShapeIndex::main(), MPlug()));
 
 		const auto numWeights = weightPlugs.numWeights();
 
@@ -71,7 +81,7 @@ Mesh::Mesh(const MDagPath& dagPath, const Arguments& args)
 		{
 			weightPlugs.clearWeightsExceptFor(targetIndex);
 			auto weightPlug = weightPlugs.getWeightPlug(targetIndex);
-			m_shapes.emplace_back(std::make_unique<MeshShape>(outputMesh, args, ShapeIndex::target(targetIndex), weightPlug));
+			m_shapes.emplace_back(std::make_unique<MeshShape>(*fnDeformedMesh, args, ShapeIndex::target(targetIndex), weightPlug));
 		}
 	}
 
@@ -93,20 +103,15 @@ Mesh::~Mesh()
 	}
 }
 
-MObject Mesh::tryExtractBlendController(const MFnMesh& fnMesh)
+MObject Mesh::tryExtractBlendShapeDeformer(const MFnMesh& fnMesh, const MSelectionList& ignoredDeformers)
 {
-	MObject blendController;
+	MObject deformer;
 
 	// Iterate upstream to find all the nodes that affect the mesh.
 	MStatus status;
 	MPlug plug = fnMesh.findPlug("inMesh", status);
 	THROW_ON_FAILURE(status);
 
-	// TODO: If a mesh has multiple blend-shape-controllers, 
-	// we should either merge these as one (cartesian products of weights),
-	// or the user should annotate what controller is the "active" one.
-	// Rigs often use a corrective blend-shape to make multiple versions of a similar character,
-	// in addition to animatable blend-shape controllers. The latter nees to be exporter, the former should be ignored.
 	// TODO: Also look into inverted blend shapes through skinning, pose space deformations, etc..
 	if (plug.isConnected())
 	{
@@ -126,28 +131,34 @@ MObject Mesh::tryExtractBlendController(const MFnMesh& fnMesh)
 			MObject thisNode = dgIt.thisNode();
 			if (thisNode.hasFn(MFn::kBlendShape))
 			{
-				MFnBlendShapeDeformer fnController(thisNode, &status);
+				MFnBlendShapeDeformer fnDeformer(thisNode, &status);
+
+				const auto thisName = MFnDependencyNode(thisNode).name();
 
 				if (status == MStatus::kSuccess)
 				{
-					if (blendController.isNull())
+					if (ignoredDeformers.hasItem(thisNode))
 					{
-						blendController = thisNode;
+						cout << prefix << "ignoring blend shape deformer " << thisName << endl;
+					}
+					else if (deformer.isNull())
+					{
+						deformer = thisNode;
 					}
 					else
 					{
-						cerr << prefix << "ignoring blend controller " << MFnDependencyNode(thisNode).name() << endl;
+						cerr << prefix << "only a single blend shape deformer is supported, skipping " << thisName << endl;
 					}
 				}
 				else
 				{
-					cerr << prefix << "node has " << MFnDependencyNode(thisNode).name() << endl;
+					cerr << prefix << "unable to extract blend deformer from " << thisName << ", reason: " << status.error() << endl;
 				}
 			}
 		}
 	}
 
-	return blendController;
+	return deformer;
 }
 
 void Mesh::dump(class IndentableStream& out, const std::string& name) const
