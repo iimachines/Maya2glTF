@@ -103,6 +103,7 @@ uniform textureCube u_DiffuseEnvTexture
 <
     string UIName = "Diffuse env map (LIN)";
     string ResourceType = "Cube";
+    string ResourceName = "../images/damaged_helmet_diffuse_env.dds";
     string UIGroup = "PBR IBL";
 
     int UIOrder = 2001;
@@ -117,6 +118,7 @@ uniform textureCube u_SpecularEnvTexture
 <
     string UIName = "Specular env map (LIN)";
     string ResourceType = "Cube";
+    string ResourceName = "../images/damaged_helmet_specular_env.dds";
     string UIGroup = "PBR IBL";
     int UIOrder = 2002;
 >;
@@ -130,6 +132,7 @@ uniform texture2D u_brdfTexture
 <
     string UIName = "BRDF LUT (sRGB)";
     string ResourceType = "2D";
+    string ResourceName = "../images/brdfLUT.png";
     string UIGroup = "PBR IBL";
     int UIOrder = 2003;
 >;

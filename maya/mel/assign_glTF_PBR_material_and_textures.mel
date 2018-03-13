@@ -1,0 +1,80 @@
+/*
+* Creates and assigns a new material to a polygon using a supplied glTF PBR glsl shader.
+*
+* param $objectName         The name of the polygon to assign the new material to, leave this empty to use the current selection.
+*
+* param $shaderPath         The path to the glTF PBR shader used by the new material.
+*
+* param $texturePatterns    The regex patterns used to map the texture paths to the glTF PBR shader texture attributes. The
+*                           shader texture attributes have the following order:
+*                               u_BaseColorTexture, u_MetallicTexture, u_RoughnessTexture, u_OcclusionTexture, u_NormalTexture,
+*                               u_EmissiveTexture, u_DiffuseEnvTexture, u_SpecularEnvTexture, u_brdfTexture
+*/
+global proc assign_glTF_PBR_material_and_textures(
+    string $objectName,
+    string $shaderPath,
+    string $texturePatterns[]
+)
+{
+    // get current selection if $objectName is not specified
+    if ($objectName == "")
+    {
+        string $ls[] = `ls -sl`;
+        if (size($ls) > 0)
+            $objectName = $ls[0];
+    }
+
+    if ($objectName == "")
+        error "No node to apply material to specified";
+
+    if (!`filetest -f $shaderPath`)
+        error "Invalid shader path, file not found";
+
+    string $attrNames[] = {
+        "u_BaseColorTexture",
+        "u_MetallicTexture",
+        "u_RoughnessTexture",
+        "u_OcclusionTexture",
+        "u_NormalTexture",
+        "u_EmissiveTexture",
+        "u_DiffuseEnvTexture",
+        "u_SpecularEnvTexture",
+        "u_brdfTexture"
+    };
+
+    if (size($texturePatterns) != size($attrNames))
+        error "Invalid amount of texture patterns";
+
+    loadPlugin "glslShader.mll";
+    source "createAndAssignShader.mel";
+
+    // create new glTF PBR GLSL shader
+    string $sh = `shadingNode -asShader GLSLShader`;
+    setAttr -type "string" ($sh+".shader") $shaderPath;
+    assignCreatedShader "GLSLShader" "" $sh $objectName;
+
+    // request texture paths
+    string $filePaths[] = `fileDialog2 -fm 4`;
+    if (size($filePaths) <= 0)
+        return;
+
+    // match texture paths to material texture attributes
+    for ($i = 0; $i < size($attrNames); ++$i)
+    {
+        string $texturePattern = $texturePatterns[$i];
+
+        for ($j = 0; $j < size($filePaths); ++$j)
+        {
+            string $filePath = $filePaths[$j];
+            string $filePathLower = `tolower $filePath`;
+
+            if (`match $texturePattern $filePathLower` != "")
+            {
+                string $shAttrName = ($sh+"."+$attrNames[$i]);
+                string $fileNode = `createRenderNodeCB -as2DTexture "" file ("defaultNavigation -force true -connectToExisting -source %node -destination "+$shAttrName+";")`;
+                setAttr -type "string" ($fileNode+".fileTextureName") $filePath;
+                break;
+            }
+        }
+    }
+}
