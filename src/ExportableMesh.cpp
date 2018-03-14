@@ -25,7 +25,7 @@ ExportableMesh::ExportableMesh(const MDagPath& shapeDagPath, ExportableResources
 	{
 		auto& mainShape = mayaMesh->shape();
 
-		MeshRenderables renderables(mayaMesh->shapes(), args);
+		MeshRenderables renderables(mayaMesh->allShapes(), args);
 		const auto& shadingMap = mainShape.indices().shadingPerInstance();
 		const auto& shading = shadingMap.at(renderables.instanceNumber);
 		const auto shaderCount = static_cast<int>(shading.shaderGroups.length());
@@ -87,7 +87,7 @@ ExportableMesh::ExportableMesh(const MDagPath& shapeDagPath, ExportableResources
 				++vertexBufferIndex;
 			}
 
-			for (auto&& shape: mayaMesh->shapes())
+			for (auto&& shape: mayaMesh->allShapes())
 			{
 				if (shape->shapeIndex.isBlendShapeIndex())
 				{

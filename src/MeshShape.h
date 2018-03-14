@@ -8,10 +8,10 @@
 class MeshShape
 {
 public:
-	MeshShape(const MFnMesh& fnMesh, const Arguments& args, ShapeIndex shapeIndex, const MPlug& weightPlug, float initialWeight);
+	MeshShape(const MeshIndices& mainIndices, const MFnMesh& fnMesh, const Arguments& args, ShapeIndex shapeIndex, const MPlug& weightPlug, float initialWeight);
 	virtual ~MeshShape();
 
-	void dump(class IndentableStream& out, const std::string& name) const;
+	virtual void dump(class IndentableStream& out, const std::string& name) const;
 
 	const ShapeIndex shapeIndex; 
 	const MPlug weightPlug; // isNull of main shape
@@ -20,7 +20,6 @@ public:
 	const MDagPath& dagPath() const { return m_dagPath; }
 	const MeshSemantics& semantics() const { return *m_semantics; }
 	const MeshVertices& vertices() const { return *m_vertices; }
-	const MeshIndices& indices() const { return *m_indices; }
 
 	size_t instanceNumber() const
 	{
@@ -30,13 +29,28 @@ public:
 		return instanceNumber;
 	}
 
-private:
+protected:
+	MeshShape(ShapeIndex shapeIndex);
+
 	MDagPath m_dagPath;
 
 	std::unique_ptr<MeshSemantics> m_semantics;
 	std::unique_ptr<MeshVertices> m_vertices;
-	std::unique_ptr<MeshIndices> m_indices;
 
 	DISALLOW_COPY_MOVE_ASSIGN(MeshShape);
 };
 
+class MainShape : public MeshShape
+{
+public:
+	MainShape(const MFnMesh& fnMesh, const Arguments& args, ShapeIndex shapeIndex);
+	virtual ~MainShape();
+
+	const MeshIndices& indices() const { return *m_indices; }
+
+	void dump(class IndentableStream& out, const std::string& name) const override;
+
+private:
+	std::unique_ptr<MeshIndices> m_indices;
+	DISALLOW_COPY_MOVE_ASSIGN(MainShape);
+};

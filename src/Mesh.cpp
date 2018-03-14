@@ -18,7 +18,8 @@ Mesh::Mesh(const MDagPath& dagPath, const Arguments& args)
 	if (blendShapeDeformer.isNull())
 	{
 		// Single shape
-		m_shapes.emplace_back(std::make_unique<MeshShape>(fnMesh, args, ShapeIndex::main(), MPlug(), 0.0f));
+		m_mainShape = std::make_unique<MainShape>(fnMesh, args, ShapeIndex::main());
+		m_allShapes.emplace_back(m_mainShape.get());
 	}
 	else
 	{
@@ -71,7 +72,8 @@ Mesh::Mesh(const MDagPath& dagPath, const Arguments& args)
 		weightPlugs.clearWeightsExceptFor(-1);
 
 		// Reconstruct base mesh
-		m_shapes.emplace_back(std::make_unique<MeshShape>(*fnDeformedMesh, args, ShapeIndex::main(), MPlug(), 0.0f));
+		m_mainShape = std::make_unique<MainShape>(*fnDeformedMesh, args, ShapeIndex::main());
+		m_allShapes.emplace_back(m_mainShape.get());
 
 		const auto numWeights = weightPlugs.numWeights();
 
@@ -80,7 +82,10 @@ Mesh::Mesh(const MDagPath& dagPath, const Arguments& args)
 			weightPlugs.clearWeightsExceptFor(targetIndex);
 			auto weightPlug = weightPlugs.getWeightPlug(targetIndex);
 			auto initialWeight = static_cast<float>(weightPlugs.getOriginalWeight(targetIndex));
-			m_shapes.emplace_back(std::make_unique<MeshShape>(*fnDeformedMesh, args, ShapeIndex::target(targetIndex), weightPlug, initialWeight));
+			auto blendShape = std::make_unique<MeshShape>(m_mainShape->indices(), 
+				*fnDeformedMesh, args, ShapeIndex::target(targetIndex), weightPlug, initialWeight);
+			m_allShapes.emplace_back(blendShape.get());
+			m_blendShapes.emplace_back(move(blendShape));
 		}
 	}
 }
@@ -151,7 +156,7 @@ void Mesh::dump(class IndentableStream& out, const std::string& name) const
 
 	JsonSeparator sep(",\n");
 
-	for (auto& shape: m_shapes)
+	for (auto& shape: m_allShapes)
 	{
 		out << sep;
 		shape->dump(out, std::string("shape#") + std::to_string(shape->shapeIndex.arrayIndex()));

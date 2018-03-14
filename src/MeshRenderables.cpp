@@ -16,7 +16,7 @@ MeshRenderables::MeshRenderables(
 {
 	MStatus status;
 
-	const auto& mainShape = meshShapes.at(0);
+	const auto& mainShape = static_cast<MainShape*>(meshShapes.at(0));
 	const auto& mainIndices = mainShape->indices();
 	const auto& mainIndicesTable = mainIndices.table();
 
@@ -30,34 +30,8 @@ MeshRenderables::MeshRenderables(
 
 	auto primitiveVertexIndex = 0;
 
-	size_t maxVertexElementCount = 0;
-	size_t maxVertexComponentCount = 0;
-
-	for (auto& shape : meshShapes)
-	{
-		auto& indicesTable = shape->indices().table();
-
-		for (auto semanticIndex=0U; semanticIndex<indicesTable.size(); ++semanticIndex)
-		{
-			if (shape->shapeIndex.isBlendShapeIndex())
-			{
-				if (indicesTable.at(semanticIndex) != mainIndicesTable.at(semanticIndex))
-				{
-					throw std::runtime_error(formatted("Blend shape '%s' has different topology from the base shape '%s'! Triangulating the meshes in Maya before blending can help.",
-						shape->dagPath().fullPathName().asChar(), mainShape->dagPath().fullPathName().asChar()));
-				}
-			}
-
-			const auto elementCount = indicesTable.at(semanticIndex).size();
-			maxVertexElementCount += elementCount;
-			maxVertexComponentCount += elementCount * dimension(Semantic::from(semanticIndex), shape->shapeIndex);
-		}
-	}
-
 	FloatVector vertexIndexKey;
 	VertexLayout vertexLayout;
-	vertexLayout.reserve(maxVertexElementCount);
-	vertexIndexKey.reserve(maxVertexComponentCount);
 
 	const auto semanticsMask = args.meshPrimitiveAttributes;
 
@@ -76,14 +50,13 @@ MeshRenderables::MeshRenderables(
 			for (auto shapeIndex = 0U; shapeIndex < meshShapes.size(); ++shapeIndex)
 			{
 				auto& shape = meshShapes.at(shapeIndex);
-				const auto& shapeIndicesTable = shape->indices().table();
 				const auto& shapeVerticesTable = shape->vertices().table();
 
-				for (auto semanticIndex = 0U; semanticIndex < shapeIndicesTable.size(); ++semanticIndex)
+				for (auto semanticIndex = 0U; semanticIndex < shapeVerticesTable.size(); ++semanticIndex)
 				{
-					if (semanticsMask.test(semanticIndex))
+					if (!shapeVerticesTable.at(semanticIndex).empty() && semanticsMask.test(semanticIndex))
 					{
-						const auto & indicesPerSet = shapeIndicesTable[semanticIndex];
+						const auto & indicesPerSet = mainIndicesTable.at(semanticIndex);
 
 						for (auto setIndex = 0; setIndex < indicesPerSet.size(); ++setIndex)
 						{
@@ -97,7 +70,7 @@ MeshRenderables::MeshRenderables(
 								auto semantic = Semantic::from(semanticIndex);
 								vertexLayout.emplace_back(ShapeIndex::shape(shapeIndex), semantic, setIndex);
 
-								const auto& elementIndices = shapeIndicesTable.at(semantic).at(setIndex);
+								const auto& elementIndices = indicesPerSet.at(setIndex);
 								const auto vertexIndex = elementIndices.at(primitiveVertexIndex);
 								const auto& vertexElements = shapeVerticesTable.at(semantic).at(setIndex);
 								const auto& source = componentsAt(vertexElements, vertexIndex, semantic, shape->shapeIndex);
@@ -128,7 +101,7 @@ MeshRenderables::MeshRenderables(
 				{
 					auto& shape = meshShapes.at(slot.shapeIndex.arrayIndex());
 
-					const auto& elementIndices = shape->indices().indicesAt(slot.semantic, slot.setIndex);
+					const auto& elementIndices = mainIndices.indicesAt(slot.semantic, slot.setIndex);
 					const auto vertexIndex = elementIndices.at(primitiveVertexIndex);
 					const auto& vertexElements = shape->vertices().vertexElementComponentsAt(slot.semantic, slot.setIndex);
 					const auto& source = componentsAt(vertexElements, vertexIndex, slot.semantic, slot.shapeIndex);

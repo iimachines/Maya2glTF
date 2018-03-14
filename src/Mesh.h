@@ -4,7 +4,7 @@
 
 class Arguments;
 
-typedef std::vector<std::unique_ptr<MeshShape>> MeshShapes;
+typedef std::vector<MeshShape*> MeshShapes;
 
 class Mesh
 {
@@ -14,11 +14,10 @@ public:
 
 	void dump(IndentableStream& out, const std::string& name) const;
 
-	bool isEmpty() const { return m_shapes.empty(); }
+	bool isEmpty() const { return m_allShapes.empty(); }
 
-	const MeshShape& shape() const { return *m_shapes.at(0); }
-
-	const MeshShapes& shapes() const { return m_shapes; }
+	const MainShape& shape() const { return *m_mainShape; }
+	const MeshShapes& allShapes() const { return m_allShapes; }
 
 private:
 	DISALLOW_COPY_MOVE_ASSIGN(Mesh);
@@ -29,7 +28,10 @@ private:
 		MObject tempOutputMesh;
 	};
 
-	MeshShapes m_shapes;
+	std::unique_ptr<MainShape> m_mainShape;
+	std::vector<std::unique_ptr<MeshShape>> m_blendShapes;
+	MeshShapes m_allShapes;
+
 	Cleanup m_cleanup;
 
 	MObject getOrCreateOutputShape(MPlug& outputGeometryPlug, MObject& createdMesh) const;
