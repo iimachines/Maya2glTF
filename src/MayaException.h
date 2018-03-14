@@ -35,13 +35,6 @@ public:
 		MayaException::throwIt(__status__, (__message__), __FILE__, __LINE__, __FUNCTION__); \
 }
 
-// If a constructor body throws an exception, the destructor is not called.
-// In this project we follow the convention that the initializer-list should not throw any exceptions,
-// and inside the constructor we mark code between these two macros, so that the destructor is called on failure.
-// At least, that was the plan ;-)
-#define CONSTRUCTOR_BEGIN() try { 
-#define CONSTRUCTOR_END() } catch(...) { std::destroy_at(this); throw; }
-
 template<typename ... Args>
 bool checkAndReportStatus(const MStatus& status, const char* format, Args ... args)
 {

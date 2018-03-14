@@ -16,6 +16,18 @@ public:
 	void save();
 
 private:
+	DISALLOW_COPY_MOVE_ASSIGN(ExportableAsset);
+
+	struct Cleanup
+	{
+		MTime currentTime;
+
+		Cleanup();
+		~Cleanup();
+	};
+
+	Cleanup m_cleanup;
+
 	GLTF::Asset m_glAsset;
 	GLTF::Scene m_glScene;
 	GLTF::Asset::Metadata m_glMetadata;
@@ -25,8 +37,6 @@ private:
 	std::vector<std::unique_ptr<ExportableItem>> m_items;
 	std::vector<std::unique_ptr<ExportableClip>> m_clips;
 	NodeHierarchy m_dagNodeTable;
-
-	MTime m_currentTime;
 
 	std::string m_rawJsonString;
 	mutable std::string m_prettyJsonString;

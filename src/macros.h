@@ -18,3 +18,6 @@
 	~TypeName() = default; \
 	DEFAULT_COPY_MOVE_ASSIGN(TypeName) \
 
+#define DEFAULT_COPY_MOVE_ASSIGN_ALL(TypeName) \
+	TypeName() = default; \
+	DEFAULT_COPY_MOVE_ASSIGN_DESTRUCT(TypeName) \

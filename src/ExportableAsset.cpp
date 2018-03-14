@@ -3,14 +3,11 @@
 #include "Arguments.h"
 #include "ExportableNode.h"
 #include "MayaException.h"
-#include "time.h"
+#include "./time.h"
 
 ExportableAsset::ExportableAsset(const Arguments& args)
 	: m_resources{ args }
-	, m_currentTime{ MAnimControl::currentTime() }
 {
-	CONSTRUCTOR_BEGIN();
-
 	m_glAsset.scenes.push_back(&m_glScene);
 	m_glAsset.scene = 0;
 
@@ -42,13 +39,13 @@ ExportableAsset::ExportableAsset(const Arguments& args)
 			status = MDagPath::getAllPathsTo(obj, dagPaths);
 			THROW_ON_FAILURE(status);
 
-			for (auto instanceIndex=0U; instanceIndex<dagPaths.length(); ++instanceIndex)
+			for (auto instanceIndex = 0U; instanceIndex < dagPaths.length(); ++instanceIndex)
 			{
 				MDagPath dagPath = dagPaths[instanceIndex];
 				const std::string fullPath{ dagPath.fullPathName(&status).asChar() };
 				THROW_ON_FAILURE(status);
 
-				cout << prefix << "Processing " << fullPath << " instance #" << instanceIndex <<  "..." << endl;
+				cout << prefix << "Processing " << fullPath << " instance #" << instanceIndex << "..." << endl;
 
 				addNode(dagPath);
 			}
@@ -64,7 +61,7 @@ ExportableAsset::ExportableAsset(const Arguments& args)
 
 	// Add root nodes to the scene
 	auto& nodeTable = m_dagNodeTable.table();
-	for (auto& pair: nodeTable)
+	for (auto& pair : nodeTable)
 	{
 		if (pair.second->parentDagPath.length() == 0)
 		{
@@ -91,14 +88,18 @@ ExportableAsset::ExportableAsset(const Arguments& args)
 	{
 		*args.dumpMaya << undent << "}" << endl;
 	}
-
-	CONSTRUCTOR_END();
 }
 
-ExportableAsset::~ExportableAsset()
+ExportableAsset::~ExportableAsset() = default;
+
+ExportableAsset::Cleanup::Cleanup()
+	:currentTime { MAnimControl::currentTime() }
 {
-	// Restore time
-	setCurrentTime(m_currentTime, true);
+}
+
+ExportableAsset::Cleanup::~Cleanup()
+{
+	setCurrentTime(currentTime, true);
 }
 
 const std::string& ExportableAsset::prettyJsonString() const

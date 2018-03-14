@@ -12,8 +12,6 @@ ExportableNode::ExportableNode(MDagPath dagPath, ExportableResources& resources)
 	, dagPath(dagPath)
 	, scaleFactor(resources.arguments().scaleFactor)
 {
-	CONSTRUCTOR_BEGIN();
-
 	MStatus status;
 
 	glNode.name = dagPath.fullPathName(&status).asChar();
@@ -35,13 +33,9 @@ ExportableNode::ExportableNode(MDagPath dagPath, ExportableResources& resources)
 		cerr << "glTF2Maya: skipping '" << name() << "', it is not supported" << endl;
 		break;
 	}
-
-	CONSTRUCTOR_END();
 }
 
-ExportableNode::~ExportableNode()
-{
-}
+ExportableNode::~ExportableNode() = default;
 
 std::unique_ptr<ExportableNode> ExportableNode::from(MDagPath dagPath, ExportableResources& usedShaderNames)
 {

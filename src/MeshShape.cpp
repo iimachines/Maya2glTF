@@ -2,27 +2,19 @@
 #include "MeshShape.h"
 #include "IndentableStream.h"
 #include "Arguments.h"
-#include "MayaException.h"
-#include "DagHelper.h"
 
-inline float getWeightValue(MPlug plug)
-{
-	float value;
-	auto status = plug.getValue(value);
-	return status.error() ? FP_NAN : value;
-}
 
-MeshShape::MeshShape(const MFnMesh& fnMesh, const Arguments& args, ShapeIndex shapeIndex, const MPlug& weightPlug) 
+MeshShape::MeshShape(const MFnMesh& fnMesh, const Arguments& args, ShapeIndex shapeIndex, const MPlug& weightPlug, const float initialWeight) 
 : shapeIndex(shapeIndex)
 , weightPlug(weightPlug)
-, initialWeight(getWeightValue(weightPlug))
+, initialWeight(initialWeight)
 {
-	CONSTRUCTOR_BEGIN();
 	m_semantics = std::make_unique<MeshSemantics>(fnMesh);
 	m_indices = std::make_unique<MeshIndices>(m_semantics.get(), fnMesh);
 	m_vertices = std::make_unique<MeshVertices>(*m_indices, fnMesh, shapeIndex, args);
-	CONSTRUCTOR_END();
 }
+
+MeshShape::~MeshShape() = default;
 
 void MeshShape::dump(IndentableStream& out, const std::string& name) const
 {

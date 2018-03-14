@@ -28,8 +28,8 @@ typedef std::vector<Index> IndexVector;
 
 typedef gsl::span<Index> IndexSpan;
 
-/** Index of a Maya shape instance */
-typedef int InstanceIndex;
+/** Maya shape instance number */
+typedef size_t InstanceNumber;
 
 /** Index of a Maya material */
 typedef int ShaderIndex;

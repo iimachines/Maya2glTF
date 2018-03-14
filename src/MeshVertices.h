@@ -23,7 +23,7 @@ class MeshVertices
 {
 public:
 	MeshVertices(const MeshIndices& meshIndices, const MFnMesh& mesh, ShapeIndex shapeIndex, const Arguments& args, MSpace::Space space = MSpace::kTransform);
-	virtual ~MeshVertices() = default;
+	virtual ~MeshVertices();
 
 	const ShapeIndex shapeIndex; 
 

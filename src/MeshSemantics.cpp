@@ -16,8 +16,6 @@ void VertexElementSetDescription::dump(class IndentableStream& out, const std::s
 
 MeshSemantics::MeshSemantics(const MFnMesh& mesh)
 {
-	CONSTRUCTOR_BEGIN();
-
 	MStatus status;
 
 	// NOTE: Currently we fetch all the semantics, even for blend-shapes, since we might want to included texture coordinates or colors into blend-shapes at some point.
@@ -44,8 +42,6 @@ MeshSemantics::MeshSemantics(const MFnMesh& mesh)
 		m_table[Semantic::TEXCOORD].emplace_back(Semantic::TEXCOORD, i, uvSetNames[i].asChar(), mesh.numUVs(uvSetNames[i], &status));
 		m_table[Semantic::TANGENT].emplace_back(Semantic::TANGENT, i, uvSetNames[i].asChar(), mesh.numUVs(uvSetNames[i], &status));
 	}
-
-	CONSTRUCTOR_END();
 }
 
 

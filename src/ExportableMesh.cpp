@@ -10,8 +10,6 @@
 ExportableMesh::ExportableMesh(const MDagPath& shapeDagPath, ExportableResources& resources)
 	: ExportableObject(shapeDagPath.node())
 {
-	CONSTRUCTOR_BEGIN();
-
 	handleNameAssignment(resources, glMesh);
 
 	auto mayaMesh = std::make_unique<Mesh>(shapeDagPath, resources.arguments());
@@ -26,9 +24,10 @@ ExportableMesh::ExportableMesh(const MDagPath& shapeDagPath, ExportableResources
 	if (!mayaMesh->isEmpty())
 	{
 		auto& mainShape = mayaMesh->shape();
-		const auto& renderables = mayaMesh->renderables();
+
+		MeshRenderables renderables(mayaMesh->shapes(), args);
 		const auto& shadingMap = mainShape.indices().shadingPerInstance();
-		const auto& shading = shadingMap.at(renderables.instanceIndex);
+		const auto& shading = shadingMap.at(renderables.instanceNumber);
 		const auto shaderCount = static_cast<int>(shading.shaderGroups.length());
 
 		const auto& vertexBufferEntries = renderables.table();
@@ -99,8 +98,6 @@ ExportableMesh::ExportableMesh(const MDagPath& shapeDagPath, ExportableResources
 			}
 		}
 	}
-
-	CONSTRUCTOR_END();
 }
 
 ExportableMesh::~ExportableMesh() = default;

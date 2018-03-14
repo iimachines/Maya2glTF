@@ -172,8 +172,6 @@ MeshVertices::MeshVertices(
 	MSpace::Space space)
 	:shapeIndex(shapeIndex)
 {
-	CONSTRUCTOR_BEGIN();
-
 	MStatus status;
 
 	auto& semantics = meshIndices.semantics;
@@ -326,9 +324,9 @@ MeshVertices::MeshVertices(
 			m_table.at(Semantic::TANGENT).push_back(tangentSpan);
 		}
 	}
-
-	CONSTRUCTOR_END();
 }
+
+MeshVertices::~MeshVertices() = default;
 
 void MeshVertices::dump(IndentableStream& out, const std::string& name) const
 {

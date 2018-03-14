@@ -5,26 +5,24 @@
 #include "MeshRenderables.h"
 #include "IndentableStream.h"
 #include "dump.h"
-#include "MayaException.h"
 #include "Arguments.h"
 
 using namespace coveo::linq;
 
 MeshRenderables::MeshRenderables(
-	const InstanceIndex instanceIndex,
 	const MeshShapes& meshShapes,
 	const Arguments& args)
-	: instanceIndex(instanceIndex)
+	: instanceNumber(meshShapes.at(0)->instanceNumber())
 {
-	CONSTRUCTOR_BEGIN();
-
 	MStatus status;
 
-	const auto& mainIndices = meshShapes.at(0)->indices();
+	const auto& mainShape = meshShapes.at(0);
+	const auto& mainIndices = mainShape->indices();
+	const auto& mainIndicesTable = mainIndices.table();
 
 	auto& shadingPerInstance = mainIndices.shadingPerInstance();
 
-	auto& shading = shadingPerInstance.at(instanceIndex);
+	auto& shading = shadingPerInstance.at(instanceNumber);
 
 	const auto primitiveCount = mainIndices.primitiveCount();
 	const auto vertexCount = mainIndices.maxVertexCount();
@@ -41,6 +39,15 @@ MeshRenderables::MeshRenderables(
 
 		for (auto semanticIndex=0U; semanticIndex<indicesTable.size(); ++semanticIndex)
 		{
+			if (shape->shapeIndex.isBlendShapeIndex())
+			{
+				if (indicesTable.at(semanticIndex) != mainIndicesTable.at(semanticIndex))
+				{
+					throw std::runtime_error(formatted("Blend shape '%s' has different topology from the base shape '%s'! Triangulating the meshes in Maya before blending can help.",
+						shape->dagPath().fullPathName().asChar(), mainShape->dagPath().fullPathName().asChar()));
+				}
+			}
+
 			const auto elementCount = indicesTable.at(semanticIndex).size();
 			maxVertexElementCount += elementCount;
 			maxVertexComponentCount += elementCount * dimension(Semantic::from(semanticIndex), shape->shapeIndex);
@@ -182,9 +189,9 @@ MeshRenderables::MeshRenderables(
 			}
 		}
 	}
-
-	CONSTRUCTOR_END();
 }
+
+MeshRenderables::~MeshRenderables() = default;
 
 std::ostream& operator<<(std::ostream& out, const VertexSignature& obj)
 {

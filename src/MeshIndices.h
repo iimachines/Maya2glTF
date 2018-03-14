@@ -36,7 +36,7 @@ struct MeshShading
 	IndexVector primitiveToShaderIndexMap;
 };
 
-typedef std::map<InstanceIndex, MeshShading> MeshShadingPerInstance;
+typedef std::map<InstanceNumber, MeshShading> MeshShadingPerInstance;
 
 class MeshIndices
 {

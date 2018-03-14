@@ -4,14 +4,11 @@
 #include "MayaException.h"
 #include "ExportableResources.h"
 #include "Arguments.h"
-#include "filepath.h"
 
 ExportableTexture::ExportableTexture(ExportableResources& resources, const MObject& obj, const char* attributeName)
 	: glTexture(nullptr)
 	, glSampler(nullptr)
 {
-	CONSTRUCTOR_BEGIN();
-
 	connectedObject = DagHelper::findNodeConnectedTo(obj, attributeName);
 	if (connectedObject.isNull())
 		return;
@@ -68,10 +65,6 @@ ExportableTexture::ExportableTexture(ExportableResources& resources, const MObje
 
 	glTexture = resources.getTexture(imagePtr, glSampler);
 	assert(glTexture);
-
-	CONSTRUCTOR_END();
 }
 
-ExportableTexture::~ExportableTexture()
-{
-}
+ExportableTexture::~ExportableTexture() = default;

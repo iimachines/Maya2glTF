@@ -7,9 +7,8 @@
 #include "Arguments.h"
 #include "filepath.h"
 
-ExportableMaterial::~ExportableMaterial()
-{
-}
+ExportableMaterial::ExportableMaterial() = default;
+ExportableMaterial::~ExportableMaterial() = default;
 
 std::unique_ptr<ExportableMaterial> ExportableMaterial::from(ExportableResources& resources, const MFnDependencyNode& shaderNode)
 {
@@ -40,7 +39,7 @@ bool ExportableMaterial::tryCreateNormalTexture(
 	const ExportableTexture bumpTexture(resources, normalCamera, "bumpValue");
 	if (!outputTexture)
 		return false;
-	
+
 	outputTexture = bumpTexture;
 	return true;
 }
@@ -60,10 +59,16 @@ bool ExportableMaterial::getColor(const MObject& obj, const char* attributeName,
 	return true;
 }
 
+ExportableMaterialBasePBR::ExportableMaterialBasePBR()
+	: m_glBaseColorFactor{ 1,1,1,1 }
+	, m_glEmissiveFactor{ 1,1,1,1 }
+{
+}
+
+ExportableMaterialBasePBR::~ExportableMaterialBasePBR() = default;
+
 ExportableMaterialPBR::ExportableMaterialPBR(ExportableResources& resources, const MFnDependencyNode& shaderNode)
 {
-	CONSTRUCTOR_BEGIN();
-
 	MStatus status;
 
 	const auto shaderObject = shaderNode.object(&status);
@@ -89,8 +94,6 @@ ExportableMaterialPBR::ExportableMaterialPBR(ExportableResources& resources, con
 		cerr << prefix << "WARNING: skipping unsupported PBR shader type '" << shaderObject.apiTypeStr() << "' #" << shaderType << endl;
 		break;
 	}
-
-	CONSTRUCTOR_END();
 }
 
 template<class MFnShader>
@@ -244,7 +247,7 @@ void ExportableMaterialPBR::loadPBR(ExportableResources& resources, const MFnDep
 
 				// TODO: Add argument for output image file mime-type
 				const path roughnessPath{ roughnessTexture.imageFilePath.asChar() };
-				const path imageExtension { roughnessPath.extension() };
+				const path imageExtension{ roughnessPath.extension() };
 				MString mergedImagePath{ generateTempPath(imageExtension).c_str() };
 
 				cout << prefix << "Saving merged roughness-metalic texture to " << mergedImagePath << endl;

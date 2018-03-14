@@ -8,11 +8,13 @@
 class MeshBlendShapeWeights
 {
 public:
-	MeshBlendShapeWeights(MPlug weightArrayPlug);
+	MeshBlendShapeWeights(const MPlug& weightArrayPlug);
 	~MeshBlendShapeWeights();
 
 	auto numWeights() const { return m_originalWeightPlugStates.size(); }
 	auto getWeightPlug(const int index) const { return m_weightArrayPlug[index]; }
+
+	double getOriginalWeight(const int index) const { return m_originalWeightPlugStates.at(index).weight; }
 
 	void clearWeightsExceptFor(const size_t index) const;
 	void breakConnections();

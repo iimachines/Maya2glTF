@@ -3,12 +3,13 @@
 #include "MeshSemantics.h"
 #include "MeshVertices.h"
 #include "MeshIndices.h"
+#include "MayaException.h"
 
 class MeshShape
 {
 public:
-	MeshShape(const MFnMesh& fnMesh, const Arguments& args, ShapeIndex shapeIndex, const MPlug& weightPlug);
-	virtual ~MeshShape() = default;
+	MeshShape(const MFnMesh& fnMesh, const Arguments& args, ShapeIndex shapeIndex, const MPlug& weightPlug, float initialWeight);
+	virtual ~MeshShape();
 
 	void dump(class IndentableStream& out, const std::string& name) const;
 
@@ -21,6 +22,14 @@ public:
 	const MeshVertices& vertices() const { return *m_vertices; }
 	const MeshIndices& indices() const { return *m_indices; }
 
+	size_t instanceNumber() const
+	{
+		MStatus status;
+		const auto instanceNumber = m_dagPath.instanceNumber(&status);
+		THROW_ON_FAILURE(status);
+		return instanceNumber;
+	}
+
 private:
 	MDagPath m_dagPath;
 
@@ -30,9 +39,4 @@ private:
 
 	DISALLOW_COPY_MOVE_ASSIGN(MeshShape);
 };
-
-// main-shape followed by blend-shapes.
-// TODO: Use a map?
-typedef std::vector<std::unique_ptr<MeshShape>> MeshShapes;
-
 

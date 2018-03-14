@@ -2,8 +2,7 @@
 
 #include "sceneTypes.h"
 #include "hashers.h"
-#include "dump.h"
-#include "MeshShape.h"
+#include "Mesh.h"
 
 class Arguments;
 
@@ -190,13 +189,12 @@ class MeshRenderables
 {
 public:
 	MeshRenderables(
-		InstanceIndex instanceIndex,
 		const MeshShapes& meshShapes,
 		const Arguments& args);
 
-	~MeshRenderables() = default;
+	~MeshRenderables();
 
-	const InstanceIndex instanceIndex;
+	const InstanceNumber instanceNumber;
 
 	const VertexBufferTable& table() const { return m_table; }
 

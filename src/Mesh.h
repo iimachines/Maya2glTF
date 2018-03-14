@@ -1,9 +1,10 @@
 #pragma once
 
 #include "MeshShape.h"
-#include "MeshRenderables.h"
 
 class Arguments;
+
+typedef std::vector<std::unique_ptr<MeshShape>> MeshShapes;
 
 class Mesh
 {
@@ -19,15 +20,17 @@ public:
 
 	const MeshShapes& shapes() const { return m_shapes; }
 
-	const MeshRenderables& renderables() const { return *m_renderables; }
-
 private:
 	DISALLOW_COPY_MOVE_ASSIGN(Mesh);
 
-	MeshShapes m_shapes;
-	std::unique_ptr<MeshRenderables> m_renderables;
+	struct Cleanup
+	{
+		~Cleanup();
+		MObject tempOutputMesh;
+	};
 
-	MObject m_tempOutputMesh;
+	MeshShapes m_shapes;
+	Cleanup m_cleanup;
 
 	MObject getOrCreateOutputShape(MPlug& outputGeometryPlug, MObject& createdMesh) const;
 

@@ -8,8 +8,6 @@
 
 Mesh::Mesh(const MDagPath& dagPath, const Arguments& args)
 {
-	CONSTRUCTOR_BEGIN();
-
 	MStatus status;
 
 	MFnMesh fnMesh(dagPath, &status);
@@ -20,7 +18,7 @@ Mesh::Mesh(const MDagPath& dagPath, const Arguments& args)
 	if (blendShapeDeformer.isNull())
 	{
 		// Single shape
-		m_shapes.emplace_back(std::make_unique<MeshShape>(fnMesh, args, ShapeIndex::main(), MPlug()));
+		m_shapes.emplace_back(std::make_unique<MeshShape>(fnMesh, args, ShapeIndex::main(), MPlug(), 0.0f));
 	}
 	else
 	{
@@ -54,7 +52,7 @@ Mesh::Mesh(const MDagPath& dagPath, const Arguments& args)
 			MPlug outputGeometryPlug = outputGeometryPlugs.elementByPhysicalIndex(0, &status);
 			THROW_ON_FAILURE(status);
 
-			MObject outputShape = getOrCreateOutputShape(outputGeometryPlug, m_tempOutputMesh);
+			MObject outputShape = getOrCreateOutputShape(outputGeometryPlug, m_cleanup.tempOutputMesh);
 
 			if (outputShape.isNull())
 				THROW_ON_FAILURE_WITH(MStatus::kFailure, formatted("Could not get output geometry of %s!", deformerName));
@@ -73,7 +71,7 @@ Mesh::Mesh(const MDagPath& dagPath, const Arguments& args)
 		weightPlugs.clearWeightsExceptFor(-1);
 
 		// Reconstruct base mesh
-		m_shapes.emplace_back(std::make_unique<MeshShape>(*fnDeformedMesh, args, ShapeIndex::main(), MPlug()));
+		m_shapes.emplace_back(std::make_unique<MeshShape>(*fnDeformedMesh, args, ShapeIndex::main(), MPlug(), 0.0f));
 
 		const auto numWeights = weightPlugs.numWeights();
 
@@ -81,27 +79,13 @@ Mesh::Mesh(const MDagPath& dagPath, const Arguments& args)
 		{
 			weightPlugs.clearWeightsExceptFor(targetIndex);
 			auto weightPlug = weightPlugs.getWeightPlug(targetIndex);
-			m_shapes.emplace_back(std::make_unique<MeshShape>(*fnDeformedMesh, args, ShapeIndex::target(targetIndex), weightPlug));
+			auto initialWeight = static_cast<float>(weightPlugs.getOriginalWeight(targetIndex));
+			m_shapes.emplace_back(std::make_unique<MeshShape>(*fnDeformedMesh, args, ShapeIndex::target(targetIndex), weightPlug, initialWeight));
 		}
 	}
-
-	auto instanceNumber = dagPath.instanceNumber(&status);
-	THROW_ON_FAILURE(status);
-
-	m_renderables = std::make_unique<MeshRenderables>(instanceNumber, m_shapes, args);
-
-	CONSTRUCTOR_END();
 }
 
-Mesh::~Mesh()
-{
-	if (!m_tempOutputMesh.isNull())
-	{
-		MDagModifier dagMod;
-		dagMod.deleteNode(m_tempOutputMesh);
-		m_tempOutputMesh = MObject::kNullObj;
-	}
-}
+Mesh::~Mesh() = default;
 
 MObject Mesh::tryExtractBlendShapeDeformer(const MFnMesh& fnMesh, const MSelectionList& ignoredDeformers)
 {
@@ -174,6 +158,16 @@ void Mesh::dump(class IndentableStream& out, const std::string& name) const
 	}
 
 	out << undent << '}';
+}
+
+Mesh::Cleanup::~Cleanup()
+{
+	if (!tempOutputMesh.isNull())
+	{
+		MDagModifier dagMod;
+		dagMod.deleteNode(tempOutputMesh);
+		tempOutputMesh = MObject::kNullObj;
+	}
 }
 
 MObject Mesh::getOrCreateOutputShape(MPlug& outputGeometryPlug, MObject& createdMesh) const

@@ -31,8 +31,6 @@ ExportablePrimitive::ExportablePrimitive(
 	const VertexBuffer& vertexBuffer,
 	ExportableResources& resources)
 {
-	CONSTRUCTOR_BEGIN();
-
 	glPrimitive.mode = GLTF::Primitive::TRIANGLES;
 
 	auto& vertexIndices = vertexBuffer.indices;
@@ -98,8 +96,6 @@ ExportablePrimitive::ExportablePrimitive(
 			}
 		}
 	}
-
-	CONSTRUCTOR_END();
 }
 
 ExportablePrimitive::ExportablePrimitive(
