@@ -6,6 +6,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Maya2018-Debug|x64'">
     <LocalDebuggerCommand>C:\Program Files\Autodesk\Maya2018\bin\maya.exe</LocalDebuggerCommand>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+    <LocalDebuggerAttach>true</LocalDebuggerAttach>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Maya2017-Debug|x64'">
     <LocalDebuggerCommand>C:\Program Files\Autodesk\Maya2017\bin\maya.exe</LocalDebuggerCommand>

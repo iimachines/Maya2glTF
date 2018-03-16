@@ -19,25 +19,46 @@ inline VertexComponents componentsAt(const VertexComponents& elements, const siz
 class Arguments;
 class MeshIndices;
 
+class MeshJoint
+{
+public:
+	MDagPath dagPath;
+	MMatrix worldBindMatrixInverse;
+
+	MeshJoint(const MDagPath& dagPath, const MMatrix& worldBindMatrixInverse)
+		: dagPath(dagPath)
+		, worldBindMatrixInverse(worldBindMatrixInverse)
+	{
+	}
+
+	DEFAULT_COPY_MOVE_ASSIGN_DESTRUCT(MeshJoint);
+};
+
+typedef std::vector<MeshJoint> MeshJoints;
+
 class MeshVertices
 {
 public:
 	MeshVertices(const MeshIndices& meshIndices, const MFnMesh& mesh, ShapeIndex shapeIndex, const Arguments& args, MSpace::Space space = MSpace::kTransform);
 	virtual ~MeshVertices();
 
-	const ShapeIndex shapeIndex; 
+	const ShapeIndex shapeIndex;
 
 	const VertexElementsPerSetIndexTable& table() const { return m_table; }
 
 	void dump(class IndentableStream& out, const std::string& name) const;
-	
+
 	const VertexComponents& vertexElementComponentsAt(const size_t semanticIndex, const size_t setIndex) const
 	{
 		return m_table.at(semanticIndex).at(setIndex);
 	}
 
+	const MeshJoints& joints() const { return m_joints; }
+
 private:
 	friend class MeshShape;
+
+	MeshJoints m_joints;
 
 	PositionVector m_positions;
 	NormalVector m_normals;
@@ -45,8 +66,12 @@ private:
 	std::map<SetIndex, FloatVector> m_tangentSets;
 	std::map<SetIndex, TexCoordVector> m_uvSets;
 	std::map<SetIndex, ColorVector> m_colorSets;
+	std::map<SetIndex, JointWeightsVector> m_jointWeights;
+	std::map<SetIndex, JointIndicesVector> m_jointIndices;
 
 	VertexElementsPerSetIndexTable m_table;
 
 	DISALLOW_COPY_MOVE_ASSIGN(MeshVertices);
+
+	static MObject tryExtractSkinCluster(const MFnMesh& fnMesh, const MSelectionList& ignoredDeformers);
 };

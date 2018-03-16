@@ -14,8 +14,8 @@ typedef Float3 Scale;
 typedef Float3 Normal;
 typedef Float2 TexCoord;
 typedef Float4 Color;
-typedef Float4 SkinWeights;
-typedef Float4 SkinJoints;
+typedef Float4 JointWeights;
+typedef Int4 JointIndices;
 
 typedef Float4 MainShapeTangent;	// 3D tangent  + bitangent sign (chirality)
 typedef Float3 BlendShapeTangent;	// 3D tangent only
@@ -27,6 +27,8 @@ typedef std::vector<Normal> NormalVector;
 typedef std::vector<TexCoord> TexCoordVector;
 typedef std::vector<Color> ColorVector;
 typedef std::vector<Index> IndexVector;
+typedef std::vector<JointWeights> JointWeightsVector;
+typedef std::vector<JointIndices> JointIndicesVector;
 
 typedef gsl::span<Index> IndexSpan;
 
@@ -78,8 +80,8 @@ namespace Semantic
 		case COLOR:		return array_size<Color>::size;
 		case TEXCOORD:	return array_size<TexCoord>::size;
 		case TANGENT:	return shapeIndex.isBlendShapeIndex() ? array_size<BlendShapeTangent>::size : array_size<MainShapeTangent>::size;
-		case WEIGHTS:	return array_size<SkinWeights>::size;
-		case JOINTS:	return array_size<SkinJoints>::size;
+		case WEIGHTS:	return array_size<JointWeights>::size;
+		case JOINTS:	return array_size<JointIndices>::size;
 		default: assert(false); return 0;
 		}
 	}

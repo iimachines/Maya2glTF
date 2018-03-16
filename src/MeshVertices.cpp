@@ -165,10 +165,10 @@ struct MikkTSpaceContext : SMikkTSpaceContext
 };
 
 MeshVertices::MeshVertices(
-	const MeshIndices& meshIndices, 
-	const MFnMesh& mesh, 
-	ShapeIndex shapeIndex, 
-	const Arguments& args, 
+	const MeshIndices& meshIndices,
+	const MFnMesh& mesh,
+	ShapeIndex shapeIndex,
+	const Arguments& args,
 	MSpace::Space space)
 	:shapeIndex(shapeIndex)
 {
@@ -289,7 +289,7 @@ MeshVertices::MeshVertices(
 
 				std::stringstream ss;
 				ss << "select -r";
-				for (auto triangleIndex: context.invalidTriangleIndices)
+				for (auto triangleIndex : context.invalidTriangleIndices)
 				{
 					ss << ' ' << mesh.name() << ".f[" << meshIndices.triangleToFaceIndex(triangleIndex) << "]";
 				}
@@ -329,12 +329,124 @@ MeshVertices::MeshVertices(
 	// Although Maya does allow skinning to be applied to blend-shapes, we don't support that.
 	if (shapeIndex.isMainShapeIndex())
 	{
-		MFnSkinCluster fnSkin(mesh.object(), &status);
+		MObject skin = tryExtractSkinCluster(mesh, args.ignoreMeshDeformers);
+		MFnSkinCluster fnSkin(skin, &status);
 		if (status)
 		{
+			// Gather all the joints
+			MDagPathArray jointDagPaths;
+			const auto jointCount = fnSkin.influenceObjects(jointDagPaths, &status);
+			THROW_ON_FAILURE(status);
 
+			m_joints.reserve(jointCount);
 
-			// TODO:
+			for (size_t index = 0; index < jointCount; ++index)
+			{
+				auto& jointDagPath = jointDagPaths[static_cast<unsigned int>(index)];
+
+				const auto matrix = jointDagPath.inclusiveMatrixInverse(&status);
+				THROW_ON_FAILURE(status);
+
+				m_joints.emplace_back(jointDagPath, matrix);
+			}
+
+			// Gather all joint index/weights per vertex, sorted ascendingly by weight
+			const auto meshDagPath = mesh.dagPath(&status);
+			THROW_ON_FAILURE(status);
+
+			MItGeometry iterGeom(meshDagPath, &status);
+			THROW_ON_FAILURE(status);
+
+			assert(iterGeom.count() == m_positions.size());
+
+			MFloatArray vertexWeights;
+			unsigned int numWeights;
+
+			// Build joint (index,weight) pair groups, per vertex
+			std::vector<std::pair<unsigned int, float>> weightIndexPairs;
+			std::vector<int> pairsIndexPerVertex;
+			std::vector<int> pairsCountPerVertex;
+
+			pairsIndexPerVertex.resize(numPoints);
+			pairsCountPerVertex.resize(numPoints);
+
+			weightIndexPairs.reserve(8 * numPoints);
+
+			int maxPairsCount = 0;
+
+			for (; !iterGeom.isDone(); iterGeom.next())
+			{
+				const auto pointIndex = iterGeom.index(&status);
+				THROW_ON_FAILURE(status);
+
+				const MObject component = iterGeom.component(&status);
+				THROW_ON_FAILURE(status);
+
+				status = fnSkin.getWeights(meshDagPath, component, vertexWeights, numWeights);
+				THROW_ON_FAILURE(status);
+
+				const auto pairsIndex = pairsIndexPerVertex[pointIndex] = int(weightIndexPairs.size());
+
+				for (unsigned int jointIndex = 0; jointIndex < numWeights; ++jointIndex)
+				{
+					const float jointWeight = vertexWeights[jointIndex];
+					if (std::abs(jointWeight) > 1e-6f)
+					{
+						weightIndexPairs.emplace_back(jointIndex, jointWeight);
+					}
+				}
+
+				int pairsCount = pairsCountPerVertex[pointIndex] = int(weightIndexPairs.size()) - pairsIndex;
+
+				maxPairsCount = std::max(pairsCount, maxPairsCount);
+
+				// Sort weights from large to small.
+				// TODO: Use insertion sort when adding the weights?
+				const auto itPairsBgn = weightIndexPairs.begin() + pairsIndex;
+				const auto itPairsEnd = itPairsBgn + pairsCount;
+				std::sort(itPairsBgn, itPairsEnd, [](auto &left, auto &right) {
+					return left.second > right.second;
+				});
+			}
+
+			std::cout << prefix << "Skin for mesh " << meshDagPath.partialPathName().asChar() << " will use " << maxPairsCount << " weights per vertex" << endl;
+
+			// Now group weights and indices into 4-aligned packets.
+			// HACK: Each packet will become a 'set-index' (should be renamed).
+			// This conventienly works out in the vertex-welder
+			const auto packetSize = 4;
+			const auto setCount = (maxPairsCount + packetSize - 1) / packetSize;
+
+			for (int setIndex = 0; setIndex < setCount; ++setIndex)
+			{
+				auto& weightsPackets = m_jointWeights[setIndex];
+				auto& indicesPackets = m_jointIndices[setIndex];
+				weightsPackets.resize(numPoints);
+				indicesPackets.resize(numPoints);
+
+				auto weightsSpan = span(weightsPackets);
+				auto indicesSpan = span(indicesPackets);
+				auto pairsSpan = span(weightIndexPairs);
+
+				const auto packetOffset = setIndex * packetSize;
+
+				for (int pointIndex = 0; pointIndex < numPoints; ++pointIndex)
+				{
+					const auto pairsIndex = pairsIndexPerVertex.at(pointIndex) + packetOffset;
+					const auto pairsCount = std::clamp(pairsCountPerVertex.at(pointIndex) - packetOffset, 0, packetSize);
+					const auto sourcePairs = pairsSpan.subspan(pairsIndex, pairsCount);
+
+					const auto targetWeights = mutable_span(reinterpret_span<float>(weightsSpan.subspan(pointIndex, 1)));
+					const auto targetIndices = mutable_span(reinterpret_span<float>(indicesSpan.subspan(pointIndex, 1)));
+
+					for (int componentIndex=0; componentIndex<pairsCount; ++componentIndex)
+					{
+						const auto& pair = sourcePairs.at(componentIndex);
+						targetIndices[componentIndex] = pair.first;
+						targetWeights[componentIndex] = pair.second;
+					}
+				}
+			}
 		}
 	}
 }
@@ -344,4 +456,61 @@ MeshVertices::~MeshVertices() = default;
 void MeshVertices::dump(IndentableStream& out, const std::string& name) const
 {
 	dump_vertex_table(out, name, m_table, shapeIndex);
+}
+
+MObject MeshVertices::tryExtractSkinCluster(const MFnMesh& fnMesh, const MSelectionList& ignoredDeformers)
+{
+	MObject cluster;
+
+	// Iterate upstream to find all the nodes that affect the mesh.
+	MStatus status;
+	MPlug plug = fnMesh.findPlug("inMesh", status);
+	THROW_ON_FAILURE(status);
+
+	if (plug.isConnected())
+	{
+		MItDependencyGraph dgIt(plug,
+			MFn::kInvalid,
+			MItDependencyGraph::kUpstream,
+			MItDependencyGraph::kBreadthFirst,
+			MItDependencyGraph::kNodeLevel,
+			&status);
+
+		THROW_ON_FAILURE(status);
+
+		dgIt.disablePruningOnFilter();
+
+		for (; !dgIt.isDone(); dgIt.next())
+		{
+			MObject thisNode = dgIt.thisNode();
+			if (thisNode.hasFn(MFn::kSkinClusterFilter))
+			{
+				MFnSkinCluster fnSkinCluster(thisNode, &status);
+
+				const auto thisName = MFnDependencyNode(thisNode).name();
+
+				if (status == MStatus::kSuccess)
+				{
+					if (ignoredDeformers.hasItem(thisNode))
+					{
+						cout << prefix << "ignoring skin cluster" << thisName << endl;
+					}
+					else if (cluster.isNull())
+					{
+						cluster = thisNode;
+					}
+					else
+					{
+						cerr << prefix << "only a single skin cluster is supported, skipping " << thisName << endl;
+					}
+				}
+				else
+				{
+					cerr << prefix << "unable to extract skin cluster from " << thisName << ", reason: " << status.error() << endl;
+				}
+			}
+		}
+	}
+
+	return cluster;
 }
