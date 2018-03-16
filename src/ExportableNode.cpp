@@ -14,7 +14,7 @@ ExportableNode::ExportableNode(MDagPath dagPath, ExportableResources& resources)
 {
 	MStatus status;
 
-	glNode.name = dagPath.fullPathName(&status).asChar();
+	glNode.name = dagPath.partialPathName(&status).asChar();
 	THROW_ON_FAILURE(status);
 
 	handleNameAssignment(resources, glNode);

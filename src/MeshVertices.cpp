@@ -325,11 +325,17 @@ MeshVertices::MeshVertices(
 		}
 	}
 
-	// Get skin joint vertex weights and indices
-	MFnSkinCluster fnSkin(mesh.object(), &status);
-	if (status)
+	// Get skin joint vertex weights and indices, but only for the main mesh
+	// Although Maya does allow skinning to be applied to blend-shapes, we don't support that.
+	if (shapeIndex.isMainShapeIndex())
 	{
-		// TODO:
+		MFnSkinCluster fnSkin(mesh.object(), &status);
+		if (status)
+		{
+
+
+			// TODO:
+		}
 	}
 }
 
