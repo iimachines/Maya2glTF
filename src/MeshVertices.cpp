@@ -324,6 +324,13 @@ MeshVertices::MeshVertices(
 			m_table.at(Semantic::TANGENT).push_back(tangentSpan);
 		}
 	}
+
+	// Get skin joint vertex weights and indices
+	MFnSkinCluster fnSkin(mesh.object(), &status);
+	if (status)
+	{
+		// TODO:
+	}
 }
 
 MeshVertices::~MeshVertices() = default;

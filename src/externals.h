@@ -89,3 +89,4 @@
 #include <maya/MTime.h>
 #include <maya/MAnimControl.h>
 #include <maya/M3dView.h>
+#include <maya/MFnSkinCluster.h>

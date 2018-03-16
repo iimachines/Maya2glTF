@@ -14,6 +14,8 @@ typedef Float3 Scale;
 typedef Float3 Normal;
 typedef Float2 TexCoord;
 typedef Float4 Color;
+typedef Float4 SkinWeights;
+typedef Float4 SkinJoints;
 
 typedef Float4 MainShapeTangent;	// 3D tangent  + bitangent sign (chirality)
 typedef Float3 BlendShapeTangent;	// 3D tangent only
@@ -52,6 +54,8 @@ namespace Semantic
 		COLOR,
 		TEXCOORD,
 		TANGENT,
+		WEIGHTS,
+		JOINTS,
 		COUNT
 	};
 
@@ -74,6 +78,8 @@ namespace Semantic
 		case COLOR:		return array_size<Color>::size;
 		case TEXCOORD:	return array_size<TexCoord>::size;
 		case TANGENT:	return shapeIndex.isBlendShapeIndex() ? array_size<BlendShapeTangent>::size : array_size<MainShapeTangent>::size;
+		case WEIGHTS:	return array_size<SkinWeights>::size;
+		case JOINTS:	return array_size<SkinJoints>::size;
 		default: assert(false); return 0;
 		}
 	}
@@ -87,6 +93,8 @@ namespace Semantic
 		case COLOR:		return "COLOR";
 		case TEXCOORD:	return "TEXCOORD";
 		case TANGENT:	return "TANGENT";
+		case WEIGHTS:	return "WEIGHTS";
+		case JOINTS:	return "JOINTS";
 		default: assert(false); return "UNKNOWN";
 		}
 	}
