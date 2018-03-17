@@ -39,10 +39,10 @@ struct MikkTSpaceVectors
 		// HACK: We assume the indices arrays are large enough here...
 		assert(meshIndices.indicesAt(Semantic::TANGENT, setIndex).size() >= numTangents);
 
-		positions = reinterpret_span<Position>(vertexTable.at(Semantic::POSITION).at(0));
-		normals = reinterpret_span<Normal>(vertexTable.at(Semantic::NORMAL).at(0));
-		texcoords = reinterpret_span<TexCoord>(vertexTable.at(Semantic::TEXCOORD).at(setIndex));
-		tangentComponents = mutable_span(vertexTable.at(Semantic::TANGENT).at(setIndex));
+		positions = reinterpret_span<Position>(vertexTable.at(Semantic::POSITION).at(0).floats());
+		normals = reinterpret_span<Normal>(vertexTable.at(Semantic::NORMAL).at(0).floats());
+		texcoords = reinterpret_span<TexCoord>(vertexTable.at(Semantic::TEXCOORD).at(setIndex).floats());
+		tangentComponents = mutable_span<float>(vertexTable.at(Semantic::TANGENT).at(setIndex).floats());
 	}
 };
 
@@ -192,7 +192,7 @@ MeshVertices::MeshVertices(
 		m_positions.push_back({ static_cast<float>(p.x), static_cast<float>(p.y), static_cast<float>(p.z) });
 	}
 
-	const auto positionsSpan = reinterpret_span<float>(span(m_positions));
+	const auto positionsSpan = floats(span(m_positions));
 	m_table.at(Semantic::POSITION).push_back(positionsSpan);
 
 	// Get normals
@@ -216,7 +216,7 @@ MeshVertices::MeshVertices(
 		m_normals.push_back({ normalSign * n.x, normalSign * n.y, normalSign * n.z });
 	}
 
-	const auto normalsSpan = reinterpret_span<float>(span(m_normals));
+	const auto normalsSpan = floats(span(m_normals));
 	m_table.at(Semantic::NORMAL).push_back(normalsSpan);
 
 	// Get color sets.
@@ -236,7 +236,7 @@ MeshVertices::MeshVertices(
 			colors.push_back({ c.r, c.g, c.b, c.a });
 		}
 
-		const auto colorsSpan = reinterpret_span<float>(span(colors));
+		const auto colorsSpan = floats(span(colors));
 		m_table.at(Semantic::COLOR).push_back(colorsSpan);
 	}
 
@@ -259,7 +259,7 @@ MeshVertices::MeshVertices(
 			uvArray[1] = 1 - vArray[uIndex];
 		}
 
-		const auto uvSpan = reinterpret_span<float>(span(uvSet));
+		const auto uvSpan = floats(span(uvSet));
 		m_table.at(Semantic::TEXCOORD).push_back(uvSpan);
 	}
 
@@ -277,7 +277,7 @@ MeshVertices::MeshVertices(
 			auto& tangentSet = m_tangentSets[semantic.setIndex];
 			tangentSet.resize(numTangents * dimension(Semantic::TANGENT, shapeIndex));
 
-			const auto tangentSpan = span(tangentSet);
+			const auto tangentSpan = floats(span(tangentSet));
 			m_table.at(Semantic::TANGENT).push_back(tangentSpan);
 
 			MikkTSpaceContext context(meshIndices, m_table, semantic.setIndex, shapeIndex);
@@ -322,7 +322,7 @@ MeshVertices::MeshVertices(
 				}
 			}
 
-			const auto tangentSpan = span(tangentSet);
+			const auto tangentSpan = floats(span(tangentSet));
 			m_table.at(Semantic::TANGENT).push_back(tangentSpan);
 		}
 	}
@@ -346,8 +346,8 @@ MeshVertices::MeshVertices(
 			auto weightsSpan = span(weightsComponents);
 			auto indicesSpan = span(indicesComponents);
 
-			m_table.at(Semantic::WEIGHTS).push_back(reinterpret_span<float>(weightsSpan));
-			m_table.at(Semantic::JOINTS).push_back(reinterpret_span<float>(indicesSpan));
+			m_table.at(Semantic::WEIGHTS).push_back(floats(weightsSpan));
+			m_table.at(Semantic::JOINTS).push_back(shorts(indicesSpan));
 
 			const auto componentOffset = int(setIndex * vertexJointAssignmentElementSize);
 
@@ -360,8 +360,8 @@ MeshVertices::MeshVertices(
 				const auto assignmentIndex = std::clamp<int>(componentOffset, 0, assignmentsSize - assignmentCount);
 				const auto sourceComponents = assignments.subspan(assignmentIndex, assignmentCount);
 
-				const auto targetWeights = mutable_span(reinterpret_span<float>(weightsSpan.subspan(pointIndex, 1)));
-				const auto targetIndices = mutable_span(reinterpret_span<float>(indicesSpan.subspan(pointIndex, 1)));
+				const auto targetWeights = mutable_span(reinterpret_span<JointWeight>(weightsSpan.subspan(pointIndex, 1)));
+				const auto targetIndices = mutable_span(reinterpret_span<JointIndex>(indicesSpan.subspan(pointIndex, 1)));
 
 				for (auto componentIndex = 0; componentIndex < assignmentCount; ++componentIndex)
 				{

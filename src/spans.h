@@ -49,10 +49,10 @@ static gsl::span<T> mutable_span(const gsl::span<const T>& span)
 	return gsl::make_span(const_cast<T*>(bgn_ptr), const_cast<T*>(end_ptr));
 }
 
-static std::size_t hash_value(const gsl::span<const uint32_t>& span)
+static std::size_t hash_value(const gsl::span<const uint16_t>& span)
 {
 	std::size_t seed = span.size();
-	for (auto& i : span) {
+	for (const size_t i : span) {
 		seed ^= i + 0x9e3779b9 + (seed << 6) + (seed >> 2);
 	}
 	return seed;

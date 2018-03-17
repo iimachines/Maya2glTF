@@ -3,11 +3,92 @@
 #include "macros.h"
 #include "sceneTypes.h"
 #include "MeshSemantics.h"
+#include "spans.h"
+#include <ostream>
 
-/** The vertices of a single Maya mesh (components stored sequentially, ie [x0, y0, z0, x1, y1, z1, ...])  */
-// TODO: Use valarrays here?
-typedef gsl::span<const float> VertexComponents;
+//struct VertexComponentData
+//{
+//	// We either store floats or ushort, and sizeof(float) = 2*sizeof(ushort), so use ushort for the raw data.
+//	ushort value;
+//
+//	friend bool operator==(const VertexComponentData& lhs, const VertexComponentData& rhs)
+//	{
+//		return lhs.value == rhs.value;
+//	}
+//
+//	friend bool operator!=(const VertexComponentData& lhs, const VertexComponentData& rhs)
+//	{
+//		return !(lhs == rhs);
+//	}
+//
+//	DEFAULT_COPY_MOVE_ASSIGN_CTOR_DTOR(VertexComponentData);
+//};
+
+//typedef gsl::span<const VertexComponentData> VertexComponents;
+
+class VertexComponents 
+{
+public:
+	Component::Type type = Component::INVALID;
+
+	gsl::span<const float> floats() const { return reinterpret_span<float>(m_data); }
+	gsl::span<const ushort> shorts() const { return reinterpret_span<ushort>(m_data); }
+
+	explicit VertexComponents(const gsl::span<const float>& fs): type(Component::FLOAT), m_data(reinterpret_span<ushort>(fs))
+	{
+	}
+
+	explicit VertexComponents(const gsl::span<const ushort>& ns) : type(Component::USHORT), m_data(reinterpret_span<ushort>(ns))
+	{
+	}
+
+	VertexComponents subspan(const size_t offset, const size_t count) const
+	{
+		switch (type)
+		{
+		case Component::FLOAT:
+			return VertexComponents(floats().subspan(offset, count));
+		case Component::USHORT:
+			return VertexComponents(shorts().subspan(offset, count));
+		default:
+			assert(false);
+			return VertexComponents();
+		}
+	}
+
+	friend bool operator==(const VertexComponents& lhs, const VertexComponents& rhs)
+	{
+		return lhs.type == rhs.type
+			&& lhs.m_data == rhs.m_data;
+	}
+
+	friend bool operator!=(const VertexComponents& lhs, const VertexComponents& rhs)
+	{
+		return !(lhs == rhs);
+	}
+
+	bool empty() const { return m_data.empty();  }
+
+	DEFAULT_COPY_MOVE_ASSIGN_CTOR_DTOR(VertexComponents);
+
+private:
+	gsl::span<const ushort> m_data;
+};
+
+template<typename T>
+inline VertexComponents floats(gsl::span<T> span)
+{
+	return VertexComponents(reinterpret_span<float>(span));
+}
+
+template<typename T>
+inline VertexComponents shorts(gsl::span<T> span)
+{
+	return VertexComponents(reinterpret_span<float>(span));
+}
+
 typedef std::vector<VertexComponents> VertexElementsPerSetIndex;
+
 typedef std::array<VertexElementsPerSetIndex, Semantic::COUNT> VertexElementsPerSetIndexTable;
 
 inline VertexComponents componentsAt(const VertexComponents& elements, const size_t vertexIndex, const Semantic::Kind semantic, const ShapeIndex& shapeIndex)

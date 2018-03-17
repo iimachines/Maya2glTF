@@ -14,12 +14,17 @@ typedef int VertexIndex;
 
 typedef Float3 Position;
 typedef Float4 Rotation; // a quaternion
-typedef Float3 Scale; 
+typedef Float3 Scale;
 typedef Float3 Normal;
 typedef Float2 TexCoord;
 typedef Float4 Color;
+
+typedef float JointWeight;
 typedef Float4 JointWeights;
-typedef Float4 JointIndices; // TODO: these should become integers, but that requires a lot of refactoring.
+
+typedef uint16_t ushort;
+typedef ushort JointIndex;
+typedef std::array<JointIndex, 4> JointIndices;
 
 typedef Float4 MainShapeTangent;	// 3D tangent  + bitangent sign (chirality)
 typedef Float3 BlendShapeTangent;	// 3D tangent only
@@ -89,7 +94,7 @@ namespace Semantic
 		default: assert(false); return 0;
 		}
 	}
-		
+
 	inline const char* name(const Kind s)
 	{
 		switch (s)
@@ -107,7 +112,7 @@ namespace Semantic
 
 	inline Kind parse(const std::string& s)
 	{
-		for (auto kind: kinds())
+		for (auto kind : kinds())
 		{
 			if (s == name(kind))
 				return kind;
@@ -116,7 +121,7 @@ namespace Semantic
 	}
 
 	template<typename T>
-	size_t totalSetCount(const T& table) 
+	size_t totalSetCount(const T& table)
 	{
 		size_t count = 0;
 
@@ -128,4 +133,36 @@ namespace Semantic
 		return count;
 	}
 }
+
+namespace Component
+{
+	enum Type
+	{
+		INVALID = 1,
+		FLOAT,
+		USHORT,
+	};
+
+	inline Type type(Semantic::Kind s)
+	{
+		switch (s)
+		{
+		case Semantic::POSITION:
+		case Semantic::NORMAL:
+		case Semantic::COLOR:
+		case Semantic::TEXCOORD:
+		case Semantic::TANGENT:
+		case Semantic::WEIGHTS:
+			return FLOAT;
+
+		case Semantic::JOINTS:	
+			return USHORT;
+
+		default: 
+			assert(false); 
+			return INVALID;
+		}
+	}
+};
+
 

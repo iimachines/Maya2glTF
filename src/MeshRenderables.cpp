@@ -30,7 +30,7 @@ MeshRenderables::MeshRenderables(
 
 	auto primitiveVertexIndex = 0;
 
-	FloatVector vertexIndexKey;
+	VertexElements vertexIndexKey;
 	VertexLayout vertexLayout;
 
 	const auto semanticsMask = args.meshPrimitiveAttributes;
@@ -74,7 +74,7 @@ MeshRenderables::MeshRenderables(
 								const auto vertexIndex = elementIndices.at(primitiveVertexIndex);
 								const auto& vertexElements = shapeVerticesTable.at(semantic).at(setIndex);
 								const auto& source = componentsAt(vertexElements, vertexIndex, semantic, shape->shapeIndex);
-								vertexIndexKey.insert(vertexIndexKey.end(), source.begin(), source.end());
+								vertexIndexKey.insert(vertexIndexKey.end(), source);
 							}
 						}
 					}
@@ -110,7 +110,7 @@ MeshRenderables::MeshRenderables(
 					{
 						target.reserve(vertexCount * slot.dimension());
 					}
-					target.insert(target.end(), source.begin(), source.end());
+					target.insert(target.end(), source);
 				}
 			}
 			else
@@ -129,7 +129,7 @@ MeshRenderables::MeshRenderables(
 		for (auto&& pair : m_table)
 		{
 			VertexBuffer& buffer = pair.second;
-			VertexComponentsMap& compMap = buffer.componentsMap;
+			VertexElementsMap& compMap = buffer.componentsMap;
 
 			for (auto&& slotCompPair: compMap)
 			{
@@ -138,24 +138,26 @@ MeshRenderables::MeshRenderables(
 				if (targetSlot.shapeIndex.isBlendShapeIndex())
 				{
 					const VertexSlot mainSlot(ShapeIndex::main(), targetSlot.semantic, targetSlot.setIndex);
-					const FloatVector& mainComponents = compMap.at(mainSlot);
-					FloatVector& targetComponents = slotCompPair.second;
+					auto& mainElements = compMap.at(mainSlot);
+					auto& targetElements = slotCompPair.second;
 
 					// The annoying fact that TANGENTs have dimension 4 in the main shape and 3 in the targets requires this hacky code.
 					const auto mainDimension = mainSlot.dimension();
 					const auto targetDimension = targetSlot.dimension();
 					const auto sharedDimension = std::min(mainDimension, targetDimension);
-					const auto mainComponentCount = mainComponents.size();
-					const auto targetComponentCount = targetComponents.size();
+					const auto mainComponentCount = mainElements.size();
+					const auto targetComponentCount = targetElements.size();
 					assert(mainComponentCount / mainDimension == targetComponentCount / targetDimension);
 
 					for (size_t mainIndex = 0U, targetIndex = 0U; 
-						mainIndex < mainComponentCount; 
+						mainIndex < size_t(mainComponentCount); 
 						mainIndex += mainDimension, targetIndex += targetDimension )
 					{
+						const auto targetComponents = mutable_span(targetElements[targetIndex].floats());
+						const auto sourceComponents = mainElements[mainIndex].floats();
 						for (size_t dimension=0; dimension<sharedDimension; ++dimension)
 						{
-							targetComponents[targetIndex+dimension] -= mainComponents[mainIndex + dimension];
+							targetComponents[dimension] -= sourceComponents[dimension];
 						}
 					}
 				}
@@ -185,18 +187,18 @@ std::ostream& operator<<(std::ostream& out, const VertexSlot& slot)
 	return out;
 }
 
-std::ostream& operator<<(std::ostream& out, const VertexBuffer& obj)
-{
-	out << '{' << endl << indent;
-
-	dump_iterable(out, "indices", obj.indices, obj.indices.size() / obj.vertexToIndexMapping.size(), 0);
-
-	out << "," << endl;
-
-	dump_iterable(out, "components", obj.componentsMap, 1);
-
-	out << undent << '}';
-
-	return out;
-}
-
+//std::ostream& operator<<(std::ostream& out, const VertexBuffer& obj)
+//{
+//	out << '{' << endl << indent;
+//
+//	dump_iterable(out, "indices", obj.indices, obj.indices.size() / obj.vertexToIndexMapping.size(), 0);
+//
+//	out << "," << endl;
+//
+//	dump_iterable(out, "components", obj.componentsMap, 1);
+//
+//	out << undent << '}';
+//
+//	return out;
+//}
+//

@@ -113,7 +113,7 @@ ExportablePrimitive::ExportablePrimitive(
 	const auto positionSlot = VertexSlot(ShapeIndex::main(), Semantic::POSITION, 0);
 	const auto vectorSlot = VertexSlot(ShapeIndex::main(), debugSemantic, 0);
 	const auto positions = reinterpret_span<Position>(vertexBuffer.componentsMap.at(positionSlot));
-	const auto vectorComponents = vertexBuffer.componentsMap.at(vectorSlot);
+	const auto vectorComponents = reinterpret_span<float>(vertexBuffer.componentsMap.at(vectorSlot));
 	const auto vectorDimension = dimension(debugSemantic, debugShapeIndex);
 	const auto lineCount = positions.size();
 	const auto elementCount = lineCount * 2;

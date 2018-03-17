@@ -152,6 +152,10 @@ struct VertexSlot
 	}
 };
 
+typedef std::vector<VertexSlot> VertexLayout;
+
+typedef std::vector<VertexComponents> VertexElements;
+
 struct VertexHashers
 {
 	std::size_t operator()(const VertexSlot& obj) const
@@ -163,24 +167,34 @@ struct VertexHashers
 	{
 		return hash_value(obj);
 	}
+
+	std::size_t operator()(const VertexComponents& vec) const
+	{
+		return hash_value(vec.shorts());
+	}
+
+	std::size_t operator()(const VertexElements& elems) const
+	{
+		size_t seed = 0x26DFB62C;
+		for (auto& elem : elems)
+		{
+			seed ^= (seed << 6) + (seed >> 2) + 0x3C2E6B88 + hash_value(elem.shorts());
+		}
+		return seed;
+	}
 };
 
-typedef std::vector<VertexSlot> VertexLayout;
+typedef std::unordered_map<VertexElements, Index, VertexHashers> VertexToIndexMapping;
 
-typedef std::unordered_map<FloatVector, Index, CollectionHashers> VertexToIndexMapping;
-
-// TODO: Use valarrays here?
-typedef std::unordered_map<VertexSlot, FloatVector, VertexHashers> VertexComponentsMap;
+typedef std::unordered_map<VertexSlot, VertexElements, VertexHashers> VertexElementsMap;
 
 struct VertexBuffer
 {
 	VertexToIndexMapping vertexToIndexMapping;
 	IndexVector indices;
-	VertexComponentsMap componentsMap;
+	VertexElementsMap componentsMap;
 	
 	size_t maxIndex() const { return vertexToIndexMapping.size(); };
-
-	friend std::ostream& operator <<(std::ostream& out, const VertexBuffer& obj);
 };
 
 typedef std::unordered_map<VertexSignature, VertexBuffer, VertexHashers> VertexBufferTable;

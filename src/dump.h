@@ -86,7 +86,17 @@ static void dump_vertex_table(std::ostream& out, const std::string& name, const 
 		for (auto&& components : table.at(semanticKind))
 		{
 			out << sep;
-			dump_iterable(out, Semantic::name(semanticKind), components, dimension(semanticKind, shapeIndex), precision);
+
+			switch (components.type)
+			{
+			case Component::FLOAT:
+				dump_iterable(out, Semantic::name(semanticKind), components.floats(), dimension(semanticKind, shapeIndex), precision);
+				break;
+			case Component::USHORT:
+				dump_iterable(out, Semantic::name(semanticKind), components.shorts(), dimension(semanticKind, shapeIndex), precision);
+				break;
+			}
+
 		}
 	}
 
