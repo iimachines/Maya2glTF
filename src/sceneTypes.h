@@ -1,12 +1,16 @@
 #pragma once
+
 #include "basicTypes.h"
 #include "ShapeIndex.h"
 
 // <0 means an invalid index
-typedef __int32 Index;
+typedef int Index;
 
 /** Maya uses strings to identify color and texture-coordinate sets. We use indices */
 typedef int SetIndex;
+
+/** We use 32-bit indices, until saving */
+typedef int VertexIndex;
 
 typedef Float3 Position;
 typedef Float4 Rotation; // a quaternion
@@ -15,7 +19,7 @@ typedef Float3 Normal;
 typedef Float2 TexCoord;
 typedef Float4 Color;
 typedef Float4 JointWeights;
-typedef Int4 JointIndices;
+typedef Float4 JointIndices; // TODO: these should become integers, but that requires a lot of refactoring.
 
 typedef Float4 MainShapeTangent;	// 3D tangent  + bitangent sign (chirality)
 typedef Float3 BlendShapeTangent;	// 3D tangent only

@@ -3,6 +3,8 @@
 #include "macros.h"
 #include "sceneTypes.h"
 
+class MeshSkeleton;
+
 struct VertexElementSetDescription
 {
 	VertexElementSetDescription(const Semantic::Kind semantic, const SetIndex setIndex, const MString& setName, const int elementCount)
@@ -29,7 +31,8 @@ typedef std::array<VertexComponentSetDescriptionPerSetIndex, Semantic::COUNT> Ve
 class MeshSemantics
 {
 public:
-	MeshSemantics(const MFnMesh& mesh);
+	// Skeleton is needed to determine if the skin weight/joint semantics are needed.
+	MeshSemantics(const MFnMesh& mesh, MeshSkeleton* skeleton);
 	virtual ~MeshSemantics();
 
 	const VertexComponentSetDescriptionPerSetIndexTable& table() const { return m_table; }

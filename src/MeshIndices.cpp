@@ -160,6 +160,20 @@ MeshIndices::MeshIndices(const MeshSemantics* meshSemantics, const MFnMesh& fnMe
 			}
 		}
 	}
+
+	// The indices of the vertex joint assignments are the same as the points.
+	// TODO: We should use spans instead of copying the vectors...
+	auto& vertexJointWeightsSets = m_table.at(Semantic::WEIGHTS);
+	for (auto& set : vertexJointWeightsSets)
+	{
+		set = positions;
+	}
+
+	auto& vertexJointIndicesSets = m_table.at(Semantic::JOINTS);
+	for (auto& set : vertexJointIndicesSets)
+	{
+		set = positions;
+	}
 }
 
 MeshIndices::~MeshIndices() = default;

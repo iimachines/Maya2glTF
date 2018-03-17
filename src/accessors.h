@@ -20,9 +20,9 @@ std::unique_ptr<GLTF::Accessor> contiguousAccessor(
 	const gsl::span<T>& data,
 	const size_t dimension)
 {
-	const uint8* ptr = &reinterpret_span<uint8>(data)[0];
+	const uint8_t* ptr = &reinterpret_span<uint8_t>(data)[0];
 	auto accessor = std::make_unique<GLTF::Accessor>(type, componentType,
-		const_cast<uint8*>(ptr),
+		const_cast<uint8_t*>(ptr),
 		static_cast<int>(data.size() / dimension),
 		target);
 

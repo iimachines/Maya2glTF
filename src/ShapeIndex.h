@@ -1,6 +1,6 @@
 #pragma once
-#include "basicTypes.h"
-#include <ostream>
+
+#include "macros.h"
 
 /** Index of a mesh shape, 0 means the base shape, 1 the first blend-shape target */
 class ShapeIndex

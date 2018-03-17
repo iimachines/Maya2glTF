@@ -19,27 +19,10 @@ inline VertexComponents componentsAt(const VertexComponents& elements, const siz
 class Arguments;
 class MeshIndices;
 
-class MeshJoint
-{
-public:
-	MDagPath dagPath;
-	MMatrix worldBindMatrixInverse;
-
-	MeshJoint(const MDagPath& dagPath, const MMatrix& worldBindMatrixInverse)
-		: dagPath(dagPath)
-		, worldBindMatrixInverse(worldBindMatrixInverse)
-	{
-	}
-
-	DEFAULT_COPY_MOVE_ASSIGN_DESTRUCT(MeshJoint);
-};
-
-typedef std::vector<MeshJoint> MeshJoints;
-
 class MeshVertices
 {
 public:
-	MeshVertices(const MeshIndices& meshIndices, const MFnMesh& mesh, ShapeIndex shapeIndex, const Arguments& args, MSpace::Space space = MSpace::kTransform);
+	MeshVertices(const MeshIndices& meshIndices, const MeshSkeleton* meshSkeleton, const MFnMesh& mesh, ShapeIndex shapeIndex, const Arguments& args, MSpace::Space space = MSpace::kTransform);
 	virtual ~MeshVertices();
 
 	const ShapeIndex shapeIndex;
@@ -53,12 +36,8 @@ public:
 		return m_table.at(semanticIndex).at(setIndex);
 	}
 
-	const MeshJoints& joints() const { return m_joints; }
-
 private:
 	friend class MeshShape;
-
-	MeshJoints m_joints;
 
 	PositionVector m_positions;
 	NormalVector m_normals;
@@ -72,6 +51,4 @@ private:
 	VertexElementsPerSetIndexTable m_table;
 
 	DISALLOW_COPY_MOVE_ASSIGN(MeshVertices);
-
-	static MObject tryExtractSkinCluster(const MFnMesh& fnMesh, const MSelectionList& ignoredDeformers);
 };

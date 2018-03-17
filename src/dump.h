@@ -75,7 +75,7 @@ static void dump_vertex_table(std::ostream& out, const std::string& name, const 
 {
 	out << quoted(name) << ": {" << endl << indent;
 
-	out << "\"blendShapeIndex\": " << shapeIndex.arrayIndex() << ", " << endl;
+	out << "\"shapeIndex\": " << shapeIndex.arrayIndex() << ", " << endl;
 
 	JsonSeparator sep(",\n");
 

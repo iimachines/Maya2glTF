@@ -47,10 +47,12 @@ public:
 	virtual ~MainShape();
 
 	const MeshIndices& indices() const { return *m_indices; }
+	const MeshSkeleton& skeleton() const { return *m_skeleton; }
 
 	void dump(class IndentableStream& out, const std::string& name) const override;
 
 private:
+	std::unique_ptr<MeshSkeleton> m_skeleton;
 	std::unique_ptr<MeshIndices> m_indices;
 	DISALLOW_COPY_MOVE_ASSIGN(MainShape);
 };

@@ -25,6 +25,7 @@ ExportableMesh::ExportableMesh(const MDagPath& shapeDagPath, ExportableResources
 	{
 		auto& mainShape = mayaMesh->shape();
 
+		// Generate primitives
 		MeshRenderables renderables(mayaMesh->allShapes(), args);
 		const auto& shadingMap = mainShape.indices().shadingPerInstance();
 		const auto& shading = shadingMap.at(renderables.instanceNumber);

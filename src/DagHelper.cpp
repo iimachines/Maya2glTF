@@ -130,11 +130,11 @@ bool DagHelper::getPlugValue(const MPlug& plug, int& value)
 	return plug.getValue(value);
 }
 
-bool DagHelper::getPlugValue(const MPlug& plug, uint32& value)
+bool DagHelper::getPlugValue(const MPlug& plug, uint32_t& value)
 {
 	int temp;
 	const auto status = plug.getValue(temp);
-	value = static_cast<uint32>(temp);
+	value = static_cast<uint32_t>(temp);
 	return status == MStatus::kSuccess;
 }
 
@@ -143,11 +143,11 @@ bool DagHelper::getPlugValue(const MPlug& plug, short& value)
 	return plug.getValue(value);
 }
 
-bool DagHelper::getPlugValue(const MPlug& plug, uint16& value)
+bool DagHelper::getPlugValue(const MPlug& plug, uint16_t& value)
 {
 	short temp;
 	const auto status = plug.getValue(temp);
-	value = static_cast<uint16>(temp);
+	value = static_cast<uint16_t>(temp);
 	return status == MStatus::kSuccess;
 }
 
@@ -156,11 +156,11 @@ bool DagHelper::getPlugValue(const MPlug& plug, char& value)
 	return plug.getValue(value);
 }
 
-bool DagHelper::getPlugValue(const MPlug& plug, uint8& value)
+bool DagHelper::getPlugValue(const MPlug& plug, uint8_t& value)
 {
 	char temp;
 	const auto status = plug.getValue(temp);
-	value = static_cast<uint8>(temp);
+	value = static_cast<uint8_t>(temp);
 	return status == MStatus::kSuccess;
 }
 

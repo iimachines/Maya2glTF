@@ -22,6 +22,8 @@ namespace Semantic
 		case TANGENT:	return std::string("TANGENT");
 		case COLOR:		return std::string("COLOR_") + std::to_string(setIndex);
 		case TEXCOORD:	return std::string("TEXCOORD_") + std::to_string(setIndex);
+		case WEIGHTS:	return std::string("WEIGHTS_") + std::to_string(setIndex);
+		case JOINTS:	return std::string("JOINTS_") + std::to_string(setIndex);
 		default: assert(false); return "UNKNOWN";
 		}
 	}
@@ -36,7 +38,7 @@ ExportablePrimitive::ExportablePrimitive(
 	auto& vertexIndices = vertexBuffer.indices;
 
 	if (resources.arguments().force32bitIndices ||
-		vertexBuffer.maxIndex() > std::numeric_limits<uint16>::max())
+		vertexBuffer.maxIndex() > std::numeric_limits<uint16_t>::max())
 	{
 		// Use 32-bit indices
 		glIndices = contiguousAccessor("indices", GLTF::Accessor::Type::SCALAR, WebGL::UNSIGNED_INT, WebGL::ELEMENT_ARRAY_BUFFER, span(vertexIndices), 1);
@@ -45,7 +47,7 @@ ExportablePrimitive::ExportablePrimitive(
 	else
 	{
 		// Use 16-bit indices
-		std::vector<uint16> shortIndices(vertexIndices.size());
+		std::vector<uint16_t> shortIndices(vertexIndices.size());
 		std::copy(vertexIndices.begin(), vertexIndices.end(), shortIndices.begin());
 		glIndices = contiguousAccessor("indices", GLTF::Accessor::Type::SCALAR, WebGL::UNSIGNED_SHORT, WebGL::ELEMENT_ARRAY_BUFFER, span(shortIndices), 1);
 		glPrimitive.indices = glIndices.get();
@@ -115,7 +117,7 @@ ExportablePrimitive::ExportablePrimitive(
 	const auto vectorDimension = dimension(debugSemantic, debugShapeIndex);
 	const auto lineCount = positions.size();
 	const auto elementCount = lineCount * 2;
-	std::vector<uint16> lineIndices(elementCount);
+	std::vector<uint16_t> lineIndices(elementCount);
 	std::vector<Position> linePoints(elementCount);
 	std::vector<Color> lineColors(elementCount);
 
@@ -123,7 +125,7 @@ ExportablePrimitive::ExportablePrimitive(
 	fill(lineColors.begin(), lineColors.end(), debugLineColor);
 
 	// Add a line from each point
-	const float length = static_cast<float>(debugLineLength);
+	const auto length = static_cast<float>(debugLineLength);
 	for (auto lineIndex = 0; lineIndex < lineCount; ++lineIndex)
 	{
 		const auto offset = lineIndex * 2;

@@ -42,11 +42,11 @@ struct DagHelper
 	static bool			getPlugValue(const MPlug& plug, bool& value);
 	static bool			getPlugValue(const MPlug& plug, MColor& value);
 	static bool			getPlugValue(const MPlug& plug, int& value);
-	static bool			getPlugValue(const MPlug& plug, uint32& value);
+	static bool			getPlugValue(const MPlug& plug, uint32_t& value);
 	static bool			getPlugValue(const MPlug& plug, short& value);
-	static bool			getPlugValue(const MPlug& plug, uint16& value);
+	static bool			getPlugValue(const MPlug& plug, uint16_t& value);
 	static bool			getPlugValue(const MPlug& plug, char& value);
-	static bool			getPlugValue(const MPlug& plug, uint8& value);
+	static bool			getPlugValue(const MPlug& plug, uint8_t& value);
 	static bool			getPlugValue(const MPlug& plug, float& x);
 	static bool			getPlugValue(const MPlug& plug, float& x, float& y);
 	static bool			getPlugValue(const MPlug& plug, float& x, float& y, float& z);
