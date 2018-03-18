@@ -68,7 +68,7 @@ inline VertexComponents floats(gsl::span<T> span)
 template<typename T>
 inline VertexComponents shorts(gsl::span<T> span)
 {
-	return VertexComponents(reinterpret_span<float>(span));
+	return VertexComponents(reinterpret_span<ushort>(span));
 }
 
 typedef std::vector<VertexComponents> VertexElementsPerSetIndex;
