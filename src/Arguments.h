@@ -47,7 +47,7 @@ struct AnimClipArg
 	{
 	}
 
-	DEFAULT_COPY_MOVE_ASSIGN_DESTRUCT(AnimClipArg);
+	DEFAULT_COPY_MOVE_ASSIGN_DTOR(AnimClipArg);
 
 	std::string name;
 	MTime startTime;

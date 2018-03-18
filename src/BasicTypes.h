@@ -1,5 +1,8 @@
 #pragma once
 
+typedef uint8_t byte;
+typedef uint16_t ushort;
+
 typedef std::array<float, 1> Float1;
 typedef std::array<float, 2> Float2;
 typedef std::array<float, 3> Float3;

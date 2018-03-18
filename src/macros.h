@@ -14,10 +14,10 @@
 	TypeName& operator=(const TypeName& other) = default; \
 	TypeName& operator=(TypeName&& other) noexcept = default; \
 
-#define DEFAULT_COPY_MOVE_ASSIGN_DESTRUCT(TypeName) \
+#define DEFAULT_COPY_MOVE_ASSIGN_DTOR(TypeName) \
 	~TypeName() = default; \
 	DEFAULT_COPY_MOVE_ASSIGN(TypeName) \
 
 #define DEFAULT_COPY_MOVE_ASSIGN_CTOR_DTOR(TypeName) \
 	TypeName() = default; \
-	DEFAULT_COPY_MOVE_ASSIGN_DESTRUCT(TypeName) \
+	DEFAULT_COPY_MOVE_ASSIGN_DTOR(TypeName) \

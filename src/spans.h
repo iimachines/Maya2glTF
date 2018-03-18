@@ -57,3 +57,16 @@ static std::size_t hash_value(const gsl::span<const uint16_t>& span)
 	}
 	return seed;
 }
+
+template<typename T>
+static void reinterpret_span(const std::vector<gsl::span<T>>& vec) = delete;
+
+template<typename T>
+static void reinterpret_span(const gsl::span<gsl::span<T>>& vec) = delete;
+
+template<typename T>
+static void span(const std::vector<gsl::span<T>>& vec) = delete;
+
+template<typename T>
+static void span(const gsl::span<gsl::span<T>>& vec) = delete;
+

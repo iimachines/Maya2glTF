@@ -15,7 +15,7 @@ struct VertexElementSetDescription
 	{
 	}
 
-	DEFAULT_COPY_MOVE_ASSIGN_DESTRUCT(VertexElementSetDescription);
+	DEFAULT_COPY_MOVE_ASSIGN_DTOR(VertexElementSetDescription);
 
 	void dump(class IndentableStream& out, const std::string& name) const;
 

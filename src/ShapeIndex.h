@@ -11,7 +11,7 @@ public:
 	static ShapeIndex shape(const int index) { return ShapeIndex(index); }
 	static ShapeIndex invalid() { return ShapeIndex(-1); }
 
-	DEFAULT_COPY_MOVE_ASSIGN_DESTRUCT(ShapeIndex);
+	DEFAULT_COPY_MOVE_ASSIGN_DTOR(ShapeIndex);
 
 	friend size_t hash_value(const ShapeIndex& obj)
 	{

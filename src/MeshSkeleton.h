@@ -21,7 +21,7 @@ public:
 	{
 	}
 
-	DEFAULT_COPY_MOVE_ASSIGN_DESTRUCT(MeshJoint);
+	DEFAULT_COPY_MOVE_ASSIGN_DTOR(MeshJoint);
 };
 
 typedef std::vector<MeshJoint> MeshJoints;

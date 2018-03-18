@@ -92,8 +92,8 @@ ExportablePrimitive::ExportablePrimitive(
 			auto& slot = pair.first;
 			if (semanticSet.test(slot.semantic))
 			{
-				auto accessor = contiguousElementAccessor(slot.semantic, slot.shapeIndex, span(pair.second));
-				glAttributes[glTFattributeName(slot.semantic, slot.setIndex)] = accessor.get();
+				auto accessor = contiguousElementAccessor(slot.semantic, slot.shapeIndex, pair.second);
+				glAttributes[Semantic::glTFattributeName(slot.semantic, slot.setIndex)] = accessor.get();
 				glAccessors.emplace_back(std::move(accessor));
 			}
 		}
@@ -147,11 +147,11 @@ ExportablePrimitive::ExportablePrimitive(
 	glIndices = contiguousAccessor("indices", GLTF::Accessor::Type::SCALAR, WebGL::UNSIGNED_SHORT, WebGL::ELEMENT_ARRAY_BUFFER, span(lineIndices), 1);
 	glPrimitive.indices = glIndices.get();
 
-	auto pointAccessor = contiguousElementAccessor(Semantic::Kind::POSITION, ShapeIndex::main(), span(linePoints));
+	auto pointAccessor = contiguousElementAccessor(Semantic::Kind::POSITION, ShapeIndex::main(), reinterpret_span<byte>(linePoints));
 	glPrimitive.attributes[glTFattributeName(Semantic::Kind::POSITION, 0)] = pointAccessor.get();
 	glAccessors.emplace_back(move(pointAccessor));
 
-	auto colorAccessor = contiguousElementAccessor(Semantic::Kind::COLOR, ShapeIndex::main(), span(lineColors));
+	auto colorAccessor = contiguousElementAccessor(Semantic::Kind::COLOR, ShapeIndex::main(), reinterpret_span<byte>(lineColors));
 	glPrimitive.attributes[glTFattributeName(Semantic::Kind::COLOR, 0)] = colorAccessor.get();
 	glAccessors.emplace_back(move(colorAccessor));
 }

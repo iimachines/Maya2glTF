@@ -29,7 +29,7 @@ struct VertexSignature
 	{
 	}
 
-	DEFAULT_COPY_MOVE_ASSIGN_DESTRUCT(VertexSignature);
+	DEFAULT_COPY_MOVE_ASSIGN_DTOR(VertexSignature);
 	
 	friend bool operator==(const VertexSignature& lhs, const VertexSignature& rhs)
 	{
@@ -93,7 +93,7 @@ struct VertexSlot
 	{
 	}
 
-	DEFAULT_COPY_MOVE_ASSIGN_DESTRUCT(VertexSlot);
+	DEFAULT_COPY_MOVE_ASSIGN_DTOR(VertexSlot);
 
 	friend std::ostream& operator <<(std::ostream& out, const VertexSlot& slot);
 
@@ -150,11 +150,26 @@ struct VertexSlot
 	{
 		return Semantic::dimension(semantic, shapeIndex);
 	}
+
+	Component::Type componentType() const
+	{
+		return  Component::type(semantic);
+	}
+
+	size_t componentByteSize() const
+	{
+		return byteSize(componentType());
+	}
+
+	size_t elementByteSize() const
+	{
+		return dimension() * componentByteSize();
+	}
 };
 
 typedef std::vector<VertexSlot> VertexLayout;
 
-typedef std::vector<VertexComponents> VertexElements;
+typedef std::vector<byte> VertexElementData;
 
 struct VertexHashers
 {
@@ -173,20 +188,20 @@ struct VertexHashers
 		return hash_value(vec.shorts());
 	}
 
-	std::size_t operator()(const VertexElements& elems) const
+	std::size_t operator()(const VertexElementData& elems) const
 	{
 		size_t seed = 0x26DFB62C;
 		for (auto& elem : elems)
 		{
-			seed ^= (seed << 6) + (seed >> 2) + 0x3C2E6B88 + hash_value(elem.shorts());
+			seed ^= (seed << 6) + (seed >> 2) + 0x3C2E6B88 + std::hash_value(elem);
 		}
 		return seed;
 	}
 };
 
-typedef std::unordered_map<VertexElements, Index, VertexHashers> VertexToIndexMapping;
+typedef std::unordered_map<VertexElementData, Index, VertexHashers> VertexToIndexMapping;
 
-typedef std::unordered_map<VertexSlot, VertexElements, VertexHashers> VertexElementsMap;
+typedef std::unordered_map<VertexSlot, VertexElementData, VertexHashers> VertexElementsMap;
 
 struct VertexBuffer
 {

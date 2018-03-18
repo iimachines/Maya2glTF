@@ -2,8 +2,9 @@
 
 #include "spans.h"
 #include "sceneTypes.h"
+#include "MeshRenderables.h"
 
-inline GLTF::Accessor::Type getAccessorType(const size_t dimension)
+inline GLTF::Accessor::Type glAccessorType(const size_t dimension)
 {
 	// HACK: We assume SCALAR == 0 here...
 	assert(dimension >= 1 && dimension <= 4);
@@ -17,13 +18,15 @@ std::unique_ptr<GLTF::Accessor> contiguousAccessor(
 	GLTF::Accessor::Type type,
 	GLTF::Constants::WebGL componentType,
 	GLTF::Constants::WebGL target,
-	const gsl::span<T>& data,
+	const gsl::span<const T> data,
 	const size_t dimension)
 {
-	const uint8_t* ptr = &reinterpret_span<uint8_t>(data)[0];
-	auto accessor = std::make_unique<GLTF::Accessor>(type, componentType,
-		const_cast<uint8_t*>(ptr),
-		static_cast<int>(data.size() / dimension),
+	auto bytes = reinterpret_span<byte>(data);
+	auto accessor = std::make_unique<GLTF::Accessor>(
+		type,
+		componentType,
+		const_cast<byte*>(&bytes[0]),
+		int(data.size() / dimension),
 		target);
 
 	if (name)
@@ -38,26 +41,43 @@ inline std::unique_ptr<GLTF::Accessor> contiguousChannelAccessor(
 	const char* name,
 	const gsl::span<const float>& data,
 	const size_t dimension,
-	GLTF::Constants::WebGL target = static_cast<GLTF::Constants::WebGL>(-1))
+	const GLTF::Constants::WebGL target = static_cast<GLTF::Constants::WebGL>(-1))
 {
 	return contiguousAccessor(name,
-		getAccessorType(dimension),
+		glAccessorType(dimension),
 		GLTF::Constants::WebGL::FLOAT,
 		target,
 		data,
 		dimension);
 }
 
-template<typename T>
-std::unique_ptr<GLTF::Accessor> contiguousElementAccessor(
+inline std::unique_ptr<GLTF::Accessor> contiguousElementAccessor(
 	const Semantic::Kind semantic,
 	const ShapeIndex& shapeIndex,
-	const gsl::span<T>& data)
+	const gsl::span<const byte>& bytes)
 {
-	return contiguousAccessor(name(semantic),
-		getAccessorType(dimension(semantic, shapeIndex)),
-		GLTF::Constants::WebGL::FLOAT,
-		GLTF::Constants::WebGL::ARRAY_BUFFER,
-		reinterpret_span<float>(data),
-		dimension(semantic, shapeIndex));
+	const auto dim = dimension(semantic, shapeIndex);
+
+	switch (Component::type(semantic))
+	{
+	case Component::FLOAT: 
+		return contiguousAccessor(name(semantic),
+			glAccessorType(dim),
+			GLTF::Constants::WebGL::FLOAT,
+			GLTF::Constants::WebGL::ARRAY_BUFFER,
+			reinterpret_span<float>(bytes),
+			dim);
+
+	case Component::USHORT: 
+		return contiguousAccessor(name(semantic),
+			glAccessorType(dim),
+			GLTF::Constants::WebGL::UNSIGNED_SHORT,
+			GLTF::Constants::WebGL::ARRAY_BUFFER,
+			reinterpret_span<ushort>(bytes),
+			dim);
+
+	default:
+		assert(false);
+		return nullptr;
+	}
 }

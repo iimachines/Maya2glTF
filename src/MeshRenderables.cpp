@@ -30,7 +30,7 @@ MeshRenderables::MeshRenderables(
 
 	auto primitiveVertexIndex = 0;
 
-	VertexElements vertexIndexKey;
+	VertexElementData vertexIndexKey;
 	VertexLayout vertexLayout;
 
 	const auto semanticsMask = args.meshPrimitiveAttributes;
@@ -73,8 +73,9 @@ MeshRenderables::MeshRenderables(
 								const auto& elementIndices = indicesPerSet.at(setIndex);
 								const auto vertexIndex = elementIndices.at(primitiveVertexIndex);
 								const auto& vertexElements = shapeVerticesTable.at(semantic).at(setIndex);
-								const auto& source = componentsAt(vertexElements, vertexIndex, semantic, shape->shapeIndex);
-								vertexIndexKey.insert(vertexIndexKey.end(), source);
+								const auto& sourceComponents = componentsAt(vertexElements, vertexIndex, semantic, shape->shapeIndex);
+								const auto sourceBytes = sourceComponents.bytes();
+								vertexIndexKey.insert(vertexIndexKey.end(), sourceBytes.begin(), sourceBytes.end());
 							}
 						}
 					}
@@ -104,13 +105,15 @@ MeshRenderables::MeshRenderables(
 					const auto& elementIndices = mainIndices.indicesAt(slot.semantic, slot.setIndex);
 					const auto vertexIndex = elementIndices.at(primitiveVertexIndex);
 					const auto& vertexElements = shape->vertices().vertexElementComponentsAt(slot.semantic, slot.setIndex);
-					const auto& source = componentsAt(vertexElements, vertexIndex, slot.semantic, slot.shapeIndex);
+					const auto& sourceComponents = componentsAt(vertexElements, vertexIndex, slot.semantic, slot.shapeIndex);
+					const auto sourceBytes = sourceComponents.bytes();
 					auto& target = componentsMap[slot];
 					if (target.empty())
 					{
-						target.reserve(vertexCount * slot.dimension());
+						target.reserve(vertexCount * slot.elementByteSize());
 					}
-					target.insert(target.end(), source);
+
+					target.insert(target.end(), sourceBytes.begin(), sourceBytes.end());
 				}
 			}
 			else
@@ -131,33 +134,31 @@ MeshRenderables::MeshRenderables(
 			VertexBuffer& buffer = pair.second;
 			VertexElementsMap& compMap = buffer.componentsMap;
 
-			for (auto&& slotCompPair: compMap)
+			for (auto&& slotCompPair : compMap)
 			{
 				auto& targetSlot = slotCompPair.first;
 
 				if (targetSlot.shapeIndex.isBlendShapeIndex())
 				{
 					const VertexSlot mainSlot(ShapeIndex::main(), targetSlot.semantic, targetSlot.setIndex);
-					auto& mainElements = compMap.at(mainSlot);
-					auto& targetElements = slotCompPair.second;
+					auto sourceComponents = reinterpret_span<float>(compMap.at(mainSlot));
+					auto targetComponents = mutable_span(reinterpret_span<float>(slotCompPair.second));
 
 					// The annoying fact that TANGENTs have dimension 4 in the main shape and 3 in the targets requires this hacky code.
-					const auto mainDimension = mainSlot.dimension();
+					const auto sourceDimension = mainSlot.dimension();
 					const auto targetDimension = targetSlot.dimension();
-					const auto sharedDimension = std::min(mainDimension, targetDimension);
-					const auto mainComponentCount = mainElements.size();
-					const auto targetComponentCount = targetElements.size();
-					assert(mainComponentCount / mainDimension == targetComponentCount / targetDimension);
+					const auto sharedDimension = std::min(sourceDimension, targetDimension);
+					const auto sourceComponentCount = sourceComponents.size();
+					const auto targetComponentCount = targetComponents.size();
+					assert(sourceComponentCount / sourceDimension == targetComponentCount / targetDimension);
 
-					for (size_t mainIndex = 0U, targetIndex = 0U; 
-						mainIndex < size_t(mainComponentCount); 
-						mainIndex += mainDimension, targetIndex += targetDimension )
+					for (size_t sourceIndex = 0U, targetIndex = 0U;
+						sourceIndex < size_t(sourceComponentCount);
+						sourceIndex += sourceDimension, targetIndex += targetDimension)
 					{
-						const auto targetComponents = mutable_span(targetElements[targetIndex].floats());
-						const auto sourceComponents = mainElements[mainIndex].floats();
-						for (size_t dimension=0; dimension<sharedDimension; ++dimension)
+						for (size_t dimension = 0; dimension < sharedDimension; ++dimension)
 						{
-							targetComponents[dimension] -= sourceComponents[dimension];
+							targetComponents[targetIndex + dimension] -= sourceComponents[sourceIndex + dimension];
 						}
 					}
 				}

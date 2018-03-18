@@ -22,7 +22,6 @@ typedef Float4 Color;
 typedef float JointWeight;
 typedef Float4 JointWeights;
 
-typedef uint16_t ushort;
 typedef ushort JointIndex;
 typedef std::array<JointIndex, 4> JointIndices;
 
@@ -79,7 +78,7 @@ namespace Semantic
 		return static_cast<Kind>(s);
 	}
 
-	// Get the number of float components per semantic 
+	// Get the number of components per semantic 
 	inline int dimension(const Kind s, const ShapeIndex& shapeIndex)
 	{
 		switch (s)
@@ -138,12 +137,25 @@ namespace Component
 {
 	enum Type
 	{
-		INVALID = 1,
 		FLOAT,
 		USHORT,
 	};
 
-	inline Type type(Semantic::Kind s)
+	inline size_t byteSize(Type type)
+	{
+		switch (type)
+		{
+		case FLOAT:
+			return sizeof(float);
+		case USHORT:
+			return sizeof(ushort);
+		default:
+			assert(false);
+			return 0;
+		}
+	}
+
+	inline Type type(const Semantic::Kind s)
 	{
 		switch (s)
 		{
@@ -155,12 +167,11 @@ namespace Component
 		case Semantic::WEIGHTS:
 			return FLOAT;
 
-		case Semantic::JOINTS:	
+		case Semantic::JOINTS:
 			return USHORT;
 
-		default: 
-			assert(false); 
-			return INVALID;
+		default:
+			throw std::runtime_error("Invalid component type");
 		}
 	}
 };

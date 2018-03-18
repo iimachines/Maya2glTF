@@ -6,39 +6,24 @@
 #include "spans.h"
 #include <ostream>
 
-//struct VertexComponentData
-//{
-//	// We either store floats or ushort, and sizeof(float) = 2*sizeof(ushort), so use ushort for the raw data.
-//	ushort value;
-//
-//	friend bool operator==(const VertexComponentData& lhs, const VertexComponentData& rhs)
-//	{
-//		return lhs.value == rhs.value;
-//	}
-//
-//	friend bool operator!=(const VertexComponentData& lhs, const VertexComponentData& rhs)
-//	{
-//		return !(lhs == rhs);
-//	}
-//
-//	DEFAULT_COPY_MOVE_ASSIGN_CTOR_DTOR(VertexComponentData);
-//};
-
-//typedef gsl::span<const VertexComponentData> VertexComponents;
-
-class VertexComponents 
+class VertexComponents
 {
 public:
-	Component::Type type = Component::INVALID;
+	Component::Type type;
 
+	const gsl::span<const byte>& bytes() const { return m_data; }
 	gsl::span<const float> floats() const { return reinterpret_span<float>(m_data); }
 	gsl::span<const ushort> shorts() const { return reinterpret_span<ushort>(m_data); }
 
-	explicit VertexComponents(const gsl::span<const float>& fs): type(Component::FLOAT), m_data(reinterpret_span<ushort>(fs))
+	explicit VertexComponents(const gsl::span<const float>& fs)
+		: type(Component::FLOAT)
+		, m_data(reinterpret_span<byte>(fs))
 	{
 	}
 
-	explicit VertexComponents(const gsl::span<const ushort>& ns) : type(Component::USHORT), m_data(reinterpret_span<ushort>(ns))
+	explicit VertexComponents(const gsl::span<const ushort>& ns)
+		: type(Component::USHORT)
+		, m_data(reinterpret_span<byte>(ns))
 	{
 	}
 
@@ -51,8 +36,7 @@ public:
 		case Component::USHORT:
 			return VertexComponents(shorts().subspan(offset, count));
 		default:
-			assert(false);
-			return VertexComponents();
+			throw std::runtime_error("Invalid component type");
 		}
 	}
 
@@ -67,12 +51,12 @@ public:
 		return !(lhs == rhs);
 	}
 
-	bool empty() const { return m_data.empty();  }
+	bool empty() const { return m_data.empty(); }
 
-	DEFAULT_COPY_MOVE_ASSIGN_CTOR_DTOR(VertexComponents);
+	DEFAULT_COPY_MOVE_ASSIGN_DTOR(VertexComponents);
 
 private:
-	gsl::span<const ushort> m_data;
+	gsl::span<const byte> m_data;
 };
 
 template<typename T>
