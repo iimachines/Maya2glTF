@@ -4,6 +4,7 @@
 #include "IndentableStream.h"
 #include "Arguments.h"
 #include "spans.h"
+#include "NodeHierarchy.h"
 
 struct VertexJointAssignmentSlice
 {
@@ -20,11 +21,13 @@ struct VertexJointAssignmentSlice
 };
 
 MeshSkeleton::MeshSkeleton(
-	const MFnMesh& mesh,
-	const Arguments& args)
+	NodeHierarchy& hierarchy,
+	const MFnMesh& mesh)
 	: m_maxVertexJointAssignmentCount(0)
 {
 	MStatus status;
+
+	auto& args = hierarchy.arguments();
 
 	MObject skin = tryExtractSkinCluster(mesh, args.ignoreMeshDeformers);
 	MFnSkinCluster fnSkin(skin, &status);
@@ -40,11 +43,8 @@ MeshSkeleton::MeshSkeleton(
 		for (size_t index = 0; index < jointCount; ++index)
 		{
 			auto& jointDagPath = jointDagPaths[static_cast<unsigned int>(index)];
-
-			const auto matrix = jointDagPath.inclusiveMatrixInverse(&status);
-			THROW_ON_FAILURE(status);
-
-			m_joints.emplace_back(jointDagPath, matrix);
+			auto* jointNode = hierarchy.getNode(jointDagPath);
+			m_joints.emplace_back(jointNode);
 		}
 
 		// Gather all joint index/weights per vertex, sorted ascendingly by weight

@@ -1,23 +1,27 @@
 #include "externals.h"
 #include "ExportableClip.h"
+#include "ExportableNode.h"
 #include "accessors.h"
 #include "time.h"
 
-ExportableClip::ExportableClip(const Arguments& args, const AnimClipArg& clipArg, const std::vector<std::unique_ptr<ExportableItem>>& items)
+ExportableClip::ExportableClip(const Arguments& args, const AnimClipArg& clipArg, const NodeHierarchy& hierarchy)
 {
 	glAnimation.name = clipArg.name;
 
 	const auto frameCount = clipArg.frameCount();
 	const auto scaleFactor = args.scaleFactor;
 
+	auto& items = hierarchy.table();
+
 	m_nodeAnimations.reserve(items.size());
 
-	for (auto& item : items)
+	for (auto& pair : items)
 	{
-		auto nodeAnimation = item->createAnimation(frameCount, scaleFactor);
+		auto& node = pair.second;
+		auto nodeAnimation = node->createAnimation(frameCount, scaleFactor);
 		if (nodeAnimation)
 		{
-			m_nodeAnimations.emplace_back(move(nodeAnimation));
+			m_nodeAnimations.emplace_back(std::move(nodeAnimation));
 		}
 	}
 

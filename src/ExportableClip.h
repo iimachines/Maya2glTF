@@ -3,11 +3,12 @@
 #include "NodeAnimation.h"
 #include "ExportableItem.h"
 #include "Arguments.h"
+#include "NodeHierarchy.h"
 
 class ExportableClip
 {
 public:
-	ExportableClip(const Arguments& args, const AnimClipArg& clipArg, const std::vector<std::unique_ptr<ExportableItem>>& items);
+	ExportableClip(const Arguments& args, const AnimClipArg& clipArg, const NodeHierarchy& hierarchy);
 	virtual ~ExportableClip();
 
 	GLTF::Animation glAnimation;

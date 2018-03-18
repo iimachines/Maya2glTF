@@ -1,16 +1,16 @@
 #pragma once
 #include "ExportableObject.h"
-#include "MeshRenderables.h"
 
 class ExportableResources;
 class ExportablePrimitive;
 class Arguments;
 class Mesh;
+class NodeHierarchy;
 
 class ExportableMesh : public ExportableObject
 {
 public:
-	ExportableMesh(const MDagPath& shapeDagPath, ExportableResources& resources);
+	ExportableMesh(NodeHierarchy& hierarchy, const MDagPath& shapeDagPath);
 	virtual ~ExportableMesh();
 
 	GLTF::Mesh glMesh;

@@ -3,18 +3,31 @@
 #include "ExportableNode.h"
 #include "MayaException.h"
 
-void NodeHierarchy::registerNode(ExportableNode* node)
+NodeHierarchy::NodeHierarchy(ExportableResources& resources) :m_resources(resources)
 {
-	m_table[node->dagPath.fullPathName().asChar()] = node;
 }
 
-ExportableNode* NodeHierarchy::lookupNode(const std::string& fullDagPath) const
+NodeHierarchy::~NodeHierarchy() = default;
+
+ExportableNode* NodeHierarchy::getNode(const MDagPath& dagPath)
 {
-	auto it = m_table.find(fullDagPath);
-	return it != m_table.end() ? it->second : nullptr;
+	MStatus status;
+
+	const std::string fullDagPath{ dagPath.fullPathName(&status).asChar() };
+	THROW_ON_FAILURE(status);
+
+	MObject mayaNode = dagPath.node(&status);
+	if (mayaNode.isNull() || status.error())
+	{
+		cerr << "glTF2Maya: skipping '" << fullDagPath << "' as it is not a node" << endl;
+		return nullptr;
+	}
+
+	auto& ptr = m_table[fullDagPath];
+	return ptr == nullptr ? new ExportableNode(*this, ptr, dagPath) : ptr.get();
 }
 
-ExportableNode* NodeHierarchy::parentOf(ExportableNode* node) const
+ExportableNode* NodeHierarchy::getParent(ExportableNode* node)
 {
 	MStatus status;
 
@@ -30,10 +43,7 @@ ExportableNode* NodeHierarchy::parentOf(ExportableNode* node) const
 		if (parentDagPath.length() <= 0)
 			break;
 
-		const std::string parentFullPath { parentDagPath.fullPathName(&status).asChar() };
-		THROW_ON_FAILURE(status);
-
-		parentNode = lookupNode(parentFullPath);
+		parentNode = getNode(parentDagPath);
 	}
 
 	return parentNode;
@@ -52,12 +62,4 @@ int NodeHierarchy::distanceToRoot(ExportableNode* node)
 	}
 
 	return distance;
-}
-
-void NodeHierarchy::computeObjectTransforms()
-{
-	for (auto& it: m_table)
-	{
-		it.second->connectToHierarchy(*this);
-	}
 }

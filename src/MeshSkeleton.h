@@ -8,23 +8,10 @@
 
 class Arguments;
 class MeshIndices;
+class NodeHierarchy;
+class ExportableNode;
 
-class MeshJoint
-{
-public:
-	MDagPath dagPath;
-	MMatrix worldBindMatrixInverse;
-
-	MeshJoint(const MDagPath& dagPath, const MMatrix& worldBindMatrixInverse)
-		: dagPath(dagPath)
-		, worldBindMatrixInverse(worldBindMatrixInverse)
-	{
-	}
-
-	DEFAULT_COPY_MOVE_ASSIGN_DTOR(MeshJoint);
-};
-
-typedef std::vector<MeshJoint> MeshJoints;
+typedef std::vector<ExportableNode*> MeshJoints;
 
 class VertexJointAssignment
 {
@@ -52,12 +39,14 @@ typedef std::vector<gsl::span<const VertexJointAssignment>> VertexJointAssignmen
 class MeshSkeleton
 {
 public:
-	MeshSkeleton(const MFnMesh& mesh, const Arguments& args);
+	MeshSkeleton(NodeHierarchy& hierarchy, const MFnMesh& mesh);
 	virtual ~MeshSkeleton();
 
 	void dump(class IndentableStream& out, const std::string& name) const;
 
 	bool isEmpty() const { return m_maxVertexJointAssignmentCount == 0; }
+
+	int rootJointIndex() const { }
 	
 	const MeshJoints& joints() const { return m_joints; }
 	

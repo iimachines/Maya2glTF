@@ -7,6 +7,7 @@
 
 ExportableAsset::ExportableAsset(const Arguments& args)
 	: m_resources{ args }
+	, m_nodeHierarchy{ m_resources }
 {
 	m_glAsset.scenes.push_back(&m_glScene);
 	m_glAsset.scene = 0;
@@ -47,7 +48,7 @@ ExportableAsset::ExportableAsset(const Arguments& args)
 
 				cout << prefix << "Processing " << fullPath << " instance #" << instanceIndex << "..." << endl;
 
-				addNode(dagPath);
+				m_nodeHierarchy.getNode(dagPath);
 			}
 		}
 		else
@@ -56,11 +57,8 @@ ExportableAsset::ExportableAsset(const Arguments& args)
 		}
 	}
 
-	// Connect hierarchy, compute object transforms
-	m_dagNodeTable.computeObjectTransforms();
-
 	// Add root nodes to the scene
-	auto& nodeTable = m_dagNodeTable.table();
+	auto& nodeTable = m_nodeHierarchy.table();
 	for (auto& pair : nodeTable)
 	{
 		if (pair.second->parentDagPath.length() == 0)
@@ -69,17 +67,17 @@ ExportableAsset::ExportableAsset(const Arguments& args)
 		}
 	}
 
-	// Now export animation clips, in one pass over the slow timeline
+	// Now export animation clips of all the nodes, in one pass over the slow timeline
 	const auto clipCount = args.animationClips.size();
 	if (clipCount)
 	{
 		for (auto& clipArg : args.animationClips)
 		{
-			auto clip = std::make_unique<ExportableClip>(args, clipArg, m_items);
+			auto clip = std::make_unique<ExportableClip>(args, clipArg, m_nodeHierarchy);
 			if (!clip->glAnimation.channels.empty())
 			{
 				m_glAsset.animations.push_back(&clip->glAnimation);
-				m_clips.emplace_back(move(clip));
+				m_clips.emplace_back(std::move(clip));
 			}
 		}
 	}
@@ -127,17 +125,6 @@ const std::string& ExportableAsset::prettyJsonString() const
 	}
 
 	return m_prettyJsonString;
-}
-
-void ExportableAsset::addNode(MDagPath& dagPath)
-{
-	auto exportableNode = ExportableNode::from(dagPath, m_resources);
-
-	if (exportableNode)
-	{
-		m_dagNodeTable.registerNode(exportableNode.get());
-		m_items.push_back(std::move(exportableNode));
-	}
 }
 
 void ExportableAsset::save()

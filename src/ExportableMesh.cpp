@@ -1,20 +1,23 @@
 #include "externals.h"
 #include "Mesh.h"
+#include "MeshSkeleton.h"
 #include "ExportableMesh.h"
 #include "ExportablePrimitive.h"
 #include "ExportableResources.h"
 #include "Arguments.h"
 #include "MayaException.h"
+#include "NodeHierarchy.h"
 
 
-ExportableMesh::ExportableMesh(const MDagPath& shapeDagPath, ExportableResources& resources)
+ExportableMesh::ExportableMesh(NodeHierarchy& hierarchy, const MDagPath& shapeDagPath)
 	: ExportableObject(shapeDagPath.node())
 {
+	auto& resources = hierarchy.resources();
+	auto& args = resources.arguments();
+
 	handleNameAssignment(resources, glMesh);
 
-	auto mayaMesh = std::make_unique<Mesh>(shapeDagPath, resources.arguments());
-
-	const Arguments& args = resources.arguments();
+	const auto mayaMesh = std::make_unique<Mesh>(hierarchy, shapeDagPath);
 
 	if (args.dumpMaya)
 	{
@@ -98,6 +101,12 @@ ExportableMesh::ExportableMesh(const MDagPath& shapeDagPath, ExportableResources
 				}
 			}
 		}
+
+		// Generate skin
+		auto& skeleton = mainShape.skeleton();
+		if (!skeleton.isEmpty())
+		{
+		}
 	}
 }
 
@@ -115,5 +124,5 @@ std::vector<float> ExportableMesh::getCurrentWeights() const
 		weights.emplace_back(weight);
 	}
 
-	return move(weights);
+	return weights;
 }
