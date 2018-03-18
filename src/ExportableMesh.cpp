@@ -13,6 +13,8 @@
 ExportableMesh::ExportableMesh(ExportableScene& scene, const MDagPath& shapeDagPath)
 	: ExportableObject(shapeDagPath.node())
 {
+	MStatus status;
+
 	auto& resources = scene.resources();
 	auto& args = resources.arguments();
 
@@ -107,10 +109,35 @@ ExportableMesh::ExportableMesh(ExportableScene& scene, const MDagPath& shapeDagP
 		auto& skeleton = mainShape.skeleton();
 		if (!skeleton.isEmpty())
 		{
-			for (auto* node: skeleton.joints())
+			auto& joints = skeleton.joints();
+
+			std::set<std::string> jointSet;
+
+			for (auto* node: joints)
 			{
 				glSkin.joints.emplace_back(&node->glNode);
+				
+				auto fullPathName = node->dagPath.fullPathName(&status);
+				THROW_ON_FAILURE(status);
+				
+				jointSet.insert(fullPathName.asChar());
 			}
+
+			// Find root joint
+			for (auto* node : joints)
+			{
+				auto parentPath = node->parentDagPath.fullPathName(&status);
+				THROW_ON_FAILURE(status);
+
+				if (jointSet.find(parentPath.asChar()) == jointSet.end())
+				{
+					// Found root.
+					glSkin.skeleton = &node->glNode;
+					break;
+				}
+			}
+
+			// TODO: Add inverse bind matrices.
 		}
 	}
 }

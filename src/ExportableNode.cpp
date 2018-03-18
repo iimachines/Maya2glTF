@@ -65,6 +65,12 @@ ExportableNode::ExportableNode(
 		case MFn::kMesh:
 			m_mesh = std::make_unique<ExportableMesh>(scene, dagPath);
 			glNode.mesh = &m_mesh->glMesh;
+
+			// Link skin if mesh has skeleton
+			if (m_mesh->glSkin.skeleton)
+			{
+				glNode.skin = &m_mesh->glSkin;
+			}
 			break;
 
 		default:
