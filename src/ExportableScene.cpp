@@ -1,15 +1,15 @@
 #include "externals.h"
-#include "NodeHierarchy.h"
+#include "ExportableScene.h"
 #include "ExportableNode.h"
 #include "MayaException.h"
 
-NodeHierarchy::NodeHierarchy(ExportableResources& resources) :m_resources(resources)
+ExportableScene::ExportableScene(ExportableResources& resources) :m_resources(resources)
 {
 }
 
-NodeHierarchy::~NodeHierarchy() = default;
+ExportableScene::~ExportableScene() = default;
 
-ExportableNode* NodeHierarchy::getNode(const MDagPath& dagPath)
+ExportableNode* ExportableScene::getNode(const MDagPath& dagPath)
 {
 	MStatus status;
 
@@ -27,7 +27,7 @@ ExportableNode* NodeHierarchy::getNode(const MDagPath& dagPath)
 	return ptr == nullptr ? new ExportableNode(*this, ptr, dagPath) : ptr.get();
 }
 
-ExportableNode* NodeHierarchy::getParent(ExportableNode* node)
+ExportableNode* ExportableScene::getParent(ExportableNode* node)
 {
 	MStatus status;
 
@@ -49,7 +49,7 @@ ExportableNode* NodeHierarchy::getParent(ExportableNode* node)
 	return parentNode;
 }
 
-int NodeHierarchy::distanceToRoot(ExportableNode* node) 
+int ExportableScene::distanceToRoot(ExportableNode* node) 
 {
 	int distance;
 	auto dagPath = node->dagPath;

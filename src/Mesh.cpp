@@ -5,13 +5,13 @@
 #include "MayaUtils.h"
 #include "MeshBlendShapeWeights.h"
 #include "DagHelper.h"
-#include "NodeHierarchy.h"
+#include "ExportableScene.h"
 
-Mesh::Mesh(NodeHierarchy& hierarchy, const MDagPath& dagPath)
+Mesh::Mesh(ExportableScene& scene, const MDagPath& dagPath)
 {
 	MStatus status;
 
-	auto& args = hierarchy.arguments();
+	auto& args = scene.arguments();
 
 	MFnMesh fnMesh(dagPath, &status);
 	THROW_ON_FAILURE(status);
@@ -21,7 +21,7 @@ Mesh::Mesh(NodeHierarchy& hierarchy, const MDagPath& dagPath)
 	if (blendShapeDeformer.isNull())
 	{
 		// Single shape
-		m_mainShape = std::make_unique<MainShape>(hierarchy, fnMesh, ShapeIndex::main());
+		m_mainShape = std::make_unique<MainShape>(scene, fnMesh, ShapeIndex::main());
 		m_allShapes.emplace_back(m_mainShape.get());
 	}
 	else
@@ -75,7 +75,7 @@ Mesh::Mesh(NodeHierarchy& hierarchy, const MDagPath& dagPath)
 		weightPlugs.clearWeightsExceptFor(-1);
 
 		// Reconstruct base mesh
-		m_mainShape = std::make_unique<MainShape>(hierarchy, *fnDeformedMesh, ShapeIndex::main());
+		m_mainShape = std::make_unique<MainShape>(scene, *fnDeformedMesh, ShapeIndex::main());
 		m_allShapes.emplace_back(m_mainShape.get());
 
 		const auto numWeights = weightPlugs.numWeights();

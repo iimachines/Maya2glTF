@@ -2,7 +2,7 @@
 
 #include "ExportableObject.h"	
 #include "ExportableMesh.h"
-#include "NodeHierarchy.h"
+#include "ExportableScene.h"
 
 class ExportableNode : public ExportableObject
 {
@@ -21,9 +21,9 @@ public:
 	std::unique_ptr<NodeAnimation> createAnimation(const int frameCount, const double scaleFactor) override;
 
 private:
-	friend class NodeHierarchy;
+	friend class ExportableScene;
 
-	ExportableNode(NodeHierarchy& hierarchy, std::unique_ptr<ExportableNode>& owner, MDagPath dagPath);
+	ExportableNode(ExportableScene& scene, std::unique_ptr<ExportableNode>& owner, MDagPath dagPath);
 
 	std::unique_ptr<ExportableMesh> m_mesh;
 

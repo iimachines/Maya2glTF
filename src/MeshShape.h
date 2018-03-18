@@ -5,7 +5,7 @@
 #include "MeshIndices.h"
 #include "MayaException.h"
 
-class NodeHierarchy;
+class ExportableScene;
 
 class MeshShape
 {
@@ -45,7 +45,7 @@ protected:
 class MainShape : public MeshShape
 {
 public:
-	MainShape(NodeHierarchy& hierarchy, const MFnMesh& fnMesh, ShapeIndex shapeIndex);
+	MainShape(ExportableScene& scene, const MFnMesh& fnMesh, ShapeIndex shapeIndex);
 	virtual ~MainShape();
 
 	const MeshIndices& indices() const { return *m_indices; }

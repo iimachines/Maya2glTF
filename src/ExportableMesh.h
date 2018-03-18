@@ -5,12 +5,12 @@ class ExportableResources;
 class ExportablePrimitive;
 class Arguments;
 class Mesh;
-class NodeHierarchy;
+class ExportableScene;
 
 class ExportableMesh : public ExportableObject
 {
 public:
-	ExportableMesh(NodeHierarchy& hierarchy, const MDagPath& shapeDagPath);
+	ExportableMesh(ExportableScene& scene, const MDagPath& shapeDagPath);
 	virtual ~ExportableMesh();
 
 	GLTF::Mesh glMesh;

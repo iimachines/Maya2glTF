@@ -4,11 +4,11 @@
 #include "ExportableResources.h"
 #include "NodeAnimation.h"
 #include "Transform.h"
-#include "NodeHierarchy.h"
+#include "ExportableScene.h"
 #include "Arguments.h"
 
 ExportableNode::ExportableNode(
-	NodeHierarchy& hierarchy,
+	ExportableScene& scene,
 	std::unique_ptr<ExportableNode>& owner,
 	MDagPath dagPath)
 	: ExportableObject(dagPath.node())
@@ -19,7 +19,7 @@ ExportableNode::ExportableNode(
 
 	owner.reset(this);
 
-	auto& resources = hierarchy.resources();
+	auto& resources = scene.resources();
 	auto& arguments = resources.arguments();
 
 	// Remember scale factor
@@ -32,8 +32,16 @@ ExportableNode::ExportableNode(
 	handleNameAssignment(resources, glNode);
 
 	// Get parent
-	const auto parentNode = hierarchy.getParent(this);
-	parentDagPath = parentNode ? parentNode->dagPath : MDagPath();
+	const auto parentNode = scene.getParent(this);
+	if (parentNode)
+	{
+		parentDagPath = parentNode->dagPath;
+	}
+	else
+	{
+		// Add root nodes to the scene
+		scene.glScene.nodes.emplace_back(&glNode);
+	}
 
 	// Get transform
 	const auto objectMatrix = Transform::getObjectSpaceMatrix(dagPath, parentDagPath);
@@ -55,7 +63,7 @@ ExportableNode::ExportableNode(
 		switch (dagPath.apiType(&status))
 		{
 		case MFn::kMesh:
-			m_mesh = std::make_unique<ExportableMesh>(hierarchy, dagPath);
+			m_mesh = std::make_unique<ExportableMesh>(scene, dagPath);
 			glNode.mesh = &m_mesh->glMesh;
 			break;
 

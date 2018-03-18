@@ -4,7 +4,7 @@
 #include "IndentableStream.h"
 #include "Arguments.h"
 #include "spans.h"
-#include "NodeHierarchy.h"
+#include "ExportableScene.h"
 
 struct VertexJointAssignmentSlice
 {
@@ -21,13 +21,13 @@ struct VertexJointAssignmentSlice
 };
 
 MeshSkeleton::MeshSkeleton(
-	NodeHierarchy& hierarchy,
+	ExportableScene& scene,
 	const MFnMesh& mesh)
 	: m_maxVertexJointAssignmentCount(0)
 {
 	MStatus status;
 
-	auto& args = hierarchy.arguments();
+	auto& args = scene.arguments();
 
 	MObject skin = tryExtractSkinCluster(mesh, args.ignoreMeshDeformers);
 	MFnSkinCluster fnSkin(skin, &status);
@@ -43,7 +43,7 @@ MeshSkeleton::MeshSkeleton(
 		for (size_t index = 0; index < jointCount; ++index)
 		{
 			auto& jointDagPath = jointDagPaths[static_cast<unsigned int>(index)];
-			auto* jointNode = hierarchy.getNode(jointDagPath);
+			auto* jointNode = scene.getNode(jointDagPath);
 			m_joints.emplace_back(jointNode);
 		}
 

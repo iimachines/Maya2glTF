@@ -7,9 +7,9 @@
 
 ExportableAsset::ExportableAsset(const Arguments& args)
 	: m_resources{ args }
-	, m_nodeHierarchy{ m_resources }
+	, m_scene{ m_resources }
 {
-	m_glAsset.scenes.push_back(&m_glScene);
+	m_glAsset.scenes.push_back(&m_scene.glScene);
 	m_glAsset.scene = 0;
 
 	m_glAsset.metadata = &m_glMetadata;
@@ -48,22 +48,12 @@ ExportableAsset::ExportableAsset(const Arguments& args)
 
 				cout << prefix << "Processing " << fullPath << " instance #" << instanceIndex << "..." << endl;
 
-				m_nodeHierarchy.getNode(dagPath);
+				m_scene.getNode(dagPath);
 			}
 		}
 		else
 		{
 			cerr << prefix << "WARNING: Skipping '" << node.name() << "' since it is not a DAG node" << endl;
-		}
-	}
-
-	// Add root nodes to the scene
-	auto& nodeTable = m_nodeHierarchy.table();
-	for (auto& pair : nodeTable)
-	{
-		if (pair.second->parentDagPath.length() == 0)
-		{
-			m_glScene.nodes.push_back(&pair.second->glNode);
 		}
 	}
 
@@ -73,7 +63,7 @@ ExportableAsset::ExportableAsset(const Arguments& args)
 	{
 		for (auto& clipArg : args.animationClips)
 		{
-			auto clip = std::make_unique<ExportableClip>(args, clipArg, m_nodeHierarchy);
+			auto clip = std::make_unique<ExportableClip>(args, clipArg, m_scene);
 			if (!clip->glAnimation.channels.empty())
 			{
 				m_glAsset.animations.push_back(&clip->glAnimation);

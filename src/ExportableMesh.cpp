@@ -6,18 +6,19 @@
 #include "ExportableResources.h"
 #include "Arguments.h"
 #include "MayaException.h"
-#include "NodeHierarchy.h"
+#include "ExportableScene.h"
+#include "ExportableNode.h"
 
 
-ExportableMesh::ExportableMesh(NodeHierarchy& hierarchy, const MDagPath& shapeDagPath)
+ExportableMesh::ExportableMesh(ExportableScene& scene, const MDagPath& shapeDagPath)
 	: ExportableObject(shapeDagPath.node())
 {
-	auto& resources = hierarchy.resources();
+	auto& resources = scene.resources();
 	auto& args = resources.arguments();
 
 	handleNameAssignment(resources, glMesh);
 
-	const auto mayaMesh = std::make_unique<Mesh>(hierarchy, shapeDagPath);
+	const auto mayaMesh = std::make_unique<Mesh>(scene, shapeDagPath);
 
 	if (args.dumpMaya)
 	{
@@ -106,6 +107,10 @@ ExportableMesh::ExportableMesh(NodeHierarchy& hierarchy, const MDagPath& shapeDa
 		auto& skeleton = mainShape.skeleton();
 		if (!skeleton.isEmpty())
 		{
+			for (auto* node: skeleton.joints())
+			{
+				glSkin.joints.emplace_back(&node->glNode);
+			}
 		}
 	}
 }

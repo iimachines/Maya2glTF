@@ -4,14 +4,14 @@
 #include "accessors.h"
 #include "time.h"
 
-ExportableClip::ExportableClip(const Arguments& args, const AnimClipArg& clipArg, const NodeHierarchy& hierarchy)
+ExportableClip::ExportableClip(const Arguments& args, const AnimClipArg& clipArg, const ExportableScene& scene)
 {
 	glAnimation.name = clipArg.name;
 
 	const auto frameCount = clipArg.frameCount();
 	const auto scaleFactor = args.scaleFactor;
 
-	auto& items = hierarchy.table();
+	auto& items = scene.table();
 
 	m_nodeAnimations.reserve(items.size());
 

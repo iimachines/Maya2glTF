@@ -1,7 +1,7 @@
 #pragma once
 #include "ExportableResources.h"
 #include "ExportableClip.h"
-#include "NodeHierarchy.h"
+#include "ExportableScene.h"
 
 class Arguments;
 
@@ -29,11 +29,10 @@ private:
 	Cleanup m_cleanup;
 
 	GLTF::Asset m_glAsset;
-	GLTF::Scene m_glScene;
 	GLTF::Asset::Metadata m_glMetadata;
 
 	ExportableResources m_resources;
-	NodeHierarchy m_nodeHierarchy;
+	ExportableScene m_scene;
 
 	//std::vector<std::unique_ptr<ExportableItem>> m_items;
 	std::vector<std::unique_ptr<ExportableClip>> m_clips;

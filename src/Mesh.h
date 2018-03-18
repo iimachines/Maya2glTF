@@ -9,7 +9,7 @@ typedef std::vector<MeshShape*> MeshShapes;
 class Mesh
 {
 public:
-	Mesh(NodeHierarchy& hierarchy, const MDagPath& dagPath);
+	Mesh(ExportableScene& scene, const MDagPath& dagPath);
 	~Mesh();
 
 	void dump(IndentableStream& out, const std::string& name) const;

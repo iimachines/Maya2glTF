@@ -8,7 +8,7 @@
 
 class Arguments;
 class MeshIndices;
-class NodeHierarchy;
+class ExportableScene;
 class ExportableNode;
 
 typedef std::vector<ExportableNode*> MeshJoints;
@@ -39,7 +39,7 @@ typedef std::vector<gsl::span<const VertexJointAssignment>> VertexJointAssignmen
 class MeshSkeleton
 {
 public:
-	MeshSkeleton(NodeHierarchy& hierarchy, const MFnMesh& mesh);
+	MeshSkeleton(ExportableScene& scene, const MFnMesh& mesh);
 	virtual ~MeshSkeleton();
 
 	void dump(class IndentableStream& out, const std::string& name) const;

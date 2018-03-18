@@ -7,15 +7,17 @@ typedef std::map<std::string, std::unique_ptr<ExportableNode>> NodeTable;
 
 // Maps each DAG path to the corresponding node
 // Owns and creates each node on the fly.
-class NodeHierarchy
+class ExportableScene
 {
 public:
-	explicit NodeHierarchy(ExportableResources& resources);
-	~NodeHierarchy();
+	explicit ExportableScene(ExportableResources& resources);
+	~ExportableScene();
 
 	ExportableResources& resources() const { return m_resources; }
 
 	const Arguments& arguments() const { return m_resources.arguments(); }
+
+	GLTF::Scene glScene;
 
 	// Gets or creates the node
 	// Returns null if the DAG path has no node
@@ -30,7 +32,7 @@ public:
 	const NodeTable& table() const { return m_table; }
 
 private:
-	DISALLOW_COPY_MOVE_ASSIGN(NodeHierarchy);
+	DISALLOW_COPY_MOVE_ASSIGN(ExportableScene);
 
 	friend class ExportableNode;
 

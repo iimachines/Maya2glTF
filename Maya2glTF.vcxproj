@@ -369,7 +369,7 @@ if errorlevel 1 (exit /b 100)
   <ItemGroup>
     <ClCompile Include="src\MeshSkeleton.cpp" />
     <ClCompile Include="src\ShapeIndex.cpp" />
-    <ClCompile Include="src\NodeHierarchy.cpp" />
+    <ClCompile Include="src\ExportableScene.cpp" />
     <ClCompile Include="src\ExportableClip.cpp" />
     <ClCompile Include="src\NodeAnimation.cpp" />
     <ClCompile Include="src\mikktspace.c">
@@ -433,7 +433,7 @@ if errorlevel 1 (exit /b 100)
     <ClInclude Include="src\MeshSkeleton.h" />
     <ClInclude Include="src\ShapeIndex.h" />
     <ClInclude Include="src\macros.h" />
-    <ClInclude Include="src\NodeHierarchy.h" />
+    <ClInclude Include="src\ExportableScene.h" />
     <ClInclude Include="src\ExportableClip.h" />
     <ClInclude Include="src\NodeAnimation.h" />
     <ClInclude Include="src\PropAnimation.h" />
