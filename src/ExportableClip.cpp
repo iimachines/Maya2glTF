@@ -41,7 +41,7 @@ ExportableClip::ExportableClip(const Arguments& args, const AnimClipArg& clipArg
 		}
 	}
 
-	m_inputs = contiguousChannelAccessor("times", span(m_timesPerFrame), 1);
+	m_inputs = contiguousChannelAccessor(glAnimation.name+"_times", span(m_timesPerFrame), 1);
 
 	for (auto& nodeAnimation : m_nodeAnimations)
 	{

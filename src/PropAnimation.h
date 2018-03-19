@@ -39,12 +39,12 @@ public:
 		std::copy(components.begin(), components.end(), std::back_inserter(componentValuesPerFrame));
 	}
 
-	void finish()
+	void finish(const std::string outputsName)
 	{
 		if (!m_outputs)
 		{
 			// TODO: Allow passing name of node+path for debugging
-			m_outputs = contiguousChannelAccessor(nullptr, span(componentValuesPerFrame), dimension);
+			m_outputs = contiguousChannelAccessor(outputsName, span(componentValuesPerFrame), dimension);
 		}
 
 		glSampler.output = m_outputs.get();

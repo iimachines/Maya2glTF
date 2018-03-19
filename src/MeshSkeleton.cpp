@@ -5,6 +5,7 @@
 #include "Arguments.h"
 #include "spans.h"
 #include "ExportableScene.h"
+#include "ExportableNode.h"
 
 struct VertexJointAssignmentSlice
 {
@@ -40,11 +41,28 @@ MeshSkeleton::MeshSkeleton(
 
 		m_joints.reserve(jointCount);
 
+		const auto shapeDagPath = mesh.dagPath(&status);
+		THROW_ON_FAILURE(status);
+
+		const auto meshMatrix = shapeDagPath.inclusiveMatrix(&status);
+		THROW_ON_FAILURE(status);
+
 		for (size_t index = 0; index < jointCount; ++index)
 		{
 			auto& jointDagPath = jointDagPaths[static_cast<unsigned int>(index)];
 			auto* jointNode = scene.getNode(jointDagPath);
-			m_joints.emplace_back(jointNode);
+
+			const auto inverseJointMatrix = jointDagPath.inclusiveMatrixInverse(&status);
+			THROW_ON_FAILURE(status);
+
+			MMatrix inverseBindMatrix = inverseJointMatrix * meshMatrix;
+
+			if (inverseBindMatrix.isSingular())
+			{
+				cerr << prefix << "WARNING: Inverse bind matrix of joint " << jointNode->name() << " is singular!" << endl;
+			}
+
+			m_joints.emplace_back(jointNode, inverseBindMatrix);
 		}
 
 		// Gather all joint index/weights per vertex, sorted ascendingly by weight

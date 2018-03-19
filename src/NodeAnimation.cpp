@@ -127,7 +127,7 @@ void NodeAnimation::finish(
 	}
 	else
 	{
-		animatedProp->finish();
+		animatedProp->finish(glAnimation.name + "_outputs");
 		glAnimation.channels.push_back(&animatedProp->glChannel);
 	}
 }

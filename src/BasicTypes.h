@@ -8,6 +8,8 @@ typedef std::array<float, 2> Float2;
 typedef std::array<float, 3> Float3;
 typedef std::array<float, 4> Float4;
 
+typedef std::array<Float4, 4> Float4x4;
+
 typedef std::vector<float> FloatVector;
 typedef std::vector<Float2> Float2Vector;
 

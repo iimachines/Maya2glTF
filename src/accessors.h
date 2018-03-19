@@ -6,15 +6,31 @@
 
 inline GLTF::Accessor::Type glAccessorType(const size_t dimension)
 {
-	// HACK: We assume SCALAR == 0 here...
-	assert(dimension >= 1 && dimension <= 4);
-	const auto type = static_cast<GLTF::Accessor::Type>(dimension - 1);
-	return type;
+	switch (dimension)
+	{
+	case 1:
+		return GLTF::Accessor::Type::SCALAR;
+	case 2:
+		return GLTF::Accessor::Type::VEC2;
+	case 3:
+		return GLTF::Accessor::Type::VEC3;
+	case 4:
+		return GLTF::Accessor::Type::VEC4;
+	case 8:
+		return GLTF::Accessor::Type::MAT2;
+	case 12:
+		return GLTF::Accessor::Type::MAT3;
+	case 16:
+		return GLTF::Accessor::Type::MAT4;
+	default:
+		assert(false);
+		return GLTF::Accessor::Type::UNKNOWN;
+	}
 }
 
 template<typename T>
 std::unique_ptr<GLTF::Accessor> contiguousAccessor(
-	const char* name,
+	const std::string name,
 	GLTF::Accessor::Type type,
 	GLTF::Constants::WebGL componentType,
 	GLTF::Constants::WebGL target,
@@ -29,7 +45,7 @@ std::unique_ptr<GLTF::Accessor> contiguousAccessor(
 		int(data.size() / dimension),
 		target);
 
-	if (name)
+	if (!name.empty())
 	{
 		accessor->name = name;
 	}
@@ -38,7 +54,7 @@ std::unique_ptr<GLTF::Accessor> contiguousAccessor(
 }
 
 inline std::unique_ptr<GLTF::Accessor> contiguousChannelAccessor(
-	const char* name,
+	const std::string name,
 	const gsl::span<const float>& data,
 	const size_t dimension,
 	const GLTF::Constants::WebGL target = static_cast<GLTF::Constants::WebGL>(-1))

@@ -8,12 +8,16 @@
 #include "MayaException.h"
 #include "ExportableScene.h"
 #include "ExportableNode.h"
+#include "accessors.h"
 
-
-ExportableMesh::ExportableMesh(ExportableScene& scene, const MDagPath& shapeDagPath)
+ExportableMesh::ExportableMesh(
+	ExportableScene& scene, 
+	const MDagPath& shapeDagPath)
 	: ExportableObject(shapeDagPath.node())
 {
 	MStatus status;
+
+	const std::string shapeName{ shapeDagPath.partialPathName(&status).asChar() };
 
 	auto& resources = scene.resources();
 	auto& args = resources.arguments();
@@ -29,6 +33,8 @@ ExportableMesh::ExportableMesh(ExportableScene& scene, const MDagPath& shapeDagP
 
 	if (!mayaMesh->isEmpty())
 	{
+		glMesh.name = shapeName + "_mesh";
+
 		auto& mainShape = mayaMesh->shape();
 
 		// Generate primitives
@@ -109,35 +115,60 @@ ExportableMesh::ExportableMesh(ExportableScene& scene, const MDagPath& shapeDagP
 		auto& skeleton = mainShape.skeleton();
 		if (!skeleton.isEmpty())
 		{
+			glSkin.name = shapeName + "_skin";
+
 			auto& joints = skeleton.joints();
 
 			std::set<std::string> jointSet;
 
-			for (auto* node: joints)
+			m_inverseBindMatrices.reserve(joints.size());
+
+			// Get joints, and build inverse bind matrices.
+			for (auto& joint: joints)
 			{
-				glSkin.joints.emplace_back(&node->glNode);
+				auto* jointNode = joint.node;
+				glSkin.joints.emplace_back(&jointNode->glNode);
 				
-				auto fullPathName = node->dagPath.fullPathName(&status);
+				auto fullPathName = jointNode->dagPath.fullPathName(&status);
 				THROW_ON_FAILURE(status);
 				
 				jointSet.insert(fullPathName.asChar());
+
+				Float4x4 inverseBindMatrix;
+				joint.inverseBindMatrix.get(reinterpret_cast<float(&)[4][4]>(inverseBindMatrix));
+
+				m_inverseBindMatrices.emplace_back(inverseBindMatrix);
 			}
 
+			m_inverseBindMatricesAccessor = contiguousChannelAccessor(
+				shapeName + "_ibm",
+				reinterpret_span<float>(m_inverseBindMatrices),
+				16);
+
+			glSkin.inverseBindMatrices = m_inverseBindMatricesAccessor.get();
+
 			// Find root joint
-			for (auto* node : joints)
+			for (auto& joint : joints)
 			{
-				auto parentPath = node->parentDagPath.fullPathName(&status);
+				auto* jointNode = joint.node;
+				auto parentPath = jointNode->parentDagPath.fullPathName(&status);
 				THROW_ON_FAILURE(status);
 
 				if (jointSet.find(parentPath.asChar()) == jointSet.end())
 				{
-					// Found root.
-					glSkin.skeleton = &node->glNode;
-					break;
+					if (glSkin.skeleton)
+					{
+						MayaException::printError(formatted("Skeletons with multiple roots are not yet supported, node: '%s'", shapeName));
+					}
+					else
+					{
+						// Found root.
+						cout << prefix << "Using joint " << jointNode->name() << " as skeleton root for mesh " << shapeName << endl;
+						glSkin.skeleton = &jointNode->glNode;
+					}
 				}
 			}
 
-			// TODO: Add inverse bind matrices.
 		}
 	}
 }

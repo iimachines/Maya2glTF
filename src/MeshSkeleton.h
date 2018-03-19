@@ -11,8 +11,6 @@ class MeshIndices;
 class ExportableScene;
 class ExportableNode;
 
-typedef std::vector<ExportableNode*> MeshJoints;
-
 class VertexJointAssignment
 {
 public:
@@ -36,6 +34,22 @@ public:
 // Per vertex, the joint assignments
 typedef std::vector<gsl::span<const VertexJointAssignment>> VertexJointAssignmentTable;
 
+struct MeshJoint
+{
+	ExportableNode* node;
+	MMatrix inverseBindMatrix;
+
+	MeshJoint(ExportableNode* node, const MMatrix& inverseBindMatrix)
+		: node(node)
+		, inverseBindMatrix(inverseBindMatrix)
+	{
+	}
+
+	DEFAULT_COPY_MOVE_ASSIGN_DTOR(MeshJoint);
+};
+
+typedef std::vector<MeshJoint> MeshJoints;
+
 class MeshSkeleton
 {
 public:
@@ -46,8 +60,6 @@ public:
 
 	bool isEmpty() const { return m_maxVertexJointAssignmentCount == 0; }
 
-	int rootJointIndex() const { }
-	
 	const MeshJoints& joints() const { return m_joints; }
 	
 	const VertexJointAssignmentTable& vertexJointAssignments() const { return m_vertexJointAssignmentsTable; }
@@ -60,6 +72,7 @@ private:
 	DISALLOW_COPY_MOVE_ASSIGN(MeshSkeleton);
 
 	MeshJoints m_joints;
+
 	std::vector<VertexJointAssignment> m_vertexJointAssignmentsVector;
 	VertexJointAssignmentTable m_vertexJointAssignmentsTable;
 	size_t m_maxVertexJointAssignmentCount;
