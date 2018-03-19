@@ -5,7 +5,6 @@
 #include "MayaException.h"
 #include "ExportableResources.h"
 #include "Arguments.h"
-#include "filepath.h"
 
 ExportableMaterial::ExportableMaterial() = default;
 ExportableMaterial::~ExportableMaterial() = default;
@@ -242,13 +241,16 @@ void ExportableMaterialPBR::loadPBR(ExportableResources& resources, const MFnDep
 				__int64 pixelCount = width * height;
 				while (--pixelCount >= 0)
 				{
-					*roughnessPixels++ = (*roughnessPixels & 0xff00) | (*metallicPixels++ & 0xff0000);
+					*roughnessPixels++ = (*roughnessPixels & 0xff00) | (*metallicPixels++ & 0xff0000) | 0xff000000;
 				}
 
 				// TODO: Add argument for output image file mime-type
 				const path roughnessPath{ roughnessTexture.imageFilePath.asChar() };
-				const path imageExtension{ roughnessPath.extension() };
-				MString mergedImagePath{ generateTempPath(imageExtension).c_str() };
+				const path metallicPath{ metallicTexture.imageFilePath.asChar() };
+				const path imageExtension { roughnessPath.extension() };
+				path imageFilename{ roughnessPath.stem().string() + "-" + metallicPath.stem().string() };
+				imageFilename.replace_extension(imageExtension);
+				MString mergedImagePath{ (temp_directory_path() / imageFilename).c_str() };
 
 				cout << prefix << "Saving merged roughness-metalic texture to " << mergedImagePath << endl;
 				roughnessImage.writeToFile(mergedImagePath, imageExtension.c_str());
