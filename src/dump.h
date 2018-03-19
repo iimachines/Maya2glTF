@@ -106,4 +106,6 @@ static void dump_vertex_table(std::ostream& out, const std::string& name, const 
 
 void dump_array(std::ostream& out, const std::string& name, const MStringArray& items);
 
+//std::ostream& operator << (std::ostream& out, const MMatrix& m);
+
 std::string escaped(const std::string& s);

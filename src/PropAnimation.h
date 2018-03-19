@@ -8,8 +8,9 @@ class ExportableNode;
 class PropAnimation
 {
 public:
-	PropAnimation(GLTF::Accessor& timesPerFrame, const GLTF::Node& node, const GLTF::Animation::Path path, const size_t dimension, const char* interpolation = "LINEAR")
-		:dimension(dimension)
+	PropAnimation(GLTF::Accessor& timesPerFrame, const GLTF::Node& node, const GLTF::Animation::Path path, const size_t dimension, const bool useFloatArray, const char* interpolation = "LINEAR")
+		: dimension(dimension)
+		, useFloatArray(useFloatArray)
 	{
 		componentValuesPerFrame.reserve(timesPerFrame.count * dimension);
 
@@ -26,6 +27,7 @@ public:
 	~PropAnimation() = default;
 
 	const size_t dimension;
+	const bool useFloatArray;
 
 	std::vector<float> componentValuesPerFrame;
 
@@ -43,8 +45,9 @@ public:
 	{
 		if (!m_outputs)
 		{
-			// TODO: Allow passing name of node+path for debugging
-			m_outputs = contiguousChannelAccessor(outputsName, span(componentValuesPerFrame), dimension);
+			m_outputs = useFloatArray 
+				? contiguousChannelAccessor(outputsName, reinterpret_span<float>(componentValuesPerFrame), 1)
+				: contiguousChannelAccessor(outputsName, span(componentValuesPerFrame), dimension);
 		}
 
 		glSampler.output = m_outputs.get();

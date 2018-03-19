@@ -55,7 +55,7 @@ MeshSkeleton::MeshSkeleton(
 			const auto inverseJointMatrix = jointDagPath.inclusiveMatrixInverse(&status);
 			THROW_ON_FAILURE(status);
 
-			MMatrix inverseBindMatrix = inverseJointMatrix * meshMatrix;
+			MMatrix inverseBindMatrix = meshMatrix * inverseJointMatrix;
 
 			if (inverseBindMatrix.isSingular())
 			{
@@ -130,7 +130,7 @@ MeshSkeleton::MeshSkeleton(
 
 		auto spans = span(m_vertexJointAssignmentsVector);
 
-		for (int vertexIndex=0; vertexIndex<numPoints; ++vertexIndex)
+		for (int vertexIndex = 0; vertexIndex < numPoints; ++vertexIndex)
 		{
 			const auto& slice = slices.at(vertexIndex);
 			m_vertexJointAssignmentsTable[vertexIndex] = spans.subspan(slice.offset, slice.length);
@@ -148,7 +148,7 @@ void MeshSkeleton::dump(IndentableStream& out, const std::string& name) const
 
 	out << std::fixed;
 
-	for (auto& assignments: m_vertexJointAssignmentsTable)
+	for (auto& assignments : m_vertexJointAssignmentsTable)
 	{
 		JsonSeparator sepElem(", ");
 

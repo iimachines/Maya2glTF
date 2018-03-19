@@ -48,9 +48,9 @@ void NodeAnimation::exportTo(GLTF::Accessor& timesPerFrame, GLTF::Animation& glA
 		cerr << prefix << "WARNING: Skewed/sheared matrices are not representable by glTF! Node: " << node.dagPath.fullPathName().asChar() << endl;
 	}
 
-	m_positions = std::make_unique<AnimatedT>(timesPerFrame, node.glNode, GLTF::Animation::Path::TRANSLATION, 3);
-	m_rotations = std::make_unique<AnimatedR>(timesPerFrame, node.glNode, GLTF::Animation::Path::ROTATION, 4);
-	m_scales = std::make_unique<AnimatedS>(timesPerFrame, node.glNode, GLTF::Animation::Path::SCALE, 3);
+	m_positions = std::make_unique<AnimatedT>(timesPerFrame, node.glNode, GLTF::Animation::Path::TRANSLATION, 3, false);
+	m_rotations = std::make_unique<AnimatedR>(timesPerFrame, node.glNode, GLTF::Animation::Path::ROTATION, 4, false);
+	m_scales = std::make_unique<AnimatedS>(timesPerFrame, node.glNode, GLTF::Animation::Path::SCALE, 3, false);
 
 	for (auto& matrix: m_objectMatrices)
 	{
@@ -95,7 +95,7 @@ void NodeAnimation::exportTo(GLTF::Accessor& timesPerFrame, GLTF::Animation& glA
 	if (!m_targetWeights.empty())
 	{
 		auto initialWeights = mesh->getInitialWeights();
-		m_weights = std::make_unique<AnimatedW>(timesPerFrame, node.glNode, GLTF::Animation::Path::WEIGHTS, initialWeights.size());
+		m_weights = std::make_unique<AnimatedW>(timesPerFrame, node.glNode, GLTF::Animation::Path::WEIGHTS, initialWeights.size(), true);
 		m_weights->componentValuesPerFrame = move(m_targetWeights);
 		finish(glAnimation, m_weights, initialWeights);
 	}

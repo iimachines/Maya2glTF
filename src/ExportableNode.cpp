@@ -72,10 +72,6 @@ ExportableNode::ExportableNode(
 				glNode.skin = &m_mesh->glSkin;
 			}
 			break;
-
-		default:
-			cerr << "glTF2Maya: skipping '" << name() << "', it is not a mesh" << endl;
-			break;
 		}
 	}
 }

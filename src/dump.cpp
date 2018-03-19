@@ -16,6 +16,26 @@ void dump_array(IndentableStream& out, const std::string& name, const MStringArr
 	out << "]";
 }
 
+//std::ostream& operator<<(std::ostream& out, const MMatrix& m)
+//{
+//	double v[4][4];
+//	m.get(v);
+//	
+//	JsonSeparator sep(", ");
+//
+//	out << '[';
+//	
+//	for (auto& x:v)
+//	{
+//		out << sep;
+//		out << v;
+//	}
+//
+//	out << ']';
+//
+//	return out;
+//}
+
 std::string escaped(const std::string& s)
 {
 	std::stringstream ss;
