@@ -121,8 +121,11 @@ public:
 	/** The semantics (aka glTF attributes) that should be exported. Defaults to all semantics contained in the mesh */
 	MeshPrimitiveAttributeSet meshPrimitiveAttributes;
 
-	/** Use the final displayed mesh to reconstruct the blend-shape targets? By default the output of the blend-shape-deformer itself is used */
-	bool blendFinalMesh = false;
+	/** Ignore all skin clusters */
+	bool skipSkinClusters = false;
+
+	/** Ignore all blend shapes */
+	bool skipBlendShapes = false;
 
 	/** Ignore these mesh deformers. By default the deformer closest to the displayed mesh is used. */
 	MSelectionList ignoreMeshDeformers;

@@ -30,10 +30,15 @@ MeshSkeleton::MeshSkeleton(
 
 	auto& args = scene.arguments();
 
-	MObject skin = tryExtractSkinCluster(mesh, args.ignoreMeshDeformers);
-	MFnSkinCluster fnSkin(skin, &status);
-	if (status)
+	MObject skin = args.skipSkinClusters 
+	? MObject::kNullObj 
+	: tryExtractSkinCluster(mesh, args.ignoreMeshDeformers);
+	
+	if (!skin.isNull())
 	{
+		MFnSkinCluster fnSkin(skin, &status);
+		THROW_ON_FAILURE(status);
+
 		// Gather all the joints
 		MDagPathArray jointDagPaths;
 		const auto jointCount = fnSkin.influenceObjects(jointDagPaths, &status);
@@ -177,56 +182,64 @@ size_t MeshSkeleton::vertexJointAssignmentSetCount() const
 
 MObject MeshSkeleton::tryExtractSkinCluster(const MFnMesh& fnMesh, const MSelectionList& ignoredDeformers)
 {
+	MStatus status;
 	MObject cluster;
 
-	// Iterate upstream to find all the nodes that affect the mesh.
-	MStatus status;
-	MPlug plug = fnMesh.findPlug("inMesh", status);
+	const auto meshObject = fnMesh.object(&status);
 	THROW_ON_FAILURE(status);
 
-	if (plug.isConnected())
-	{
-		MItDependencyGraph dgIt(plug,
-			MFn::kInvalid,
-			MItDependencyGraph::kUpstream,
-			MItDependencyGraph::kBreadthFirst,
-			MItDependencyGraph::kNodeLevel,
-			&status);
+	const auto meshName = fnMesh.name(&status);
+	THROW_ON_FAILURE(status);
 
+	for (MItDependencyNodes depNodeIt(MFn::kSkinClusterFilter);
+		!depNodeIt.isDone();
+		depNodeIt.next())
+	{
+		MObject thisNode = depNodeIt.item(&status);
 		THROW_ON_FAILURE(status);
 
-		dgIt.disablePruningOnFilter();
+		MFnSkinCluster fnSkinCluster(thisNode, &status);
+		THROW_ON_FAILURE(status);
 
-		for (; !dgIt.isDone(); dgIt.next())
+		const auto thisName = MFnDependencyNode(thisNode).name(&status);
+		THROW_ON_FAILURE(status);
+
+		if (ignoredDeformers.hasItem(thisNode))
 		{
-			MObject thisNode = dgIt.thisNode();
-			if (thisNode.hasFn(MFn::kSkinClusterFilter))
+			cout << prefix << "Ignoring skin cluster" << thisName << endl;
+		}
+		else 
+		{
+			const auto geometryCount = fnSkinCluster.numOutputConnections(&status);
+			THROW_ON_FAILURE(status);
+
+			for (auto geometryIndex = 0U; geometryIndex < geometryCount; ++geometryIndex)
 			{
-				MFnSkinCluster fnSkinCluster(thisNode, &status);
+				const auto shapeIndex = fnSkinCluster.indexForOutputConnection(geometryIndex, &status);
+				THROW_ON_FAILURE(status);
 
-				const auto thisName = MFnDependencyNode(thisNode).name();
+				const auto shapeObject = fnSkinCluster.outputShapeAtIndex(shapeIndex, &status);
+				THROW_ON_FAILURE(status);
 
-				if (status == MStatus::kSuccess)
+				if (shapeObject == meshObject)
 				{
-					if (ignoredDeformers.hasItem(thisNode))
+					if (cluster.isNull())
 					{
-						cout << prefix << "ignoring skin cluster" << thisName << endl;
-					}
-					else if (cluster.isNull())
-					{
+						cerr << prefix << "Found skin cluster " << thisName << " for mesh " << meshName << endl;
 						cluster = thisNode;
 					}
 					else
 					{
-						cerr << prefix << "only a single skin cluster is supported, skipping " << thisName << endl;
+						cerr << prefix << "Only a single skin cluster is supported, skipping " << thisName << " for mesh " << meshName << endl;
 					}
-				}
-				else
-				{
-					cerr << prefix << "unable to extract skin cluster from " << thisName << ", reason: " << status.error() << endl;
 				}
 			}
 		}
+	}
+
+	if (cluster.isNull())
+	{
+		cerr << prefix << meshName << " is not skinned" << endl;
 	}
 
 	return cluster;

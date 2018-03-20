@@ -16,7 +16,9 @@ Mesh::Mesh(ExportableScene& scene, const MDagPath& dagPath)
 	MFnMesh fnMesh(dagPath, &status);
 	THROW_ON_FAILURE(status);
 
-	MObject blendShapeDeformer = tryExtractBlendShapeDeformer(fnMesh, args.ignoreMeshDeformers);
+	MObject blendShapeDeformer = args.skipBlendShapes 
+		? MObject::kNullObj 
+		: tryExtractBlendShapeDeformer(fnMesh, args.ignoreMeshDeformers);
 
 	if (blendShapeDeformer.isNull())
 	{
@@ -36,46 +38,25 @@ Mesh::Mesh(ExportableScene& scene, const MDagPath& dagPath)
 		const MPlug weightArrayPlug = fnBlendShapeDeformer.findPlug("weight", &status);
 		THROW_ON_FAILURE(status);
 
-		std::unique_ptr<MFnMesh> fnDeformedMesh;
-
-		if (args.blendFinalMesh)
-		{
-			fnDeformedMesh = std::make_unique<MFnMesh>(dagPath, &status);
-		}
-		else
-		{
-			MPlug outputGeometryPlugs = fnBlendShapeDeformer.findPlug("outputGeometry", &status);
-			THROW_ON_FAILURE(status);
-
-			const auto outputGeometryPlugsDimension = outputGeometryPlugs.evaluateNumElements(&status);
-			THROW_ON_FAILURE(status);
-
-			if (outputGeometryPlugsDimension == 0)
-				THROW_ON_FAILURE_WITH(MStatus::kFailure, formatted("Output geometry of %s is not connected to anything!", deformerName));
-
-			MPlug outputGeometryPlug = outputGeometryPlugs.elementByPhysicalIndex(0, &status);
-			THROW_ON_FAILURE(status);
-
-			MObject outputShape = getOrCreateOutputShape(outputGeometryPlug, m_cleanup.tempOutputMesh);
-
-			if (outputShape.isNull())
-				THROW_ON_FAILURE_WITH(MStatus::kFailure, formatted("Could not get output geometry of %s!", deformerName));
-
-			fnDeformedMesh = std::make_unique<MFnMesh>(outputShape, &status);
-			THROW_ON_FAILURE(status);
-		}
-
 		// We use the MeshBlendShapeWeights helper class to manipulate the weights 
 		// in order to reconstruct the geometry of deleted blend shape targets.
 		// When an exception is thrown, the weights and connections will be restored.
 		MeshBlendShapeWeights weightPlugs(weightArrayPlug);
 		weightPlugs.breakConnections();
 
+		for (auto i=0; i<weightPlugs.numWeights(); ++i)
+		{
+			auto plugName = weightPlugs.getWeightPlug(i).name(&status);
+			THROW_ON_FAILURE(status);
+			cout << prefix << "target#" << i << ": " << std::quoted(plugName.asChar(), '\'') << endl;
+			cout.flush();
+		}
+
 		// Clear all weights to reconstruct base mesh
 		weightPlugs.clearWeightsExceptFor(-1);
 
 		// Reconstruct base mesh
-		m_mainShape = std::make_unique<MainShape>(scene, *fnDeformedMesh, ShapeIndex::main());
+		m_mainShape = std::make_unique<MainShape>(scene, fnMesh, ShapeIndex::main());
 		m_allShapes.emplace_back(m_mainShape.get());
 
 		const auto numWeights = weightPlugs.numWeights();
@@ -86,9 +67,9 @@ Mesh::Mesh(ExportableScene& scene, const MDagPath& dagPath)
 			auto weightPlug = weightPlugs.getWeightPlug(targetIndex);
 			auto initialWeight = static_cast<float>(weightPlugs.getOriginalWeight(targetIndex));
 			auto blendShape = std::make_unique<MeshShape>(m_mainShape->indices(), 
-				*fnDeformedMesh, args, ShapeIndex::target(targetIndex), weightPlug, initialWeight);
+				fnMesh, args, ShapeIndex::target(targetIndex), weightPlug, initialWeight);
 			m_allShapes.emplace_back(blendShape.get());
-			m_blendShapes.emplace_back(move(blendShape));
+			m_blendShapes.emplace_back(std::move(blendShape));
 		}
 	}
 }

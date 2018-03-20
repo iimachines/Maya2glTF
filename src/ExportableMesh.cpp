@@ -119,7 +119,7 @@ ExportableMesh::ExportableMesh(
 
 			auto& joints = skeleton.joints();
 
-			std::set<std::string> jointSet;
+			std::map<int, std::vector<ExportableNode*>> distanceToRootMap;
 
 			m_inverseBindMatrices.reserve(joints.size());
 
@@ -129,10 +129,8 @@ ExportableMesh::ExportableMesh(
 				auto* jointNode = joint.node;
 				glSkin.joints.emplace_back(&jointNode->glNode);
 				
-				auto fullPathName = jointNode->dagPath.fullPathName(&status);
-				THROW_ON_FAILURE(status);
-				
-				jointSet.insert(fullPathName.asChar());
+				auto distanceToRoot = ExportableScene::distanceToRoot(jointNode->dagPath);
+				distanceToRootMap[distanceToRoot].emplace_back(jointNode);
 
 				Float4x4 inverseBindMatrix;
 				joint.inverseBindMatrix.get(reinterpret_cast<float(&)[4][4]>(inverseBindMatrix));
@@ -147,28 +145,18 @@ ExportableMesh::ExportableMesh(
 
 			glSkin.inverseBindMatrices = m_inverseBindMatricesAccessor.get();
 
-			// Find root joint
-			for (auto& joint : joints)
-			{
-				auto* jointNode = joint.node;
-				auto parentPath = jointNode->parentDagPath.fullPathName(&status);
-				THROW_ON_FAILURE(status);
+			// Find root
+			const auto& roots = distanceToRootMap.begin()->second;
 
-				if (jointSet.find(parentPath.asChar()) == jointSet.end())
-				{
-					if (glSkin.skeleton)
-					{
-						MayaException::printError(formatted("Skeletons with multiple roots are not yet supported, node: '%s'", shapeName));
-					}
-					else
-					{
-						// Found root.
-						cout << prefix << "Using joint " << jointNode->name() << " as skeleton root for mesh " << shapeName << endl;
-						glSkin.skeleton = &jointNode->glNode;
-					}
-				}
+			if (roots.size() > 1)
+			{
+				MayaException::printError(
+					formatted("Skeletons with multiple roots are not yet supported, mesh '%s'", shapeName.c_str()));
 			}
 
+			auto rootJointNode = roots.at(0);
+			cout << prefix << "Using joint " << quoted(rootJointNode->name(), '\'') << " as skeleton root for mesh " << quoted(shapeName, '\'') << endl;
+			glSkin.skeleton = &rootJointNode->glNode;
 		}
 	}
 }

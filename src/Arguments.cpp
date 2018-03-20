@@ -38,7 +38,8 @@ namespace flag
 
 	const auto meshPrimitiveAttributes = "mpa";
 
-	const auto blendFinalMesh = "bfm";
+	const auto skipSkinClusters = "ssc";
+	const auto skipBlendShapes = "sbs";
 	const auto ignoreMeshDeformers = "imd";
 }
 
@@ -107,10 +108,10 @@ SyntaxFactory::SyntaxFactory()
 
 	registerFlag(ss, flag::meshPrimitiveAttributes, "meshPrimitiveAttributes", kString);
 
-	registerFlag(ss, flag::blendFinalMesh, "blendFinalMesh", kNoArg);
-
 	registerFlag(ss, flag::ignoreMeshDeformers, "ignoreMeshDeformers", true, kString);
-	
+	registerFlag(ss, flag::skipSkinClusters, "skipSkinClusters", kNoArg);
+	registerFlag(ss, flag::skipBlendShapes, "skipBlendShapes", kNoArg);
+
 	m_usage = ss.str();
 }
 
@@ -328,7 +329,8 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	forcePbrMaterials = adb.isFlagSet(flag::forcePbrMaterials);
 	force32bitIndices = adb.isFlagSet(flag::force32bitIndices);
 	assignObjectNames = adb.isFlagSet(flag::assignObjectNames);
-	blendFinalMesh = adb.isFlagSet(flag::blendFinalMesh);
+	skipSkinClusters = adb.isFlagSet(flag::skipSkinClusters);
+	skipBlendShapes = adb.isFlagSet(flag::skipBlendShapes);
 
 	adb.optional(flag::globalOpacityFactor, opacityFactor);
 

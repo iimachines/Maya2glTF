@@ -49,10 +49,9 @@ ExportableNode* ExportableScene::getParent(ExportableNode* node)
 	return parentNode;
 }
 
-int ExportableScene::distanceToRoot(ExportableNode* node) 
+int ExportableScene::distanceToRoot(MDagPath dagPath)
 {
 	int distance;
-	auto dagPath = node->dagPath;
 
 	// Find first selected ancestor node.
 	// That is our logical parent.

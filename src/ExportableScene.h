@@ -27,7 +27,7 @@ public:
 	// Returns null if the node has no logical parent.
 	ExportableNode* getParent(ExportableNode* node);
 
-	static int distanceToRoot(ExportableNode* node);
+	static int distanceToRoot(MDagPath dagPath);
 
 	const NodeTable& table() const { return m_table; }
 
