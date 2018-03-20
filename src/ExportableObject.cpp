@@ -18,18 +18,5 @@ ExportableObject::ExportableObject(MObject mObj)
 
 ExportableObject::~ExportableObject()
 {
-	
 }
 
-void ExportableObject::handleNameAssignment(const Arguments& args, GLTF::Object& glObj)
-{
-	if (args.assignObjectNames)
-	{
-		glObj.name = _name;
-	}
-}
-
-void ExportableObject::handleNameAssignment(const ExportableResources& resources, GLTF::Object& glObj)
-{
-	handleNameAssignment(resources.arguments(), glObj);
-}
