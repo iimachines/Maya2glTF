@@ -70,7 +70,10 @@ namespace Semantic
 	};
 
 	typedef std::array<Kind, COUNT> SemanticKinds;
+
 	const SemanticKinds& kinds();
+
+	const SemanticKinds& blendShapeKinds();
 
 	inline Kind from(int s)
 	{

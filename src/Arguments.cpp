@@ -2,6 +2,7 @@
 #include "Arguments.h"
 #include "MayaException.h"
 #include "IndentableStream.h"
+#include "MeshSemantics.h"
 
 using namespace std::experimental;
 
@@ -37,6 +38,7 @@ namespace flag
 	const auto debugVectorLength = "dvl";
 
 	const auto meshPrimitiveAttributes = "mpa";
+	const auto blendPrimitiveAttributes = "bpa";
 
 	const auto skipSkinClusters = "ssc";
 	const auto skipBlendShapes = "sbs";
@@ -107,6 +109,7 @@ SyntaxFactory::SyntaxFactory()
 	registerFlag(ss, flag::initialValuesTime, "initialValuesTime", kTime);
 
 	registerFlag(ss, flag::meshPrimitiveAttributes, "meshPrimitiveAttributes", kString);
+	registerFlag(ss, flag::blendPrimitiveAttributes, "blendPrimitiveAttributes", kString);
 
 	registerFlag(ss, flag::ignoreMeshDeformers, "ignoreMeshDeformers", true, kString);
 	registerFlag(ss, flag::skipSkinClusters, "skipSkinClusters", kNoArg);
@@ -182,6 +185,33 @@ public:
 
 		if (selection.length() < 1)
 			throwOnFailure(MStatus::kInvalidParameter, "At least one object must be selected or passed to the command");
+	}
+
+	MeshPrimitiveAttributeSet getSemanticSet(const char* shortName, const Semantic::SemanticKinds& defaultKinds) const
+	{
+		MeshPrimitiveAttributeSet semantics;
+
+		MString attrs;
+		if (optional(shortName, attrs))
+		{
+			MStringArray parts;
+			const auto status = attrs.split('|', parts);
+			throwOnArgument(status, shortName);
+			for (auto i = 0U; i < parts.length(); ++i)
+			{
+				const auto kind = Semantic::parse(parts[i].asChar());
+				semantics[kind] = true;
+			}
+		}
+		else
+		{
+			for (auto kind : defaultKinds)
+			{
+				semantics[kind] = true;
+			}
+		}
+
+		return semantics;
 	}
 
 	bool isFlagSet(const char* shortName) const
@@ -379,25 +409,8 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	}
 
 	// Parse mesh primitive attributes
-	MString attrs;
-	if (adb.optional(flag::meshPrimitiveAttributes, attrs))
-	{
-		MStringArray parts;
-		status = attrs.split('|', parts);
-		ArgChecker::throwOnArgument(status, flag::meshPrimitiveAttributes);
-		for (auto i = 0U; i < parts.length(); ++i)
-		{
-			const auto kind = Semantic::parse(parts[i].asChar());
-			meshPrimitiveAttributes[kind] = true;
-		}
-	}
-	else
-	{
-		for (auto kind: Semantic::kinds())
-		{
-			meshPrimitiveAttributes[kind] = true;
-		}
-	}
+	meshPrimitiveAttributes = adb.getSemanticSet(flag::meshPrimitiveAttributes, Semantic::kinds());
+	blendPrimitiveAttributes = adb.getSemanticSet(flag::blendPrimitiveAttributes, Semantic::blendShapeKinds());
 
 	// Parse animation clips
 	const auto clipCount = adb.flagUsageCount(flag::animationClipNames);

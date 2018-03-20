@@ -12,7 +12,7 @@ public:
 	~MeshBlendShapeWeights();
 
 	auto numWeights() const { return m_originalWeightPlugStates.size(); }
-	const MPlug& getWeightPlug(const int index) const { return m_weightArrayPlug[index]; }
+	MPlug getWeightPlug(const int index) const { return m_weightArrayPlug[index]; }
 
 	double getOriginalWeight(const int index) const { return m_originalWeightPlugStates.at(index).weight; }
 

@@ -9,7 +9,7 @@ namespace Semantic
 	{
 		SemanticKinds kinds;
 
-		for (auto i = 0; i<COUNT; ++i)
+		for (auto i = 0; i < COUNT; ++i)
 		{
 			kinds[i] = static_cast<Kind>(i);
 		}
@@ -20,6 +20,12 @@ namespace Semantic
 	const SemanticKinds& kinds()
 	{
 		static SemanticKinds kinds{ generateKinds() };
+		return kinds;
+	}
+
+	const SemanticKinds& blendShapeKinds()
+	{
+		static SemanticKinds kinds{ POSITION, NORMAL, TANGENT };
 		return kinds;
 	}
 }

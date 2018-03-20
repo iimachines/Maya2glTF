@@ -118,8 +118,11 @@ public:
 	/** The opacity factor to apply to the material */
 	float opacityFactor = 1;
 
-	/** The semantics (aka glTF attributes) that should be exported. Defaults to all semantics contained in the mesh */
+	/** The semantics (aka glTF attributes) that should be exported for the mains. Defaults to all semantics contained in the mesh */
 	MeshPrimitiveAttributeSet meshPrimitiveAttributes;
+
+	/** The semantics (aka glTF attributes) that should be exported for blend shapes. Defaults to POSITION, NORMAL and TANGENT */
+	MeshPrimitiveAttributeSet blendPrimitiveAttributes;
 
 	/** Ignore all skin clusters */
 	bool skipSkinClusters = false;

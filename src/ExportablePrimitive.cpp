@@ -33,11 +33,13 @@ ExportablePrimitive::ExportablePrimitive(
 	const VertexBuffer& vertexBuffer,
 	ExportableResources& resources)
 {
+	auto& args = resources.arguments();
+
 	glPrimitive.mode = GLTF::Primitive::TRIANGLES;
 
 	auto& vertexIndices = vertexBuffer.indices;
 
-	if (resources.arguments().force32bitIndices ||
+	if (args.force32bitIndices ||
 		vertexBuffer.maxIndex() > std::numeric_limits<uint16_t>::max())
 	{
 		// Use 32-bit indices
@@ -71,14 +73,8 @@ ExportablePrimitive::ExportablePrimitive(
 		}
 	}
 
-	const auto mainShapeSemanticSet = resources.arguments().meshPrimitiveAttributes;
-	const auto blendShapeSemanticSet = mainShapeSemanticSet & 
-		MeshPrimitiveAttributeSet 
-		{ 
-			1 << Semantic::POSITION | 
-			1 << Semantic::NORMAL | 
-			1 << Semantic::TANGENT 
-		};
+	const auto mainShapeSemanticSet = args.meshPrimitiveAttributes;
+	const auto blendShapeSemanticSet = args.blendPrimitiveAttributes & mainShapeSemanticSet;
 
 	for (auto && group: componentsPerShapeIndex)
 	{
