@@ -10,15 +10,17 @@ namespace flag
 {
 	const auto outputFolder = "of";
 	const auto sceneName = "sn";
-	const auto glb = "glb";
+	const auto glBinary = "glb";
 	const auto dumpMaya = "dmy";
 	const auto dumpGLTF = "dgl";
-	const auto separate = "sep";
+	const auto embedded = "emb";
+	const auto copyright = "cpr";
+
 	const auto defaultMaterial = "dm";
 	const auto colorizeMaterials = "cm";
-	const auto forcePbrMaterials = "fpm";
+	const auto skipStandardMaterials = "ssm";
 	const auto force32bitIndices = "i32";
-	const auto assignObjectNames = "aon";
+	const auto disableNameAssignment = "dnn";
 	const auto scaleFactor = "sf";
 	const auto mikkelsenTangentSpace = "mts";
 	const auto mikkelsenTangentAngularThreshold = "mta";
@@ -85,21 +87,22 @@ SyntaxFactory::SyntaxFactory()
 	registerFlag(ss, flag::outputFolder, "outputFolder", kString);
 	registerFlag(ss, flag::sceneName, "sceneName", kString);
 	registerFlag(ss, flag::scaleFactor, "scaleFactor", kDouble);
-	registerFlag(ss, flag::glb, "binary", kNoArg);
+	registerFlag(ss, flag::glBinary, "binary", kNoArg);
 	registerFlag(ss, flag::dumpGLTF, "dumpGTLF", kString);
 	registerFlag(ss, flag::dumpMaya, "dumpMaya", kString);
-	registerFlag(ss, flag::separate, "separate", kNoArg);
+	registerFlag(ss, flag::embedded, "separate", kNoArg);
 	registerFlag(ss, flag::defaultMaterial, "defaultMaterial", kNoArg);
 	registerFlag(ss, flag::colorizeMaterials, "colorizeMaterials", kNoArg);
-	registerFlag(ss, flag::forcePbrMaterials, "forcePbrMaterials", kNoArg);
+	registerFlag(ss, flag::skipStandardMaterials, "forcePbrMaterials", kNoArg);
 	registerFlag(ss, flag::force32bitIndices, "force32bitIndices", kNoArg);
-	registerFlag(ss, flag::assignObjectNames, "assignObjectNames", kNoArg);
+	registerFlag(ss, flag::disableNameAssignment, "disableNameAssignment", kNoArg);
 	registerFlag(ss, flag::mikkelsenTangentSpace, "mikkelsenTangentSpace", kNoArg);
 	registerFlag(ss, flag::mikkelsenTangentAngularThreshold, "mikkelsenTangentAngularThreshold", kDouble);
 	registerFlag(ss, flag::debugNormalVectors, "debugNormalVectors", kNoArg);
 	registerFlag(ss, flag::debugTangentVectors, "debugTangentVectors", kNoArg);
 	registerFlag(ss, flag::debugVectorLength, "debugVectorLength", kDouble);
 	registerFlag(ss, flag::globalOpacityFactor, "globalOpacityFactor", kDouble);
+	registerFlag(ss, flag::copyright, "copyright", kString);
 
 	registerFlag(ss, flag::animationClipFrameRate, "animationClipFrameRate", true, kDouble);
 	registerFlag(ss, flag::animationClipNames, "animationClipNames", true, kString);
@@ -344,7 +347,7 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	adb.required(flag::outputFolder, outputFolder);
 	adb.optional(flag::scaleFactor, scaleFactor);
 
-	glb = adb.isFlagSet(flag::glb);
+	glb = adb.isFlagSet(flag::glBinary);
 
 	const path outputFolderPath(outputFolder.asChar());
 	m_mayaOutputStream = adb.getOutputStream(flag::dumpMaya, "Maya debug", outputFolderPath, m_mayaOutputFileStream);
@@ -353,12 +356,12 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	dumpMaya = m_mayaOutputStream.get();
 	dumpGLTF = m_gltfOutputStream.get();
 
-	separate = adb.isFlagSet(flag::separate);
+	embedded = adb.isFlagSet(flag::embedded);
 	defaultMaterial = adb.isFlagSet(flag::defaultMaterial);
 	colorizeMaterials = adb.isFlagSet(flag::colorizeMaterials);
-	forcePbrMaterials = adb.isFlagSet(flag::forcePbrMaterials);
+	skipStandardMaterials = adb.isFlagSet(flag::skipStandardMaterials);
 	force32bitIndices = adb.isFlagSet(flag::force32bitIndices);
-	assignObjectNames = adb.isFlagSet(flag::assignObjectNames);
+	disableNameAssignment = adb.isFlagSet(flag::disableNameAssignment);
 	skipSkinClusters = adb.isFlagSet(flag::skipSkinClusters);
 	skipBlendShapes = adb.isFlagSet(flag::skipBlendShapes);
 
@@ -388,14 +391,12 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 
 	adb.optional(flag::debugVectorLength, debugVectorLength);
 
+	adb.optional(flag::copyright, copyright);
+
 	// For debugging, dump some arguments again
 	MStringArray selectedObjects;
 	status = selection.getSelectionStrings(selectedObjects);
 	THROW_ON_FAILURE(status);
-
-	// By default use the current time for the initial values.
-	initialValuesTime = MAnimControl::currentTime();
-	adb.optional(flag::initialValuesTime, initialValuesTime);
 
 	adb.optional(flag::redrawViewport, redrawViewport);
 
@@ -415,6 +416,9 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	// Parse animation clips
 	const auto clipCount = adb.flagUsageCount(flag::animationClipNames);
 	animationClips.reserve(clipCount);
+
+	initialValuesTime = clipCount > 0 ? MTime(0, MTime::kSeconds) : MAnimControl::currentTime();
+	adb.optional(flag::initialValuesTime, initialValuesTime);
 
 	const auto fpsCount = adb.flagUsageCount(flag::animationClipFrameRate);
 

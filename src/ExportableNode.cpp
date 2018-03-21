@@ -20,16 +20,15 @@ ExportableNode::ExportableNode(
 	owner.reset(this);
 
 	auto& resources = scene.resources();
-	auto& arguments = resources.arguments();
+	auto& args = resources.arguments();
 
 	// Remember scale factor
-	scaleFactor = arguments.scaleFactor;
+	scaleFactor = args.scaleFactor;
 
 	// Get name
-	glNode.name = dagPath.partialPathName(&status).asChar();
+	const auto name = dagPath.partialPathName(&status);
 	THROW_ON_FAILURE(status);
-
-	handleNameAssignment(resources, glNode);
+	args.assignName(glNode, name.asChar());
 
 	// Get parent
 	const auto parentNode = scene.getParent(this);
@@ -45,7 +44,7 @@ ExportableNode::ExportableNode(
 
 	// Get transform
 	const auto objectMatrix = Transform::getObjectSpaceMatrix(dagPath, parentDagPath);
-	initialTransform = Transform::toTRS(objectMatrix, scaleFactor, glNode.name.c_str());
+	initialTransform = Transform::toTRS(objectMatrix, scaleFactor, name.asChar());
 	THROW_ON_FAILURE(status);
 	glNode.transform = &initialTransform;
 
@@ -56,13 +55,12 @@ ExportableNode::ExportableNode(
 	}
 
 	// Get mesh, but only if the node was selected.
-	if (arguments.selection.hasItem(dagPath))
+	if (args.selection.hasItem(dagPath))
 	{
 		dagPath.extendToShape();
 
-		switch (dagPath.apiType(&status))
+		if (dagPath.hasFn(MFn::kMesh)) 
 		{
-		case MFn::kMesh:
 			m_mesh = std::make_unique<ExportableMesh>(scene, dagPath);
 			glNode.mesh = &m_mesh->glMesh;
 
@@ -71,7 +69,6 @@ ExportableNode::ExportableNode(
 			{
 				glNode.skin = &m_mesh->glSkin;
 			}
-			break;
 		}
 	}
 }

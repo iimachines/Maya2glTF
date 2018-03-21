@@ -11,12 +11,11 @@ ExportableMaterial::~ExportableMaterial() = default;
 
 std::unique_ptr<ExportableMaterial> ExportableMaterial::from(ExportableResources& resources, const MFnDependencyNode& shaderNode)
 {
-	if (shaderNode.typeName() == "GLSLShader" || resources.arguments().forcePbrMaterials)
+	if (shaderNode.typeName() == "GLSLShader" || !resources.arguments().skipStandardMaterials)
 		return std::make_unique<ExportableMaterialPBR>(resources, shaderNode);
 
-	cerr << prefix
-		<< "WARNING: unsupported shader node type: " << shaderNode.typeName().asChar() << " #" << shaderNode.type()
-		<< "Either use the Maya2glTF GLSLShader, or pass the -forcePbrMaterials (-fpm) flag"
+	cout << prefix
+		<< "Skipping non-PBR shader node type " << std::quoted(shaderNode.typeName().asChar()) << " #" << shaderNode.type()
 		<< endl;
 
 	return nullptr;

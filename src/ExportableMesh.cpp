@@ -22,8 +22,6 @@ ExportableMesh::ExportableMesh(
 	auto& resources = scene.resources();
 	auto& args = resources.arguments();
 
-	handleNameAssignment(resources, glMesh);
-
 	const auto mayaMesh = std::make_unique<Mesh>(scene, shapeDagPath);
 
 	if (args.dumpMaya)
@@ -33,7 +31,7 @@ ExportableMesh::ExportableMesh(
 
 	if (!mayaMesh->isEmpty())
 	{
-		glMesh.name = shapeName + "_mesh";
+		args.assignName(glMesh, shapeName);
 
 		auto& mainShape = mayaMesh->shape();
 
@@ -115,7 +113,7 @@ ExportableMesh::ExportableMesh(
 		auto& skeleton = mainShape.skeleton();
 		if (!skeleton.isEmpty())
 		{
-			glSkin.name = shapeName + "_skin";
+			args.assignName(glSkin, shapeName);
 
 			auto& joints = skeleton.joints();
 

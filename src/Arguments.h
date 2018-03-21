@@ -74,6 +74,8 @@ public:
 	MString sceneName;
 	MString outputFolder;
 	MSelectionList selection;
+
+	/** Outputs a single binary GLB file */
 	bool glb = false;
 
 	/** Create a default material for primitives that don't have shading in Maya? */
@@ -82,8 +84,8 @@ public:
 	/** Assign a color with a different hue to each material, for debugging purposes */
 	bool colorizeMaterials = false;
 
-	/** Convert any material into the scene to a glTF PBR material */
-	bool forcePbrMaterials = false;
+	/** Skip all non PBR materials. By default these are converted to PBR materials */
+	bool skipStandardMaterials = false;
 
 	/** Always use 32-bit indices, even when 16-bit would be sufficient */
 	bool force32bitIndices = false;
@@ -94,11 +96,11 @@ public:
 	/** If non-null, dump the GLTF JSON to the stream */
 	IndentableStream* dumpGLTF;
 
-	/** By default a single GLTF file is exported; pass -separate to move the binary buffers to a separate BIN file */
-	bool separate = false;
+	/** Embed all resources in the GLTF file? By default a separate GLTF JSON and binary BIN file is exported */
+	bool embedded = false;
 
-	/** By default the Maya node name is not assigned to the GLTF node name */
-	bool assignObjectNames = false;
+	/** By default the Maya node names are assigned to the GLTF node names */
+	bool disableNameAssignment = false;
 
 	/** Generate debug tangent vector lines? */
 	bool debugTangentVectors = false;
@@ -133,7 +135,10 @@ public:
 	/** Ignore these mesh deformers. By default the deformer closest to the displayed mesh is used. */
 	MSelectionList ignoreMeshDeformers;
 
-	/** The time where the 'initial values' of all nodes are to be found (aka neutral base pose) */
+	/** 
+	 * The time where the 'initial values' of all nodes are to be found (aka neutral base pose) 
+	 * By default the current time is used, unless animation is used, then frame 0 is used.
+	 */
 	MTime initialValuesTime;
 
 	/** Redraw the viewport while exporting? True in debug builds by default, false otherwise (for speed) */
@@ -144,6 +149,17 @@ public:
 #endif
 
 	std::vector<AnimClipArg> animationClips;
+
+	/** Copyright text of the exported file */
+	MString copyright;
+
+	void assignName(GLTF::Object& glObj, const std::string& name) const
+	{
+		if (!disableNameAssignment)
+		{
+			glObj.name = name;
+		}
+	}
 
 private:
 	DISALLOW_COPY_MOVE_ASSIGN(Arguments);

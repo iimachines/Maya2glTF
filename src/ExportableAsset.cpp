@@ -4,6 +4,7 @@
 #include "ExportableNode.h"
 #include "MayaException.h"
 #include "./time.h"
+#include "version.h"
 
 ExportableAsset::ExportableAsset(const Arguments& args)
 	: m_resources{ args }
@@ -13,8 +14,9 @@ ExportableAsset::ExportableAsset(const Arguments& args)
 	m_glAsset.scene = 0;
 
 	m_glAsset.metadata = &m_glMetadata;
-	m_glMetadata.generator = "Maya2glTF";
+	m_glMetadata.generator = std::string{ "Maya2glTF V" } + version;
 	m_glMetadata.version = "2.0";
+	m_glMetadata.copyright = args.copyright.asChar();
 
 	auto& selection = args.selection;
 
@@ -127,7 +129,7 @@ void ExportableAsset::save()
 	rapidjson::Writer<rapidjson::StringBuffer> jsonWriter(jsonStringBuffer);
 	jsonWriter.StartObject();
 
-	const auto embed = !args.glb && !args.separate;
+	const auto embed = !args.glb && args.embedded;
 
 	GLTF::Options options;
 	options.embeddedBuffers = embed;
