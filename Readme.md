@@ -16,22 +16,25 @@ Maya interally uses a dataflow architecture (called the *dependency graph*). Thi
 
 ## Status
 
-I consider this plugin to be in *pre-alpha* stage, use it at your own risk :) 
+I consider this plugin to be in *beta* stage, use it at your own risk :) 
 
 * Supports **Maya 2016 EXT2, 2017, 2017** (64-bit only)
     * Maya 2016 is a different product from Maya 2016 EXT2 and is ***not supported***, since I can't find a compatible devkit for it.
 
-* Windows only
+* Windows only for now
     * although the code is written using C++ 17 and should be platform independent, so can be ported by people with this experience (PR welcome! :) 
 
-* Uses the same glTF code as the COLLADA2GLTF project
-    
-* Exporting static meshes with POSITION, NORMAL, COLOR, NORMAL, TANGENT, and TEXCOORD attributes (aka semantics) seems to work
-    * although on some meshes the BabylonJS viewer renders incorrectly (the ThreeJS and Cesium viewers render correctly).
+* Supports **static and animated, skinned and morphed meshes**
+    * Currently all animation is *baked* per frame, no compression is done yet
 
-* Exports the position, rotation and scale of nodes, but no animation yet.
+* Supports **multiple animation clips** (node and joint transforms, blend shape weights)
+    * Blend shape targets are not sparse yet
 
+* Exports `POSITION`, `NORMAL`, `COLOR`, `NORMAL`, `TANGENT`, `TEXCOORD`, `JOINTS` and `WEIGHTS` attributes 
+ 
 * Supports exporting to `glTF + bin`, single `glTF` or single `glb` files.
+
+* Uses the same glTF code as the COLLADA2GLTF project
 
 * Currently Phong, Lambert and Blinn shaders are converted to PBR, but only the color texture and transparency is taken into account (this is mainly done for testing with existing models). 
 
@@ -40,19 +43,16 @@ I consider this plugin to be in *pre-alpha* stage, use it at your own risk :)
     * To use this hardware shader
         * make sure the GLSL shader plugin is loaded 
         * use the *OpenGL/Core Profile* in Preferences/Display 
+    * You can use the `Maya2glTF\maya\scripts\assign_glTF_PBR_material_and_textures.mel` script to assign multiple textures at once, based on filename patterns
 
-* Code for exporting blend-shape deltas exists, but is not fully working yet.
-
-* No skinning nor animation yet
-    * but my company needs this urgently, so it's high on our TODO
-
-* No lights, cameras, meshes only
-    * unlikely to be added, we don't really need this
-    
+* No lights or cameras yet
+    * unlikely to be added, we don't really need this, although not a lot of work
+  
 
 ## Building
 
 * No out-of-the-box downloads are available yet, currently you have to build the plugin from sources.
+    * *If you want to try the exporter, but you can't build it, give me a sign*
 
 * Right now this project requires **Microsoft Windows x64 8.1 or higher**
     * It should be easily ported to OSX and Linux, or older versions of Windows.
@@ -119,28 +119,85 @@ I consider this plugin to be in *pre-alpha* stage, use it at your own risk :)
     * I use the [vscode](https://code.visualstudio.com/) [glTF viewer](https://github.com/AnalyticalGraphicsInc/gltf-vscode)
         * Make sure to switch between BabylonJS, Cesium and ThreeJS, they all give different results...
 
-    * If you want to contribute to the development, you might want to use the MEL script `Maya2glTF\maya\mel\test-iteration.mel`. This unloads and reloads the plugin everytime, unlocking the DLL.
+    * If you want to contribute to the development, you might want to use the MEL script `Maya2glTF\maya\scripts\test-iteration.mel`. This unloads and reloads the plugin everytime, unlocking the DLL.
 
 * The supported plugin arguments are
 	* `-outputFolder (-of) STRING` *(required)* 
         * the output folder  
-    
+
+    * `-scaleFactor (-sf) FLOAT` *(optional)* 
+        * scale factor to apply to the vertices
+
+    * `-copyright (-cpr) STRING` *(optional)* 
+        * copyright text to be embedded in the GLTF file
+
     * `-sceneName (-sn) STRING` *(optional)* 
         * the name of the glTF filename
         * default is Maya scene name
     
-    * `-glb` *(optional)* 
+    * `-binary (-glb)` *(optional)* 
         * exports a single `glb` asset file 
-        * default is a single `glTF` asset file
+        * default is a JSON `glTF` and binary `bin` file containing the buffers
     
-    * `-sep` *(optional)* 
-        * seperates resources from the asset file in a `bin` file
-        * default is to embed all resources in the asset file
-    
-    * `-forcePbrMaterials (-fpm)` *(optional)* 
-        * force exporting PBR materials for Phong, Lambert and Blinn materials
-        * by default these materials are not converted
-            * they might be converted to a compatible material in the future
+    * `-embedded (-emb)` *(optional)* 
+        * embeds buffers into the `glTF` file, as base-64 encoded strings
+        * by default the buffers are stored in a separate `bin` file
+
+    * `-initialValuesTime (-ivt) TIME` *(optional)* 
+        * the time where the initial/default values can be found
+        * by default frame 0 is used
+        * all nodes get their default transforms and from this time 
+        * all meshes get their default blend shape weights and from this time 
+        * this frame should show the **skinning bind pose**
+
+    * `-animationClipName (-acn) STRING` *(optional, multiple)* 
+        * the name of the animation clip
+
+    * `-animationClipStartTime (-ast) TIME` *(optional, multiple)* 
+        * the start  time of the animation clip
+        * required when exporting animation clips
+
+    * `-animationClipEndTime (-aet) TIME` *(optional, multiple)* 
+        * the end time of the animation clip
+        * required when exporting animation clips
+
+    * `-animationClipFrameRate (-afr) FLOAT` *(optional, multiple)* 
+        * the frames-per-second of the animation clip
+        * required when exporting animation clips
+        * either you pass a single frame-rate argument for all animation clips, or one per clip
+
+    * `-meshPrimitiveAttributes (-mpa) STRING` *(optional)* 
+        * the attributes for the shapes to export, separated by a vertical bar |
+        * by default all attributes are exported, e.g.
+            * `-mpa POSITION|NORMAL|TANGENT|TEXCOORD|COLOR|JOINTS|WEIGHTS`
+
+    * `-blendPrimitiveAttributes (-bpa) STRING` *(optional)* 
+        * the attributes for the blend-shapes to export, separated by a vertical bar |
+        * by default all GLTF supported attributes are exported, e.g.
+            * `-mpa POSITION|NORMAL|TANGENT`
+
+    * `-force32bitIndices (-i32)` *(optional)* 
+        * forces 32-bit indices to be written to the GLTF buffers
+        * by default 16-bit indices are used whenever possible
+
+    * `-disableNameAssignment (-dnn)` *(optional)* 
+        * do not assign Maya node names to GLTF nodes
+        * by default names are copied
+
+    * `-mikkelsenTangentSpace (-mts)` *(optional)* 
+        * use the 'MikkTSpace' algoritm for computing the tangents instead of those from Maya
+        * by default the Maya tangents are exported
+            * if you imported meshes from Blender without importing the tangents, and you just use Maya for doing animation, you should use this flag.
+
+    * `-mikkelsenTangentAngularThreshold (-mta)` *(optional)* 
+        * the angular threshold to be passed to the 'MikkTSpace' algoritm
+            * by default 180 is passed 
+            * in general you should not use this flag, it is mainly for debugging
+
+    * `-skipStandardMaterials (-ssm)` *(optional)* 
+        * do not export standard materials (lambert, phong, etc), only GLTF PBR materials.
+        * by default standard materials are converted
+            * but just the color and transparency is copied for now.
 	
     * `-defaultMaterial (-dm)` *(optional)* 
         * always generates a glTF PBR material, even if no material is assigned to a mesh in Maya
@@ -162,3 +219,21 @@ I consider this plugin to be in *pre-alpha* stage, use it at your own risk :)
             * *WARNING: this can take a very long time if you have complex meshes!*
         * by default nothing is printed
 
+    * `-ignoreMeshDeformers (-imd) STRING` *(optional, multiple)* 
+        * blend-shape or skin-cluster deformers to be ignored  
+        * by default no deformers are ignored
+        * use this if you have deformers that are used to generate different characters, but not for animation
+
+    * `-skipSkinClusters (-ssc)` *(optional)* 
+        * skip all skin cluster deformers, as if the mesh was not skinned
+        * by default no skin clusters are skipped
+
+    * `-skipBlendShapes (-sbs)` *(optional)* 
+        * skip all blend-shape deformers, as if the mesh was not morphed
+        * by default no blend-shape deformers are skipped
+
+    * `-redrawViewport (-rvp)` *(optional)* 
+        * redraw the viewport when exporting animation.
+        * by default the viewport is not refreshed, since this slows down the exporter
+
+        
