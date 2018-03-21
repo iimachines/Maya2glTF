@@ -26,7 +26,7 @@ namespace flag
 	const auto mikkelsenTangentAngularThreshold = "mta";
 	const auto globalOpacityFactor = "gof";
 
-	const auto animationClipNames = "acn";
+	const auto animationClipName = "acn";
 	const auto animationClipFrameRate = "afr";
 	const auto animationClipStartTime = "ast";
 	const auto animationClipEndTime = "aet";
@@ -105,7 +105,7 @@ SyntaxFactory::SyntaxFactory()
 	registerFlag(ss, flag::copyright, "copyright", kString);
 
 	registerFlag(ss, flag::animationClipFrameRate, "animationClipFrameRate", true, kDouble);
-	registerFlag(ss, flag::animationClipNames, "animationClipNames", true, kString);
+	registerFlag(ss, flag::animationClipName, "animationClipName", true, kString);
 	registerFlag(ss, flag::animationClipStartTime, "animationClipStartTime", true, kTime);
 	registerFlag(ss, flag::animationClipEndTime, "animationClipEndTime", true, kTime);
 
@@ -415,7 +415,7 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	blendPrimitiveAttributes = adb.getSemanticSet(flag::blendPrimitiveAttributes, Semantic::blendShapeKinds());
 
 	// Parse animation clips
-	const auto clipCount = adb.flagUsageCount(flag::animationClipNames);
+	const auto clipCount = adb.flagUsageCount(flag::animationClipName);
 	animationClips.reserve(clipCount);
 
 	initialValuesTime = clipCount > 0 ? MTime(0, MTime::kSeconds) : MAnimControl::currentTime();
@@ -429,7 +429,7 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 		adb.required(flag::animationClipFrameRate, fps, fpsCount == 1 ? 0 : clipIndex);
 
 		MString name;
-		adb.required(flag::animationClipNames, name, clipIndex);
+		adb.required(flag::animationClipName, name, clipIndex);
 
 		MTime start;
 		adb.required(flag::animationClipStartTime, start, clipIndex);
