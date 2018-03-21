@@ -215,9 +215,12 @@ void ExportableMaterialPBR::loadPBR(ExportableResources& resources, const MFnDep
 			MImage metallicImage;
 			MImage roughnessImage;
 
-			THROW_ON_FAILURE(metallicImage.readFromTextureNode(metallicTexture.connectedObject));
-			THROW_ON_FAILURE(roughnessImage.readFromTextureNode(roughnessTexture.connectedObject));
+			THROW_ON_FAILURE_WITH(metallicImage.readFromTextureNode(metallicTexture.connectedObject), 
+				formatted("Failed to read metallic texture '%s'", metallicTexture.imageFilePath.asChar()));
 
+			THROW_ON_FAILURE_WITH(roughnessImage.readFromTextureNode(roughnessTexture.connectedObject), 
+				formatted("Failed to read roughness texture '%s'", roughnessTexture.imageFilePath.asChar()));
+			
 			unsigned width;
 			unsigned height;
 			THROW_ON_FAILURE(metallicImage.getSize(width, height));
@@ -252,7 +255,9 @@ void ExportableMaterialPBR::loadPBR(ExportableResources& resources, const MFnDep
 				MString mergedImagePath{ (temp_directory_path() / imageFilename).c_str() };
 
 				cout << prefix << "Saving merged roughness-metalic texture to " << mergedImagePath << endl;
-				roughnessImage.writeToFile(mergedImagePath, imageExtension.c_str());
+				status = roughnessImage.writeToFile(mergedImagePath, imageExtension.c_str());
+				THROW_ON_FAILURE_WITH(status,
+					formatted("Failed to write merged metallic-roughness texture to '%s'", mergedImagePath.asChar()));
 
 				const auto imagePtr = resources.getImage(mergedImagePath.asChar());
 				assert(imagePtr);
@@ -301,10 +306,7 @@ void ExportableMaterialPBR::loadPBR(ExportableResources& resources, const MFnDep
 	}
 }
 
-
-ExportableMaterialPBR::~ExportableMaterialPBR()
-{
-}
+ExportableMaterialPBR::~ExportableMaterialPBR() = default;
 
 ExportableDefaultMaterial::ExportableDefaultMaterial()
 {
@@ -319,9 +321,7 @@ ExportableDefaultMaterial::ExportableDefaultMaterial()
 	m_glMaterial.emissiveFactor = &m_glEmissiveFactor[0];
 }
 
-ExportableDefaultMaterial::~ExportableDefaultMaterial()
-{
-}
+ExportableDefaultMaterial::~ExportableDefaultMaterial() = default;
 
 ExportableDebugMaterial::ExportableDebugMaterial(const Float3& hsv)
 {
@@ -336,6 +336,4 @@ ExportableDebugMaterial::ExportableDebugMaterial(const Float3& hsv)
 	m_glMaterial.emissiveFactor = &m_glEmissiveFactor[0];
 }
 
-ExportableDebugMaterial::~ExportableDebugMaterial()
-{
-}
+ExportableDebugMaterial::~ExportableDebugMaterial() = default;
