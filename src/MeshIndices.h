@@ -70,7 +70,7 @@ public:
 
 	const MeshShadingPerInstance& shadingPerInstance() const { return m_shadingPerInstance; }
 
-	void dump(class IndentableStream& cout, const std::string& name) const;
+	void dump(class IndentableStream& out, const std::string& name) const;
 
 private:
 	int m_TriangleCount;

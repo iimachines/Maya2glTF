@@ -16,16 +16,18 @@ MeshRenderables::MeshRenderables(
 {
 	MStatus status;
 
-	const auto& mainShape = static_cast<MainShape*>(meshShapes.at(0));
+	const auto& mainShape = dynamic_cast<MainShape*>(meshShapes.at(0));
 	const auto& mainIndices = mainShape->indices();
+	const auto& mainVertices = mainShape->vertices();
 	const auto& mainIndicesTable = mainIndices.table();
+	const auto& mainVerticesTable = mainVertices.table();
 
 	auto& shadingPerInstance = mainIndices.shadingPerInstance();
 
 	auto& shading = shadingPerInstance.at(instanceNumber);
 
 	const auto primitiveCount = mainIndices.primitiveCount();
-	const auto vertexCount = mainIndices.maxVertexCount();
+	const auto maxVertexCount = mainIndices.maxVertexCount();
 	const auto perPrimitiveVertexCount = mainIndices.perPrimitiveVertexCount();
 
 	auto primitiveVertexIndex = 0;
@@ -34,6 +36,8 @@ MeshRenderables::MeshRenderables(
 	VertexLayout vertexLayout;
 
 	const auto semanticsMask = args.meshPrimitiveAttributes;
+
+	auto totalWeldCount = 0;
 
 	for (auto primitiveIndex = 0; primitiveIndex < primitiveCount; ++primitiveIndex)
 	{
@@ -110,7 +114,7 @@ MeshRenderables::MeshRenderables(
 					auto& target = componentsMap[slot];
 					if (target.empty())
 					{
-						target.reserve(vertexCount * slot.elementByteSize());
+						target.reserve(maxVertexCount * slot.elementByteSize());
 					}
 
 					target.insert(target.end(), sourceBytes.begin(), sourceBytes.end());
@@ -120,11 +124,15 @@ MeshRenderables::MeshRenderables(
 			{
 				// Reuse the same vertex.
 				sharedVertexIndex = itSharedIndex->second;
+
+				++totalWeldCount;
 			}
 
 			vertexBuffer.indices.push_back(sharedVertexIndex);
 		}
 	}
+
+	cout << prefix << mainShape->dagPath().partialPathName().asChar() << ": welded " << totalWeldCount << " out of " << maxVertexCount << " vertices" << endl;
 
 	// Now compute the blend-shape vector-deltas by subtracting the blend-shape-base mesh from the blend-shape-targets
 	if (meshShapes.size() > 1)

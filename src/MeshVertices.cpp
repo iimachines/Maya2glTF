@@ -56,7 +56,7 @@ struct MikkTSpaceContext : SMikkTSpaceContext
 
 	// TODO: It seems MikkTSpace can generate zero tangents for some degenerate triangles, although it does contain code to deal with these.
 	// NOTE: Cleaning up the mesh with Maya seems to fix this.
-	mutable std::vector<int> invalidTriangleIndices;
+	mutable std::unordered_set<int> invalidTriangleIndices;
 
 	MikkTSpaceContext(
 		const MeshIndices& meshIndices,
@@ -121,13 +121,23 @@ struct MikkTSpaceContext : SMikkTSpaceContext
 		fvNormOut[1] = vector[1];
 		fvNormOut[2] = vector[2];
 	}
+
 	static void getTexCoord(const SMikkTSpaceContext* pContext, float fvTexcOut[], const int iFace, const int iVert)
 	{
 		const auto context = reinterpret_cast<const MikkTSpaceContext*>(pContext);
 		const auto index = context->indices.texcoords[iFace * 3 + iVert];
-		const auto& vector = context->vectors.texcoords[index];
-		fvTexcOut[0] = vector[0];
-		fvTexcOut[1] = 1 - vector[1];
+
+		if (index < 0)
+		{
+			fvTexcOut[0] = NAN;
+			fvTexcOut[1] = NAN;
+		}
+		else
+		{
+			const auto& vector = context->vectors.texcoords[index];
+			fvTexcOut[0] = vector[0];
+			fvTexcOut[1] = 1 - vector[1];
+		}
 	}
 
 	static void setTSpaceBasic(const SMikkTSpaceContext* pContext, const float fvTangent[], const float fSign, const int iFace, const int iVert)
@@ -136,31 +146,37 @@ struct MikkTSpaceContext : SMikkTSpaceContext
 
 		// Re-index
 		const auto index = iFace * 3 + iVert;
-		context->indices.tangents[index] = index;
+		auto& tangentIndexRef = context->indices.tangents[index];
 
-		const auto tx = fvTangent[0];
-		const auto ty = fvTangent[1];
-		const auto tz = fvTangent[2];
+		// If the vertex doesn't have a tangent, don't assign one
+		if (tangentIndexRef >= 0)
+		{
+			tangentIndexRef = index;
 
-		if (tx == 0 && ty == 0 && tz == 0)
-		{
-			context->invalidTriangleIndices.push_back(iFace);
-		}
+			const auto tx = fvTangent[0];
+			const auto ty = fvTangent[1];
+			const auto tz = fvTangent[2];
 
-		if (context->shapeIndex.isMainShapeIndex())
-		{
-			float *p = &context->vectors.tangentComponents[index * array_size<MainShapeTangent>::size];
-			p[0] = tx;
-			p[1] = ty;
-			p[2] = tz;
-			p[3] = fSign;
-		}
-		else
-		{
-			float *p = &context->vectors.tangentComponents[index * array_size<BlendShapeTangent>::size];
-			p[0] = tx;
-			p[1] = ty;
-			p[2] = tz;
+			if (tx == 0 && ty == 0 && tz == 0)
+			{
+				context->invalidTriangleIndices.insert(iFace);
+			}
+
+			if (context->shapeIndex.isMainShapeIndex())
+			{
+				float *p = &context->vectors.tangentComponents[index * array_size<MainShapeTangent>::size];
+				p[0] = tx;
+				p[1] = ty;
+				p[2] = tz;
+				p[3] = fSign;
+			}
+			else
+			{
+				float *p = &context->vectors.tangentComponents[index * array_size<BlendShapeTangent>::size];
+				p[0] = tx;
+				p[1] = ty;
+				p[2] = tz;
+			}
 		}
 	}
 };
@@ -286,14 +302,15 @@ MeshVertices::MeshVertices(
 			if (!context.invalidTriangleIndices.empty())
 			{
 				// Don't flood the console output if too many faces are invalid.
-				if (context.invalidTriangleIndices.size() > 10)
-					context.invalidTriangleIndices.resize(10);
+				int maxIndices = 10;
 
 				std::stringstream ss;
 				ss << "select -r";
 				for (auto triangleIndex : context.invalidTriangleIndices)
 				{
 					ss << ' ' << mesh.name() << ".f[" << meshIndices.triangleToFaceIndex(triangleIndex) << "]";
+					if (--maxIndices < 0)
+						break;
 				}
 				ss << ";";
 

@@ -23,13 +23,7 @@ public:
 	const MeshSemantics& semantics() const { return *m_semantics; }
 	const MeshVertices& vertices() const { return *m_vertices; }
 
-	size_t instanceNumber() const
-	{
-		MStatus status;
-		const auto instanceNumber = m_dagPath.instanceNumber(&status);
-		THROW_ON_FAILURE(status);
-		return instanceNumber;
-	}
+	size_t instanceNumber() const;
 
 protected:
 	MeshShape(ShapeIndex shapeIndex);

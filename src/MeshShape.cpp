@@ -15,11 +15,23 @@ MeshShape::MeshShape(const MeshIndices& mainIndices, const MFnMesh& fnMesh, cons
 	, weightPlug(weightPlug)
 	, initialWeight(initialWeight)
 {
+	MStatus status;
+	m_dagPath = fnMesh.dagPath(&status);
+	THROW_ON_FAILURE(status);
+
 	m_semantics = std::make_unique<MeshSemantics>(fnMesh, nullptr);
 	m_vertices = std::make_unique<MeshVertices>(mainIndices, nullptr, fnMesh, shapeIndex, args);
 }
 
 MeshShape::~MeshShape() = default;
+
+size_t MeshShape::instanceNumber() const
+{
+	MStatus status;
+	const auto instanceNumber = m_dagPath.instanceNumber(&status);
+	THROW_ON_FAILURE(status);
+	return instanceNumber;
+}
 
 void MeshShape::dump(IndentableStream& out, const std::string& name) const
 {
@@ -34,6 +46,10 @@ void MeshShape::dump(IndentableStream& out, const std::string& name) const
 
 MainShape::MainShape(ExportableScene& scene, const MFnMesh& fnMesh, ShapeIndex shapeIndex) : MeshShape(shapeIndex)
 {
+	MStatus status;
+	m_dagPath = fnMesh.dagPath(&status);
+	THROW_ON_FAILURE(status);
+
 	m_skeleton = std::make_unique<MeshSkeleton>(scene, fnMesh);
 	m_semantics = std::make_unique<MeshSemantics>(fnMesh, m_skeleton.get());
 	m_indices = std::make_unique<MeshIndices>(m_semantics.get(), fnMesh);

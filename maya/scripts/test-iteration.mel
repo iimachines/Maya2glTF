@@ -1,0 +1,18 @@
+// Loads, runs, unloads the plugin. Easy for development to unlock the plugin DLL
+
+global proc maya2glTF_exporter(string $cmd) {
+	print ("Executing "+$cmd+"...\n");
+	$min = `playbackOptions -q -min`;
+	$max = `playbackOptions -q -max`;
+	$fps = `currentTimeUnitToFPS`;
+	if ( catch(`maya2glTF -sep -acn "clip" -ivt 0 -ast $min -aet $max -afr $fps -fpm -outputFolder "C:/temp/glTF"`) ) {
+		print "Failed!\n";
+	} 
+	
+	print ("Unloading maya2glTF...");
+	unloadPlugin("maya2glTF");
+}
+
+unloadPlugin  "maya2glTF";
+loadPlugin -rc maya2glTF_exporter;
+loadPlugin -ac maya2glTF_exporter  "maya2glTF" ;

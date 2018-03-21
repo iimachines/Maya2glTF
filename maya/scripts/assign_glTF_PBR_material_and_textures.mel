@@ -1,7 +1,7 @@
 /*
-* Creates and assigns a new material to a polygon using a supplied glTF PBR glsl shader.
+* Creates and assigns a new material to a mesh using a supplied glTF PBR glsl shader.
 *
-* param $objectName         The name of the polygon to assign the new material to, leave this empty to use the current selection.
+* param $objectName         The name of the mesh to assign the new material to, leave this empty to use the current selection.
 *
 * param $shaderPath         The path to the glTF PBR shader used by the new material.
 *
@@ -10,12 +10,35 @@
 *                               u_BaseColorTexture, u_MetallicTexture, u_RoughnessTexture, u_OcclusionTexture, u_NormalTexture,
 *                               u_EmissiveTexture, u_DiffuseEnvTexture, u_SpecularEnvTexture, u_brdfTexture
 */
+
+global string $glTF_default_texture_patterns[];
+global string $glTF_default_shader_path;
+
 global proc assign_glTF_PBR_material_and_textures(
     string $objectName,
     string $shaderPath,
     string $texturePatterns[]
 )
 {
+	global string $glTF_default_texture_patterns[];
+	global string $glTF_default_shader_path;
+	
+	string $filePaths[];
+	
+	if (size($glTF_default_texture_patterns) == 0) {
+		$glTF_default_texture_patterns = {
+			"base",
+			"metallic",
+			"roughness",
+			"occlusion",
+			"normal",
+			"emissive",
+			"diffuse[\\W\\d_]*env",
+			"specular[\\W\\d_]*env",
+			"brdf"
+		};
+	}
+	
     // get current selection if $objectName is not specified
     if ($objectName == "")
     {
@@ -26,10 +49,20 @@ global proc assign_glTF_PBR_material_and_textures(
 
     if ($objectName == "")
         error "No node to apply material to specified";
+		
+	if ($shaderPath == "")
+		$shaderPath = $glTF_default_shader_path;
+
+    if ($shaderPath == "" || !`filetest -f $shaderPath`) {
+		$filePaths = `fileDialog2 -fm 1 -ff "*.ogsfx" -cap "Select GLTF PBR GLSL shader"`;
+		$shaderPath = $filePaths[0];
+	}
 
     if (!`filetest -f $shaderPath`)
         error "Invalid shader path, file not found";
 
+	$glTF_default_shader_path = $shaderPath;
+		
     string $attrNames[] = {
         "u_BaseColorTexture",
         "u_MetallicTexture",
@@ -41,6 +74,9 @@ global proc assign_glTF_PBR_material_and_textures(
         "u_SpecularEnvTexture",
         "u_brdfTexture"
     };
+	
+	if (size($texturePatterns) == 0)
+		$texturePatterns = $glTF_default_texture_patterns;
 
     if (size($texturePatterns) != size($attrNames))
         error "Invalid amount of texture patterns";
@@ -54,7 +90,7 @@ global proc assign_glTF_PBR_material_and_textures(
     assignCreatedShader "GLSLShader" "" $sh $objectName;
 
     // request texture paths
-    string $filePaths[] = `fileDialog2 -fm 4`;
+    $filePaths = `fileDialog2 -fm 4 -cap "Select all textures"`;
     if (size($filePaths) <= 0)
         return;
 
