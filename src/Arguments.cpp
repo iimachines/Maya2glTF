@@ -10,7 +10,7 @@ namespace flag
 {
 	const auto outputFolder = "of";
 	const auto sceneName = "sn";
-	const auto glBinary = "glb";
+	const auto binary = "glb";
 	const auto dumpMaya = "dmy";
 	const auto dumpGLTF = "dgl";
 	const auto embedded = "emb";
@@ -87,13 +87,13 @@ SyntaxFactory::SyntaxFactory()
 	registerFlag(ss, flag::outputFolder, "outputFolder", kString);
 	registerFlag(ss, flag::sceneName, "sceneName", kString);
 	registerFlag(ss, flag::scaleFactor, "scaleFactor", kDouble);
-	registerFlag(ss, flag::glBinary, "binary", kNoArg);
+	registerFlag(ss, flag::binary, "binary", kNoArg);
 	registerFlag(ss, flag::dumpGLTF, "dumpGTLF", kString);
 	registerFlag(ss, flag::dumpMaya, "dumpMaya", kString);
-	registerFlag(ss, flag::embedded, "separate", kNoArg);
+	registerFlag(ss, flag::embedded, "embedded", kNoArg);
 	registerFlag(ss, flag::defaultMaterial, "defaultMaterial", kNoArg);
 	registerFlag(ss, flag::colorizeMaterials, "colorizeMaterials", kNoArg);
-	registerFlag(ss, flag::skipStandardMaterials, "forcePbrMaterials", kNoArg);
+	registerFlag(ss, flag::skipStandardMaterials, "skipStandardMaterials", kNoArg);
 	registerFlag(ss, flag::force32bitIndices, "force32bitIndices", kNoArg);
 	registerFlag(ss, flag::disableNameAssignment, "disableNameAssignment", kNoArg);
 	registerFlag(ss, flag::mikkelsenTangentSpace, "mikkelsenTangentSpace", kNoArg);
@@ -117,6 +117,8 @@ SyntaxFactory::SyntaxFactory()
 	registerFlag(ss, flag::ignoreMeshDeformers, "ignoreMeshDeformers", true, kString);
 	registerFlag(ss, flag::skipSkinClusters, "skipSkinClusters", kNoArg);
 	registerFlag(ss, flag::skipBlendShapes, "skipBlendShapes", kNoArg);
+
+	registerFlag(ss, flag::redrawViewport, "redrawViewport", kNoArg);
 
 	m_usage = ss.str();
 }
@@ -347,7 +349,7 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	adb.required(flag::outputFolder, outputFolder);
 	adb.optional(flag::scaleFactor, scaleFactor);
 
-	glb = adb.isFlagSet(flag::glBinary);
+	glb = adb.isFlagSet(flag::binary);
 
 	const path outputFolderPath(outputFolder.asChar());
 	m_mayaOutputStream = adb.getOutputStream(flag::dumpMaya, "Maya debug", outputFolderPath, m_mayaOutputFileStream);
@@ -364,6 +366,7 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	disableNameAssignment = adb.isFlagSet(flag::disableNameAssignment);
 	skipSkinClusters = adb.isFlagSet(flag::skipSkinClusters);
 	skipBlendShapes = adb.isFlagSet(flag::skipBlendShapes);
+	redrawViewport = adb.isFlagSet(flag::redrawViewport);
 
 	adb.optional(flag::globalOpacityFactor, opacityFactor);
 
@@ -397,8 +400,6 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	MStringArray selectedObjects;
 	status = selection.getSelectionStrings(selectedObjects);
 	THROW_ON_FAILURE(status);
-
-	adb.optional(flag::redrawViewport, redrawViewport);
 
 	// Parse mesh deformers to ignore
 	const auto deformerNameCount = adb.flagUsageCount(flag::ignoreMeshDeformers);
