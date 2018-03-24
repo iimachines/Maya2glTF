@@ -12,13 +12,13 @@ If something goes wrong in our production pipeline, it usually is exporting our 
 
 ## Limitations
 
-Maya interally uses a dataflow architecture (called the *dependency graph*). This means that power-users can connect these nodes in any way they like. Unfortunately this flexibility also makes it insanely difficult to develop an exporter that always works ;-)
+Maya interally uses a dataflow architecture (called the *dependency graph*). This means that power-users can connect the dependency nodes in the graph in any way they like. Unfortunately this awesome flexibility also makes it insanely difficult to develop an exporter that always works ;-)
 
 ## Status
 
 I consider this plugin to be in *beta* stage, use it at your own risk :) 
 
-* Supports **Maya 2016 EXT2, 2017, 2017** (64-bit only)
+* Supports **Maya 2016 EXT2, 2017, 2018** (64-bit only)
     * Maya 2016 is a different product from Maya 2016 EXT2 and is ***not supported***, since I can't find a compatible devkit for it.
 
 * Windows only for now
@@ -113,7 +113,7 @@ I consider this plugin to be in *beta* stage, use it at your own risk :)
     
     * run the following MEL script
     ```
-    maya2glTF -fpm -sep -outputFolder "<your output folder>"
+    maya2glTF -outputFolder "<your output folder>"
     ```
     
     * I use the [vscode](https://code.visualstudio.com/) [glTF viewer](https://github.com/AnalyticalGraphicsInc/gltf-vscode)
@@ -235,5 +235,3 @@ I consider this plugin to be in *beta* stage, use it at your own risk :)
     * `-redrawViewport (-rvp)` *(optional)* 
         * redraw the viewport when exporting animation.
         * by default the viewport is not refreshed, since this slows down the exporter
-
-        
