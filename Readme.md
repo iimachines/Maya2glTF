@@ -107,6 +107,7 @@ I consider this plugin to be in *beta* stage, use it at your own risk :)
     * Start Maya
     
     * Load a scene
+		* **NOTE** to load scenes from this project, first set the Maya project to the `Maya2glTF\maya` folder
         * to see if the plugin was built correctly, it's best to use a scene from this repository, for example `Maya2glTF\maya\scenes\damaged_helmet.ma`
     
     * select the mesh(es) you want to export

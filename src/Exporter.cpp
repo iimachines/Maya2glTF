@@ -44,6 +44,10 @@ MStatus Exporter::doIt(const MArgList& args)
 {
 	__try
 	{
+		// https://forums.autodesk.com/t5/maya-programming/c-api-not-printing-to-output-window/td-p/4260798/page/2
+		cout.set_rdbuf(MStreamUtils::stdOutStream().rdbuf());
+		cerr.set_rdbuf(MStreamUtils::stdErrorStream().rdbuf());
+
 		auto status = run(args);
 		return status;
 	}
