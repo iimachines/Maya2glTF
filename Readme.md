@@ -146,9 +146,8 @@ I consider this plugin to be in *beta* stage, use it at your own risk :)
     * `-initialValuesTime (-ivt) TIME` *(optional)* 
         * the time where the initial/default values can be found
         * by default frame 0 is used
-        * all nodes get their default transforms and from this time 
-        * all meshes get their default blend shape weights and from this time 
-        * this frame should show the **skinning bind pose**
+        * this frame should match the **skin bind pose**
+        * all nodes and meshes get their default transforms and weights from this time 
 
     * `-animationClipName (-acn) STRING` *(optional, multiple)* 
         * the name of the animation clip
@@ -164,7 +163,7 @@ I consider this plugin to be in *beta* stage, use it at your own risk :)
     * `-animationClipFrameRate (-afr) FLOAT` *(optional, multiple)* 
         * the frames-per-second of the animation clip
         * required when exporting animation clips
-        * either you pass a single frame-rate argument for all animation clips, or one per clip
+        * either you pass this for each clip, or once
 
     * `-meshPrimitiveAttributes (-mpa) STRING` *(optional)* 
         * the attributes for the shapes to export, separated by a vertical bar |
