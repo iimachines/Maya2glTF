@@ -4,7 +4,7 @@
 
 ## Update
 
-The first BETA is released! See the [releases](/releases) tab. Maya 2018 on Windows x64 only for now.
+The first BETA is released! See the [releases](https://github.com/Ziriax/Maya2glTF/releases) tab. Maya 2018 on Windows x64 only for now.
 
 ## Rationale
 
