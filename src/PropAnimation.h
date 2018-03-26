@@ -2,17 +2,24 @@
 
 #include "macros.h"
 #include "accessors.h"
+#include "ExportableFrames.h"
 
 class ExportableNode;
 
 class PropAnimation
 {
 public:
-	PropAnimation(GLTF::Accessor& timesPerFrame, const GLTF::Node& node, const GLTF::Animation::Path path, const size_t dimension, const bool useFloatArray, const char* interpolation = "LINEAR")
+	PropAnimation(
+		const ExportableFrames& frames, 
+		const GLTF::Node& node, 
+		const GLTF::Animation::Path path, 
+		const size_t dimension, 
+		const bool useFloatArray, 
+		const char* interpolation = "LINEAR")
 		: dimension(dimension)
 		, useFloatArray(useFloatArray)
 	{
-		componentValuesPerFrame.reserve(timesPerFrame.count * dimension);
+		componentValuesPerFrame.reserve(frames.count * dimension);
 
 		glTarget.node = &const_cast<GLTF::Node&>(node);
 		glTarget.path = path;
@@ -20,7 +27,7 @@ public:
 		glChannel.sampler = &glSampler;
 		glChannel.target = &glTarget;
 
-		glSampler.input = &timesPerFrame;
+		glSampler.input = const_cast<GLTF::Accessor*>(frames.glInputs.get());
 		glSampler.interpolation = interpolation;
 	}
 

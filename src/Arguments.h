@@ -135,6 +135,9 @@ public:
 	/** Ignore these mesh deformers. By default the deformer closest to the displayed mesh is used. */
 	MSelectionList ignoreMeshDeformers;
 
+	/** Ignore segment scale compensation */
+	bool ignoreSegmentScaleCompensation = false;
+
 	/** 
 	 * The time where the 'initial values' of all nodes are to be found (aka neutral base pose) 
 	 * By default the current time is used, unless animation is used, then frame 0 is used.

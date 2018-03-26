@@ -45,6 +45,8 @@ namespace flag
 	const auto skipSkinClusters = "ssc";
 	const auto skipBlendShapes = "sbs";
 	const auto ignoreMeshDeformers = "imd";
+
+	const auto ignoreSegmentScaleCompensation = "isc";
 }
 
 inline const char* getArgTypeName(const MSyntax::MArgType argType)
@@ -119,6 +121,8 @@ SyntaxFactory::SyntaxFactory()
 	registerFlag(ss, flag::skipBlendShapes, "skipBlendShapes", kNoArg);
 
 	registerFlag(ss, flag::redrawViewport, "redrawViewport", kNoArg);
+
+	registerFlag(ss, flag::ignoreSegmentScaleCompensation, "ignoreSegmentScaleCompensation", kNoArg);
 
 	m_usage = ss.str();
 }
@@ -367,6 +371,7 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	skipSkinClusters = adb.isFlagSet(flag::skipSkinClusters);
 	skipBlendShapes = adb.isFlagSet(flag::skipBlendShapes);
 	redrawViewport = adb.isFlagSet(flag::redrawViewport);
+	ignoreSegmentScaleCompensation = adb.isFlagSet(flag::ignoreSegmentScaleCompensation);
 
 	adb.optional(flag::globalOpacityFactor, opacityFactor);
 

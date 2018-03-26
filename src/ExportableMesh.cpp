@@ -125,7 +125,7 @@ ExportableMesh::ExportableMesh(
 			for (auto& joint: joints)
 			{
 				auto* jointNode = joint.node;
-				glSkin.joints.emplace_back(&jointNode->glNode);
+				glSkin.joints.emplace_back(const_cast<GLTF::Node*>(&jointNode->glNodeTU()));
 				
 				auto distanceToRoot = ExportableScene::distanceToRoot(jointNode->dagPath);
 				distanceToRootMap[distanceToRoot].emplace_back(jointNode);
@@ -154,14 +154,14 @@ ExportableMesh::ExportableMesh(
 
 			auto rootJointNode = roots.at(0);
 			cout << prefix << "Using joint " << quoted(rootJointNode->name(), '\'') << " as skeleton root for mesh " << quoted(shapeName, '\'') << endl;
-			glSkin.skeleton = &rootJointNode->glNode;
+			glSkin.skeleton = &rootJointNode->glNodeRS();
 		}
 	}
 }
 
 ExportableMesh::~ExportableMesh() = default;
 
-std::vector<float> ExportableMesh::getCurrentWeights() const
+std::vector<float> ExportableMesh::currentWeights() const
 {
 	std::vector<float> weights;
 	weights.reserve(m_weightPlugs.size());

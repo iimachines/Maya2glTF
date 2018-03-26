@@ -23,9 +23,9 @@ public:
 
 	size_t blendShapeCount() const { return m_weightPlugs.size(); }
 
-	gsl::span<const float> getInitialWeights() const { return m_initialWeights; }
+	gsl::span<const float> initialWeights() const { return m_initialWeights; }
 
-	std::vector<float> getCurrentWeights() const;
+	std::vector<float> currentWeights() const;
 
 private:
 	DISALLOW_COPY_MOVE_ASSIGN(ExportableMesh);

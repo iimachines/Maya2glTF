@@ -6,14 +6,18 @@
 #include "Transform.h"
 #include "ExportableScene.h"
 #include "Arguments.h"
+#include "DagHelper.h"
 
 ExportableNode::ExportableNode(
 	ExportableScene& scene,
+	NodeTransformCache& transformCache,
 	std::unique_ptr<ExportableNode>& owner,
 	MDagPath dagPath)
 	: ExportableObject(dagPath.node())
 	, dagPath(dagPath)
+	, hasSegmentScaleCompensation(false)
 	, scaleFactor(1)
+	, parentNode(nullptr)
 {
 	MStatus status;
 
@@ -22,36 +26,64 @@ ExportableNode::ExportableNode(
 	auto& resources = scene.resources();
 	auto& args = resources.arguments();
 
+	// Is this a joint with segment scale compensation? (the default in Maya)
+	bool maybeSegmentScaleCompensation = false;
+	DagHelper::getPlugValue(obj, "segmentScaleCompensate", maybeSegmentScaleCompensation);
+
 	// Remember scale factor
 	scaleFactor = args.scaleFactor;
 
 	// Get name
 	const auto name = dagPath.partialPathName(&status);
 	THROW_ON_FAILURE(status);
-	args.assignName(glNode, name.asChar());
 
 	// Get parent
-	const auto parentNode = scene.getParent(this);
+	parentNode = scene.getParent(this);
+
+	// A root joint never has segment scale compensation, since the parent is the world.
+	hasSegmentScaleCompensation =
+		maybeSegmentScaleCompensation &&
+		parentNode &&
+		parentNode->obj.hasFn(MFn::kJoint) &&
+		!args.ignoreSegmentScaleCompensation;
+
+	// In the presence of segment scale compensation, 
+	// parent.TRS <- child.TRS 
+	// becomes
+	// parent.TU <- parent.RS <- child.TU <- child.RS
+
+	// TODO: Cleanup the segment scale compensation code
+	auto& nodeTU = glNodeTU();
+	auto& nodeRS = glNodeRS();
+
+	args.assignName(nodeTU, name.asChar());
+
+	if (hasSegmentScaleCompensation)
+	{
+		args.assignName(nodeRS, (name + "_SSC").asChar());
+		nodeTU.children.emplace_back(&nodeRS);
+	}
+
 	if (parentNode)
 	{
-		parentDagPath = parentNode->dagPath;
+		// Register as child
+		parentNode->glNodeRS().children.push_back(&nodeTU);
 	}
 	else
 	{
 		// Add root nodes to the scene
-		scene.glScene.nodes.emplace_back(&glNode);
+		scene.glScene.nodes.emplace_back(&nodeTU);
 	}
 
 	// Get transform
-	const auto objectMatrix = Transform::getObjectSpaceMatrix(dagPath, parentDagPath);
-	initialTransform = Transform::toTRS(objectMatrix, scaleFactor, name.asChar());
-	THROW_ON_FAILURE(status);
-	glNode.transform = &initialTransform;
+	initialTransformState = transformCache.getTransform(this, scaleFactor);
+	m_glNodes[0].transform = &initialTransformState.localTransforms[0];
+	m_glNodes[1].transform = &initialTransformState.localTransforms[1];
 
-	// Register as child
-	if (parentNode)
+	if (!initialTransformState.hasValidLocalTransforms)
 	{
-		parentNode->glNode.children.push_back(&glNode);
+		// TODO: Use SVG to decompose the 3x3 matrix into a product of rotation and scale matrices.
+		cerr << prefix << "WARNING: node '" << name << "' has transforms that are not representable by glTF! Skewing is not supported, use 3 nodes to simulate this" << endl;
 	}
 
 	// Get mesh, but only if the node was selected.
@@ -62,12 +94,12 @@ ExportableNode::ExportableNode(
 		if (dagPath.hasFn(MFn::kMesh)) 
 		{
 			m_mesh = std::make_unique<ExportableMesh>(scene, dagPath);
-			glNode.mesh = &m_mesh->glMesh;
+			nodeRS.mesh = &m_mesh->glMesh;
 
 			// Link skin if mesh has skeleton
 			if (m_mesh->glSkin.skeleton)
 			{
-				glNode.skin = &m_mesh->glSkin;
+				nodeRS.skin = &m_mesh->glSkin;
 			}
 		}
 	}
@@ -75,7 +107,7 @@ ExportableNode::ExportableNode(
 
 ExportableNode::~ExportableNode() = default;
 
-std::unique_ptr<NodeAnimation> ExportableNode::createAnimation(const int frameCount, const double scaleFactor)
+std::unique_ptr<NodeAnimation> ExportableNode::createAnimation(const ExportableFrames& frameTimes, const double scaleFactor)
 {
-	return std::make_unique<NodeAnimation>(*this, frameCount, scaleFactor);
+	return std::make_unique<NodeAnimation>(*this, frameTimes, scaleFactor);
 }

@@ -367,6 +367,7 @@ if errorlevel 1 (exit /b 100)
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\ExportableFrames.cpp" />
     <ClCompile Include="src\MeshSkeleton.cpp" />
     <ClCompile Include="src\ShapeIndex.cpp" />
     <ClCompile Include="src\ExportableScene.cpp" />
@@ -429,6 +430,7 @@ if errorlevel 1 (exit /b 100)
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\accessors.h" />
+    <ClInclude Include="src\ExportableFrames.h" />
     <ClInclude Include="src\MeshSkeleton.h" />
     <ClInclude Include="src\ShapeIndex.h" />
     <ClInclude Include="src\macros.h" />

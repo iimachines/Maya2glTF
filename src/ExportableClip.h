@@ -1,9 +1,8 @@
 #pragma once
 
 #include "NodeAnimation.h"
-#include "ExportableItem.h"
+#include "ExportableFrames.h"
 #include "Arguments.h"
-#include "ExportableScene.h"
 
 class ExportableClip
 {
@@ -14,9 +13,7 @@ public:
 	GLTF::Animation glAnimation;
 
 private:
-	std::vector<float> m_timesPerFrame;
-	std::unique_ptr<GLTF::Accessor> m_inputs;
-
+	ExportableFrames m_frames;
 	std::vector<std::unique_ptr<NodeAnimation>> m_nodeAnimations;
 
 	DISALLOW_COPY_MOVE_ASSIGN(ExportableClip);

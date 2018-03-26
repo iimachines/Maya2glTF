@@ -5,6 +5,7 @@
 #include "MayaException.h"
 
 ExportableObject::ExportableObject(MObject mObj)
+	:obj(mObj)
 {
 	MStatus status;
 	MFnDependencyNode node(mObj, &status);
@@ -13,7 +14,7 @@ ExportableObject::ExportableObject(MObject mObj)
 	auto name = node.name(&status);
 	THROW_ON_FAILURE(status);
 
-	_name = name.asChar();
+	m_name = name.asChar();
 }
 
 ExportableObject::~ExportableObject()
