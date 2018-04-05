@@ -254,7 +254,7 @@ void ExportableMaterialPBR::loadPBR(ExportableResources& resources, const MFnDep
 				imageFilename.replace_extension(imageExtension);
 				MString mergedImagePath{ (temp_directory_path() / imageFilename).c_str() };
 
-				cout << prefix << "Saving merged roughness-metalic texture to " << mergedImagePath << endl;
+				cout << prefix << "Saving merged roughness-metallic texture to " << mergedImagePath << endl;
 				status = roughnessImage.writeToFile(mergedImagePath, imageExtension.c_str());
 				THROW_ON_FAILURE_WITH(status,
 					formatted("Failed to write merged metallic-roughness texture to '%s'", mergedImagePath.asChar()));
