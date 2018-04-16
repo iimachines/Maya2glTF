@@ -1,6 +1,6 @@
 //Maya ASCII 2018 scene
 //Name: CubePivotTest1.ma
-//Last modified: Mon, Apr 16, 2018 03:13:05 PM
+//Last modified: Mon, Apr 16, 2018 03:47:58 PM
 //Codeset: 1252
 requires maya "2018";
 currentUnit -l centimeter -a degree -t film;
@@ -12,13 +12,13 @@ fileInfo "osv" "Microsoft Windows 8 Business Edition, 64-bit  (Build 9200)\n";
 createNode transform -s -n "persp";
 	rename -uid "EEB63D68-48EF-EE9B-BE67-F2A96C3CBE7E";
 	setAttr ".v" no;
-	setAttr ".t" -type "double3" 0.39893963645644437 3.1604367603712951 7.7748801142122215 ;
-	setAttr ".r" -type "double3" -23.738352729567691 -713.79999999953179 -1.9995420695199554e-16 ;
+	setAttr ".t" -type "double3" -19.795497915036904 16.360327135659222 -0.028428188587635711 ;
+	setAttr ".r" -type "double3" -41.138352729571757 -808.59999999951083 -1.301789247147876e-13 ;
 createNode camera -s -n "perspShape" -p "persp";
 	rename -uid "F774B9F5-4118-59FF-6DEF-47BCADB9AA78";
 	setAttr -k off ".v" no;
 	setAttr ".fl" 34.999999999999993;
-	setAttr ".coi" 9.0928835243341215;
+	setAttr ".coi" 25.628290048524967;
 	setAttr ".imn" -type "string" "persp";
 	setAttr ".den" -type "string" "persp_depth";
 	setAttr ".man" -type "string" "persp_mask";
@@ -75,6 +75,7 @@ createNode transform -n "pCube1";
 	rename -uid "95C11406-4146-11DD-A881-0FB16659DACA";
 	addAttr -ci true -sn "nts" -ln "notes" -dt "string";
 	setAttr ".t" -type "double3" 0.5 0.5 0.5 ;
+	setAttr ".s" -type "double3" 1 2 3 ;
 	setAttr ".rp" -type "double3" -0.5 -0.5 -0.5 ;
 	setAttr ".sp" -type "double3" -0.5 -0.5 -0.5 ;
 	setAttr ".dsp" yes;

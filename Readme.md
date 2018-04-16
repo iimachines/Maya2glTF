@@ -1,6 +1,9 @@
 # Maya to glTF exporter
 
-![Maya screenshot](/img/maya_screenshot.jpg)
+![Maya Tiger screenshot](/img/tiger-wim@koetan.gif)
+
+![Maya Helmet screenshot](/img/maya_screenshot.jpg)
+
 
 ## Update
 
