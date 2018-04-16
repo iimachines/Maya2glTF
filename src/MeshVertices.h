@@ -87,7 +87,7 @@ class MeshIndices;
 class MeshVertices
 {
 public:
-	MeshVertices(const MeshIndices& meshIndices, const MeshSkeleton* meshSkeleton, const MFnMesh& mesh, ShapeIndex shapeIndex, const Arguments& args);
+	MeshVertices(const MeshIndices& meshIndices, const MeshSkeleton* meshSkeleton, const MFnMesh& mesh, ShapeIndex shapeIndex, const MPoint& pivotPoint, const Arguments& args);
 	virtual ~MeshVertices();
 
 	const ShapeIndex shapeIndex;
@@ -101,14 +101,11 @@ public:
 		return m_table.at(semanticIndex).at(setIndex);
 	}
 
-	const MPoint& pivotPoint() const { return m_pivotPoint; }
-
 private:
 	friend class MeshShape;
 
 	PositionVector m_positions;
 	NormalVector m_normals;
-	MPoint m_pivotPoint;
 
 	std::map<SetIndex, FloatVector> m_tangentSets;
 	std::map<SetIndex, TexCoordVector> m_uvSets;

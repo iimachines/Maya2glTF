@@ -43,18 +43,41 @@ ExportableNode::ExportableNode(
 	}
 
 	// Get mesh, but only if the node was selected.
+	MDagPath meshDagPath;
+
 	if (args.selection.hasItem(dagPath))
 	{
-		dagPath.extendToShape();
+		meshDagPath = dagPath;
+		status = meshDagPath.extendToShape();
 
-		if (dagPath.hasFn(MFn::kMesh))
+		if (status && meshDagPath.hasFn(MFn::kMesh))
 		{
-			m_mesh = std::make_unique<ExportableMesh>(scene, dagPath);
-			m_mesh->setupNode(glNode);
+			// We can only simulate a single pivot point, but Maya has both a rotation and scaling pivot, so warn the user if needed.
+			MDagPath parentDagPath = meshDagPath;
+			THROW_ON_FAILURE(status);
+			parentDagPath.pop();
 
-			const auto& pp = m_mesh->pivotPoint;
+			MFnTransform parentTransform(parentDagPath, &status);
+			THROW_ON_FAILURE(status);
+
+			const auto scalePivot = parentTransform.scalePivot(MSpace::kObject);
+			const auto rotatePivot = parentTransform.rotatePivot(MSpace::kObject);
+
+			if (scalePivot != rotatePivot)
+			{
+				MayaException::printError(formatted("Transform '%s' of mesh '%s' has a different scaling and rotation pivot, this is not supported!",
+					parentDagPath.partialPathName().asChar(), dagPath.partialPathName().asChar()), MStatus::kNotImplemented);
+			}
+
+			pivotPoint = rotatePivot;
+
+			if (pivotPoint != MPoint::origin)
+			{
+				cout << prefix << "Offseting all vertices of '" << dagPath.partialPathName() << "' around rotation pivot " << pivotPoint << endl;
+			}
+
 			MTransformationMatrix pivotTransformationMatrix;
-			pivotTransformationMatrix.setTranslation(MVector(pp.x, pp.y, pp.z), MSpace::kObject);
+			pivotTransformationMatrix.setTranslation(pivotPoint - MPoint::origin, MSpace::kObject);
 			pivotTransform = pivotTransformationMatrix.asMatrix();
 		}
 	}
@@ -71,6 +94,12 @@ ExportableNode::ExportableNode(
 		parentNode->glNode.children.push_back(&glNode);
 	}
 
+	// Create mesh, if any
+	if (meshDagPath.isValid(&status) && status)
+	{
+		m_mesh = std::make_unique<ExportableMesh>(scene, *this, meshDagPath);
+		m_mesh->setupNode(glNode);
+	}
 }
 
 ExportableNode::~ExportableNode() = default;

@@ -7,9 +7,10 @@
 #include "DagHelper.h"
 #include "ExportableScene.h"
 
-Mesh::Mesh(ExportableScene& scene, const MDagPath& dagPath)
+Mesh::Mesh(ExportableScene& scene, MDagPath dagPath, const MPoint& pivotPoint)
 {
-	MStatus status;
+	MStatus status = dagPath.extendToShape();
+	THROW_ON_FAILURE(status);
 
 	auto& args = scene.arguments();
 
@@ -23,7 +24,7 @@ Mesh::Mesh(ExportableScene& scene, const MDagPath& dagPath)
 	if (blendShapeDeformer.isNull())
 	{
 		// Single shape
-		m_mainShape = std::make_unique<MainShape>(scene, fnMesh, ShapeIndex::main());
+		m_mainShape = std::make_unique<MainShape>(scene, fnMesh, pivotPoint, ShapeIndex::main());
 		m_allShapes.emplace_back(m_mainShape.get());
 	}
 	else
@@ -56,7 +57,7 @@ Mesh::Mesh(ExportableScene& scene, const MDagPath& dagPath)
 		weightPlugs.clearWeightsExceptFor(-1);
 
 		// Reconstruct base mesh
-		m_mainShape = std::make_unique<MainShape>(scene, fnMesh, ShapeIndex::main());
+		m_mainShape = std::make_unique<MainShape>(scene, fnMesh, pivotPoint, ShapeIndex::main());
 		m_allShapes.emplace_back(m_mainShape.get());
 
 		const auto numWeights = weightPlugs.numWeights();
@@ -67,7 +68,9 @@ Mesh::Mesh(ExportableScene& scene, const MDagPath& dagPath)
 			auto weightPlug = weightPlugs.getWeightPlug(targetIndex);
 			auto initialWeight = static_cast<float>(weightPlugs.getOriginalWeight(targetIndex));
 			auto blendShape = std::make_unique<MeshShape>(m_mainShape->indices(), 
-				fnMesh, args, ShapeIndex::target(targetIndex), weightPlug, initialWeight);
+				fnMesh, pivotPoint, 
+				args, ShapeIndex::target(targetIndex), 
+				weightPlug, initialWeight);
 			m_allShapes.emplace_back(blendShape.get());
 			m_blendShapes.emplace_back(std::move(blendShape));
 		}

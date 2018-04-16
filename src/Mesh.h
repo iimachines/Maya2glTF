@@ -2,6 +2,7 @@
 
 #include "MeshShape.h"
 
+class ExportableNode;
 class Arguments;
 
 typedef std::vector<MeshShape*> MeshShapes;
@@ -9,7 +10,7 @@ typedef std::vector<MeshShape*> MeshShapes;
 class Mesh
 {
 public:
-	Mesh(ExportableScene& scene, const MDagPath& dagPath);
+	Mesh(ExportableScene& scene, MDagPath dagPath, const MPoint& pivotPoint);
 	~Mesh();
 
 	void dump(IndentableStream& out, const std::string& name) const;

@@ -12,6 +12,7 @@
 
 ExportableMesh::ExportableMesh(
 	ExportableScene& scene, 
+	ExportableNode& node,
 	const MDagPath& shapeDagPath)
 	: ExportableObject(shapeDagPath.node())
 {
@@ -22,7 +23,7 @@ ExportableMesh::ExportableMesh(
 	auto& resources = scene.resources();
 	auto& args = resources.arguments();
 
-	const auto mayaMesh = std::make_unique<Mesh>(scene, shapeDagPath);
+	const auto mayaMesh = std::make_unique<Mesh>(scene, shapeDagPath, node.pivotPoint);
 
 	if (args.dumpMaya)
 	{
@@ -34,9 +35,6 @@ ExportableMesh::ExportableMesh(
 		args.assignName(glMesh, shapeName);
 
 		auto& mainShape = mayaMesh->shape();
-
-		// Set pivot point
-		pivotPoint = mainShape.vertices().pivotPoint();
 
 		// Generate primitives
 		MeshRenderables renderables(mayaMesh->allShapes(), args);

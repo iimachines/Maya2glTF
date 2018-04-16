@@ -15,13 +15,11 @@ public:
 	// TODO: Support instancing, for now we create a new mesh for each node.
 	// To properly support instance, we need to decide what to do with shapes that are both with and without a skeleton 
 	// Do we generate two meshes, with and without skinning vertex attributes?
-	ExportableMesh(ExportableScene& scene, const MDagPath& shapeDagPath);
+	ExportableMesh(ExportableScene& scene, ExportableNode& node, const MDagPath& shapeDagPath);
 	virtual ~ExportableMesh();
 
 	GLTF::Mesh glMesh;
 	GLTF::Skin glSkin;
-
-	MPoint pivotPoint;
 
 	size_t blendShapeCount() const { return m_weightPlugs.size(); }
 
