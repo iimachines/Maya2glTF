@@ -8,7 +8,7 @@ class ExportableNode : public ExportableObject
 {
 public:
 	~ExportableNode();
-
+	
 	ExportableMesh* mesh() const { return m_mesh.get(); }
 
 	MDagPath dagPath;
@@ -27,7 +27,9 @@ public:
 private:
 	friend class ExportableScene;
 
-	ExportableNode(ExportableScene& scene, std::unique_ptr<ExportableNode>& owner, MDagPath dagPath);
+	ExportableNode(MDagPath dagPath);
+
+	void load(ExportableScene& scene);
 
 	std::unique_ptr<ExportableMesh> m_mesh;
 

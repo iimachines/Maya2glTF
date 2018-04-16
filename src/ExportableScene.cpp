@@ -24,7 +24,12 @@ ExportableNode* ExportableScene::getNode(const MDagPath& dagPath)
 	}
 
 	auto& ptr = m_table[fullDagPath];
-	return ptr == nullptr ? new ExportableNode(*this, ptr, dagPath) : ptr.get();
+	if (ptr == nullptr)
+	{
+		ptr.reset(new ExportableNode(dagPath));
+		ptr->load(*this);
+	}
+	return ptr.get();
 }
 
 ExportableNode* ExportableScene::getParent(ExportableNode* node)

@@ -7,17 +7,16 @@
 #include "ExportableScene.h"
 #include "Arguments.h"
 
-ExportableNode::ExportableNode(
-	ExportableScene& scene,
-	std::unique_ptr<ExportableNode>& owner,
-	MDagPath dagPath)
+ExportableNode::ExportableNode(MDagPath dagPath)
 	: ExportableObject(dagPath.node())
 	, dagPath(dagPath)
 	, scaleFactor(1)
 {
-	MStatus status;
+}
 
-	owner.reset(this);
+void ExportableNode::load(ExportableScene& scene)
+{
+	MStatus status;
 
 	auto& resources = scene.resources();
 	auto& args = resources.arguments();
@@ -48,14 +47,15 @@ ExportableNode::ExportableNode(
 	if (args.selection.hasItem(dagPath))
 	{
 		meshDagPath = dagPath;
+
 		status = meshDagPath.extendToShape();
 
 		if (status && meshDagPath.hasFn(MFn::kMesh))
 		{
 			// We can only simulate a single pivot point, but Maya has both a rotation and scaling pivot, so warn the user if needed.
 			MDagPath parentDagPath = meshDagPath;
+			status = parentDagPath.pop();
 			THROW_ON_FAILURE(status);
-			parentDagPath.pop();
 
 			MFnTransform parentTransform(parentDagPath, &status);
 			THROW_ON_FAILURE(status);
@@ -85,7 +85,6 @@ ExportableNode::ExportableNode(
 	// Get transform
 	const auto objectMatrix = Transform::getObjectSpaceMatrix(pivotTransform, dagPath, parentDagPath);
 	initialTransform = Transform::toTRS(objectMatrix, scaleFactor, name.asChar());
-	THROW_ON_FAILURE(status);
 	glNode.transform = &initialTransform;
 
 	// Register as child
