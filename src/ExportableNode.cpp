@@ -46,13 +46,18 @@ void ExportableNode::load(ExportableScene& scene)
 
 	if (args.selection.hasItem(dagPath))
 	{
-		meshDagPath = dagPath;
+		MDagPath shapeDagPath = dagPath;
 
-		status = meshDagPath.extendToShape();
+		status = shapeDagPath.extendToShape();
 
-		if (status && meshDagPath.hasFn(MFn::kMesh))
+		if (status && shapeDagPath.hasFn(MFn::kMesh))
 		{
-			// We can only simulate a single pivot point, but Maya has both a rotation and scaling pivot, so warn the user if needed.
+			// The shape is a mesh
+			meshDagPath = shapeDagPath;
+
+			// We can only simulate a single pivot point, 
+			// but Maya has both a rotation and scaling pivot, 
+			// so warn the user if these are different.
 			MDagPath parentDagPath = meshDagPath;
 			status = parentDagPath.pop();
 			THROW_ON_FAILURE(status);
@@ -65,15 +70,15 @@ void ExportableNode::load(ExportableScene& scene)
 
 			if (scalePivot != rotatePivot)
 			{
-				MayaException::printError(formatted("Transform '%s' of mesh '%s' has a different scaling and rotation pivot, this is not supported!",
-					parentDagPath.partialPathName().asChar(), dagPath.partialPathName().asChar()), MStatus::kNotImplemented);
+				MayaException::printError(formatted("Transform '%s' of mesh '%s' has a different scaling and rotation pivot, this is not supported, ignoring scaling pivot!",
+					parentDagPath.partialPathName().asChar(), meshDagPath.partialPathName().asChar()), MStatus::kNotImplemented);
 			}
 
 			pivotPoint = rotatePivot;
 
 			if (pivotPoint != MPoint::origin)
 			{
-				cout << prefix << "Offseting all vertices of '" << dagPath.partialPathName() << "' around rotation pivot " << pivotPoint << endl;
+				cout << prefix << "Offseting all vertices of '" << meshDagPath.partialPathName() << "' around rotation pivot " << pivotPoint << endl;
 			}
 
 			MTransformationMatrix pivotTransformationMatrix;
