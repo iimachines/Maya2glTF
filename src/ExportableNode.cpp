@@ -47,7 +47,6 @@ void ExportableNode::load(ExportableScene& scene)
 	if (args.selection.hasItem(dagPath))
 	{
 		MDagPath shapeDagPath = dagPath;
-
 		status = shapeDagPath.extendToShape();
 
 		if (status && shapeDagPath.hasFn(MFn::kMesh))
@@ -70,7 +69,7 @@ void ExportableNode::load(ExportableScene& scene)
 
 			if (scalePivot != rotatePivot)
 			{
-				MayaException::printError(formatted("Transform '%s' of mesh '%s' has a different scaling and rotation pivot, this is not supported, ignoring scaling pivot!",
+				MayaException::printError(formatted("Transform '%s' of mesh '%s' has different scaling and rotation pivots, this is not supported, ignoring scaling pivot!",
 					parentDagPath.partialPathName().asChar(), meshDagPath.partialPathName().asChar()), MStatus::kNotImplemented);
 			}
 

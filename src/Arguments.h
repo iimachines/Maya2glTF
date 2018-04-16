@@ -148,6 +148,12 @@ public:
 	bool redrawViewport = false;
 #endif
 
+	/** 
+	 * Only export the directly selected nodes only, not the descendants of these 
+	 * By default all descendants are exported too.
+	 */
+	bool selectedNodesOnly = false;
+
 	std::vector<AnimClipArg> animationClips;
 
 	/** Copyright text of the exported file */
@@ -163,6 +169,8 @@ public:
 
 private:
 	DISALLOW_COPY_MOVE_ASSIGN(Arguments);
+
+	static void select(MSelectionList& selection, MObject obj, bool includeDescendants);
 
 	std::ofstream m_mayaOutputFileStream;
 	std::ofstream m_gltfOutputFileStream;

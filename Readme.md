@@ -117,7 +117,8 @@ I consider this plugin to be in *beta* stage, use it at your own risk :)
 		* **NOTE** to load scenes from this project, first set the Maya project to the `Maya2glTF\maya` folder
         * to see if the plugin was built correctly, it's best to use a scene from this repository, for example `Maya2glTF\maya\scenes\damaged_helmet.ma`
     
-    * select the mesh(es) you want to export
+    * select the nodes you want to export
+        * by default all descendants are also exported, unless you add the -selectedNodesOnly (sno) flag.
     
     * run the following MEL script
     ```
@@ -138,6 +139,10 @@ I consider this plugin to be in *beta* stage, use it at your own risk :)
 
     * `-copyright (-cpr) STRING` *(optional)* 
         * copyright text to be embedded in the GLTF file
+
+    * `-selectedNodesOnly (-sno)` *(optional)* 
+        * only exports the directly selected nodes 
+        * by default all descendants of the selected nodes are exported too
 
     * `-sceneName (-sn) STRING` *(optional)* 
         * the name of the glTF filename
