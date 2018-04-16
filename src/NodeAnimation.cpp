@@ -24,7 +24,7 @@ NodeAnimation::NodeAnimation(
 
 void NodeAnimation::sampleAt(const int frameIndex)
 {
-	const auto objectMatrix = Transform::getObjectSpaceMatrix(node.dagPath, node.parentDagPath);
+	const auto objectMatrix = Transform::getObjectSpaceMatrix(node.pivotTransform, node.dagPath, node.parentDagPath);
 	m_allOrthogonalAxes &= Transform::hasOrthogonalAxes(objectMatrix);
 	m_objectMatrices.at(frameIndex) = objectMatrix;
 

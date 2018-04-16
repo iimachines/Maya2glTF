@@ -42,8 +42,25 @@ ExportableNode::ExportableNode(
 		scene.glScene.nodes.emplace_back(&glNode);
 	}
 
+	// Get mesh, but only if the node was selected.
+	if (args.selection.hasItem(dagPath))
+	{
+		dagPath.extendToShape();
+
+		if (dagPath.hasFn(MFn::kMesh))
+		{
+			m_mesh = std::make_unique<ExportableMesh>(scene, dagPath);
+			m_mesh->setupNode(glNode);
+
+			const auto& pp = m_mesh->pivotPoint;
+			MTransformationMatrix pivotTransformationMatrix;
+			pivotTransformationMatrix.setTranslation(MVector(pp.x, pp.y, pp.z), MSpace::kObject);
+			pivotTransform = pivotTransformationMatrix.asMatrix();
+		}
+	}
+
 	// Get transform
-	const auto objectMatrix = Transform::getObjectSpaceMatrix(dagPath, parentDagPath);
+	const auto objectMatrix = Transform::getObjectSpaceMatrix(pivotTransform, dagPath, parentDagPath);
 	initialTransform = Transform::toTRS(objectMatrix, scaleFactor, name.asChar());
 	THROW_ON_FAILURE(status);
 	glNode.transform = &initialTransform;
@@ -54,25 +71,6 @@ ExportableNode::ExportableNode(
 		parentNode->glNode.children.push_back(&glNode);
 	}
 
-	// Get mesh, but only if the node was selected.
-	if (args.selection.hasItem(dagPath))
-	{
-		dagPath.extendToShape();
-
-		if (dagPath.hasFn(MFn::kMesh)) 
-		{
-			m_mesh = std::make_unique<ExportableMesh>(scene, dagPath);
-
-			if (m_mesh->glPivotNode)
-			{
-				glNode.children.emplace_back(m_mesh->glPivotNode.get());
-			}
-			else
-			{
-				m_mesh->setupNode(glNode);
-			}
-		}
-	}
 }
 
 ExportableNode::~ExportableNode() = default;

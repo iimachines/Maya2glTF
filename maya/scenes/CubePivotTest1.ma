@@ -1,6 +1,6 @@
 //Maya ASCII 2018 scene
 //Name: CubePivotTest1.ma
-//Last modified: Mon, Apr 16, 2018 01:28:44 PM
+//Last modified: Mon, Apr 16, 2018 03:13:05 PM
 //Codeset: 1252
 requires maya "2018";
 currentUnit -l centimeter -a degree -t film;
@@ -12,8 +12,8 @@ fileInfo "osv" "Microsoft Windows 8 Business Edition, 64-bit  (Build 9200)\n";
 createNode transform -s -n "persp";
 	rename -uid "EEB63D68-48EF-EE9B-BE67-F2A96C3CBE7E";
 	setAttr ".v" no;
-	setAttr ".t" -type "double3" -7.4615750856644878 4.8110138959109934 1.9515575784432215 ;
-	setAttr ".r" -type "double3" -35.738352729554727 -430.59999999960974 0 ;
+	setAttr ".t" -type "double3" 0.39893963645644437 3.1604367603712951 7.7748801142122215 ;
+	setAttr ".r" -type "double3" -23.738352729567691 -713.79999999953179 -1.9995420695199554e-16 ;
 createNode camera -s -n "perspShape" -p "persp";
 	rename -uid "F774B9F5-4118-59FF-6DEF-47BCADB9AA78";
 	setAttr -k off ".v" no;

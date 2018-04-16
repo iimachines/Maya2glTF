@@ -21,8 +21,7 @@ public:
 	GLTF::Mesh glMesh;
 	GLTF::Skin glSkin;
 
-	// If not null, the mesh requires an extra node for its pivot
-	std::unique_ptr<GLTF::Node> glPivotNode;
+	MPoint pivotPoint;
 
 	size_t blendShapeCount() const { return m_weightPlugs.size(); }
 
@@ -41,7 +40,5 @@ private:
 
 	std::vector<Float4x4> m_inverseBindMatrices;
 	std::unique_ptr<GLTF::Accessor> m_inverseBindMatricesAccessor;
-
-	GLTF::Node::TransformTRS m_pivotTransform;
 };
 

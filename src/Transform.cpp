@@ -76,25 +76,25 @@ namespace Transform
 		return std::move(toTRS(localMatrix, scaleFactor, precision));
 	}
 
-	MMatrix getObjectSpaceMatrix(MDagPath dagPath, MDagPath parentPath)
+	MMatrix getObjectSpaceMatrix(const MMatrix& pivotTransform, MDagPath dagPath, MDagPath parentPath)
 	{
 		MStatus status;
 
 		MFnDagNode fnDagNode(dagPath, &status);
 		THROW_ON_FAILURE(status);
 
-		auto childWorldMatrix = dagPath.inclusiveMatrix(&status);
+		const auto childWorldMatrix = dagPath.inclusiveMatrix(&status);
 		THROW_ON_FAILURE(status);
 
 		const auto parentPathLength = parentPath.length(&status);
 		THROW_ON_FAILURE(status);
 
 		if (parentPathLength == 0)
-			return std::move(childWorldMatrix);
+			return std::move(pivotTransform * childWorldMatrix);
 
 		const auto parentWorldMatrixInverse = parentPath.inclusiveMatrixInverse(&status);
 		THROW_ON_FAILURE(status);
 
-		return std::move(childWorldMatrix * parentWorldMatrixInverse);
+		return std::move(pivotTransform * childWorldMatrix * parentWorldMatrixInverse);
 	}
 }

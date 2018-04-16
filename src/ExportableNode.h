@@ -16,6 +16,7 @@ public:
 	double scaleFactor;
 
 	MDagPath parentDagPath;
+	MMatrix pivotTransform;
 	GLTF::Node::TransformTRS initialTransform;
 
 	std::unique_ptr<NodeAnimation> createAnimation(const int frameCount, const double scaleFactor) override;
