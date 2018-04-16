@@ -156,6 +156,32 @@ ExportableMesh::ExportableMesh(
 			cout << prefix << "Using joint " << quoted(rootJointNode->name(), '\'') << " as skeleton root for mesh " << quoted(shapeName, '\'') << endl;
 			glSkin.skeleton = &rootJointNode->glNode;
 		}
+
+		// Add pivot node, if needed
+		const auto pivotPoint = mainShape.vertices().pivotPoint();
+		if (pivotPoint != MPoint::origin)
+		{
+			// TODO: Can we use the pivot node of other stuff?
+			m_pivotTransform.scale[0] = 1;
+			m_pivotTransform.scale[1] = 1;
+			m_pivotTransform.scale[2] = 1;
+
+			m_pivotTransform.rotation[0] = 0;
+			m_pivotTransform.rotation[1] = 0;
+			m_pivotTransform.rotation[2] = 0;
+			m_pivotTransform.rotation[3] = 1;
+
+			m_pivotTransform.translation[0] = float(pivotPoint.x);
+			m_pivotTransform.translation[1] = float(pivotPoint.y);
+			m_pivotTransform.translation[2] = float(pivotPoint.z);
+
+			glPivotNode = std::make_unique<GLTF::Node>();
+			glPivotNode->transform = &m_pivotTransform;
+
+			args.assignName(*glPivotNode, shapeName+":pivot");
+
+			setupNode(*glPivotNode);
+		}
 	}
 }
 
@@ -174,4 +200,14 @@ std::vector<float> ExportableMesh::getCurrentWeights() const
 	}
 
 	return weights;
+}
+
+void ExportableMesh::setupNode(GLTF::Node& node)
+{
+	node.mesh = &glMesh;
+
+	if (glSkin.skeleton)
+	{
+		node.skin = &glSkin;
+	}
 }

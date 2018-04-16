@@ -8,6 +8,8 @@
 #include "MeshIndices.h"
 #include "mikktspace.h"
 #include "MeshSkeleton.h"
+#include "ExportableScene.h"
+#include "ExportableNode.h"
 
 struct MikkTSpaceIndices
 {
@@ -186,17 +188,84 @@ MeshVertices::MeshVertices(
 	const MeshSkeleton* meshSkeleton,
 	const MFnMesh& mesh,
 	ShapeIndex shapeIndex,
-	const Arguments& args,
-	MSpace::Space space)
+	const Arguments& args)
 	:shapeIndex(shapeIndex)
 {
 	MStatus status;
 
 	auto& semantics = meshIndices.semantics;
 
+	/*
+
+	http://help.autodesk.com/view/MAYAUL/2017/ENU/?guid=__cpp_ref_class_m_transformation_matrix_html
+
+	Maya applies the following transform to its vertices:
+	iSp * S * Sh * Sp * St * iRp * Ro * R * Rp * Rt * T
+
+	Where iSp = inverse(Sp) and iRp = inverse(Rp)
+
+	and
+
+	Sp = Scale pivot point
+		 point around which scales are performed
+
+	S  = Scale
+		 scaling about x, y, z axes
+
+	Sh = Shear
+		 shearing in xy, xz, yx
+
+	St = Scale pivot translation
+		 translation introduced to preserve existing scale transformations when moving pivot.
+		 This is used to prevent the object from moving when the objects pivot point is not at the origin and a non-unit scale is applied to the object.
+
+	Rp = Rotate pivot point
+		 point about which rotations are performed
+
+	Ro = Rotation orientation
+		 rotation to orient local rotation space
+
+	R = Rotation
+		rotation
+
+	Rt = Rotate pivot translation
+		 translation introduced to preserve exisitng rotate transformations when moving pivot.
+		 This is used to prevent the object from moving when the objects pivot point is not at the origin and the pivot is moved.
+
+	T = Translate
+		translation in x, y, z axes
+
+	GLTF doesn't support pivots, so we will bake the coordinates of vertices around a pivot.
+	However, since Maya has both a scale and orientation pivot, we can only do this when these pivots are the same.
+
+	*/
+
+	MDagPath parentDagPath = mesh.dagPath(&status);
+	THROW_ON_FAILURE(status);
+	parentDagPath.pop();
+
+	MFnTransform parentTransform(parentDagPath, &status);
+	THROW_ON_FAILURE(status);
+
+	const auto scalePivot = parentTransform.scalePivot(MSpace::kObject);
+	const auto rotatePivot = parentTransform.rotatePivot(MSpace::kObject);
+
+	if (scalePivot != rotatePivot)
+	{
+		MayaException::printError(formatted("Transform '%s' of mesh '%s' has a different scaling and rotation pivot, this is not supported!",
+			parentDagPath.partialPathName().asChar(), mesh.name().asChar()), MStatus::kNotImplemented);
+	}
+
+	m_pivotPoint = rotatePivot;
+
+	if (m_pivotPoint != MPoint::origin)
+	{
+		cout << prefix << "Offseting vertices of '" << mesh.name() << "' around rotation pivot " << m_pivotPoint << endl;
+	}
+
 	// Get points
 	MPointArray mPoints;
-	THROW_ON_FAILURE(mesh.getPoints(mPoints, space));
+	THROW_ON_FAILURE(mesh.getPoints(mPoints, MSpace::kTransform));
 	const int numPoints = mPoints.length();
 	m_positions.reserve(numPoints);
 
@@ -204,7 +273,7 @@ MeshVertices::MeshVertices(
 
 	for (int i = 0; i < numPoints; ++i)
 	{
-		const auto p = mPoints[i] * positionScale;
+		const auto p = (mPoints[i] - m_pivotPoint) * positionScale;
 		m_positions.push_back({ static_cast<float>(p.x), static_cast<float>(p.y), static_cast<float>(p.z) });
 	}
 
@@ -222,13 +291,14 @@ MeshVertices::MeshVertices(
 	// TODO: When flipping normals, we should also flip the winding
 	const float normalSign = shouldFlipNormals ? -1.0f : 1.0f;
 
+
 	MFloatVectorArray mNormals;
-	THROW_ON_FAILURE(mesh.getNormals(mNormals, space));
+	THROW_ON_FAILURE(mesh.getNormals(mNormals, MSpace::kWorld));
 	const int numNormals = mNormals.length();
 	m_normals.reserve(numNormals);
 	for (int i = 0; i < numNormals; ++i)
 	{
-		const auto& n = mNormals[i];
+		auto n = mNormals[i];
 		m_normals.push_back({ normalSign * n.x, normalSign * n.y, normalSign * n.z });
 	}
 
@@ -282,9 +352,6 @@ MeshVertices::MeshVertices(
 	// Get tangent sets
 	for (auto&& semantic : semantics.descriptions(Semantic::TANGENT))
 	{
-		MFloatVectorArray mTangents;
-		THROW_ON_FAILURE(mesh.getTangents(mTangents, space, &semantic.setName));
-
 		if (args.mikkelsenTangentAngularThreshold > 0)
 		{
 			const auto numTriangles = meshIndices.primitiveCount();
@@ -319,6 +386,9 @@ MeshVertices::MeshVertices(
 		}
 		else
 		{
+			MFloatVectorArray mTangents;
+			THROW_ON_FAILURE(mesh.getTangents(mTangents, MSpace::kWorld, &semantic.setName));
+
 			const int numTangents = mTangents.length();
 
 			auto& tangentSet = m_tangentSets[semantic.setIndex];
@@ -326,7 +396,7 @@ MeshVertices::MeshVertices(
 
 			for (int i = 0; i < numTangents; ++i)
 			{
-				const auto& t = mTangents[i];
+				auto t = mTangents[i];
 				const auto rht = 2 * mesh.isRightHandedTangent(i, &semantic.setName, &status) - 1.0f;
 				THROW_ON_FAILURE(status);
 				tangentSet.push_back(t.x);
@@ -349,7 +419,7 @@ MeshVertices::MeshVertices(
 	{
 		// Now group vertex joint assignments into element of multiple components (4 in GLTF)
 		const auto vertexJointAssignmentElementSize = int(array_size<JointIndices>::size);
-		
+
 		const auto setCount = int(meshSkeleton->vertexJointAssignmentSetCount());
 		const auto& assignmentsTable = meshSkeleton->vertexJointAssignments();
 

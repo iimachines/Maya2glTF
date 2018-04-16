@@ -62,12 +62,14 @@ ExportableNode::ExportableNode(
 		if (dagPath.hasFn(MFn::kMesh)) 
 		{
 			m_mesh = std::make_unique<ExportableMesh>(scene, dagPath);
-			glNode.mesh = &m_mesh->glMesh;
 
-			// Link skin if mesh has skeleton
-			if (m_mesh->glSkin.skeleton)
+			if (m_mesh->glPivotNode)
 			{
-				glNode.skin = &m_mesh->glSkin;
+				glNode.children.emplace_back(m_mesh->glPivotNode.get());
+			}
+			else
+			{
+				m_mesh->setupNode(glNode);
 			}
 		}
 	}

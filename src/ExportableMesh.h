@@ -21,11 +21,16 @@ public:
 	GLTF::Mesh glMesh;
 	GLTF::Skin glSkin;
 
+	// If not null, the mesh requires an extra node for its pivot
+	std::unique_ptr<GLTF::Node> glPivotNode;
+
 	size_t blendShapeCount() const { return m_weightPlugs.size(); }
 
 	gsl::span<const float> getInitialWeights() const { return m_initialWeights; }
 
 	std::vector<float> getCurrentWeights() const;
+
+	void setupNode(GLTF::Node& node);
 
 private:
 	DISALLOW_COPY_MOVE_ASSIGN(ExportableMesh);
@@ -36,5 +41,7 @@ private:
 
 	std::vector<Float4x4> m_inverseBindMatrices;
 	std::unique_ptr<GLTF::Accessor> m_inverseBindMatricesAccessor;
+
+	GLTF::Node::TransformTRS m_pivotTransform;
 };
 
