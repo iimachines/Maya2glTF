@@ -47,6 +47,10 @@ namespace flag
 	const auto ignoreMeshDeformers = "imd";
 
 	const auto ignoreSegmentScaleCompensation = "isc";
+
+	const auto selectedNodesOnly = "sno";
+
+	const auto includeUnusedTexcoord = "iut";
 }
 
 inline const char* getArgTypeName(const MSyntax::MArgType argType)
@@ -122,6 +126,10 @@ SyntaxFactory::SyntaxFactory()
 
 	registerFlag(ss, flag::redrawViewport, "redrawViewport", kNoArg);
 
+	registerFlag(ss, flag::selectedNodesOnly, "selectedNodesOnly", kNoArg);
+
+	registerFlag(ss, flag::includeUnusedTexcoord, "includeUnusedTexcoord", kNoArg);
+
 	registerFlag(ss, flag::ignoreSegmentScaleCompensation, "ignoreSegmentScaleCompensation", kNoArg);
 
 	m_usage = ss.str();
@@ -196,9 +204,12 @@ public:
 			throwOnFailure(MStatus::kInvalidParameter, "At least one object must be selected or passed to the command");
 	}
 
-	MeshPrimitiveAttributeSet getSemanticSet(const char* shortName, const Semantic::SemanticKinds& defaultKinds) const
+	MeshSemanticSet getSemanticSet(const char* shortName, const Semantic::SemanticKinds& defaultKinds) const
 	{
-		MeshPrimitiveAttributeSet semantics;
+		MeshSemanticSet semantics;
+
+		// Always include position
+		semantics.set(Semantic::POSITION, true);
 
 		MString attrs;
 		if (optional(shortName, attrs))
@@ -337,7 +348,7 @@ public:
 			formatted("%s -%s (%s)\nUsage:\n%s", message, shortArgName, longArgName, usageStr));
 	}
 
-	private:
+private:
 	MArgDatabase adb;
 };
 
@@ -348,7 +359,28 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	MStatus status;
 	ArgChecker adb(syntax, args, status);
 
-	adb.getObjects(selection);
+	MSelectionList userSelection;
+	adb.getObjects(userSelection);
+
+	selectedNodesOnly = adb.isFlagSet(flag::selectedNodesOnly);
+
+	for (uint selectionIndex = 0; selectionIndex < userSelection.length(); ++selectionIndex)
+	{
+		MObject obj;
+		THROW_ON_FAILURE(userSelection.getDependNode(selectionIndex, obj));
+		select(selection, obj, !selectedNodesOnly);
+	}
+
+	// Print selection
+	cout << prefix << "sel";
+
+	for (uint selectionIndex = 0; selectionIndex < selection.length(); ++selectionIndex)
+	{
+		MDagPath dagPath;
+		THROW_ON_FAILURE(selection.getDagPath(selectionIndex, dagPath));
+		cout << " " << dagPath.partialPathName();
+	}
+	cout << endl;
 
 	adb.required(flag::outputFolder, outputFolder);
 	adb.optional(flag::scaleFactor, scaleFactor);
@@ -371,6 +403,7 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	skipSkinClusters = adb.isFlagSet(flag::skipSkinClusters);
 	skipBlendShapes = adb.isFlagSet(flag::skipBlendShapes);
 	redrawViewport = adb.isFlagSet(flag::redrawViewport);
+	includeUnusedTexcoord = adb.isFlagSet(flag::includeUnusedTexcoord);
 	ignoreSegmentScaleCompensation = adb.isFlagSet(flag::ignoreSegmentScaleCompensation);
 
 	adb.optional(flag::globalOpacityFactor, opacityFactor);
@@ -448,9 +481,9 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	// Sort clips by starting time.
 	std::sort(animationClips.begin(), animationClips.end(),
 		[](const AnimClipArg& left, const AnimClipArg& right)
-		{
-			return left.startTime < right.endTime;
-		});
+	{
+		return left.startTime < right.endTime;
+	});
 
 	cout << prefix << "Exporting " << selectedObjects << " to " << outputFolder << "/" << sceneName << "..." << endl;
 }
@@ -467,6 +500,77 @@ Arguments::~Arguments()
 	{
 		m_gltfOutputFileStream.flush();
 		m_gltfOutputFileStream.close();
+	}
+}
+
+void Arguments::select(MSelectionList& selection, MObject obj, const bool includeDescendants)
+{
+	MStatus status;
+	MFnDagNode node(obj, &status);
+
+	if (status)
+	{
+		std::string debugName{ node.partialPathName().asChar() };
+
+		if (obj.hasFn(MFn::kTransform))
+		{
+			MDagPath dagPath;
+			status = node.getPath(dagPath);
+			THROW_ON_FAILURE(status);
+
+			unsigned shapeCount;
+			status = dagPath.numberOfShapesDirectlyBelow(shapeCount);
+
+			if (status)
+			{
+				for (auto shapeIndex = 0U; shapeIndex < shapeCount; ++shapeIndex)
+				{
+					MDagPath shapePath = dagPath;
+					status = shapePath.extendToShapeDirectlyBelow(shapeIndex);
+					if (status)
+					{
+						// Do not include intermediate meshes
+						MFnMesh mesh(shapePath, &status);
+						if (status && !mesh.isIntermediateObject())
+						{
+							status = selection.add(shapePath, MObject::kNullObj, true);
+							THROW_ON_FAILURE(status);
+						}
+					}
+				}
+			}
+		}
+		else if (obj.hasFn(MFn::kMesh))
+		{
+			// Do not include intermediate meshes
+			MFnMesh mesh(obj, &status);
+			if (status && !mesh.isIntermediateObject())
+			{
+				MDagPath dagPath;
+				status = mesh.getPath(dagPath);
+				if (status)
+				{
+					status = selection.add(dagPath, MObject::kNullObj, true);
+				}
+				else
+				{
+					cerr << prefix << "Failed to get DAG path of " << mesh.partialPathName() << endl;
+				}
+			}
+		}
+
+		if (includeDescendants)
+		{
+			const auto childCount = node.childCount(&status);
+			THROW_ON_FAILURE(status);
+
+			for (auto childIndex = 0U; childIndex < childCount; ++childIndex)
+			{
+				const auto child = node.child(childIndex, &status);
+				THROW_ON_FAILURE(status);
+				select(selection, child, includeDescendants);
+			}
+		}
 	}
 }
 

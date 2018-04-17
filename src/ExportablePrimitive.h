@@ -3,6 +3,7 @@
 #include "sceneTypes.h"
 #include "MeshRenderables.h"
 #include "ExportableMesh.h"
+#include "ExportableMaterial.h"
 
 typedef std::vector<std::unique_ptr<GLTF::Primitive::Target>> BlendShapeToTargetTable;
 
@@ -12,8 +13,9 @@ class ExportablePrimitive
 {
 public:
 	ExportablePrimitive(
-		const VertexBuffer& vertexBuffer, 
-		ExportableResources& resources);
+		const VertexBuffer& vertexBuffer,
+		ExportableResources& resources,
+		ExportableMaterial* material);
 	
 	ExportablePrimitive(
 		const VertexBuffer& vertexBuffer, 

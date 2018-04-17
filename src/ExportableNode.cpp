@@ -8,20 +8,21 @@
 #include "Arguments.h"
 #include "DagHelper.h"
 
-ExportableNode::ExportableNode(
-	ExportableScene& scene,
-	NodeTransformCache& transformCache,
-	std::unique_ptr<ExportableNode>& owner,
-	MDagPath dagPath)
+ExportableNode::ExportableNode(MDagPath dagPath)
 	: ExportableObject(dagPath.node())
 	, dagPath(dagPath)
 	, hasSegmentScaleCompensation(false)
 	, scaleFactor(1)
 	, parentNode(nullptr)
 {
-	MStatus status;
+}
 
-	owner.reset(this);
+void ExportableNode::load(
+	ExportableScene& scene,
+	NodeTransformCache& transformCache,
+	std::unique_ptr<ExportableNode>& owner)
+{
+	MStatus status;
 
 	auto& resources = scene.resources();
 	auto& args = resources.arguments();
@@ -75,6 +76,51 @@ ExportableNode::ExportableNode(
 		scene.glScene.nodes.emplace_back(&nodeTU);
 	}
 
+	// Get mesh, but only if the node was selected.
+	MDagPath meshDagPath;
+
+	if (args.selection.hasItem(dagPath))
+	{
+		MDagPath shapeDagPath = dagPath;
+		status = shapeDagPath.extendToShape();
+
+		if (status && shapeDagPath.hasFn(MFn::kMesh))
+		{
+			// The shape is a mesh
+			meshDagPath = shapeDagPath;
+
+			// We can only simulate a single pivot point, 
+			// but Maya has both a rotation and scaling pivot, 
+			// so warn the user if these are different.
+			MDagPath parentDagPath = meshDagPath;
+			status = parentDagPath.pop();
+			THROW_ON_FAILURE(status);
+
+			MFnTransform parentTransform(parentDagPath, &status);
+			THROW_ON_FAILURE(status);
+
+			const auto scalePivot = parentTransform.scalePivot(MSpace::kObject);
+			const auto rotatePivot = parentTransform.rotatePivot(MSpace::kObject);
+
+			if (scalePivot != rotatePivot)
+			{
+				MayaException::printError(formatted("Transform '%s' of mesh '%s' has different scaling and rotation pivots, this is not supported, ignoring scaling pivot!",
+					parentDagPath.partialPathName().asChar(), meshDagPath.partialPathName().asChar()), MStatus::kNotImplemented);
+			}
+
+			pivotPoint = rotatePivot;
+
+			if (pivotPoint != MPoint::origin)
+			{
+				cout << prefix << "Offseting all vertices of '" << meshDagPath.partialPathName() << "' around rotation pivot " << pivotPoint << endl;
+			}
+
+			MTransformationMatrix pivotTransformationMatrix;
+			pivotTransformationMatrix.setTranslation(pivotPoint - MPoint::origin, MSpace::kObject);
+			pivotTransform = pivotTransformationMatrix.asMatrix();
+		}
+	}
+
 	// Get transform
 	initialTransformState = transformCache.getTransform(this, scaleFactor);
 	m_glNodes[0].transform = &initialTransformState.localTransforms[0];
@@ -86,22 +132,11 @@ ExportableNode::ExportableNode(
 		cerr << prefix << "WARNING: node '" << name << "' has transforms that are not representable by glTF! Skewing is not supported, use 3 nodes to simulate this" << endl;
 	}
 
-	// Get mesh, but only if the node was selected.
-	if (args.selection.hasItem(dagPath))
+	// Create mesh, if any
+	if (meshDagPath.isValid(&status) && status)
 	{
-		dagPath.extendToShape();
-
-		if (dagPath.hasFn(MFn::kMesh)) 
-		{
-			m_mesh = std::make_unique<ExportableMesh>(scene, dagPath);
-			nodeRS.mesh = &m_mesh->glMesh;
-
-			// Link skin if mesh has skeleton
-			if (m_mesh->glSkin.skeleton)
-			{
-				nodeRS.skin = &m_mesh->glSkin;
-			}
-		}
+		m_mesh = std::make_unique<ExportableMesh>(scene, *this, meshDagPath);
+		m_mesh->setupNode(nodeRS);
 	}
 }
 

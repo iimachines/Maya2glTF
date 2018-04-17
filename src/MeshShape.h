@@ -5,12 +5,13 @@
 #include "MeshIndices.h"
 #include "MayaException.h"
 
+class ExportableNode;
 class ExportableScene;
 
 class MeshShape
 {
 public:
-	MeshShape(const MeshIndices& mainIndices, const MFnMesh& fnMesh, const Arguments& args, ShapeIndex shapeIndex, const MPlug& weightPlug, float initialWeight);
+	MeshShape(const MeshIndices& mainIndices, const MFnMesh& fnMesh, const MPoint& pivotPoint, const Arguments& args, ShapeIndex shapeIndex, const MPlug& weightPlug, float initialWeight);
 	virtual ~MeshShape();
 
 	virtual void dump(class IndentableStream& out, const std::string& name) const;
@@ -39,7 +40,7 @@ protected:
 class MainShape : public MeshShape
 {
 public:
-	MainShape(ExportableScene& scene, const MFnMesh& fnMesh, ShapeIndex shapeIndex);
+	MainShape(ExportableScene& scene, const MFnMesh& fnMesh, const MPoint& pivotPoint, ShapeIndex shapeIndex);
 	virtual ~MainShape();
 
 	const MeshIndices& indices() const { return *m_indices; }

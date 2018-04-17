@@ -179,4 +179,5 @@ namespace Component
 	}
 };
 
+typedef std::bitset<Semantic::COUNT> MeshSemanticSet;
 

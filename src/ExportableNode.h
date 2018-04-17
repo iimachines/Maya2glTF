@@ -10,7 +10,7 @@ class ExportableNode : public ExportableObject
 {
 public:
 	~ExportableNode();
-
+	
 	ExportableMesh* mesh() const { return m_mesh.get(); }
 
 	MDagPath dagPath;
@@ -18,6 +18,9 @@ public:
 	bool hasSegmentScaleCompensation;
 
 	double scaleFactor;
+
+	MPoint pivotPoint;
+	MMatrix pivotTransform;
 
 	// nullptr for root nodes.
 	ExportableNode* parentNode;
@@ -41,7 +44,9 @@ public:
 private:
 	friend class ExportableScene;
 
-	ExportableNode(ExportableScene& scene, NodeTransformCache& transformCache, std::unique_ptr<ExportableNode>& owner, MDagPath dagPath);
+	ExportableNode(MDagPath dagPath);
+
+	void load(ExportableScene& scene, NodeTransformCache& transformCache, std::unique_ptr<ExportableNode>& owner, MDagPath dagPath);
 
 	std::array<GLTF::Node, 2> m_glNodes;
 	std::unique_ptr<ExportableMesh> m_mesh;

@@ -13,6 +13,8 @@ public:
 
 	virtual GLTF::Material* glMaterial() = 0;
 
+	virtual bool hasTextures() const = 0;
+
 	static std::unique_ptr<ExportableMaterial> from(ExportableResources& resources, const MFnDependencyNode& shaderNode);
 
 protected:
@@ -34,6 +36,8 @@ public:
 	virtual ~ExportableMaterialBasePBR();
 
 	GLTF::Material* glMaterial() override { return &m_glMaterial; }
+
+	bool hasTextures() const override;
 
 protected:
 	Float4 m_glBaseColorFactor;

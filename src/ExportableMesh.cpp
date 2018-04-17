@@ -12,6 +12,7 @@
 
 ExportableMesh::ExportableMesh(
 	ExportableScene& scene, 
+	ExportableNode& node,
 	const MDagPath& shapeDagPath)
 	: ExportableObject(shapeDagPath.node())
 {
@@ -22,7 +23,7 @@ ExportableMesh::ExportableMesh(
 	auto& resources = scene.resources();
 	auto& args = resources.arguments();
 
-	const auto mayaMesh = std::make_unique<Mesh>(scene, shapeDagPath);
+	const auto mayaMesh = std::make_unique<Mesh>(scene, shapeDagPath, node.pivotPoint);
 
 	if (args.dumpMaya)
 	{
@@ -55,7 +56,8 @@ ExportableMesh::ExportableMesh(
 					? shading.shaderGroups[shaderIndex]
 					: MObject::kNullObj;
 
-				auto exportablePrimitive = std::make_unique<ExportablePrimitive>(vertexBuffer, resources);
+
+				ExportableMaterial* material = nullptr;
 
 				// Assign material to primitive
 				if (args.colorizeMaterials)
@@ -63,39 +65,40 @@ ExportableMesh::ExportableMesh(
 					const float h = vertexBufferIndex * 1.0f / vertexBufferCount;
 					const float s = shaderCount == 0 ? 0.5f : 1;
 					const float v = shaderIndex < 0 ? 0.5f : 1;
-					exportablePrimitive->glPrimitive.material = resources.getDebugMaterial({ h,s,v })->glMaterial();
+					material = resources.getDebugMaterial({ h,s,v });
+					++vertexBufferIndex;
 				}
 				else
 				{
-					auto material = resources.getMaterial(shaderGroup);
+					material = resources.getMaterial(shaderGroup);
 					if (!material && resources.arguments().defaultMaterial)
 						material = resources.getDefaultMaterial();
-
-					if (material)
-						exportablePrimitive->glPrimitive.material = material->glMaterial();
 				}
 
-				glMesh.primitives.push_back(&exportablePrimitive->glPrimitive);
-
-				m_primitives.emplace_back(move(exportablePrimitive));
-
-				if (args.debugTangentVectors)
+				if (material)
 				{
-					auto debugPrimitive = std::make_unique<ExportablePrimitive>(
-						vertexBuffer, resources, Semantic::Kind::TANGENT, ShapeIndex::main(), args.debugVectorLength, Color({ 1,0,0,1 }));
-					glMesh.primitives.push_back(&debugPrimitive->glPrimitive);
-					m_primitives.emplace_back(move(debugPrimitive));
-				}
+					auto exportablePrimitive = std::make_unique<ExportablePrimitive>(vertexBuffer, resources, material);
 
-				if (args.debugNormalVectors)
-				{
-					auto debugPrimitive = std::make_unique<ExportablePrimitive>(
-						vertexBuffer, resources, Semantic::Kind::NORMAL, ShapeIndex::main(), args.debugVectorLength, Color({ 1,1,0,1 }));
-					glMesh.primitives.push_back(&debugPrimitive->glPrimitive);
-					m_primitives.emplace_back(move(debugPrimitive));
-				}
+					glMesh.primitives.push_back(&exportablePrimitive->glPrimitive);
 
-				++vertexBufferIndex;
+					m_primitives.emplace_back(std::move(exportablePrimitive));
+
+					if (args.debugTangentVectors)
+					{
+						auto debugPrimitive = std::make_unique<ExportablePrimitive>(
+							vertexBuffer, resources, Semantic::Kind::TANGENT, ShapeIndex::main(), args.debugVectorLength, Color({ 1,0,0,1 }));
+						glMesh.primitives.push_back(&debugPrimitive->glPrimitive);
+						m_primitives.emplace_back(move(debugPrimitive));
+					}
+
+					if (args.debugNormalVectors)
+					{
+						auto debugPrimitive = std::make_unique<ExportablePrimitive>(
+							vertexBuffer, resources, Semantic::Kind::NORMAL, ShapeIndex::main(), args.debugVectorLength, Color({ 1,1,0,1 }));
+						glMesh.primitives.push_back(&debugPrimitive->glPrimitive);
+						m_primitives.emplace_back(move(debugPrimitive));
+					}
+				}
 			}
 
 			for (auto&& shape: mayaMesh->allShapes())
@@ -174,4 +177,14 @@ std::vector<float> ExportableMesh::currentWeights() const
 	}
 
 	return weights;
+}
+
+void ExportableMesh::setupNode(GLTF::Node& node)
+{
+	node.mesh = &glMesh;
+
+	if (glSkin.skeleton)
+	{
+		node.skin = &glSkin;
+	}
 }

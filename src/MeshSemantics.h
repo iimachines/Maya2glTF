@@ -32,7 +32,7 @@ class MeshSemantics
 {
 public:
 	// Skeleton is needed to determine if the skin weight/joint semantics are needed.
-	MeshSemantics(const MFnMesh& mesh, MeshSkeleton* skeleton);
+	MeshSemantics(const MFnMesh& mesh, MeshSkeleton* skeleton, const MeshSemanticSet& semanticSet);
 	virtual ~MeshSemantics();
 
 	const VertexComponentSetDescriptionPerSetIndexTable& table() const { return m_table; }

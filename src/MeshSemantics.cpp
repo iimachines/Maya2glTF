@@ -15,26 +15,28 @@ void VertexElementSetDescription::dump(class IndentableStream& out, const std::s
 	out << undent << '}';
 }
 
-MeshSemantics::MeshSemantics(const MFnMesh& mesh, MeshSkeleton* skeleton)
+MeshSemantics::MeshSemantics(const MFnMesh& mesh, MeshSkeleton* skeleton, const MeshSemanticSet& semanticSet)
 {
 	MStatus status;
 
 	auto numVertices = mesh.numVertices(&status);
 
-	// NOTE: Currently we fetch all the semantics, even for blend-shapes, since we might want to included texture coordinates or colors into blend-shapes at some point.
 	m_table[Semantic::POSITION].emplace_back(Semantic::POSITION, 0, "", numVertices);
 	THROW_ON_FAILURE(status);
 
 	m_table[Semantic::NORMAL].emplace_back(Semantic::NORMAL, 0, "", mesh.numNormals(&status));
 	THROW_ON_FAILURE(status);
 
-	MStringArray colorSetNames;
-	THROW_ON_FAILURE(mesh.getColorSetNames(colorSetNames));
-
-	for (SetIndex i = 0; i < SetIndex(colorSetNames.length()); ++i)
+	if (semanticSet.test(Semantic::COLOR))
 	{
-		m_table[Semantic::COLOR].emplace_back(Semantic::COLOR, i, colorSetNames[i].asChar(), mesh.numColors(colorSetNames[i], &status));
-		THROW_ON_FAILURE(status);
+		MStringArray colorSetNames;
+		THROW_ON_FAILURE(mesh.getColorSetNames(colorSetNames));
+
+		for (SetIndex i = 0; i < SetIndex(colorSetNames.length()); ++i)
+		{
+			m_table[Semantic::COLOR].emplace_back(Semantic::COLOR, i, colorSetNames[i].asChar(), mesh.numColors(colorSetNames[i], &status));
+			THROW_ON_FAILURE(status);
+		}
 	}
 
 	MStringArray uvSetNames;
@@ -42,8 +44,11 @@ MeshSemantics::MeshSemantics(const MFnMesh& mesh, MeshSkeleton* skeleton)
 
 	for (SetIndex i = 0; i < SetIndex(uvSetNames.length()); ++i)
 	{
-		m_table[Semantic::TEXCOORD].emplace_back(Semantic::TEXCOORD, i, uvSetNames[i].asChar(), mesh.numUVs(uvSetNames[i], &status));
-		m_table[Semantic::TANGENT].emplace_back(Semantic::TANGENT, i, uvSetNames[i].asChar(), mesh.numUVs(uvSetNames[i], &status));
+		if (semanticSet.test(Semantic::TEXCOORD))
+			m_table[Semantic::TEXCOORD].emplace_back(Semantic::TEXCOORD, i, uvSetNames[i].asChar(), mesh.numUVs(uvSetNames[i], &status));
+
+		if (semanticSet.test(Semantic::TANGENT))
+			m_table[Semantic::TANGENT].emplace_back(Semantic::TANGENT, i, uvSetNames[i].asChar(), mesh.numUVs(uvSetNames[i], &status));
 	}
 
 	// Add skin semantics

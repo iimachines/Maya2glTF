@@ -15,7 +15,7 @@ public:
 	// TODO: Support instancing, for now we create a new mesh for each node.
 	// To properly support instance, we need to decide what to do with shapes that are both with and without a skeleton 
 	// Do we generate two meshes, with and without skinning vertex attributes?
-	ExportableMesh(ExportableScene& scene, const MDagPath& shapeDagPath);
+	ExportableMesh(ExportableScene& scene, ExportableNode& node, const MDagPath& shapeDagPath);
 	virtual ~ExportableMesh();
 
 	GLTF::Mesh glMesh;
@@ -26,6 +26,8 @@ public:
 	gsl::span<const float> initialWeights() const { return m_initialWeights; }
 
 	std::vector<float> currentWeights() const;
+
+	void setupNode(GLTF::Node& node);
 
 private:
 	DISALLOW_COPY_MOVE_ASSIGN(ExportableMesh);

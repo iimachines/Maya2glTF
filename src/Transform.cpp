@@ -36,26 +36,38 @@ float cleanupScalar(const double v)
 	return static_cast<float>(round(v * precision) / precision);
 }
 
-MMatrix getObjectSpaceMatrix(MDagPath dagPath, MDagPath parentPath)
+GLTF::Node::TransformTRS toTRS(const MMatrix& localMatrix, const double scaleFactor, const char* context, const double precision)
+{
+	if (!hasOrthogonalAxes(localMatrix))
+	{
+		// TODO: Use SVG to decompose the 3x3 matrix into a product of rotation and scale matrices.
+		cerr << prefix << "WARNING: Skewed/sheared matrices are not representable by glTF! " << context << endl;
+	}
+
+	return std::move(toTRS(localMatrix, scaleFactor, precision));
+}
+
+MMatrix getObjectSpaceMatrix(const MMatrix& pivotTransform, MDagPath dagPath, MDagPath parentPath)
 {
 	MStatus status;
 
 	MFnDagNode fnDagNode(dagPath, &status);
 	THROW_ON_FAILURE(status);
 
-	auto childWorldMatrix = dagPath.inclusiveMatrix(&status);
+	const auto childWorldMatrix = dagPath.inclusiveMatrix(&status);
 	THROW_ON_FAILURE(status);
 
 	const auto parentPathLength = parentPath.length(&status);
 	THROW_ON_FAILURE(status);
 
 	if (parentPathLength == 0)
-		return std::move(childWorldMatrix);
+		return std::move(pivotTransform * childWorldMatrix);
 
 	const auto parentWorldMatrixInverse = parentPath.inclusiveMatrixInverse(&status);
 	THROW_ON_FAILURE(status);
 
-	return std::move(childWorldMatrix * parentWorldMatrixInverse);
+	return std::move(pivotTransform * childWorldMatrix * parentWorldMatrixInverse);
+}
 }
 
 void makeIdentity(GLTF::Node::TransformTRS &trs)
@@ -73,6 +85,7 @@ void makeIdentity(GLTF::Node::TransformTRS &trs)
 	trs.rotation[2] = 0;
 	trs.rotation[3] = 1;
 }
+
 
 const NodeTransformState& NodeTransformCache::getTransform(const ExportableNode* node, const double scaleFactor)
 {
@@ -190,5 +203,7 @@ const NodeTransformState& NodeTransformCache::getTransform(const ExportableNode*
 
 	return state;
 }
+
+
 
 

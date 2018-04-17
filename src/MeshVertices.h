@@ -87,7 +87,7 @@ class MeshIndices;
 class MeshVertices
 {
 public:
-	MeshVertices(const MeshIndices& meshIndices, const MeshSkeleton* meshSkeleton, const MFnMesh& mesh, ShapeIndex shapeIndex, const Arguments& args, MSpace::Space space = MSpace::kTransform);
+	MeshVertices(const MeshIndices& meshIndices, const MeshSkeleton* meshSkeleton, const MFnMesh& mesh, ShapeIndex shapeIndex, const MPoint& pivotPoint, const Arguments& args);
 	virtual ~MeshVertices();
 
 	const ShapeIndex shapeIndex;
