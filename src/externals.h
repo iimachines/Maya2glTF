@@ -92,3 +92,5 @@
 #include <maya/MFnSkinCluster.h>
 #include <maya/MItGeometry.h>
 #include <maya/MItDependencyNodes.h>
+#include <maya/MItMeshFaceVertex.h>
+

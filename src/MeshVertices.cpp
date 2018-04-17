@@ -314,7 +314,7 @@ MeshVertices::MeshVertices(
 				}
 				ss << ";";
 
-				MayaException::printError(formatted("MikkTSpace generated zero tangents!\nCleanup your mesh and try again please.\nUse the following command select the first invalid faces:\n%s\n", ss.str().c_str()));
+				MayaException::printError(formatted("MikkTSpace generated zero tangents!\nCleanup your mesh and try again please.\nUse the following command select the first invalid faces:\n%s\n\n", ss.str().c_str()));
 			}
 		}
 		else
@@ -327,6 +327,8 @@ MeshVertices::MeshVertices(
 			auto& tangentSet = m_tangentSets[semantic.setIndex];
 			tangentSet.reserve(numTangents * dimension(Semantic::TANGENT, shapeIndex));
 
+			std::unordered_set<int> invalidTangentIds;
+
 			for (int i = 0; i < numTangents; ++i)
 			{
 				auto t = mTangents[i];
@@ -336,6 +338,12 @@ MeshVertices::MeshVertices(
 				tangentSet.push_back(t.y);
 				tangentSet.push_back(t.z);
 
+				auto l = t.x*t.x + t.y*t.y + t.z*t.z;
+				if (abs(l - 1) > 1e-6)
+				{
+					invalidTangentIds.insert(i);
+				}
+
 				if (shapeIndex.isMainShapeIndex())
 				{
 					tangentSet.push_back(rht);
@@ -344,6 +352,42 @@ MeshVertices::MeshVertices(
 
 			const auto tangentSpan = floats(span(tangentSet));
 			m_table.at(Semantic::TANGENT).push_back(tangentSpan);
+
+			if (!invalidTangentIds.empty())
+			{
+				auto meshObject = mesh.object(&status);
+				THROW_ON_FAILURE(status);
+
+				MItMeshFaceVertex itFaceVertex(meshObject, &status);
+				THROW_ON_FAILURE(status);
+
+				// Don't flood the console output if too many vertices are invalid.
+				int selectedIndexCount = 0;
+
+				const auto meshName = mesh.name();
+
+				std::stringstream ss;
+				ss << formatted("doMenuComponentSelectionExt(\"%s\", \"pvf\", 0);", meshName.asChar()) << endl;
+				ss << formatted("setAttr \"%s.displayTangent\" 1;", meshName.asChar()) << endl;
+				ss << formatted("checkMeshDisplayNormals \"%s\";", meshName.asChar()) << endl;
+				ss << "select -r";
+
+				while (!itFaceVertex.isDone() && selectedIndexCount < 10)
+				{
+					if (invalidTangentIds.end() != invalidTangentIds.find(itFaceVertex.tangentId()))
+					{
+						ss << ' ' << mesh.name() << ".vtxFace[" << itFaceVertex.vertId() << "][" << itFaceVertex.faceId() << "]";
+						++selectedIndexCount;
+					}
+					itFaceVertex.next();
+				}
+
+				ss << ";";
+
+				// Find the faces with invalid tangents.
+				MayaException::printError(formatted("Mesh '%s' has %d invalid tangents!\nAssign texture coordinates and/or cleanup your mesh and try again please.\nUse the following command to visualize the tangents and select the first invalid face-vertices:\n\n%s\n", 
+					mesh.name().asChar(), invalidTangentIds.size(), ss.str().c_str()));
+			}
 		}
 	}
 
