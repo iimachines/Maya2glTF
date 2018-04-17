@@ -1,10 +1,7 @@
 #pragma once
 
-#include <utility>
 #include "IndentableStream.h"
 #include "sceneTypes.h"
-
-typedef std::bitset<Semantic::COUNT> MeshPrimitiveAttributeSet;
 
 class SyntaxFactory : MSyntax
 {
@@ -121,10 +118,10 @@ public:
 	float opacityFactor = 1;
 
 	/** The semantics (aka glTF attributes) that should be exported for the mains. Defaults to all semantics contained in the mesh */
-	MeshPrimitiveAttributeSet meshPrimitiveAttributes;
+	MeshSemanticSet meshPrimitiveAttributes;
 
-	/** The semantics (aka glTF attributes) that should be exported for blend shapes. Defaults to POSITION, NORMAL and TANGENT */
-	MeshPrimitiveAttributeSet blendPrimitiveAttributes;
+	/** The semantics (aka glTF attributes) that should be exported for blend shapes. Defaults to NORMAL and TANGENT */
+	MeshSemanticSet blendPrimitiveAttributes;
 
 	/** Include TEXCOORD semantics (aka glTF attributes) even if a primitive doesn't use textures? By default TEXCOORD attributes are only added when needed */
 	bool includeUnusedTexcoord = false;

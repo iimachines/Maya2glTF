@@ -37,6 +37,7 @@ ExportablePrimitive::ExportablePrimitive(
 	auto& args = resources.arguments();
 
 	glPrimitive.mode = GLTF::Primitive::TRIANGLES;
+	glPrimitive.material = material->glMaterial();
 
 	auto& vertexIndices = vertexBuffer.indices;
 

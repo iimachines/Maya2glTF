@@ -200,9 +200,12 @@ public:
 			throwOnFailure(MStatus::kInvalidParameter, "At least one object must be selected or passed to the command");
 	}
 
-	MeshPrimitiveAttributeSet getSemanticSet(const char* shortName, const Semantic::SemanticKinds& defaultKinds) const
+	MeshSemanticSet getSemanticSet(const char* shortName, const Semantic::SemanticKinds& defaultKinds) const
 	{
-		MeshPrimitiveAttributeSet semantics;
+		MeshSemanticSet semantics;
+
+		// Always include position
+		semantics.set(Semantic::POSITION, true);
 
 		MString attrs;
 		if (optional(shortName, attrs))

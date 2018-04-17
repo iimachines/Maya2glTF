@@ -20,7 +20,7 @@ MeshShape::MeshShape(const MeshIndices& mainIndices, const MFnMesh& fnMesh, cons
 	m_dagPath = fnMesh.dagPath(&status);
 	THROW_ON_FAILURE(status);
 
-	m_semantics = std::make_unique<MeshSemantics>(fnMesh, nullptr);
+	m_semantics = std::make_unique<MeshSemantics>(fnMesh, nullptr, args.blendPrimitiveAttributes);
 	m_vertices = std::make_unique<MeshVertices>(mainIndices, nullptr, fnMesh, shapeIndex, pivotPoint, args);
 }
 
@@ -51,8 +51,10 @@ MainShape::MainShape(ExportableScene& scene, const MFnMesh& fnMesh, const MPoint
 	m_dagPath = fnMesh.dagPath(&status);
 	THROW_ON_FAILURE(status);
 
+	auto& args = scene.arguments();
+
 	m_skeleton = std::make_unique<MeshSkeleton>(scene, fnMesh);
-	m_semantics = std::make_unique<MeshSemantics>(fnMesh, m_skeleton.get());
+	m_semantics = std::make_unique<MeshSemantics>(fnMesh, m_skeleton.get(), args.meshPrimitiveAttributes);
 	m_indices = std::make_unique<MeshIndices>(m_semantics.get(), fnMesh);
 	m_vertices = std::make_unique<MeshVertices>(*m_indices, m_skeleton.get(), fnMesh, shapeIndex, pivotPoint, scene.arguments());
 }
