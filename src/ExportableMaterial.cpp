@@ -65,6 +65,15 @@ ExportableMaterialBasePBR::ExportableMaterialBasePBR()
 
 ExportableMaterialBasePBR::~ExportableMaterialBasePBR() = default;
 
+bool ExportableMaterialBasePBR::hasTextures() const
+{
+	return m_glBaseColorTexture.texture ||
+		m_glMetallicRoughnessTexture.texture ||
+		m_glNormalTexture.texture ||
+		m_glEmissiveTexture.texture ||
+		m_glOcclusionTexture.texture;
+}
+
 ExportableMaterialPBR::ExportableMaterialPBR(ExportableResources& resources, const MFnDependencyNode& shaderNode)
 {
 	MStatus status;

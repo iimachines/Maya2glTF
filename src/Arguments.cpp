@@ -47,6 +47,8 @@ namespace flag
 	const auto ignoreMeshDeformers = "imd";
 
 	const auto selectedNodesOnly = "sno";
+
+	const auto includeUnusedTexcoord = "iut";
 }
 
 inline const char* getArgTypeName(const MSyntax::MArgType argType)
@@ -123,6 +125,8 @@ SyntaxFactory::SyntaxFactory()
 	registerFlag(ss, flag::redrawViewport, "redrawViewport", kNoArg);
 
 	registerFlag(ss, flag::selectedNodesOnly, "selectedNodesOnly", kNoArg);
+
+	registerFlag(ss, flag::includeUnusedTexcoord, "includeUnusedTexcoord", kNoArg);
 
 	m_usage = ss.str();
 }
@@ -392,6 +396,7 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	skipSkinClusters = adb.isFlagSet(flag::skipSkinClusters);
 	skipBlendShapes = adb.isFlagSet(flag::skipBlendShapes);
 	redrawViewport = adb.isFlagSet(flag::redrawViewport);
+	includeUnusedTexcoord = adb.isFlagSet(flag::includeUnusedTexcoord);
 
 	adb.optional(flag::globalOpacityFactor, opacityFactor);
 
@@ -516,16 +521,22 @@ void Arguments::select(MSelectionList& selection, MObject obj, const bool includ
 					status = shapePath.extendToShapeDirectlyBelow(shapeIndex);
 					if (status)
 					{
-						status = selection.add(shapePath, MObject::kNullObj, true);
-						THROW_ON_FAILURE(status);
+						// Do not include intermediate meshes
+						MFnMesh mesh(shapePath, &status);
+						if (status && !mesh.isIntermediateObject())
+						{
+							status = selection.add(shapePath, MObject::kNullObj, true);
+							THROW_ON_FAILURE(status);
+						}
 					}
 				}
 			}
 		}
 		else if (obj.hasFn(MFn::kMesh))
 		{
+			// Do not include intermediate meshes
 			MFnMesh mesh(obj, &status);
-			if (status)
+			if (status && !mesh.isIntermediateObject())
 			{
 				MDagPath dagPath;
 				status = mesh.getPath(dagPath);

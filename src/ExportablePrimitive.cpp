@@ -31,7 +31,8 @@ namespace Semantic
 
 ExportablePrimitive::ExportablePrimitive(
 	const VertexBuffer& vertexBuffer,
-	ExportableResources& resources)
+	ExportableResources& resources, 
+	ExportableMaterial* material)
 {
 	auto& args = resources.arguments();
 
@@ -73,7 +74,12 @@ ExportablePrimitive::ExportablePrimitive(
 		}
 	}
 
-	const auto mainShapeSemanticSet = args.meshPrimitiveAttributes;
+	auto mainShapeSemanticSet = args.meshPrimitiveAttributes;
+
+	// Don't add texture coordinates if no textures are used, unless explicitly enabled
+	if (!args.includeUnusedTexcoord && !material->hasTextures())
+		mainShapeSemanticSet.set(Semantic::TEXCOORD, false);
+
 	const auto blendShapeSemanticSet = args.blendPrimitiveAttributes & mainShapeSemanticSet;
 
 	for (auto && group: componentsPerShapeIndex)
