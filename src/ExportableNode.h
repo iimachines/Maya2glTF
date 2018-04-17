@@ -13,7 +13,7 @@ public:
 	
 	ExportableMesh* mesh() const { return m_mesh.get(); }
 
-	MDagPath dagPath;
+	const MDagPath dagPath;
 
 	bool hasSegmentScaleCompensation;
 
@@ -46,7 +46,7 @@ private:
 
 	ExportableNode(MDagPath dagPath);
 
-	void load(ExportableScene& scene, NodeTransformCache& transformCache, std::unique_ptr<ExportableNode>& owner, MDagPath dagPath);
+	void load(ExportableScene& scene, NodeTransformCache& transformCache);
 
 	std::array<GLTF::Node, 2> m_glNodes;
 	std::unique_ptr<ExportableMesh> m_mesh;

@@ -19,8 +19,7 @@ ExportableNode::ExportableNode(MDagPath dagPath)
 
 void ExportableNode::load(
 	ExportableScene& scene,
-	NodeTransformCache& transformCache,
-	std::unique_ptr<ExportableNode>& owner)
+	NodeTransformCache& transformCache)
 {
 	MStatus status;
 

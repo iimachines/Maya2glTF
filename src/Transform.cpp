@@ -22,13 +22,14 @@ bool hasOrthogonalAxes(const MMatrix& m)
 GLTF::Node::TransformMatrix toGLTF(const MMatrix& matrix)
 {
 	float m[4][4];
+	// ReSharper disable once CppExpressionWithoutSideEffects
 	matrix.get(m);
 
-	return std::move(GLTF::Node::TransformMatrix(
+	return GLTF::Node::TransformMatrix(
 		m[0][0], m[1][0], m[2][0], m[3][0],
 		m[0][1], m[1][1], m[2][1], m[3][1],
 		m[0][2], m[1][2], m[2][2], m[3][2],
-		m[0][3], m[1][3], m[2][3], m[3][3]));
+		m[0][3], m[1][3], m[2][3], m[3][3]);
 }
 
 float cleanupScalar(const double v)
@@ -36,18 +37,7 @@ float cleanupScalar(const double v)
 	return static_cast<float>(round(v * precision) / precision);
 }
 
-GLTF::Node::TransformTRS toTRS(const MMatrix& localMatrix, const double scaleFactor, const char* context, const double precision)
-{
-	if (!hasOrthogonalAxes(localMatrix))
-	{
-		// TODO: Use SVG to decompose the 3x3 matrix into a product of rotation and scale matrices.
-		cerr << prefix << "WARNING: Skewed/sheared matrices are not representable by glTF! " << context << endl;
-	}
-
-	return std::move(toTRS(localMatrix, scaleFactor, precision));
-}
-
-MMatrix getObjectSpaceMatrix(const MMatrix& pivotTransform, MDagPath dagPath, MDagPath parentPath)
+MMatrix getObjectSpaceMatrix(const MMatrix& pivotTransform, const MDagPath& dagPath, const MDagPath& parentPath)
 {
 	MStatus status;
 
@@ -61,13 +51,12 @@ MMatrix getObjectSpaceMatrix(const MMatrix& pivotTransform, MDagPath dagPath, MD
 	THROW_ON_FAILURE(status);
 
 	if (parentPathLength == 0)
-		return std::move(pivotTransform * childWorldMatrix);
+		return pivotTransform * childWorldMatrix;
 
 	const auto parentWorldMatrixInverse = parentPath.inclusiveMatrixInverse(&status);
 	THROW_ON_FAILURE(status);
 
-	return std::move(pivotTransform * childWorldMatrix * parentWorldMatrixInverse);
-}
+	return pivotTransform * childWorldMatrix * parentWorldMatrixInverse;
 }
 
 void makeIdentity(GLTF::Node::TransformTRS &trs)
@@ -115,7 +104,7 @@ const NodeTransformState& NodeTransformCache::getTransform(const ExportableNode*
 	{
 		state.hasSegmentScaleCompensation = node->hasSegmentScaleCompensation;
 
-		const auto localMatrix = getObjectSpaceMatrix(node->dagPath, node->parentDagPath());
+		const auto localMatrix = getObjectSpaceMatrix(node->pivotTransform, node->dagPath, node->parentDagPath());
 
 		if (state.hasSegmentScaleCompensation)
 		{
@@ -154,6 +143,7 @@ const NodeTransformState& NodeTransformCache::getTransform(const ExportableNode*
 
 			// Extract rotation 
 			double qx, qy, qz, qw;
+			// ReSharper disable once CppExpressionWithoutSideEffects
 			mayaLocalMatrix.getRotationQuaternion(qx, qy, qz, qw);
 			rs.rotation[0] = cleanupScalar(qx);
 			rs.rotation[1] = cleanupScalar(qy);
@@ -162,6 +152,7 @@ const NodeTransformState& NodeTransformCache::getTransform(const ExportableNode*
 
 			// Extract scale factors
 			double scale[3];
+			// ReSharper disable once CppExpressionWithoutSideEffects
 			mayaLocalMatrix.getScale(scale, MSpace::kPostTransform);
 			rs.scale[0] = cleanupScalar(scale[0]);
 			rs.scale[1] = cleanupScalar(scale[1]);
@@ -184,6 +175,7 @@ const NodeTransformState& NodeTransformCache::getTransform(const ExportableNode*
 
 			// Extract rotation 
 			double qx, qy, qz, qw;
+			// ReSharper disable once CppExpressionWithoutSideEffects
 			mayaLocalMatrix.getRotationQuaternion(qx, qy, qz, qw);
 			trs.rotation[0] = cleanupScalar(qx);
 			trs.rotation[1] = cleanupScalar(qy);
@@ -192,6 +184,7 @@ const NodeTransformState& NodeTransformCache::getTransform(const ExportableNode*
 
 			// Extract scale factors
 			double scale[3];
+			// ReSharper disable once CppExpressionWithoutSideEffects
 			mayaLocalMatrix.getScale(scale, MSpace::kPostTransform);
 			trs.scale[0] = cleanupScalar(scale[0]);
 			trs.scale[1] = cleanupScalar(scale[1]);
