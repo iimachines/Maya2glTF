@@ -62,6 +62,16 @@ struct AnimClipArg
 	}
 };
 
+struct DagPathComparer
+{
+	bool operator ()(const MDagPath& a, const MDagPath& b) const
+	{
+		return strcmp(a.fullPathName().asChar(), b.fullPathName().asChar()) < 0;
+	}
+};
+
+typedef std::set<MDagPath, DagPathComparer> Selection;
+
 class Arguments
 {
 public:
@@ -70,7 +80,7 @@ public:
 
 	MString sceneName;
 	MString outputFolder;
-	MSelectionList selection;
+	Selection selection;
 
 	/** Outputs a single binary GLB file */
 	bool glb = false;
@@ -170,7 +180,7 @@ public:
 private:
 	DISALLOW_COPY_MOVE_ASSIGN(Arguments);
 
-	static void select(MSelectionList& selection, MObject obj, bool includeDescendants);
+	static void select(Selection& selection, const MDagPath& dagPath, bool includeDescendants);
 
 	std::ofstream m_mayaOutputFileStream;
 	std::ofstream m_gltfOutputFileStream;

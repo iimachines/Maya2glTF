@@ -18,8 +18,6 @@ ExportableAsset::ExportableAsset(const Arguments& args)
 	m_glMetadata.version = "2.0";
 	m_glMetadata.copyright = args.copyright.asChar();
 
-	auto& selection = args.selection;
-
 	if (args.dumpMaya)
 	{
 		*args.dumpMaya << "{" << indent << endl;
@@ -27,36 +25,10 @@ ExportableAsset::ExportableAsset(const Arguments& args)
 
 	setCurrentTime(args.initialValuesTime, args.redrawViewport);
 
-	for (uint selectionIndex = 0; selectionIndex < selection.length(); ++selectionIndex)
+	for (auto& dagPath : args.selection)
 	{
-		MObject obj;
-		THROW_ON_FAILURE(selection.getDependNode(selectionIndex, obj));
-
-		MStatus status;
-		MFnDependencyNode node(obj, &status);
-		THROW_ON_FAILURE(status);
-
-		if (obj.hasFn(MFn::kDagNode))
-		{
-			MDagPathArray dagPaths;
-			status = MDagPath::getAllPathsTo(obj, dagPaths);
-			THROW_ON_FAILURE(status);
-
-			for (auto instanceIndex = 0U; instanceIndex < dagPaths.length(); ++instanceIndex)
-			{
-				MDagPath dagPath = dagPaths[instanceIndex];
-				const std::string fullPath{ dagPath.fullPathName(&status).asChar() };
-				THROW_ON_FAILURE(status);
-
-				cout << prefix << "Processing " << fullPath << " instance #" << instanceIndex << "..." << endl;
-
-				m_scene.getNode(dagPath);
-			}
-		}
-		else
-		{
-			cerr << prefix << "WARNING: Skipping '" << node.name() << "' since it is not a DAG node" << endl;
-		}
+		cout << prefix << "Processing '" << dagPath.partialPathName().asChar() << "' ..." << endl;
+		m_scene.getNode(dagPath);
 	}
 
 	// Now export animation clips of all the nodes, in one pass over the slow timeline

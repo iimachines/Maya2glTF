@@ -44,7 +44,7 @@ void ExportableNode::load(ExportableScene& scene)
 	// Get mesh, but only if the node was selected.
 	MDagPath meshDagPath;
 
-	if (args.selection.hasItem(dagPath))
+	if (args.selection.find(dagPath) != args.selection.end())
 	{
 		MDagPath shapeDagPath = dagPath;
 		status = shapeDagPath.extendToShape();
