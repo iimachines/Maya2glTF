@@ -1,7 +1,6 @@
 #include "externals.h"
 #include "MeshIndices.h"
 #include "MayaException.h"
-#include "spans.h"
 #include "dump.h"
 
 MeshIndices::MeshIndices(const MeshSemantics* meshSemantics, const MFnMesh& fnMesh)
@@ -35,7 +34,7 @@ MeshIndices::MeshIndices(const MeshSemantics* meshSemantics, const MFnMesh& fnMe
 	{
 		auto& indexSet = m_table.at(kind);
 		const auto n = semantics.descriptions(Semantic::from(kind)).size();
-		for (auto set = 0; set < n; ++set)
+		for (auto set = 0U; set < n; ++set)
 		{
 			IndexVector indices;
 			indices.reserve(m_TriangleCount * 3);
@@ -45,15 +44,17 @@ MeshIndices::MeshIndices(const MeshSemantics* meshSemantics, const MFnMesh& fnMe
 
 	auto& positions = m_table.at(Semantic::POSITION).at(0);
 	auto& normals = m_table.at(Semantic::NORMAL).at(0);
-	auto& uvSets = m_table.at(Semantic::TEXCOORD);
+	auto& texCoordSets = m_table.at(Semantic::TEXCOORD);
 	auto& tangentSets = m_table.at(Semantic::TANGENT);
 	auto& colorSets = m_table.at(Semantic::COLOR);
 
 	auto& colorSemantics = semantics.descriptions(Semantic::COLOR);
-	auto& uvSetSemantics = semantics.descriptions(Semantic::TEXCOORD);
+	auto& texCoordSemantics = semantics.descriptions(Semantic::TEXCOORD);
+	auto& tangentSemantics = semantics.descriptions(Semantic::TANGENT);
 
 	const auto colorSetCount = colorSemantics.size();
-	const auto uvSetCount = uvSetSemantics.size();
+	const auto texCoordSetCount = texCoordSemantics.size();
+	const auto tangentSetCount = tangentSemantics.size();
 
 	const auto numVertices = fnMesh.numVertices(&status);
 	THROW_ON_FAILURE(status);
@@ -117,7 +118,7 @@ MeshIndices::MeshIndices(const MeshSemantics* meshSemantics, const MFnMesh& fnMe
 				THROW_ON_FAILURE(status);
 				normals.push_back(normalIndex);
 
-				for (auto setIndex = 0; setIndex < colorSetCount; ++setIndex)
+				for (auto setIndex = 0U; setIndex < colorSetCount; ++setIndex)
 				{
 					int colorIndex;
 					auto& colorSetName = colorSemantics[setIndex].setName;
@@ -135,15 +136,29 @@ MeshIndices::MeshIndices(const MeshSemantics* meshSemantics, const MFnMesh& fnMe
 					}
 				}
 
-				for (auto setIndex = 0; setIndex < uvSetCount; ++setIndex)
+				for (auto setIndex = 0U; setIndex < texCoordSetCount; ++setIndex)
 				{
-					int uvIndex;
-					auto& uvSetName = uvSetSemantics[setIndex].setName;
+					auto& uvSetName = texCoordSemantics[setIndex].setName;
 					if (itPoly.hasUVs(uvSetName))
 					{
+						int uvIndex;
 						status = itPoly.getUVIndex(localVertexIndex, uvIndex, &uvSetName);
 						THROW_ON_FAILURE(status);
-						uvSets.at(setIndex).push_back(uvIndex);
+						texCoordSets.at(setIndex).push_back(uvIndex);
+					}
+					else
+					{
+						texCoordSets.at(setIndex).push_back(NoIndex);
+					}
+				}
+
+				for (auto setIndex = 0U; setIndex < tangentSetCount; ++setIndex)
+				{
+					auto& uvSetName = tangentSemantics[setIndex].setName;
+					if (itPoly.hasUVs(uvSetName))
+					{
+						int uvIndex;
+						status = itPoly.getUVIndex(localVertexIndex, uvIndex, &uvSetName);
 
 						// TODO: Not sure why Maya doesn't allow use to pass the uvSetName here?
 						// Maybe a polygon vertex can only have a single tangent assigned to it?
@@ -153,7 +168,6 @@ MeshIndices::MeshIndices(const MeshSemantics* meshSemantics, const MFnMesh& fnMe
 					}
 					else
 					{
-						uvSets.at(setIndex).push_back(NoIndex);
 						tangentSets.at(setIndex).push_back(NoIndex);
 					}
 				}
