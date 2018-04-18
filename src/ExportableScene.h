@@ -1,5 +1,6 @@
 #pragma once
 #include "ExportableResources.h"
+#include "Transform.h"
 
 class ExportableNode;
 
@@ -38,5 +39,6 @@ private:
 
 	ExportableResources& m_resources;
 	NodeTable m_table;
+	NodeTransformCache m_transformCache;
 };
 

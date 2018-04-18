@@ -27,7 +27,7 @@ ExportableNode* ExportableScene::getNode(const MDagPath& dagPath)
 	if (ptr == nullptr)
 	{
 		ptr.reset(new ExportableNode(dagPath));
-		ptr->load(*this);
+		ptr->load(*this, m_transformCache);
 	}
 	return ptr.get();
 }

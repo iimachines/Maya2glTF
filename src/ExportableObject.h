@@ -11,8 +11,12 @@ public:
 	ExportableObject(MObject mObj);
 	virtual ~ExportableObject() = 0;
 
-	const std::string& name() const { return _name; }
+	const std::string& name() const { return m_name; }
+
+	const MObject obj;
 
 private:
-	std::string _name;
+	DISALLOW_COPY_MOVE_ASSIGN(ExportableObject);
+
+	std::string m_name;
 };
