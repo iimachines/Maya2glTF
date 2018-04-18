@@ -11,7 +11,7 @@ proc string _combinePaths(string $path1, string $path2) {
     return _ensureTrailingSlash($path1)+$path2;
 }
 
-proc maya2glTF_deleteFolder( string $folderPath )
+proc _deleteFolder( string $folderPath )
 {
     if (`filetest -d ($folderPath)`) {
         print ("Deleting files in "+$folderPath+"...\n");
@@ -24,17 +24,16 @@ proc maya2glTF_deleteFolder( string $folderPath )
 
             if( `filetest -d $filePath` )
             { 
-                maya2glTF_deleteFolder($filePath);
+                _deleteFolder($filePath);
             }
             else
             {
                 sysFile -delete $filePath;
             }
         }
-    } else {
-        print ("Creating temp folder"+$folderPath+"...\n");
-        sysFile -makeDir $folderPath;
-    }
+
+		sysFile -removeEmptyDir $folderPath;
+    } 
 }
 
 proc _exportTestScene(string $scenesDir, string $filename) {
@@ -46,16 +45,18 @@ proc _exportTestScene(string $scenesDir, string $filename) {
 
     string $path = _combinePaths($scenesDir, $filename);
 
-    file -f -ignoreVersion -strict on -typ "mayaAscii" -o $path;
+	if (catch (`file -f -ignoreVersion -strict on -typ "mayaAscii" -o $path`)) 
+	{
+        print ("Some errors occurred while loading the scene, this can happen if some Maya components (like Arnold) are not installed");
+	}
 
-    select -r `ls -type mesh -ap`;
+    select -r `ls -v -type mesh -ap`;
 
 	$min = `playbackOptions -q -min`;
 	$max = `playbackOptions -q -max`;
 	$fps = `currentTimeUnitToFPS`;
 
-
-    string $outputFolder = _combinePaths($maya2glTF_tempFolder, basename($filename, ".ma"));
+    string $outputFolder = _combinePaths($maya2glTF_tempFolder, $filename);
 
     if ($exportAnim 
             ? catch(`maya2glTF -acn "clip" -ast $min -aet $max -afr $fps -outputFolder $outputFolder`) 
@@ -68,22 +69,24 @@ proc _exportTestScene(string $scenesDir, string $filename) {
     print ("-------------------------------------------------------------------\n");
 }
 
-global proc _exportTestScenes(string $scenesDir) {
-    string $filenames[] = `getFileList -folder $scenesDir`;
+global proc _exportTestScenes(string $scenesDir, string $subDir) {
+    
+	string $folder = _combinePaths($scenesDir, $subDir);
+    print ("Scanning "+$folder+"...\n");
 
-    print ("Scanning "+$scenesDir+"\n");
+	string $filenames[] = `getFileList -folder $folder`;
 
     for($filename in $filenames)
     {
-        string $filePath = _combinePaths($scenesDir, $filename);
-
+        string $filePath = _combinePaths($folder, $filename);
+		string $subPath = _combinePaths($subDir, $filename);
         if( `filetest -d $filePath` )
         { 
-            _exportTestScenes($filePath);
+            _exportTestScenes($scenesDir, $subPath);
         }
         else
         {
-            _exportTestScene($scenesDir, $filename);
+            _exportTestScene($scenesDir, $subPath);
         }
     }
 }
@@ -91,14 +94,17 @@ global proc _exportTestScenes(string $scenesDir) {
 global proc maya2glTF_exportAllScenes_callback(string $cmd) {
     global string $maya2glTF_tempFolder;
 
-    maya2glTF_deleteFolder($maya2glTF_tempFolder);
+    _deleteFolder($maya2glTF_tempFolder);
+
+    print ("Creating temp folder"+$maya2glTF_tempFolder+"...\n");
+    sysFile -makeDir $maya2glTF_tempFolder;
 
     string $rootDir = `workspace -q -active`;
     string $scenesDir = _combinePaths($rootDir, "scenes");
 
     print ("Loading scenes from workspace folder = "+$scenesDir +"\n");
 
-    _exportTestScenes($scenesDir);
+    _exportTestScenes($scenesDir, "");
 
     unloadPlugin  "maya2glTF";
 
