@@ -15,7 +15,7 @@ global string $glTF_default_texture_patterns[];
 global string $glTF_default_shader_path;
 
 global proc assign_glTF_PBR_material_and_textures(
-    string $objectName,
+    string $objectNames[],
     string $shaderPath,
     string $texturePatterns[]
 )
@@ -39,15 +39,14 @@ global proc assign_glTF_PBR_material_and_textures(
 		};
 	}
 	
-    // get current selection if $objectName is not specified
-    if ($objectName == "")
+    // get current selection if $objectNames is not specified
+    if (size($objectNames) <= 0)
     {
         string $ls[] = `ls -sl`;
-        if (size($ls) > 0)
-            $objectName = $ls[0];
+        $objectNames = $ls;
     }
 
-    if ($objectName == "")
+    if (size($objectNames) <= 0)
         error "No node to apply material to specified";
 		
 	if ($shaderPath == "")
@@ -87,7 +86,7 @@ global proc assign_glTF_PBR_material_and_textures(
     // create new glTF PBR GLSL shader
     string $sh = `shadingNode -asShader GLSLShader`;
     setAttr -type "string" ($sh+".shader") $shaderPath;
-    assignCreatedShader "GLSLShader" "" $sh $objectName;
+    assignCreatedShader "GLSLShader" "" $sh (stringArrayToString($objectNames, " "));
 
     // request texture paths
     $filePaths = `fileDialog2 -fm 4 -cap "Select all textures"`;
