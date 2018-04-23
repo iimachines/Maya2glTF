@@ -111,7 +111,8 @@ void ExportableNode::load(
 
 			if (pivotPoint != MPoint::origin)
 			{
-				cout << prefix << "Offseting all vertices of '" << meshDagPath.partialPathName() << "' around rotation pivot " << pivotPoint << endl;
+				const auto meshName = meshDagPath.partialPathName();
+				cout << prefix << "Offsetting all vertices of '" << meshName << "' around rotation pivot" << endl;
 			}
 
 			MTransformationMatrix pivotTransformationMatrix;
