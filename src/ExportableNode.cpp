@@ -60,7 +60,7 @@ void ExportableNode::load(
 
 	if (hasSegmentScaleCompensation)
 	{
-		args.assignName(nodeRS, (name + "_SSC").asChar());
+		args.assignName(nodeRS, (name + ":SSC").asChar());
 		nodeTU.children.emplace_back(&nodeRS);
 	}
 

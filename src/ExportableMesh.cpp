@@ -128,7 +128,7 @@ ExportableMesh::ExportableMesh(
 			for (auto& joint: joints)
 			{
 				auto* jointNode = joint.node;
-				glSkin.joints.emplace_back(const_cast<GLTF::Node*>(&jointNode->glNodeTU()));
+				glSkin.joints.emplace_back(const_cast<GLTF::Node*>(&jointNode->glNodeRS()));
 				
 				auto distanceToRoot = ExportableScene::distanceToRoot(jointNode->dagPath);
 				distanceToRootMap[distanceToRoot].emplace_back(jointNode);
