@@ -45,7 +45,7 @@ void NodeAnimation::sampleAt(const int frameIndex, NodeTransformCache& transform
 
 	if (node.hasSegmentScaleCompensation)
 	{
-		m_inverseParentScales->append(gsl::make_span(localTransformRS.scale));
+		m_inverseParentScales->append(gsl::make_span(localTransformTU.scale));
 	}
 
 	if (mesh)

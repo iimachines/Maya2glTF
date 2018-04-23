@@ -1,6 +1,6 @@
 //Maya ASCII 2017 scene
 //Name: SegmentScaleCompensationTest1.ma
-//Last modified: Mon, Apr 23, 2018 08:37:07 PM
+//Last modified: Mon, Apr 23, 2018 08:46:29 PM
 //Codeset: 1252
 requires maya "2017";
 requires "stereoCamera" "10.0";
@@ -13,17 +13,16 @@ fileInfo "osv" "Microsoft Windows 8 Business Edition, 64-bit  (Build 9200)\n";
 createNode transform -s -n "persp";
 	rename -uid "DCCDAEF3-49A9-D0AB-FEEC-6F9F80A94A20";
 	setAttr ".v" no;
-	setAttr ".t" -type "double3" 1.4861961784646756 2.8439350626160502 -13.680668313577819 ;
-	setAttr ".r" -type "double3" -8.1383527295302898 -186.19999999991421 0 ;
+	setAttr ".t" -type "double3" -4.4510705736052287 5.2434326514318945 -17.087923111856632 ;
+	setAttr ".r" -type "double3" -16.538352729528647 -165.39999999991326 0 ;
 createNode camera -s -n "perspShape" -p "persp";
 	rename -uid "41BDACBE-44DD-9332-3688-7C8094F8C4D4";
 	setAttr -k off ".v" no;
 	setAttr ".fl" 34.999999999999993;
-	setAttr ".coi" 13.9011546925523;
+	setAttr ".coi" 18.420171863966278;
 	setAttr ".imn" -type "string" "persp";
 	setAttr ".den" -type "string" "persp_depth";
 	setAttr ".man" -type "string" "persp_mask";
-	setAttr ".tp" -type "double3" 0 0.87603333769870417 0 ;
 	setAttr ".hc" -type "string" "viewSet -p %camera";
 createNode transform -s -n "top";
 	rename -uid "68D6F5AC-49A3-A9BA-10E0-49A0D130BE5C";
