@@ -1,7 +1,8 @@
 #include "externals.h"
 #include "ExportableClip.h"
 #include "ExportableNode.h"
-#include "time.h"
+#include "timeControl.h"
+#include "progress.h"
 
 ExportableClip::ExportableClip(
 	const Arguments& args,
@@ -41,6 +42,11 @@ ExportableClip::ExportableClip(
 		for (auto& nodeAnimation : m_nodeAnimations)
 		{
 			nodeAnimation->sampleAt(relativeFrameIndex, transformCache);
+		}
+
+		if (relativeFrameIndex % checkProgressFrameInterval == checkProgressFrameInterval-1)
+		{
+			uiAdvanceProgress("exporting clip " + clipArg.name + formatted(" %d\%", relativeFrameIndex * 100 / frameCount));
 		}
 	}
 

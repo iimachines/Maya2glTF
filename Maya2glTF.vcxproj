@@ -331,6 +331,7 @@ if errorlevel 1 (exit /b 100)</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\progress.cpp" />
     <ClCompile Include="src\ExportableFrames.cpp" />
     <ClCompile Include="src\MeshSkeleton.cpp" />
     <ClCompile Include="src\ShapeIndex.cpp" />
@@ -394,6 +395,7 @@ if errorlevel 1 (exit /b 100)</Command>
     <None Include="mel\test-iteration.mel" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\progress.h" />
     <ClInclude Include="src\accessors.h" />
     <ClInclude Include="src\ExportableFrames.h" />
     <ClInclude Include="src\MeshSkeleton.h" />
@@ -436,7 +438,7 @@ if errorlevel 1 (exit /b 100)</Command>
     <ClInclude Include="src\sceneTypes.h" />
     <ClInclude Include="src\spans.h" />
     <ClInclude Include="src\Transform.h" />
-    <ClInclude Include="src\time.h" />
+    <ClInclude Include="src\timeControl.h" />
     <ClInclude Include="src\version.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

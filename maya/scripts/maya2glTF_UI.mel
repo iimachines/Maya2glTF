@@ -1,6 +1,6 @@
-global string $maya2glTF_global_export_dir;
+﻿global string $maya2glTF_global_export_dir;
 
- proc string _quoted(string $text)
+proc string _quoted(string $text)
 {
 	string $quote = "\"";
 	return $quote+$text+$quote;
@@ -67,9 +67,9 @@ global proc maya2glTF_onExport(
 		print ("+++ maya2glTF: completed at "+`date -time`+" +++\n");
 	}
 
-	progressBar -edit -endProgress $gMainProgressBar;
+	unloadPlugin "maya2glTF";
 
-	unloadPlugin "maya2glTF_MayaExporter.mll";
+	progressBar -edit -endProgress $gMainProgressBar;
 }
 
 global proc maya2glTF_exportProgressUI(int $max) {
@@ -88,11 +88,11 @@ global proc maya2glTF_exportProgressUI(int $max) {
 }
 
 // Returns -1 if abortion is requested
-global proc int maya2glTF_advanceExportProgressUI() 
+global proc int maya2glTF_advanceExportProgressUI(string $stepName) 
 {
 	global string $gMainProgressBar;  // This is defined on maya startup
 
-    progressBar -edit -step 1 $gMainProgressBar;
+    progressBar -edit -step 1 -status ("maya2glTF:"+$stepName+"...") $gMainProgressBar 
 
 	if(`progressBar -query -isCancelled $gMainProgressBar`) {
 		print ("maya2glTF: aborting at "+`date -time`+"\n");
@@ -110,7 +110,7 @@ global proc maya2glTF_UI()
 	global string $gMainProgressBar;  
 
     // This is auto-updated by msbuild 
-	string $maya2glTF_version = "v0.9.2-beta ae735cc";
+	string $maya2glTF_version = "v0.9.2-beta 19724bc";
 
 	if (`window -exists maya2glTF_exporter_window`)
 		deleteUI maya2glTF_exporter_window;
