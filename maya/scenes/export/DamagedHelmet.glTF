@@ -1,0 +1,237 @@
+{
+    "asset": {
+        "copyright": "anonymous 2018",
+        "generator": "Maya2glTF Vv0.9.2-beta ae735cc",
+        "version": "2.0"
+    },
+    "scenes": [
+        {
+            "nodes": [
+                0
+            ]
+        }
+    ],
+    "scene": 0,
+    "nodes": [
+        {
+            "children": [
+                1
+            ],
+            "name": "helmet"
+        },
+        {
+            "mesh": 0,
+            "name": "helmetShape"
+        }
+    ],
+    "meshes": [
+        {
+            "primitives": [
+                {
+                    "attributes": {
+                        "NORMAL": 1,
+                        "POSITION": 2,
+                        "TANGENT": 3,
+                        "TEXCOORD_0": 4
+                    },
+                    "indices": 0,
+                    "mode": 4,
+                    "material": 0
+                }
+            ],
+            "name": "helmetShape"
+        }
+    ],
+    "accessors": [
+        {
+            "bufferView": 0,
+            "byteOffset": 0,
+            "componentType": 5123,
+            "count": 46356,
+            "max": [
+                17620
+            ],
+            "min": [
+                0
+            ],
+            "type": "SCALAR"
+        },
+        {
+            "bufferView": 1,
+            "byteOffset": 0,
+            "componentType": 5126,
+            "count": 17621,
+            "max": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "min": [
+                -1.0,
+                -1.0,
+                -1.0
+            ],
+            "type": "VEC3"
+        },
+        {
+            "bufferView": 1,
+            "byteOffset": 211452,
+            "componentType": 5126,
+            "count": 17621,
+            "max": [
+                0.947458565235138,
+                0.9009950160980224,
+                1.18715500831604
+            ],
+            "min": [
+                -0.9424954056739808,
+                -0.9009739756584168,
+                -0.8128451108932495
+            ],
+            "type": "VEC3"
+        },
+        {
+            "bufferView": 2,
+            "byteOffset": 0,
+            "componentType": 5126,
+            "count": 17621,
+            "max": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "min": [
+                -1.0,
+                -1.0,
+                -1.0,
+                -1.0
+            ],
+            "type": "VEC4"
+        },
+        {
+            "bufferView": 3,
+            "byteOffset": 0,
+            "componentType": 5126,
+            "count": 17621,
+            "max": [
+                0.9999759793281556,
+                0.998665988445282
+            ],
+            "min": [
+                0.002448640065267682,
+                0.000553131103515625
+            ],
+            "type": "VEC2"
+        }
+    ],
+    "materials": [
+        {
+            "pbrMetallicRoughness": {
+                "baseColorTexture": {
+                    "index": 0
+                },
+                "metallicFactor": 1.0,
+                "roughnessFactor": 1.0,
+                "metallicRoughnessTexture": {
+                    "index": 1
+                }
+            },
+            "emissiveFactor": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "emissiveTexture": {
+                "index": 3
+            },
+            "normalTexture": {
+                "index": 2
+            },
+            "occlusionTexture": {
+                "index": 1
+            }
+        }
+    ],
+    "textures": [
+        {
+            "sampler": 0,
+            "source": 0
+        },
+        {
+            "sampler": 0,
+            "source": 1
+        },
+        {
+            "sampler": 1,
+            "source": 2
+        },
+        {
+            "sampler": 0,
+            "source": 3
+        }
+    ],
+    "images": [
+        {
+            "uri": "damaged_helmet_albedo.jpg"
+        },
+        {
+            "uri": "damaged_helmet_orm.jpg"
+        },
+        {
+            "uri": "damaged_helmet_normal.png"
+        },
+        {
+            "uri": "damaged_helmet_emissive.jpg"
+        }
+    ],
+    "samplers": [
+        {
+            "magFilter": 9729,
+            "minFilter": 9987,
+            "wrapS": 10497,
+            "wrapT": 10497
+        },
+        {
+            "magFilter": 9729,
+            "minFilter": 9987,
+            "wrapS": 10497,
+            "wrapT": 10497
+        }
+    ],
+    "bufferViews": [
+        {
+            "buffer": 0,
+            "byteOffset": 845808,
+            "byteLength": 92712,
+            "target": 34963
+        },
+        {
+            "buffer": 0,
+            "byteOffset": 281936,
+            "byteLength": 422904,
+            "byteStride": 12,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteOffset": 0,
+            "byteLength": 281936,
+            "byteStride": 16,
+            "target": 34962
+        },
+        {
+            "buffer": 0,
+            "byteOffset": 704840,
+            "byteLength": 140968,
+            "byteStride": 8,
+            "target": 34962
+        }
+    ],
+    "buffers": [
+        {
+            "byteLength": 938520,
+            "uri": "DamagedHelmet0.bin"
+        }
+    ]
+}

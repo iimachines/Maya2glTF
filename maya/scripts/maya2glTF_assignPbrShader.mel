@@ -11,24 +11,24 @@
 *                               u_EmissiveTexture, u_DiffuseEnvTexture, u_SpecularEnvTexture, u_brdfTexture
 */
 
-global string $glTF_default_texture_patterns[];
-global string $glTF_default_shader_path;
-global string $glTF_last_texture_directory;
+global string $maya2glTF_default_texture_patterns[];
+global string $maya2glTF_default_shader_path;
+global string $maya2glTF_last_texture_directory;
 
-global proc assign_glTF_PBR_material_and_textures(
+global proc maya2glTF_assignMaterialAndTextures(
     string $objectName,
     string $shaderPath,
     string $texturePatterns[]
 )
 {
-	global string $glTF_default_texture_patterns[];
-	global string $glTF_default_shader_path;
-	global string $glTF_last_texture_directory;
+	global string $maya2glTF_default_texture_patterns[];
+	global string $maya2glTF_default_shader_path;
+	global string $maya2glTF_last_texture_directory;
 	
 	string $filePaths[];
 	
-	if (size($glTF_default_texture_patterns) == 0) {
-		$glTF_default_texture_patterns = {
+	if (size($maya2glTF_default_texture_patterns) == 0) {
+		$maya2glTF_default_texture_patterns = {
 			"base",
 			"metallic",
 			"roughness",
@@ -53,7 +53,7 @@ global proc assign_glTF_PBR_material_and_textures(
         error "No node to apply material to specified";
 		
 	if ($shaderPath == "")
-		$shaderPath = $glTF_default_shader_path;
+		$shaderPath = $maya2glTF_default_shader_path;
 
     if ($shaderPath == "" || !`filetest -f $shaderPath`) {
 		$filePaths = `fileDialog2 -fm 1 -ff "*.ogsfx" -cap "Select GLTF PBR GLSL shader"`;
@@ -63,7 +63,7 @@ global proc assign_glTF_PBR_material_and_textures(
     if (!`filetest -f $shaderPath`)
         error "Invalid shader path, file not found";
 
-	$glTF_default_shader_path = $shaderPath;
+	$maya2glTF_default_shader_path = $shaderPath;
 		
     string $attrNames[] = {
         "u_BaseColorTexture",
@@ -78,7 +78,7 @@ global proc assign_glTF_PBR_material_and_textures(
     };
 	
 	if (size($texturePatterns) == 0)
-		$texturePatterns = $glTF_default_texture_patterns;
+		$texturePatterns = $maya2glTF_default_texture_patterns;
 
     if (size($texturePatterns) != size($attrNames))
         error "Invalid amount of texture patterns";
@@ -91,19 +91,19 @@ global proc assign_glTF_PBR_material_and_textures(
     setAttr -type "string" ($sh+".shader") $shaderPath;
     assignCreatedShader "GLSLShader" "" $sh $objectName;
 
-	if (size($glTF_last_texture_directory) <= 0) {
-		$glTF_last_texture_directory = dirname(`file -q -loc`);
-		print ("Using '"+$glTF_last_texture_directory+"' as initial texture folder\n");
+	if (size($maya2glTF_last_texture_directory) <= 0) {
+		$maya2glTF_last_texture_directory = dirname(`file -q -loc`);
+		print ("Using '"+$maya2glTF_last_texture_directory+"' as initial texture folder\n");
 	}
 
     // request texture paths
-    $filePaths = `fileDialog2 -dir $glTF_last_texture_directory -fm 4 -cap "Select all textures"`;
+    $filePaths = `fileDialog2 -dir $maya2glTF_last_texture_directory -fm 4 -cap "Select all textures"`;
     if (size($filePaths) <= 0)
         return;
 
 	// remember texture directory
-	$glTF_last_texture_directory = dirname($filePaths[0]);
-	print ("Using '"+$glTF_last_texture_directory+"' as next texture folder\n");
+	$maya2glTF_last_texture_directory = dirname($filePaths[0]);
+	print ("Using '"+$maya2glTF_last_texture_directory+"' as next texture folder\n");
 
     // match texture paths to material texture attributes
     for ($i = 0; $i < size($attrNames); ++$i)
@@ -156,7 +156,7 @@ global proc assign_glTF_PBR_material_and_textures(
     }
 }
 
-global proc assign_glTF_PBR_shader() 
+global proc maya2glTF_assignPbrShader() 
 {
-    assign_glTF_PBR_material_and_textures("", "", {});
+    maya2glTF_assignMaterialAndTextures("", "", {});
 }
