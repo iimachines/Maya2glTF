@@ -139,6 +139,8 @@ const NodeTransformState& NodeTransformCache::getTransform(const ExportableNode*
 
 			m = m * ps;
 
+			state.hasValidLocalTransforms = hasOrthogonalAxes(m);
+
 			MTransformationMatrix mayaLocalMatrix(m);
 
 			// Extract rotation 

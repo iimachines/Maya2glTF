@@ -1,5 +1,7 @@
 #pragma once
 
+bool hasOrthogonalAxes(const MMatrix& m);
+
 class ExportableNode;
 
 /*
