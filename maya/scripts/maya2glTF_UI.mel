@@ -1,4 +1,4 @@
-﻿global string $maya2glTF_global_export_dir;
+global string $maya2glTF_global_export_dir;
 
 proc string _quoted(string $text)
 {
@@ -17,11 +17,15 @@ global proc maya2glTF_polySelectAndFrame()
     viewFit -an 1;
 }
 
-global proc maya2glTF_onExport(
-	string $copyrightFLD, 
-	string $folderFLD, 
-	string $sceneNameFLD, 
-	string $scaleFLD)
+global proc maya2glTF_onExport
+( string $copyrightFLD
+, string $folderFLD
+, string $sceneNameFLD
+, string $scaleFLD
+, string $flagsFLD
+, string $animFLD
+, string $charFLD
+)
 {
     // This is defined on maya startup
 	global string $gMainProgressBar;  
@@ -48,14 +52,28 @@ global proc maya2glTF_onExport(
 	$folder = _terminateWithSlash($folder);
 	string $sceneName = `textFieldGrp -q -text $sceneNameFLD`;
 	float $scale = `floatFieldGrp -q -value1 $scaleFLD`;
+	string $flags = `textFieldGrp -q -text $flagsFLD`;
+	int $anim = `optionMenuGrp -q -sl $animFLD`;
+	int $char = `optionMenuGrp -q -v $charFLD`;
 
-	print ("maya2glTF: loading plugin...");
+	print ("maya2glTF: loading plugin...\n");
 
 	loadPlugin "maya2glTF";
 
-	print ("maya2glTF: plugin loaded!");
+	print ("maya2glTF: plugin loaded.\n");
 
-	int $failed = catch(`maya2glTF -sn $sceneName -of $folder -sf $scale -cpr $copyright`);
+	string $cmd = `format 
+		-s(_quoted($sceneName)) 
+		-s(_quoted($folder)) 
+		-s($scale) 
+		-s(_quoted($copyright)) 
+		-s($flags)
+		"maya2glTF -sn ^1s -of ^2s -sf ^3s -cpr ^4s ^5s;"
+	`;
+
+	print ($cmd+"\n");
+
+	int $failed = catch(eval($cmd));
 
 	int $aborted = `progressBar -query -isCancelled $gMainProgressBar`;
 
@@ -81,7 +99,7 @@ global proc maya2glTF_exportProgressUI(int $max) {
 	progressBar -edit
 		-beginProgress
 		-isInterruptable true
-		-status "maya2glTF: exporting (press ESC to abort)..."
+		-status "maya2glTF: exporting..."
 		-minValue 0
 		-maxValue $max
 		$gMainProgressBar;
@@ -92,7 +110,7 @@ global proc int maya2glTF_advanceExportProgressUI(string $stepName)
 {
 	global string $gMainProgressBar;  // This is defined on maya startup
 
-    progressBar -edit -step 1 -status ("maya2glTF:"+$stepName+"...") $gMainProgressBar 
+    progressBar -edit -step 1 -status ("maya2glTF: " + $stepName + "...") $gMainProgressBar;
 
 	if(`progressBar -query -isCancelled $gMainProgressBar`) {
 		print ("maya2glTF: aborting at "+`date -time`+"\n");
@@ -110,7 +128,7 @@ global proc maya2glTF_UI()
 	global string $gMainProgressBar;  
 
     // This is auto-updated by msbuild 
-	string $maya2glTF_version = "v0.9.2-beta 19724bc";
+	string $maya2glTF_version = "v0.9.2-beta 58c18e7";
 
 	if (`window -exists maya2glTF_exporter_window`)
 		deleteUI maya2glTF_exporter_window;
@@ -141,22 +159,45 @@ global proc maya2glTF_UI()
 
 	float $scale = 1;
 
+	button -label "assign PBR shader to selection" -command "maya2glTF_assignPbrShader();";
+
+	separator;
+
 	string $folderFLD = `textFieldGrp -fileName $exportDir -label "output folder:" -adjustableColumn 2`;
 	string $copyrightFLD = `textFieldGrp -text $copyright -label "copyright:" -adjustableColumn 2`;
 	string $sceneNameFLD = `textFieldGrp -text $sceneName -label "scene name:" -adjustableColumn 2`;
 	string $scaleFLD = `floatFieldGrp -value1 1 -label "scale factor:"`;
+	string $flagsFLD = `textFieldGrp -text "" -label "extra flags:" -adjustableColumn 2 `;
 
-    string $fields[] = {};
-    $fields[size($fields)] = _quoted($copyrightFLD);
-    $fields[size($fields)] = _quoted($folderFLD);
-    $fields[size($fields)] = _quoted($sceneNameFLD);
-    $fields[size($fields)] = _quoted($scaleFLD);
-	
-    string $cmd = "maya2glTF_onExport(" + stringArrayToString($fields, ", ") + ");";
+	string $animFLD = `optionMenuGrp -label "animation:" -adjustableColumn 2`;
+		menuItem -label "none";
+		menuItem -label "time slider";
+		menuItem -label "range slider";
+		menuItem -label "trax";	
 
-	button -label "assign PBR shader to selection" -command "maya2glTF_assignPbrShader();";
+	string $charFLD = `optionMenuGrp -label "character:" -enable 0 -adjustableColumn 2`;
+	for ( $char in `ls -type character`)
+		menuItem -label $char;
+
+	string $animCMD = `format -s(_quoted($animFLD)) -s(_quoted($charFLD)) 
+		"optionMenuGrp -edit -enable (`optionMenuGrp -q -sl ^1s` == 4) ^2s;"`;
+
+	optionMenuGrp -edit -changeCommand $animCMD $animFLD;
+
+	separator;
+
+	string $exportCMD = `format 
+		-s(_quoted($copyrightFLD)) 
+		-s(_quoted($folderFLD)) 
+		-s(_quoted($sceneNameFLD)) 
+		-s(_quoted($scaleFLD))
+		-s(_quoted($flagsFLD))
+		-s(_quoted($animFLD))
+		-s(_quoted($charFLD))
+	 	"maya2glTF_onExport(^1s, ^2s, ^3s, ^4s, ^5s, ^6s, ^7s);"`;
+
 	button -label "select all polygon meshes" -command "maya2glTF_polySelectAndFrame();";
-	button -label "export selected meshes" -command ($cmd);
+	button -label "export selected meshes" -command $exportCMD;
 	
 	showWindow maya2glTF_exporter_window;
 }

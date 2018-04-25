@@ -9,8 +9,8 @@ ExportableClip::ExportableClip(
 	const AnimClipArg& clipArg,
 	const ExportableScene& scene)
 	: m_frames(
-		args.disableNameAssignment ? "" : clipArg.name + "_inputs", 
-		clipArg.frameCount(), 
+		args.disableNameAssignment ? "" : clipArg.name + "_inputs",
+		clipArg.frameCount(),
 		clipArg.framesPerSecond)
 {
 	glAnimation.name = clipArg.name;
@@ -44,9 +44,9 @@ ExportableClip::ExportableClip(
 			nodeAnimation->sampleAt(relativeFrameIndex, transformCache);
 		}
 
-		if (relativeFrameIndex % checkProgressFrameInterval == checkProgressFrameInterval-1)
+		if (relativeFrameIndex % checkProgressFrameInterval == checkProgressFrameInterval - 1)
 		{
-			uiAdvanceProgress("exporting clip " + clipArg.name + formatted(" %d\%", relativeFrameIndex * 100 / frameCount));
+			uiAdvanceProgress("exporting clip " + clipArg.name + formatted(" %d%%", relativeFrameIndex * 100 / frameCount));
 		}
 	}
 
