@@ -12,10 +12,11 @@ NodeAnimation::NodeAnimation(
 	: node(node)
 	, mesh(node.mesh())
 	, m_scaleFactor(scaleFactor)
-	, m_hasValidLocalTransforms(true)
 {
 	auto& glNodeTiS = node.glNodeTU();
 	auto& glNodeRs = node.glNodeRS();
+
+	m_invalidLocalTransformTimes.reserve(10);
 
 	m_positions = std::make_unique<PropAnimation>(frames, glNodeTiS, GLTF::Animation::Path::TRANSLATION, 3, false);
 	m_rotations = std::make_unique<PropAnimation>(frames, glNodeRs, GLTF::Animation::Path::ROTATION, 4, false);
@@ -32,13 +33,17 @@ NodeAnimation::NodeAnimation(
 	}
 }
 
-void NodeAnimation::sampleAt(const int frameIndex, NodeTransformCache& transformCache)
+void NodeAnimation::sampleAt(const MTime& absoluteTime, const int frameIndex, NodeTransformCache& transformCache)
 {
 	auto& transformState = transformCache.getTransform(&node, m_scaleFactor);
 	auto& localTransformRS = transformState.localTransformRS();
 	auto& localTransformTU = transformState.localTransformTU();
 
-	m_hasValidLocalTransforms &= transformState.hasValidLocalTransforms;
+	if (!transformState.hasValidLocalTransforms && m_invalidLocalTransformTimes.size() < m_invalidLocalTransformTimes.capacity())
+	{
+		m_invalidLocalTransformTimes.emplace_back(absoluteTime);
+	}
+
 	m_positions->append(gsl::make_span(localTransformTU.translation));
 	m_rotations->append(gsl::make_span(localTransformRS.rotation));
 	m_scales->append(gsl::make_span(localTransformRS.scale));
@@ -62,10 +67,14 @@ void NodeAnimation::sampleAt(const int frameIndex, NodeTransformCache& transform
 
 void NodeAnimation::exportTo(GLTF::Animation& glAnimation)
 {
-	if (!m_hasValidLocalTransforms)
+	if (!m_invalidLocalTransformTimes.empty())
 	{
 		// TODO: Use SVG to decompose the 3x3 matrix into a product of rotation and scale matrices.
-		cerr << prefix << "WARNING: node '" << node.name() << "' has transforms that are not representable by glTF! Skewing is not supported, use 3 nodes to simulate this" << endl;
+		cerr << prefix << "WARNING: node '" << node.name() << "' has animated transforms that are not representable by glTF! Skewing is not supported, use 3 nodes to simulate this" << endl;
+		cerr << prefix << "The first invalid transforms were found at times: ";
+		for (auto& time : m_invalidLocalTransformTimes)
+			cerr << time << " ";
+		cerr << endl;
 	}
 
 	// Now create the glTF animations, but only for those props that animate

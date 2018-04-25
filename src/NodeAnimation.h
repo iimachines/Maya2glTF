@@ -16,7 +16,7 @@ public:
 	virtual ~NodeAnimation() = default;
 
 	// Samples values at the current time
-	virtual void sampleAt(const int relativeFrameIndex, NodeTransformCache& transformCache);
+	virtual void sampleAt(const MTime& absoluteTime, const int relativeFrameIndex, NodeTransformCache& transformCache);
 
 	virtual void exportTo(GLTF::Animation& glAnimation);
 
@@ -25,7 +25,7 @@ public:
 
 private:
 	const double m_scaleFactor;
-	bool m_hasValidLocalTransforms;
+	std::vector<MTime> m_invalidLocalTransformTimes;
 
 	std::unique_ptr<PropAnimation> m_positions;
 	std::unique_ptr<PropAnimation> m_rotations;

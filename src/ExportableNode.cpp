@@ -129,7 +129,7 @@ void ExportableNode::load(
 	if (!initialTransformState.hasValidLocalTransforms)
 	{
 		// TODO: Use SVG to decompose the 3x3 matrix into a product of rotation and scale matrices.
-		cerr << prefix << "WARNING: node '" << name << "' has transforms that are not representable by glTF! Skewing is not supported, use 3 nodes to simulate this" << endl;
+		cerr << prefix << "WARNING: node '" << name << "' has initial transforms that are not representable by glTF! Skewing is not supported, use 3 nodes to simulate this" << endl;
 	}
 
 	// Create mesh, if any

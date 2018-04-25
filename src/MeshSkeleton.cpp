@@ -64,7 +64,11 @@ MeshSkeleton::MeshSkeleton(
 
 			if (inverseBindMatrix.isSingular())
 			{
-				cerr << prefix << "WARNING: Inverse bind matrix of joint " << jointNode->name() << " is singular!" << endl;
+				cerr << prefix << "WARNING: Inverse bind matrix of joint '" << jointNode->name() << "' is singular!" << endl;
+			}
+			else if (!hasOrthogonalAxes(inverseBindMatrix))
+			{
+				cerr << prefix << "WARNING: Inverse bind matrix of joint '" << jointNode->name() << "' is not orthogonal!" << endl;
 			}
 
 			m_joints.emplace_back(jointNode, inverseBindMatrix);
