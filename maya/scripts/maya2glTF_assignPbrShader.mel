@@ -1,7 +1,7 @@
 /*
 * Creates and assigns a new material to a mesh using a supplied glTF PBR glsl shader.
 *
-* param $objectName         The name of the mesh to assign the new material to, leave this empty to use the current selection.
+* param $objectNames        The names of the meshes to assign the new material to, leave this empty to use the current selection.
 *
 * param $shaderPath         The path to the glTF PBR shader used by the new material.
 *
@@ -16,7 +16,7 @@ global string $maya2glTF_default_shader_path;
 global string $maya2glTF_last_texture_directory;
 
 global proc maya2glTF_assignMaterialAndTextures(
-    string $objectName,
+    string $objectNames[],
     string $shaderPath,
     string $texturePatterns[]
 )
@@ -41,16 +41,15 @@ global proc maya2glTF_assignMaterialAndTextures(
 		};
 	}
 	
-    // get current selection if $objectName is not specified
-    if ($objectName == "")
+    // get current selection if $objectNames is not specified
+    if (size($objectNames) <= 0)
     {
         string $ls[] = `ls -sl`;
-        if (size($ls) > 0)
-            $objectName = $ls[0];
+        $objectNames = $ls;
     }
 
-    if ($objectName == "")
-        error "No node to apply material to specified";
+    if (size($objectNames) <= 0)
+        error "No node to apply the PBR material to was specified";
 		
 	if ($shaderPath == "")
 		$shaderPath = $maya2glTF_default_shader_path;
@@ -89,7 +88,7 @@ global proc maya2glTF_assignMaterialAndTextures(
     // create new glTF PBR GLSL shader
     string $sh = `shadingNode -asShader GLSLShader`;
     setAttr -type "string" ($sh+".shader") $shaderPath;
-    assignCreatedShader "GLSLShader" "" $sh $objectName;
+    assignCreatedShader "GLSLShader" "" $sh (stringArrayToString($objectNames, " "));
 
 	if (size($maya2glTF_last_texture_directory) <= 0) {
 		$maya2glTF_last_texture_directory = dirname(`file -q -loc`);
@@ -123,7 +122,7 @@ global proc maya2glTF_assignMaterialAndTextures(
                 string $fileNode = `createRenderNodeCB -as2DTexture "" file ("defaultNavigation -force true -connectToExisting -source %node -destination "+$shAttrName+";")`;
                 setAttr -type "string" ($fileNode+".fileTextureName") $filePath;
 				string $suffix = substring($attrNames[$i],3,size($attrNames[$i]));
-				rename $fileNode ($objectName+"_"+$suffix);
+				rename $fileNode ($objectNames[0]+"_"+$suffix);
 				$found = true;
 
 				// If a texture is found, set the corresponding strength to 1
@@ -158,5 +157,5 @@ global proc maya2glTF_assignMaterialAndTextures(
 
 global proc maya2glTF_assignPbrShader() 
 {
-    maya2glTF_assignMaterialAndTextures("", "", {});
+    maya2glTF_assignMaterialAndTextures({}, "", {});
 }
