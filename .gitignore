@@ -1,4 +1,5 @@
 .vs
 build
+packages
 *.bck
 *.swatch
