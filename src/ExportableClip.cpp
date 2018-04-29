@@ -1,10 +1,17 @@
 #include "externals.h"
 #include "ExportableClip.h"
 #include "ExportableNode.h"
-#include "accessors.h"
-#include "time.h"
+#include "timeControl.h"
+#include "progress.h"
 
-ExportableClip::ExportableClip(const Arguments& args, const AnimClipArg& clipArg, const ExportableScene& scene)
+ExportableClip::ExportableClip(
+	const Arguments& args,
+	const AnimClipArg& clipArg,
+	const ExportableScene& scene)
+	: m_frames(
+		args.disableNameAssignment ? "" : clipArg.name + "_inputs",
+		clipArg.frameCount(),
+		clipArg.framesPerSecond)
 {
 	glAnimation.name = clipArg.name;
 
@@ -18,34 +25,34 @@ ExportableClip::ExportableClip(const Arguments& args, const AnimClipArg& clipArg
 	for (auto& pair : items)
 	{
 		auto& node = pair.second;
-		auto nodeAnimation = node->createAnimation(frameCount, scaleFactor);
+		auto nodeAnimation = node->createAnimation(m_frames, scaleFactor);
 		if (nodeAnimation)
 		{
 			m_nodeAnimations.emplace_back(std::move(nodeAnimation));
 		}
 	}
 
-	m_timesPerFrame.reserve(frameCount);
-
 	for (auto relativeFrameIndex = 0; relativeFrameIndex < frameCount; ++relativeFrameIndex)
 	{
-		const double relativeFrameTime = relativeFrameIndex / clipArg.framesPerSecond;
-		m_timesPerFrame.push_back(static_cast<float>(relativeFrameTime));
-
+		const double relativeFrameTime = m_frames.times.at(relativeFrameIndex);
 		const MTime absoluteFrameTime = clipArg.startTime + MTime(relativeFrameTime, MTime::kSeconds);
 		setCurrentTime(absoluteFrameTime, args.redrawViewport);
 
+		NodeTransformCache transformCache;
 		for (auto& nodeAnimation : m_nodeAnimations)
 		{
-			nodeAnimation->sampleAt(relativeFrameIndex);
+			nodeAnimation->sampleAt(absoluteFrameTime, relativeFrameIndex, transformCache);
+		}
+
+		if (relativeFrameIndex % checkProgressFrameInterval == checkProgressFrameInterval - 1)
+		{
+			uiAdvanceProgress("exporting clip '" + clipArg.name + formatted("' %d%%", relativeFrameIndex * 100 / frameCount));
 		}
 	}
 
-	m_inputs = contiguousChannelAccessor(glAnimation.name+"_times", span(m_timesPerFrame), 1);
-
 	for (auto& nodeAnimation : m_nodeAnimations)
 	{
-		nodeAnimation->exportTo(*m_inputs, glAnimation);
+		nodeAnimation->exportTo(glAnimation);
 	}
 }
 

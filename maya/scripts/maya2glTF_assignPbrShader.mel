@@ -1,0 +1,161 @@
+/*
+* Creates and assigns a new material to a mesh using a supplied glTF PBR glsl shader.
+*
+* param $objectNames        The names of the meshes to assign the new material to, leave this empty to use the current selection.
+*
+* param $shaderPath         The path to the glTF PBR shader used by the new material.
+*
+* param $texturePatterns    The regex patterns used to map the texture paths to the glTF PBR shader texture attributes. The
+*                           shader texture attributes have the following order:
+*                               u_BaseColorTexture, u_MetallicTexture, u_RoughnessTexture, u_OcclusionTexture, u_NormalTexture,
+*                               u_EmissiveTexture, u_DiffuseEnvTexture, u_SpecularEnvTexture, u_brdfTexture
+*/
+
+global string $maya2glTF_default_texture_patterns[];
+global string $maya2glTF_default_shader_path;
+global string $maya2glTF_last_texture_directory;
+
+global proc maya2glTF_assignMaterialAndTextures(
+    string $objectNames[],
+    string $shaderPath,
+    string $texturePatterns[]
+)
+{
+	global string $maya2glTF_default_texture_patterns[];
+	global string $maya2glTF_default_shader_path;
+	global string $maya2glTF_last_texture_directory;
+	
+	string $filePaths[];
+	
+	if (size($maya2glTF_default_texture_patterns) == 0) {
+		$maya2glTF_default_texture_patterns = {
+			"base",
+			"metallic",
+			"roughness",
+			"occlusion",
+			"normal",
+			"emissive",
+			"diffuse[\\W\\d_]*env",
+			"specular[\\W\\d_]*env",
+			"brdf"
+		};
+	}
+	
+    // get current selection if $objectNames is not specified
+    if (size($objectNames) <= 0)
+    {
+        string $ls[] = `ls -sl`;
+        $objectNames = $ls;
+    }
+
+    if (size($objectNames) <= 0)
+        error "No node to apply the PBR material to was specified";
+		
+	if ($shaderPath == "")
+		$shaderPath = $maya2glTF_default_shader_path;
+
+    if ($shaderPath == "" || !`filetest -f $shaderPath`) {
+		$filePaths = `fileDialog2 -fm 1 -ff "*.ogsfx" -cap "Select GLTF PBR GLSL shader"`;
+		$shaderPath = $filePaths[0];
+	}
+
+    if (!`filetest -f $shaderPath`)
+        error "Invalid shader path, file not found";
+
+	$maya2glTF_default_shader_path = $shaderPath;
+		
+    string $attrNames[] = {
+        "u_BaseColorTexture",
+        "u_MetallicTexture",
+        "u_RoughnessTexture",
+        "u_OcclusionTexture",
+        "u_NormalTexture",
+        "u_EmissiveTexture",
+        "u_DiffuseEnvTexture",
+        "u_SpecularEnvTexture",
+        "u_brdfTexture"
+    };
+	
+	if (size($texturePatterns) == 0)
+		$texturePatterns = $maya2glTF_default_texture_patterns;
+
+    if (size($texturePatterns) != size($attrNames))
+        error "Invalid amount of texture patterns";
+
+    loadPlugin "glslShader.mll";
+    source "createAndAssignShader.mel";
+
+    // create new glTF PBR GLSL shader
+    string $sh = `shadingNode -asShader GLSLShader`;
+    setAttr -type "string" ($sh+".shader") $shaderPath;
+    assignCreatedShader "GLSLShader" "" $sh (stringArrayToString($objectNames, " "));
+
+	if (size($maya2glTF_last_texture_directory) <= 0) {
+		$maya2glTF_last_texture_directory = dirname(`file -q -loc`);
+		print ("Using '"+$maya2glTF_last_texture_directory+"' as initial texture folder\n");
+	}
+
+    // request texture paths
+    $filePaths = `fileDialog2 -dir $maya2glTF_last_texture_directory -fm 4 -cap "Select all textures"`;
+    if (size($filePaths) <= 0)
+        return;
+
+	// remember texture directory
+	$maya2glTF_last_texture_directory = dirname($filePaths[0]);
+	print ("Using '"+$maya2glTF_last_texture_directory+"' as next texture folder\n");
+
+    // match texture paths to material texture attributes
+    for ($i = 0; $i < size($attrNames); ++$i)
+    {
+        string $texturePattern = `tolower $texturePatterns[$i]`;
+
+		int $found = false;
+		
+        for ($j = 0; $j < size($filePaths) && !$found; ++$j)
+        {
+            string $filePath = $filePaths[$j];
+            string $filePathLower = `tolower $filePath`;
+
+            if (`match $texturePattern $filePathLower` != "")
+            {
+                string $shAttrName = ($sh+"."+$attrNames[$i]);
+                string $fileNode = `createRenderNodeCB -as2DTexture "" file ("defaultNavigation -force true -connectToExisting -source %node -destination "+$shAttrName+";")`;
+                setAttr -type "string" ($fileNode+".fileTextureName") $filePath;
+				string $suffix = substring($attrNames[$i],3,size($attrNames[$i]));
+				rename $fileNode ($objectNames[0]+"_"+$suffix);
+				$found = true;
+
+				// If a texture is found, set the corresponding strength to 1
+				switch ($i) 
+				{
+					case 0:
+						setAttr ($sh+".u_BaseColorFactorRGB") -type double3 1 1 1;
+						break;
+					case 1:
+						setAttr ($sh+".u_MetallicStrength") 1;
+						break;
+					case 2:
+						setAttr ($sh+".u_RoughnessStrength") 1;
+						break;
+					case 3:
+						setAttr ($sh+".u_OcclusionStrength") 1;
+						break;
+					case 4:
+						setAttr ($sh+".u_NormalScale") 1;
+						break;
+					case 5:
+						setAttr ($sh+".u_EmissiveColor") -type double3 1 1 1;
+						break;
+				}
+            }
+        }
+
+		if (!$found) 
+			print ("Not assigning '"+$attrNames[$i]+"' since no texture matches pattern '"+$texturePattern+"'\n");
+    }
+}
+
+global proc maya2glTF_assignPbrShader() 
+{
+    maya2glTF_assignMaterialAndTextures({}, "", {});
+}

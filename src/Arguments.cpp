@@ -46,6 +46,8 @@ namespace flag
 	const auto skipBlendShapes = "sbs";
 	const auto ignoreMeshDeformers = "imd";
 
+	const auto ignoreSegmentScaleCompensation = "isc";
+
 	const auto selectedNodesOnly = "sno";
 
 	const auto includeUnusedTexcoord = "iut";
@@ -127,6 +129,8 @@ SyntaxFactory::SyntaxFactory()
 	registerFlag(ss, flag::selectedNodesOnly, "selectedNodesOnly", kNoArg);
 
 	registerFlag(ss, flag::includeUnusedTexcoord, "includeUnusedTexcoord", kNoArg);
+
+	registerFlag(ss, flag::ignoreSegmentScaleCompensation, "ignoreSegmentScaleCompensation", kNoArg);
 
 	m_usage = ss.str();
 }
@@ -426,6 +430,7 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	skipBlendShapes = adb.isFlagSet(flag::skipBlendShapes);
 	redrawViewport = adb.isFlagSet(flag::redrawViewport);
 	includeUnusedTexcoord = adb.isFlagSet(flag::includeUnusedTexcoord);
+	ignoreSegmentScaleCompensation = adb.isFlagSet(flag::ignoreSegmentScaleCompensation);
 
 	adb.optional(flag::globalOpacityFactor, opacityFactor);
 

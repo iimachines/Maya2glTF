@@ -97,6 +97,7 @@ MStatus Exporter::run(const MArgList& args)
 		exportScene(arguments);
 
 		std::cout << prefix << "Finished export :-)" << endl;
+		std::cout << "--------------------------------------------------------------------------------" << endl;
 
 		return MStatus::kSuccess;
 	}

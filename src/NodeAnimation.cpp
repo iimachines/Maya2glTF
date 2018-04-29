@@ -7,96 +7,92 @@
 
 NodeAnimation::NodeAnimation(
 	const ExportableNode& node,
-	const int frameCount,
+	const ExportableFrames& frames,
 	const double scaleFactor)
 	: node(node)
 	, mesh(node.mesh())
 	, m_scaleFactor(scaleFactor)
-	, m_allOrthogonalAxes(true)
 {
-	m_objectMatrices.resize(frameCount);
+	auto& glNodeTiS = node.glNodeTU();
+	auto& glNodeRs = node.glNodeRS();
+
+	m_invalidLocalTransformTimes.reserve(10);
+
+	m_positions = std::make_unique<PropAnimation>(frames, glNodeTiS, GLTF::Animation::Path::TRANSLATION, 3, false);
+	m_rotations = std::make_unique<PropAnimation>(frames, glNodeRs, GLTF::Animation::Path::ROTATION, 4, false);
+	m_scales = std::make_unique<PropAnimation>(frames, glNodeRs, GLTF::Animation::Path::SCALE, 3, false);
+
+	if (node.hasSegmentScaleCompensation)
+	{
+		m_inverseParentScales = std::make_unique<PropAnimation>(frames, glNodeTiS, GLTF::Animation::Path::SCALE, 3, false);
+	}
 
 	if (mesh)
 	{
-		m_targetWeights.resize(frameCount * mesh->blendShapeCount());
+		m_weights = std::make_unique<PropAnimation>(frames, glNodeTiS, GLTF::Animation::Path::WEIGHTS, mesh->blendShapeCount(), true);
 	}
 }
 
-void NodeAnimation::sampleAt(const int frameIndex)
+void NodeAnimation::sampleAt(const MTime& absoluteTime, const int frameIndex, NodeTransformCache& transformCache)
 {
-	const auto objectMatrix = Transform::getObjectSpaceMatrix(node.pivotTransform, node.dagPath, node.parentDagPath);
-	m_allOrthogonalAxes &= Transform::hasOrthogonalAxes(objectMatrix);
-	m_objectMatrices.at(frameIndex) = objectMatrix;
+	auto& transformState = transformCache.getTransform(&node, m_scaleFactor);
+	auto& localTransformRS = transformState.localTransformRS();
+	auto& localTransformTU = transformState.localTransformTU();
+
+	if (!transformState.hasValidLocalTransforms && m_invalidLocalTransformTimes.size() < m_invalidLocalTransformTimes.capacity())
+	{
+		m_invalidLocalTransformTimes.emplace_back(absoluteTime);
+	}
+
+	m_positions->append(gsl::make_span(localTransformTU.translation));
+	m_rotations->append(gsl::make_span(localTransformRS.rotation));
+	m_scales->append(gsl::make_span(localTransformRS.scale));
+
+	if (node.hasSegmentScaleCompensation)
+	{
+		m_inverseParentScales->append(gsl::make_span(localTransformTU.scale));
+	}
 
 	if (mesh)
 	{
 		const auto weightCount = mesh->blendShapeCount();
 		if (weightCount)
 		{
-			auto weights = mesh->getCurrentWeights();
+			auto weights = mesh->currentWeights();
 			assert(weights.size() == weightCount);
-			std::copy_n(weights.begin(), weightCount, m_targetWeights.begin() + frameIndex * weightCount);
+			m_weights->append(span(weights));
 		}
 	}
 }
 
-void NodeAnimation::exportTo(GLTF::Accessor& timesPerFrame, GLTF::Animation& glAnimation)
+void NodeAnimation::exportTo(GLTF::Animation& glAnimation)
 {
-	if (!m_allOrthogonalAxes)
+	if (!m_invalidLocalTransformTimes.empty())
 	{
 		// TODO: Use SVG to decompose the 3x3 matrix into a product of rotation and scale matrices.
-		cerr << prefix << "WARNING: Skewed/sheared matrices are not representable by glTF! Node: " << node.dagPath.fullPathName().asChar() << endl;
+		cerr << prefix << "WARNING: node '" << node.name() << "' has animated transforms that are not representable by glTF! Skewing is not supported, use 3 nodes to simulate this" << endl;
+		cerr << prefix << "The first invalid transforms were found at times: ";
+		for (auto& time : m_invalidLocalTransformTimes)
+			cerr << time << " ";
+		cerr << endl;
 	}
-
-	m_positions = std::make_unique<AnimatedT>(timesPerFrame, node.glNode, GLTF::Animation::Path::TRANSLATION, 3, false);
-	m_rotations = std::make_unique<AnimatedR>(timesPerFrame, node.glNode, GLTF::Animation::Path::ROTATION, 4, false);
-	m_scales = std::make_unique<AnimatedS>(timesPerFrame, node.glNode, GLTF::Animation::Path::SCALE, 3, false);
-
-	for (auto& matrix: m_objectMatrices)
-	{
-		const auto keyTRS = Transform::toTRS(matrix, m_scaleFactor);
-
-		//double x = keyTRS.rotation[0];
-		//double y = keyTRS.rotation[1];
-		//double z = keyTRS.rotation[2];
-		//double w = keyTRS.rotation[3];
-
-		//double l = x * x + y * y + z * z + w * w;
-
-		//if (abs(l-1) > 1e-6)
-		//{
-		//	auto glm = Transform::toGLTF(matrix);
-
-		//	cerr << l << " should be one for matrix ";
-
-		//	for (int i=0; i<16; ++i)
-		//	{
-		//		cerr << glm.matrix[i];
-		//		cerr << ' ';
-		//	}
-
-		//	cerr << endl;
-		//}
-
-		m_positions->append(gsl::make_span(keyTRS.translation));
-		m_rotations->append(gsl::make_span(keyTRS.rotation));
-		m_scales->append(gsl::make_span(keyTRS.scale));
-	}
-
-	m_objectMatrices.clear();
 
 	// Now create the glTF animations, but only for those props that animate
-	const auto nodeTRS = node.initialTransform;
-	finish(glAnimation, m_positions, nodeTRS.translation);
-	finish(glAnimation, m_rotations, nodeTRS.rotation);
-	finish(glAnimation, m_scales, nodeTRS.scale);
+	auto& localTransformRS = node.initialTransformState.localTransformRS();
+	auto& localTransformTU = node.initialTransformState.localTransformTU();
 
-	// Morph target weights
-	if (!m_targetWeights.empty())
+	finish(glAnimation, m_positions, localTransformTU.translation);
+	finish(glAnimation, m_rotations, localTransformRS.rotation);
+	finish(glAnimation, m_scales, localTransformRS.scale);
+
+	if (node.hasSegmentScaleCompensation)
 	{
-		auto initialWeights = mesh->getInitialWeights();
-		m_weights = std::make_unique<AnimatedW>(timesPerFrame, node.glNode, GLTF::Animation::Path::WEIGHTS, initialWeights.size(), true);
-		m_weights->componentValuesPerFrame = move(m_targetWeights);
+		finish(glAnimation, m_inverseParentScales, localTransformTU.scale);
+	}
+
+	if (mesh)
+	{
+		const auto initialWeights = mesh->initialWeights();
 		finish(glAnimation, m_weights, initialWeights);
 	}
 }

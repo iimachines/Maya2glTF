@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Version;Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Maya2016_EXT2-Debug|x64">
       <Configuration>Maya2016_EXT2-Debug</Configuration>
@@ -38,18 +38,21 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
+    <MayaVersion>2018</MayaVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Maya2017-Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
+    <MayaVersion>2017</MayaVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Maya2016_EXT2-Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
+    <MayaVersion>2016</MayaVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Maya2018-Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
@@ -57,6 +60,7 @@
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
+    <MayaVersion>2018</MayaVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Maya2017-Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
@@ -64,6 +68,7 @@
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
+    <MayaVersion>2017</MayaVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Maya2016_EXT2-Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
@@ -71,6 +76,7 @@
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
+    <MayaVersion>2016</MayaVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -146,20 +152,15 @@
       <AdditionalDependencies>Foundation.lib;OpenMaya.lib;OpenMayaAnim.lib;OpenMayaUI.lib;glTF.lib;draco.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/export:initializePlugin /export:uninitializePlugin %(AdditionalOptions)</AdditionalOptions>
     </Link>
-    <PostBuildEvent>
-      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\2018\plug-ins\"
+    <PreBuildEvent>
+      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
 if errorlevel 1 (exit /b 100)
 
-xcopy /y "$(OutputPath)$(TargetName).pdb" "$(userprofile)\Documents\Maya\2018\plug-ins\"
-if errorlevel 1 (exit /b 100)
-</Command>
-    </PostBuildEvent>
-    <PostBuildEvent>
-      <Message>Copying plugin to "$(userprofile)\Documents\Maya\2018\plug-ins\"</Message>
-    </PostBuildEvent>
+xcopy /y "$(OutputPath)$(TargetName).pdb" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
+if errorlevel 1 (exit /b 100)</Command>
+    </PreBuildEvent>
     <PreBuildEvent>
-      <Command>
-      </Command>
+      <Message>Copying plugin to "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Message>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Maya2017-Debug|x64'">
@@ -182,23 +183,15 @@ if errorlevel 1 (exit /b 100)
       <AdditionalDependencies>Foundation.lib;OpenMaya.lib;OpenMayaAnim.lib;OpenMayaUI.lib;glTF.lib;draco.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/export:initializePlugin /export:uninitializePlugin %(AdditionalOptions)</AdditionalOptions>
     </Link>
-    <PostBuildEvent>
-      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\2017\plug-ins\"
-
-if errorlevel 1 (exit /b 100)
-
-
-xcopy /y "$(OutputPath)$(TargetName).pdb" "$(userprofile)\Documents\Maya\2017\plug-ins\"
-
-if errorlevel 1 (exit /b 100)
-</Command>
-    </PostBuildEvent>
-    <PostBuildEvent>
-      <Message>Copying plugin to "$(userprofile)\Documents\Maya\2017\plug-ins\"</Message>
-    </PostBuildEvent>
     <PreBuildEvent>
-      <Command>
-      </Command>
+      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
+if errorlevel 1 (exit /b 100)
+
+xcopy /y "$(OutputPath)$(TargetName).pdb" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
+if errorlevel 1 (exit /b 100)</Command>
+    </PreBuildEvent>
+    <PreBuildEvent>
+      <Message>Copying plugin to "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Message>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Maya2016_EXT2-Debug|x64'">
@@ -221,23 +214,15 @@ if errorlevel 1 (exit /b 100)
       <AdditionalDependencies>Foundation.lib;OpenMaya.lib;OpenMayaAnim.lib;OpenMayaUI.lib;glTF.lib;draco.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/export:initializePlugin /export:uninitializePlugin %(AdditionalOptions)</AdditionalOptions>
     </Link>
-    <PostBuildEvent>
-      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\2016.5\plug-ins\"
-
-if errorlevel 1 (exit /b 100)
-
-
-xcopy /y "$(OutputPath)$(TargetName).pdb" "$(userprofile)\Documents\Maya\2016.5\plug-ins\"
-
-if errorlevel 1 (exit /b 100)
-</Command>
-    </PostBuildEvent>
-    <PostBuildEvent>
-      <Message>Copying plugin to "$(userprofile)\Documents\Maya\2016.5\plug-ins\"</Message>
-    </PostBuildEvent>
     <PreBuildEvent>
-      <Command>
-      </Command>
+      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
+if errorlevel 1 (exit /b 100)
+
+xcopy /y "$(OutputPath)$(TargetName).pdb" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
+if errorlevel 1 (exit /b 100)</Command>
+    </PreBuildEvent>
+    <PreBuildEvent>
+      <Message>Copying plugin to "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Message>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Maya2018-Release|x64'">
@@ -264,20 +249,15 @@ if errorlevel 1 (exit /b 100)
       <AdditionalDependencies>Foundation.lib;OpenMaya.lib;OpenMayaAnim.lib;OpenMayaUI.lib;glTF.lib;draco.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/export:initializePlugin /export:uninitializePlugin %(AdditionalOptions)</AdditionalOptions>
     </Link>
-    <PostBuildEvent>
-      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\2018\plug-ins\"
+    <PreBuildEvent>
+      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
 if errorlevel 1 (exit /b 100)
 
-xcopy /y "$(OutputPath)$(TargetName).pdb" "$(userprofile)\Documents\Maya\2018\plug-ins\"
-if errorlevel 1 (exit /b 100)
-</Command>
-    </PostBuildEvent>
-    <PostBuildEvent>
-      <Message>Copying plugin to "$(userprofile)\Documents\Maya\2018\plug-ins\"</Message>
-    </PostBuildEvent>
+xcopy /y "$(OutputPath)$(TargetName).pdb" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
+if errorlevel 1 (exit /b 100)</Command>
+    </PreBuildEvent>
     <PreBuildEvent>
-      <Command>
-      </Command>
+      <Message>Copying plugin to "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Message>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Maya2017-Release|x64'">
@@ -304,23 +284,15 @@ if errorlevel 1 (exit /b 100)
       <AdditionalDependencies>Foundation.lib;OpenMaya.lib;OpenMayaAnim.lib;OpenMayaUI.lib;glTF.lib;draco.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/export:initializePlugin /export:uninitializePlugin %(AdditionalOptions)</AdditionalOptions>
     </Link>
-    <PostBuildEvent>
-      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\2017\plug-ins\"
-
-if errorlevel 1 (exit /b 100)
-
-
-xcopy /y "$(OutputPath)$(TargetName).pdb" "$(userprofile)\Documents\Maya\2017\plug-ins\"
-
-if errorlevel 1 (exit /b 100)
-</Command>
-    </PostBuildEvent>
-    <PostBuildEvent>
-      <Message>Copying plugin to "$(userprofile)\Documents\Maya\2017\plug-ins\"</Message>
-    </PostBuildEvent>
     <PreBuildEvent>
-      <Command>
-      </Command>
+      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
+if errorlevel 1 (exit /b 100)
+
+xcopy /y "$(OutputPath)$(TargetName).pdb" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
+if errorlevel 1 (exit /b 100)</Command>
+    </PreBuildEvent>
+    <PreBuildEvent>
+      <Message>Copying plugin to "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Message>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Maya2016_EXT2-Release|x64'">
@@ -347,26 +319,20 @@ if errorlevel 1 (exit /b 100)
       <AdditionalDependencies>Foundation.lib;OpenMaya.lib;OpenMayaAnim.lib;OpenMayaUI.lib;glTF.lib;draco.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/export:initializePlugin /export:uninitializePlugin %(AdditionalOptions)</AdditionalOptions>
     </Link>
-    <PostBuildEvent>
-      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\2016.5\plug-ins\"
-
-if errorlevel 1 (exit /b 100)
-
-
-xcopy /y "$(OutputPath)$(TargetName).pdb" "$(userprofile)\Documents\Maya\2016.5\plug-ins\"
-
-if errorlevel 1 (exit /b 100)
-</Command>
-    </PostBuildEvent>
-    <PostBuildEvent>
-      <Message>Copying plugin to "$(userprofile)\Documents\Maya\2016.5\plug-ins\"</Message>
-    </PostBuildEvent>
     <PreBuildEvent>
-      <Command>
-      </Command>
+      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
+if errorlevel 1 (exit /b 100)
+
+xcopy /y "$(OutputPath)$(TargetName).pdb" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
+if errorlevel 1 (exit /b 100)</Command>
+    </PreBuildEvent>
+    <PreBuildEvent>
+      <Message>Copying plugin to "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Message>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\progress.cpp" />
+    <ClCompile Include="src\ExportableFrames.cpp" />
     <ClCompile Include="src\MeshSkeleton.cpp" />
     <ClCompile Include="src\ShapeIndex.cpp" />
     <ClCompile Include="src\ExportableScene.cpp" />
@@ -423,12 +389,15 @@ if errorlevel 1 (exit /b 100)
     <None Include="LICENSE" />
     <None Include="maya\mel\test-iteration.mel" />
     <None Include="maya\renderData\shaders\glTF_PBR.ogsfx" />
+    <None Include="packages.config" />
     <None Include="Readme.md" />
     <None Include="mel\create-PBR-spheres.mel" />
     <None Include="mel\test-iteration.mel" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\progress.h" />
     <ClInclude Include="src\accessors.h" />
+    <ClInclude Include="src\ExportableFrames.h" />
     <ClInclude Include="src\MeshSkeleton.h" />
     <ClInclude Include="src\ShapeIndex.h" />
     <ClInclude Include="src\macros.h" />
@@ -469,10 +438,27 @@ if errorlevel 1 (exit /b 100)
     <ClInclude Include="src\sceneTypes.h" />
     <ClInclude Include="src\spans.h" />
     <ClInclude Include="src\Transform.h" />
-    <ClInclude Include="src\time.h" />
+    <ClInclude Include="src\timeControl.h" />
     <ClInclude Include="src\version.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="packages\MSBuildTasks.1.5.0.235\build\MSBuildTasks.targets" Condition="Exists('packages\MSBuildTasks.1.5.0.235\build\MSBuildTasks.targets')" />
   </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('packages\MSBuildTasks.1.5.0.235\build\MSBuildTasks.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\MSBuildTasks.1.5.0.235\build\MSBuildTasks.targets'))" />
+  </Target>
+  <Target Name="Version" BeforeTargets="PrepareForBuild">
+    <GitDescribe LocalPath="$(MSBuildProjectDirectory)">
+      <Output TaskParameter="Tag" PropertyName="GIT_Tag" />
+    </GitDescribe>
+    <GitVersion LocalPath="$(MSBuildProjectDirectory)">
+      <Output TaskParameter="CommitHash" PropertyName="GIT_Hash" />
+    </GitVersion>
+    <FileUpdate Files="$(ProjectDir)\src\version.cpp" Multiline="true" Singleline="false" Regex="version\s*\=\s*&quot;(.+)&quot;" ReplacementText="version = &quot;$(GIT_Tag) $(GIT_Hash)&quot;" />
+    <FileUpdate Files="$(ProjectDir)\maya\scripts\maya2glTF_UI.mel" Multiline="true" Singleline="false" Regex="\$maya2glTF_version\s*\=\s*&quot;(.+)&quot;" ReplacementText="$maya2glTF_version = &quot;$(GIT_Tag) $(GIT_Hash)&quot;" />
+  </Target>
 </Project>

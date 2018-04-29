@@ -2,15 +2,9 @@
 #include "ExportableItem.h"
 #include "NodeAnimation.h"
 
-ExportableItem::ExportableItem()
-{
-}
+ExportableItem::~ExportableItem() = default;
 
-ExportableItem::~ExportableItem()
-{
-}
-
-std::unique_ptr<NodeAnimation> ExportableItem::createAnimation(const int frameCount, const double scaleFactor)
+std::unique_ptr<NodeAnimation> ExportableItem::createAnimation(const ExportableFrames& frameTimes, const double scaleFactor)
 {
 	return nullptr;
 }

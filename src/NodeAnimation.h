@@ -2,40 +2,36 @@
 
 #include "PropAnimation.h"
 #include "sceneTypes.h"
+#include "ExportableNode.h"
 
 class ExportableNode;
 class ExportableMesh;
+class NodeTransformCache;
 
 class NodeAnimation
 {
 public:
-	NodeAnimation(const ExportableNode& node, const int frameCount, const double scaleFactor);
+	NodeAnimation(const ExportableNode& node, const ExportableFrames& frameTimes, const double scaleFactor);
 
 	virtual ~NodeAnimation() = default;
 
 	// Samples values at the current time
-	virtual void sampleAt(const int relativeFrameIndex);
+	virtual void sampleAt(const MTime& absoluteTime, const int relativeFrameIndex, NodeTransformCache& transformCache);
 
-	virtual void exportTo(GLTF::Accessor& timesPerFrame, GLTF::Animation& glAnimation);
+	virtual void exportTo(GLTF::Animation& glAnimation);
 
 	const ExportableNode& node;
 	const ExportableMesh* mesh;
 
 private:
 	const double m_scaleFactor;
-	bool m_allOrthogonalAxes;
-	std::vector<MMatrix> m_objectMatrices;
-	std::vector<float> m_targetWeights;
+	std::vector<MTime> m_invalidLocalTransformTimes;
 
-	typedef PropAnimation AnimatedT;
-	typedef PropAnimation AnimatedR;
-	typedef PropAnimation AnimatedS;
-	typedef PropAnimation AnimatedW;
-
-	std::unique_ptr<AnimatedT> m_positions;
-	std::unique_ptr<AnimatedR> m_rotations;
-	std::unique_ptr<AnimatedS> m_scales;
-	std::unique_ptr<AnimatedW> m_weights;
+	std::unique_ptr<PropAnimation> m_positions;
+	std::unique_ptr<PropAnimation> m_rotations;
+	std::unique_ptr<PropAnimation> m_scales;
+	std::unique_ptr<PropAnimation> m_inverseParentScales;
+	std::unique_ptr<PropAnimation> m_weights;
 
 	void finish(GLTF::Animation& glAnimation,
 		std::unique_ptr<PropAnimation>& animatedProp,

@@ -1,9 +1,8 @@
 #include "externals.h"
 #include "ExportableAsset.h"
 #include "Arguments.h"
-#include "ExportableNode.h"
-#include "MayaException.h"
-#include "./time.h"
+#include "progress.h"
+#include "timeControl.h"
 #include "version.h"
 
 ExportableAsset::ExportableAsset(const Arguments& args)
@@ -14,7 +13,7 @@ ExportableAsset::ExportableAsset(const Arguments& args)
 	m_glAsset.scene = 0;
 
 	m_glAsset.metadata = &m_glMetadata;
-	m_glMetadata.generator = std::string{ "Maya2glTF V" } + version;
+	m_glMetadata.generator = std::string("Maya2glTF ") + version;
 	m_glMetadata.version = "2.0";
 	m_glMetadata.copyright = args.copyright.asChar();
 
@@ -25,18 +24,30 @@ ExportableAsset::ExportableAsset(const Arguments& args)
 
 	setCurrentTime(args.initialValuesTime, args.redrawViewport);
 
+	size_t progressStepCount = args.selection.size();
+
+	for (auto& clipArg : args.animationClips)
+	{
+		progressStepCount += clipArg.frameCount() / checkProgressFrameInterval;
+	}
+
+	uiSetupProgress(progressStepCount);
+
 	for (auto& dagPath : args.selection)
 	{
+		uiAdvanceProgress(std::string("exporting mesh ") + dagPath.partialPathName().asChar());
 		cout << prefix << "Processing '" << dagPath.partialPathName().asChar() << "' ..." << endl;
 		m_scene.getNode(dagPath);
 	}
 
 	// Now export animation clips of all the nodes, in one pass over the slow timeline
 	const auto clipCount = args.animationClips.size();
+
 	if (clipCount)
 	{
 		for (auto& clipArg : args.animationClips)
 		{
+			uiAdvanceProgress("exporting clip " + clipArg.name);
 			auto clip = std::make_unique<ExportableClip>(args, clipArg, m_scene);
 			if (!clip->glAnimation.channels.empty())
 			{
@@ -55,7 +66,7 @@ ExportableAsset::ExportableAsset(const Arguments& args)
 ExportableAsset::~ExportableAsset() = default;
 
 ExportableAsset::Cleanup::Cleanup()
-	:currentTime { MAnimControl::currentTime() }
+	:currentTime{ MAnimControl::currentTime() }
 {
 }
 
