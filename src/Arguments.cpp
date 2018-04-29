@@ -244,30 +244,57 @@ public:
 	}
 
 	template<typename T>
-	void required(const char* shortName, T& value, const int index = 0) const
+	void required(const char* shortName, T& value, const int flagIndex = 0, const int componentIndex = 0) const
 	{
+		MStatus status;
+
 		if (!isFlagSet(shortName))
 			throwInvalid(shortName, "Missing argument");
 
-		const auto status = adb.getFlagArgument(shortName, index, value);
-		throwOnArgument(status, shortName);
+		if (flagUsageCount(shortName) == 1)
+		{
+			status = adb.getFlagArgument(shortName, componentIndex, value);
+			throwOnArgument(status, shortName, "Failed to get required argument");
+		}
+		else
+		{
+			MArgList args;
+			status = adb.getFlagArgumentList(shortName, flagIndex, args);
+			throwOnArgument(status, shortName, formatted("Failed to get required multi-flag #%d argument", flagIndex).c_str());
+			status = args.get(componentIndex, value);
+			throwOnArgument(status, shortName, formatted("Failed to get required multi-flag #%d argument value", flagIndex).c_str());
+		}
 	}
 
 	template<typename T>
-	bool optional(const char* shortName, T& value, const int index = 0) const
+	bool optional(const char* shortName, T& value, const int flagIndex = 0, const int componentIndex = 0) const
 	{
 		if (!adb.isFlagSet(shortName))
 			return false;
 
-		const auto status = adb.getFlagArgument(shortName, index, value);
-		throwOnArgument(status, shortName);
+		MStatus status;
+
+		if (flagUsageCount(shortName) == 1)
+		{
+			status = adb.getFlagArgument(shortName, componentIndex, value);
+			throwOnArgument(status, shortName, "Failed to get optional argument");
+		}
+		else
+		{
+			MArgList args;
+			status = adb.getFlagArgumentList(shortName, flagIndex, args);
+			throwOnArgument(status, shortName, formatted("Failed to get optional multi-flag #%d argument", flagIndex).c_str());
+			status = args.get(componentIndex, value);
+			throwOnArgument(status, shortName, formatted("Failed to get optional multi-flag #%d argument value", flagIndex).c_str());
+		}
+
 		return true;
 	}
 
-	bool optional(const char* shortName, float& value, const int index = 0) const
+	bool optional(const char* shortName, float& value) const
 	{
 		double temp;
-		if (!optional(shortName, temp, index))
+		if (!optional(shortName, temp))
 			return false;
 		value = static_cast<float>(temp);
 		return true;
@@ -323,7 +350,7 @@ public:
 			formatted("%s\nUsage:\n%s", message, usageStr));
 	}
 
-	static void throwOnArgument(const MStatus& status, const char* shortArgName)
+	static void throwOnArgument(const MStatus& status, const char* shortArgName, const char* message = nullptr)
 	{
 		if (status.error())
 		{
@@ -331,7 +358,9 @@ public:
 			const auto statusStr = status.errorString().asChar();
 			const auto usageStr = SyntaxFactory::get().usage();
 			throw MayaException(status,
-				formatted("-%s (%s): %s\nUsage:\n%s", shortArgName, longArgName, statusStr, usageStr));
+				message
+				? formatted("-%s (-%s): %s\nUsage:\n%s", shortArgName, longArgName, statusStr, usageStr)
+				: formatted("-%s (-%s): %s %s\nUsage:\n%s", shortArgName, longArgName, message, statusStr, usageStr));
 		}
 	}
 
@@ -369,7 +398,7 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 		{
 			select(selection, dagPath, !selectedNodesOnly);
 		}
-		else 
+		else
 		{
 			MayaException::printError(formatted("Failed to get DAG path of selected object #%d\n", selectionIndex));
 		}
@@ -473,8 +502,8 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	});
 
 	cout << prefix << "Exporting";
-	
-	for (auto& path: selection)
+
+	for (auto& path : selection)
 	{
 		cout << " " << path.partialPathName();
 	}
