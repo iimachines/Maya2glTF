@@ -153,15 +153,19 @@
       <AdditionalOptions>/export:initializePlugin /export:uninitializePlugin %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PreBuildEvent>
-      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
-if errorlevel 1 (exit /b 100)
-
-xcopy /y "$(OutputPath)$(TargetName).pdb" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
-if errorlevel 1 (exit /b 100)</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
     <PreBuildEvent>
-      <Message>Copying plugin to "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Message>
+      <Message>
+      </Message>
     </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copying plugin to "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Maya2017-Debug|x64'">
     <ClCompile>
@@ -184,15 +188,19 @@ if errorlevel 1 (exit /b 100)</Command>
       <AdditionalOptions>/export:initializePlugin /export:uninitializePlugin %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PreBuildEvent>
-      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
-if errorlevel 1 (exit /b 100)
-
-xcopy /y "$(OutputPath)$(TargetName).pdb" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
-if errorlevel 1 (exit /b 100)</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
     <PreBuildEvent>
-      <Message>Copying plugin to "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Message>
+      <Message>
+      </Message>
     </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copying plugin to "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Maya2016_EXT2-Debug|x64'">
     <ClCompile>
@@ -215,15 +223,19 @@ if errorlevel 1 (exit /b 100)</Command>
       <AdditionalOptions>/export:initializePlugin /export:uninitializePlugin %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PreBuildEvent>
-      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
-if errorlevel 1 (exit /b 100)
-
-xcopy /y "$(OutputPath)$(TargetName).pdb" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
-if errorlevel 1 (exit /b 100)</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
     <PreBuildEvent>
-      <Message>Copying plugin to "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Message>
+      <Message>
+      </Message>
     </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copying plugin to "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Maya2018-Release|x64'">
     <ClCompile>
@@ -250,15 +262,19 @@ if errorlevel 1 (exit /b 100)</Command>
       <AdditionalOptions>/export:initializePlugin /export:uninitializePlugin %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PreBuildEvent>
-      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
-if errorlevel 1 (exit /b 100)
-
-xcopy /y "$(OutputPath)$(TargetName).pdb" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
-if errorlevel 1 (exit /b 100)</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
     <PreBuildEvent>
-      <Message>Copying plugin to "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Message>
+      <Message>
+      </Message>
     </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copying plugin to "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Maya2017-Release|x64'">
     <ClCompile>
@@ -285,15 +301,19 @@ if errorlevel 1 (exit /b 100)</Command>
       <AdditionalOptions>/export:initializePlugin /export:uninitializePlugin %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PreBuildEvent>
-      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
-if errorlevel 1 (exit /b 100)
-
-xcopy /y "$(OutputPath)$(TargetName).pdb" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
-if errorlevel 1 (exit /b 100)</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
     <PreBuildEvent>
-      <Message>Copying plugin to "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Message>
+      <Message>
+      </Message>
     </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copying plugin to "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Maya2016_EXT2-Release|x64'">
     <ClCompile>
@@ -320,15 +340,19 @@ if errorlevel 1 (exit /b 100)</Command>
       <AdditionalOptions>/export:initializePlugin /export:uninitializePlugin %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <PreBuildEvent>
-      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
-if errorlevel 1 (exit /b 100)
-
-xcopy /y "$(OutputPath)$(TargetName).pdb" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
-if errorlevel 1 (exit /b 100)</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
     <PreBuildEvent>
-      <Message>Copying plugin to "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Message>
+      <Message>
+      </Message>
     </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copying plugin to "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\progress.cpp" />
