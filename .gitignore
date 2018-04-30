@@ -1,5 +1,6 @@
 .vs
 build
 packages
+export
 *.bck
 *.swatch
