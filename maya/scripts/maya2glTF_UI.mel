@@ -58,6 +58,41 @@ proc string _getStr(string $key, string $defaultValue) {
 	return attributeExists($key, $node) ? `getAttr ($node+"."+$key)` : $defaultValue;
 }
 
+proc string _getTraxClips(string $char) {
+	string $fps = `currentTimeUnitToFPS`;
+	string $flags = `format -s($fps) " -afr ^1s"`;
+	
+	// Get character's clip scheduler
+	string $scheduler = `character -q -sc $char`;
+
+	// Get all clips in the scheduler
+	string $clips[] = `clipSchedule -q -ci $scheduler`;
+
+	// Get enabled clips
+	string $clip;
+	for($clip in $clips )
+	{
+		// (clipName,index,start,sourceStart,sourceEnd,scale,preCycle,postCycle) 
+		string $parts[] = stringToStringArray($clip,",");
+		string $clipName = $parts[0];
+		int $clipIndex = $parts[1];
+		float $timeStart = $parts[2];
+		float $sourceStart = $parts[3];
+		float $sourceEnd = $parts[4];
+		float $scale = $parts[5];
+		float $timeEnd = $timeStart + ($sourceEnd-$sourceStart)*$scale;
+		int $clipEnabled = `clipSchedule -clipIndex $clipIndex -q -enable $scheduler`;
+		int $trackIndex = `clipSchedule -clipIndex $clipIndex -q -track $scheduler`;
+		// HACK: We export enabled clips from the top track, to allow other tracks to contain adjusting clips 
+		if($clipEnabled && $trackIndex == 1) {
+			$flags += `format -s(_quoted($clipName)) -s($timeStart) -s($timeEnd)" -acn ^1s -ast ^2s -aet ^3s"`;
+		} 
+	}
+
+	print ($flags+"\n");
+
+	return $flags;
+}
 
 global proc maya2glTF_polySelectAndFrame() 
 {
@@ -129,7 +164,8 @@ global proc maya2glTF_onExport
 		break;
 
 		case 4:
-			// TODO: Fetch clips from TRAX
+			// Fetch clips from TRAX
+			$flags += _getTraxClips($char);
 			break;
 	}
 
@@ -215,7 +251,7 @@ global proc maya2glTF_UI()
 	global string $gMainProgressBar;  
 
     // This is auto-updated by msbuild 
-	string $maya2glTF_version = "v0.9.2-beta 631e732";
+	string $maya2glTF_version = "v0.9.2-beta 2fd39b3";
 
 	if (`window -exists maya2glTF_exporter_window`)
 		deleteUI maya2glTF_exporter_window;
@@ -303,5 +339,3 @@ global proc maya2glTF_UI()
 	
 	showWindow maya2glTF_exporter_window;
 }
-
-// test
