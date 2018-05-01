@@ -7,11 +7,9 @@
 
 ## Update
 
-The third BETA is released! See the [releases](https://github.com/Ziriax/Maya2glTF/releases) tab. 
+The fourth BETA is released! See the [releases](https://github.com/Ziriax/Maya2glTF/releases) tab. 
 
-Now includes a **user interface** and experimental support for Maya's **segment scale compensation**.
-
-*Maya 2018 x64 on Windows 10 only for now*
+*Maya 2017 and 2018 on Windows x64 only for now*
 
 ## Rationale
 
