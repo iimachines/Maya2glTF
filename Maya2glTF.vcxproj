@@ -161,7 +161,13 @@
       </Message>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Command>
+      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
+xcopy /y "$(ProjectDir)maya\scripts\maya2glTF_UI.mel" "$(userprofile)\Documents\Maya\$(MayaVersion)\scripts\"
+xcopy /y "$(ProjectDir)maya\scripts\maya2glTF_assignPbrShader.mel" "$(userprofile)\Documents\Maya\$(MayaVersion)\scripts\"
+
+
+
+</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Copying plugin to "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Message>
@@ -196,7 +202,13 @@
       </Message>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Command>
+      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
+xcopy /y "$(ProjectDir)maya\scripts\maya2glTF_UI.mel" "$(userprofile)\Documents\Maya\$(MayaVersion)\scripts\"
+xcopy /y "$(ProjectDir)maya\scripts\maya2glTF_assignPbrShader.mel" "$(userprofile)\Documents\Maya\$(MayaVersion)\scripts\"
+
+
+
+</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Copying plugin to "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Message>
@@ -231,7 +243,13 @@
       </Message>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Command>
+      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
+xcopy /y "$(ProjectDir)maya\scripts\maya2glTF_UI.mel" "$(userprofile)\Documents\Maya\$(MayaVersion)\scripts\"
+xcopy /y "$(ProjectDir)maya\scripts\maya2glTF_assignPbrShader.mel" "$(userprofile)\Documents\Maya\$(MayaVersion)\scripts\"
+
+
+
+</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Copying plugin to "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Message>
@@ -270,7 +288,13 @@
       </Message>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Command>
+      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
+xcopy /y "$(ProjectDir)maya\scripts\maya2glTF_UI.mel" "$(userprofile)\Documents\Maya\$(MayaVersion)\scripts\"
+xcopy /y "$(ProjectDir)maya\scripts\maya2glTF_assignPbrShader.mel" "$(userprofile)\Documents\Maya\$(MayaVersion)\scripts\"
+
+
+
+</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Copying plugin to "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Message>
@@ -309,7 +333,13 @@
       </Message>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Command>
+      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
+xcopy /y "$(ProjectDir)maya\scripts\maya2glTF_UI.mel" "$(userprofile)\Documents\Maya\$(MayaVersion)\scripts\"
+xcopy /y "$(ProjectDir)maya\scripts\maya2glTF_assignPbrShader.mel" "$(userprofile)\Documents\Maya\$(MayaVersion)\scripts\"
+
+
+
+</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Copying plugin to "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Message>
@@ -348,7 +378,13 @@
       </Message>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Command>
+      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
+xcopy /y "$(ProjectDir)maya\scripts\maya2glTF_UI.mel" "$(userprofile)\Documents\Maya\$(MayaVersion)\scripts\"
+xcopy /y "$(ProjectDir)maya\scripts\maya2glTF_assignPbrShader.mel" "$(userprofile)\Documents\Maya\$(MayaVersion)\scripts\"
+
+
+
+</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Copying plugin to "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Message>
@@ -484,5 +520,6 @@
     </GitVersion>
     <FileUpdate Files="$(ProjectDir)\src\version.cpp" Multiline="true" Singleline="false" Regex="version\s*\=\s*&quot;(.+)&quot;" ReplacementText="version = &quot;$(GIT_Tag) $(GIT_Hash)&quot;" />
     <FileUpdate Files="$(ProjectDir)\maya\scripts\maya2glTF_UI.mel" Multiline="true" Singleline="false" Regex="\$maya2glTF_version\s*\=\s*&quot;(.+)&quot;" ReplacementText="$maya2glTF_version = &quot;$(GIT_Tag) $(GIT_Hash)&quot;" />
+    <FileUpdate Files="$(ProjectDir)\windows_make_release.cmd" Multiline="true" Singleline="false" Regex="_.+\.zip" ReplacementText="_$(GIT_Tag).zip" />
   </Target>
 </Project>

@@ -82,5 +82,3 @@ void MainShape::dump(IndentableStream& out, const std::string& name) const
 
 	out << endl << undent << '}' << endl;
 }
-
-
