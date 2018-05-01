@@ -11,7 +11,14 @@ MeshShape::MeshShape(ShapeIndex shapeIndex)
 {
 }
 
-MeshShape::MeshShape(const MeshIndices& mainIndices, const MFnMesh& fnMesh, const MPoint& pivotPoint, const Arguments& args, ShapeIndex shapeIndex, const MPlug& weightPlug, const float initialWeight)
+MeshShape::MeshShape(
+	const MeshIndices& mainIndices, 
+	const MFnMesh& fnMesh, 
+	const ExportableNode& node, 
+	const Arguments& args, 
+	ShapeIndex shapeIndex, 
+	const MPlug& weightPlug, 
+	const float initialWeight)
 	: shapeIndex(shapeIndex)
 	, weightPlug(weightPlug)
 	, initialWeight(initialWeight)
@@ -21,7 +28,7 @@ MeshShape::MeshShape(const MeshIndices& mainIndices, const MFnMesh& fnMesh, cons
 	THROW_ON_FAILURE(status);
 
 	m_semantics = std::make_unique<MeshSemantics>(fnMesh, nullptr, args.blendPrimitiveAttributes);
-	m_vertices = std::make_unique<MeshVertices>(mainIndices, nullptr, fnMesh, shapeIndex, pivotPoint, args);
+	m_vertices = std::make_unique<MeshVertices>(mainIndices, nullptr, fnMesh, shapeIndex, node, args);
 }
 
 MeshShape::~MeshShape() = default;
@@ -45,7 +52,7 @@ void MeshShape::dump(IndentableStream& out, const std::string& name) const
 	out << endl << undent << '}' << endl;
 }
 
-MainShape::MainShape(ExportableScene& scene, const MFnMesh& fnMesh, const MPoint& pivotPoint, ShapeIndex shapeIndex) : MeshShape(shapeIndex)
+MainShape::MainShape(ExportableScene& scene, const MFnMesh& fnMesh, const ExportableNode& node, ShapeIndex shapeIndex) : MeshShape(shapeIndex)
 {
 	MStatus status;
 	m_dagPath = fnMesh.dagPath(&status);
@@ -53,10 +60,10 @@ MainShape::MainShape(ExportableScene& scene, const MFnMesh& fnMesh, const MPoint
 
 	auto& args = scene.arguments();
 
-	m_skeleton = std::make_unique<MeshSkeleton>(scene, fnMesh);
+	m_skeleton = std::make_unique<MeshSkeleton>(scene, node, fnMesh);
 	m_semantics = std::make_unique<MeshSemantics>(fnMesh, m_skeleton.get(), args.meshPrimitiveAttributes);
 	m_indices = std::make_unique<MeshIndices>(m_semantics.get(), fnMesh);
-	m_vertices = std::make_unique<MeshVertices>(*m_indices, m_skeleton.get(), fnMesh, shapeIndex, pivotPoint, scene.arguments());
+	m_vertices = std::make_unique<MeshVertices>(*m_indices, m_skeleton.get(), fnMesh, shapeIndex, node, scene.arguments());
 }
 
 MainShape::~MainShape() = default;

@@ -53,7 +53,7 @@ typedef std::vector<MeshJoint> MeshJoints;
 class MeshSkeleton
 {
 public:
-	MeshSkeleton(ExportableScene& scene, const MFnMesh& mesh);
+	MeshSkeleton(ExportableScene& scene, const ExportableNode& node, const MFnMesh& mesh);
 	virtual ~MeshSkeleton();
 
 	void dump(class IndentableStream& out, const std::string& name) const;

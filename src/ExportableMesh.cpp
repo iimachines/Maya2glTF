@@ -23,7 +23,7 @@ ExportableMesh::ExportableMesh(
 	auto& resources = scene.resources();
 	auto& args = resources.arguments();
 
-	const auto mayaMesh = std::make_unique<Mesh>(scene, shapeDagPath, node.pivotPoint);
+	const auto mayaMesh = std::make_unique<Mesh>(scene, shapeDagPath, node);
 
 	if (args.dumpMaya)
 	{

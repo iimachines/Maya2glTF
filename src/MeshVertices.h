@@ -83,11 +83,12 @@ inline VertexComponents componentsAt(const VertexComponents& elements, const siz
 
 class Arguments;
 class MeshIndices;
+class ExportableNode;
 
 class MeshVertices
 {
 public:
-	MeshVertices(const MeshIndices& meshIndices, const MeshSkeleton* meshSkeleton, const MFnMesh& mesh, ShapeIndex shapeIndex, const MPoint& pivotPoint, const Arguments& args);
+	MeshVertices(const MeshIndices& meshIndices, const MeshSkeleton* meshSkeleton, const MFnMesh& mesh, ShapeIndex shapeIndex, const ExportableNode& node, const Arguments& args);
 	virtual ~MeshVertices();
 
 	const ShapeIndex shapeIndex;
