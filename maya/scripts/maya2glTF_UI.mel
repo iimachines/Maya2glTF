@@ -1,4 +1,4 @@
-﻿proc string _quoted(string $text)
+proc string _quoted(string $text)
 {
 	string $quote = "\"";
 	return $quote+$text+$quote;
