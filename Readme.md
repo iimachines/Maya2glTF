@@ -11,8 +11,9 @@
 * To **install**: 
     * install the [Microsoft Visual C++ redistributables](https://go.microsoft.com/fwlink/?LinkId=746572).
         * on many systems this is already installed, so you might want to skip this step.
-    * extract the ZIP to any location (e.g. your desktop)
-    * open the created Maya2glTF folder
+    * download the desired [Maya2glTF_xxx.zip release](https://github.com/Ziriax/Maya2glTF/releases)
+    * extract the downloaded `zip` file to any location (e.g. your desktop)
+    * open the created `Maya2glTF` folder
     * double click on the `deploy.bat` file
         * This will copy the plug-in and scripts to your `Documents` folder
     * re-launch Maya 2017 or 2018
