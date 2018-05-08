@@ -4,12 +4,80 @@
 
 ![Maya Helmet screenshot](/img/maya_screenshot.jpg)
 
+## Usage
 
+* *Maya 2018 and 2017, tested on Windows 10 x64 only for now*
+
+* To **install**: 
+    * install the [Microsoft Visual C++ redistributables](https://go.microsoft.com/fwlink/?LinkId=746572).
+        * on many systems this is already installed, so you might want to skip this step.
+    * extract the ZIP to any location (e.g. your desktop)
+    * open the created Maya2glTF folder
+    * double click on the `deploy.bat` file
+        * This will copy the plug-in and scripts to your `Documents` folder
+    * re-launch Maya 2017 or 2018
+
+* To **export**: 
+    * load a scene
+    * in the Maya script window, type `maya2glTF_UI` to launch the UI.
+        * You might want to select the `maya2glTF_UI` script text and drag it using the middle-mouse-button to the `Custom` shelf, or even better, make a `glTF` shelf...
+    * select the meshes you want export
+        * or click the `select all polygon meshes` button
+    * select the desired animation clips source using the dropdown box
+        * TRAX animation clips are also supported.
+            * *only enabled clips on the first track are exported*.
+            * if you have multiple characters, select the desired one.
+    * hit the `export selected meshes` button. 
+       * *currently the user interface is not automatically updated when you change or load a scene; just re-run the `maya2glTF_UI` script or hit the `refresh user interface` button*.
+    * good luck! ;-)
+
+* To **help**:
+    * let me know if this doesn't work for you, this is BETA stuff ;-)
+        * ideally make an issue, providing the OS, Maya and plug-in version, and a test-scene.
+    * if it *does* work, please give Maya2glTF a :star: on GitHUB, and spread the word :sunglasses:
+
+* To **shade**: 
+    * *I assume you already used something like Substance Painter to create glTF-PBR textures*
+    * select the polygons you want to shade
+    * click the `assign PBR shader to selection` button
+    * the first time, you need to select our PBR OpenGL shader at:
+        * `Documents\maya\Maya2glTF\PBR\shaders\glTF_PBR.ogsfx`
+    * next, select all the PBR textures you want to apply in one go:
+        * for example, for the [damaged helmet model](https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0/DamagedHelmet/glTF), multi-select the following textures:
+            * `Default_normal.jpg`
+            * `Default_albedo.jpg`
+            * `Default_AO.jpg`
+            * `Default_emissive.jpg`
+            * `Default_metalRoughness.jpg`
+    * now the PBR shader and all textures should be applied to your selection
+    * by default we use the following keyword-in-filename convention to detect the kind of texture:
+        * `base` or `albedo` => base color texture
+        * `metal` or `orm` => metallic texture
+        * `rough` or `orm` => roughness texture
+        * `occlusion` or `orm` or `ao` => occlusion texture
+        * `normal` => tangent space normal texture 
+            * see also the `-mts` flag for MikkTSpace information if your models come from Blender
+        * `emissive` => emissive texture
+        * `diffuse_env` => Image-based-lighting (IBL) prefiltered diffuse environment map (PMREM)
+        * `specular_env` => Image-based-lightning (IBL) prefiltered specular environment map (PMREM)
+        * `brdf` => Bidirectional reflectance distribution function lookup table texture
+        * *you can customize these conventions, see `maya2glTF_assignPbrShader.mel`*
+    * all textures are optional
+    * see the [glTF PBR page](https://github.com/KhronosGroup/glTF-WebGL-PBR) page for more info.
+    * the metallic and roughness textures are always merged into a single texture when exporting.  
+        * *If you provide JPEGs, we use Maya's JPEG encoder to generate this texture. However, the default Maya JPEG encoding settings are very low quality*. 
+            * The following MEL snippet sets the  JPEG encoder quality:
+                ```
+                putenv "AW_JPEG_Q_FACTOR" "92";
+                ```
+            * The following MEL code enables maximum possible JPEG quality:
+                ```
+                putenv "AW_JPEG_Q_FACTOR" "100";
+                putenv "AW_JPEG_SUB_SAMPLING" "1x1,1x1,1x1";
+                ```
 ## Update
 
-The fourth BETA is released! See the [releases](https://github.com/Ziriax/Maya2glTF/releases) tab. 
-
-*Maya 2017 and 2018 on Windows x64 only for now*
+The fifth BETA is released! See the [releases](https://github.com/Ziriax/Maya2glTF/releases) tab. 
 
 ## Rationale
 

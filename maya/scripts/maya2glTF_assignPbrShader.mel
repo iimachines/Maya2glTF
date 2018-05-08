@@ -29,10 +29,10 @@ global proc maya2glTF_assignMaterialAndTextures(
 	
 	if (size($maya2glTF_default_texture_patterns) == 0) {
 		$maya2glTF_default_texture_patterns = {
-			"base",
-			"metallic",
-			"roughness",
-			"occlusion",
+			"base|albedo",
+			"metal|orm",
+			"rough|orm",
+			"occlusion|orm|ao",
 			"normal",
 			"emissive",
 			"diffuse[\\W\\d_]*env",
@@ -108,6 +108,8 @@ global proc maya2glTF_assignMaterialAndTextures(
     for ($i = 0; $i < size($attrNames); ++$i)
     {
         string $texturePattern = `tolower $texturePatterns[$i]`;
+		string $texturePatterns[];
+		tokenize $texturePattern "|" $texturePatterns;
 
 		int $found = false;
 		
@@ -115,8 +117,16 @@ global proc maya2glTF_assignMaterialAndTextures(
         {
             string $filePath = $filePaths[$j];
             string $filePathLower = `tolower $filePath`;
+			string $currentPattern;
 
-            if (`match $texturePattern $filePathLower` != "")
+			int $matches = false;
+
+			for ($currentPattern in $texturePatterns)
+			{
+				$matches = $matches || (`match $currentPattern $filePathLower` != "");
+			}
+
+            if ($matches)
             {
                 string $shAttrName = ($sh+"."+$attrNames[$i]);
                 string $fileNode = `createRenderNodeCB -as2DTexture "" file ("defaultNavigation -force true -connectToExisting -source %node -destination "+$shAttrName+";")`;
