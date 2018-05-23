@@ -28,6 +28,7 @@ MeshRenderables::MeshRenderables(
 
 	const auto primitiveCount = mainIndices.primitiveCount();
 	const auto maxVertexCount = mainIndices.maxVertexCount();
+	const auto minVertexCount = mainShape->semantics().descriptions(Semantic::POSITION).at(0).elementCount;
 	const auto perPrimitiveVertexCount = mainIndices.perPrimitiveVertexCount();
 
 	auto primitiveVertexIndex = 0;
@@ -38,6 +39,7 @@ MeshRenderables::MeshRenderables(
 	const auto semanticsMask = args.meshPrimitiveAttributes;
 
 	auto totalWeldCount = 0;
+	auto totalVertexCount = 0;
 
 	for (auto primitiveIndex = 0; primitiveIndex < primitiveCount; ++primitiveIndex)
 	{
@@ -132,7 +134,8 @@ MeshRenderables::MeshRenderables(
 		}
 	}
 
-	cout << prefix << mainShape->dagPath().partialPathName().asChar() << ": welded " << totalWeldCount << " out of " << maxVertexCount << " vertices" << endl;
+	cout << prefix << mainShape->dagPath().partialPathName().asChar() << " will have " << maxVertexCount-totalWeldCount 
+		<< " vertices. Welded#" << totalWeldCount << ", min#" << minVertexCount << ", max#" << maxVertexCount << endl;
 
 	// Now compute the blend-shape vector-deltas by subtracting the blend-shape-base mesh from the blend-shape-targets
 	if (meshShapes.size() > 1)
