@@ -1,4 +1,4 @@
-﻿proc string _quoted(string $text)
+proc string _quoted(string $text)
 {
 	string $quote = "\"";
 	return $quote+$text+$quote;
@@ -251,7 +251,7 @@ global proc maya2glTF_UI()
 	global string $gMainProgressBar;  
 
     // This is auto-updated by msbuild 
-	string $maya2glTF_version = "v0.9.4-beta a332cd0";
+	string $maya2glTF_version = "v0.9.5-beta 77dcd04";
 
 	if (`window -exists maya2glTF_exporter_window`)
 		deleteUI maya2glTF_exporter_window;
@@ -336,6 +336,10 @@ global proc maya2glTF_UI()
 	 	"maya2glTF_onExport(^1s, ^2s, ^3s, ^4s, ^5s, ^6s, ^7s, ^8s);"`;
 
 	button -label "export selected meshes" -command $exportCMD;
+
+	separator;
+
+	button -label "refresh user interface" -command "evalDeferred(\"maya2glTF_UI();\");";
 	
 	showWindow maya2glTF_exporter_window;
 }

@@ -164,7 +164,7 @@
       <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
 xcopy /y "$(ProjectDir)maya\scripts\maya2glTF_UI.mel" "$(userprofile)\Documents\Maya\$(MayaVersion)\scripts\"
 xcopy /y "$(ProjectDir)maya\scripts\maya2glTF_assignPbrShader.mel" "$(userprofile)\Documents\Maya\$(MayaVersion)\scripts\"
-
+xcopy /y /s /i "$(ProjectDir)maya\renderData\*.*" "$(userprofile)\Documents\Maya\Maya2glTF\PBR"
 
 
 </Command>
@@ -205,7 +205,7 @@ xcopy /y "$(ProjectDir)maya\scripts\maya2glTF_assignPbrShader.mel" "$(userprofil
       <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
 xcopy /y "$(ProjectDir)maya\scripts\maya2glTF_UI.mel" "$(userprofile)\Documents\Maya\$(MayaVersion)\scripts\"
 xcopy /y "$(ProjectDir)maya\scripts\maya2glTF_assignPbrShader.mel" "$(userprofile)\Documents\Maya\$(MayaVersion)\scripts\"
-
+xcopy /y /s /i "$(ProjectDir)maya\renderData\*.*" "$(userprofile)\Documents\Maya\Maya2glTF\PBR"
 
 
 </Command>
@@ -246,7 +246,7 @@ xcopy /y "$(ProjectDir)maya\scripts\maya2glTF_assignPbrShader.mel" "$(userprofil
       <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
 xcopy /y "$(ProjectDir)maya\scripts\maya2glTF_UI.mel" "$(userprofile)\Documents\Maya\$(MayaVersion)\scripts\"
 xcopy /y "$(ProjectDir)maya\scripts\maya2glTF_assignPbrShader.mel" "$(userprofile)\Documents\Maya\$(MayaVersion)\scripts\"
-
+xcopy /y /s /i "$(ProjectDir)maya\renderData\*.*" "$(userprofile)\Documents\Maya\Maya2glTF\PBR"
 
 
 </Command>
@@ -291,7 +291,7 @@ xcopy /y "$(ProjectDir)maya\scripts\maya2glTF_assignPbrShader.mel" "$(userprofil
       <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
 xcopy /y "$(ProjectDir)maya\scripts\maya2glTF_UI.mel" "$(userprofile)\Documents\Maya\$(MayaVersion)\scripts\"
 xcopy /y "$(ProjectDir)maya\scripts\maya2glTF_assignPbrShader.mel" "$(userprofile)\Documents\Maya\$(MayaVersion)\scripts\"
-
+xcopy /y /s /i "$(ProjectDir)maya\renderData\*.*" "$(userprofile)\Documents\Maya\Maya2glTF\PBR"
 
 
 </Command>
@@ -336,7 +336,7 @@ xcopy /y "$(ProjectDir)maya\scripts\maya2glTF_assignPbrShader.mel" "$(userprofil
       <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
 xcopy /y "$(ProjectDir)maya\scripts\maya2glTF_UI.mel" "$(userprofile)\Documents\Maya\$(MayaVersion)\scripts\"
 xcopy /y "$(ProjectDir)maya\scripts\maya2glTF_assignPbrShader.mel" "$(userprofile)\Documents\Maya\$(MayaVersion)\scripts\"
-
+xcopy /y /s /i "$(ProjectDir)maya\renderData\*.*" "$(userprofile)\Documents\Maya\Maya2glTF\PBR"
 
 
 </Command>
@@ -381,7 +381,7 @@ xcopy /y "$(ProjectDir)maya\scripts\maya2glTF_assignPbrShader.mel" "$(userprofil
       <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
 xcopy /y "$(ProjectDir)maya\scripts\maya2glTF_UI.mel" "$(userprofile)\Documents\Maya\$(MayaVersion)\scripts\"
 xcopy /y "$(ProjectDir)maya\scripts\maya2glTF_assignPbrShader.mel" "$(userprofile)\Documents\Maya\$(MayaVersion)\scripts\"
-
+xcopy /y /s /i "$(ProjectDir)maya\renderData\*.*" "$(userprofile)\Documents\Maya\Maya2glTF\PBR"
 
 
 </Command>

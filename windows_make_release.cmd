@@ -30,7 +30,16 @@ if errorlevel 1 goto :error
 xcopy /y /s "%userprofile%\Documents\Maya\Maya2glTF*" "Maya2glTF\Maya\"
 if errorlevel 1 goto :error
 
-"c:\Program Files\WinRAR\rar.exe" A -r "Maya2glTF_v0.9.4-beta.zip" "Maya2glTF\*" 
+xcopy /y /s /i "%userprofile%\Documents\Maya\Maya2glTF" "Maya2glTF\Maya\Maya2glTF"
+if errorlevel 1 goto :error
+
+where dos2unix
+if errorlevel 0 (
+    echo Removing BOM from UTF-8 files
+    for /r %%f in (*.mel) do (dos2unix %%f)
+)
+
+"c:\Program Files\WinRAR\rar.exe" A -r "Maya2glTF_v0.9.5-beta.zip" "Maya2glTF\*" 
 if errorlevel 1 goto :error
 
 echo ### SUCCESS ###
