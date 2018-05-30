@@ -17,8 +17,6 @@
 #include <bitset>
 #include <numeric>
 #include <cmath>
-#include <valarray>
-#include <fstream>
 
 #ifdef _MSC_VER
 #	pragma  warning(disable:4267)
@@ -45,8 +43,6 @@
 
 #include <coveo/linq.h>
 #include <coveo/enumerable.h>
-
-#include <experimental/vector>
 
 #include <maya/MPxCommand.h>
 #include <maya/MFnPlugin.h>

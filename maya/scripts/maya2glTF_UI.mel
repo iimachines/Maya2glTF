@@ -1,4 +1,4 @@
-proc string _quoted(string $text)
+﻿proc string _quoted(string $text)
 {
 	string $quote = "\"";
 	return $quote+$text+$quote;
@@ -251,7 +251,7 @@ global proc maya2glTF_UI()
 	global string $gMainProgressBar;  
 
     // This is auto-updated by msbuild 
-	string $maya2glTF_version = "v0.9.5-beta 77dcd04";
+	string $maya2glTF_version = "v0.9.5-beta e75d87d";
 
 	if (`window -exists maya2glTF_exporter_window`)
 		deleteUI maya2glTF_exporter_window;
