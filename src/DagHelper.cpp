@@ -192,7 +192,10 @@ bool DagHelper::getPlugValue(const MObject& node, const char* attributeName, MCo
 
 bool DagHelper::getPlugValue(const MPlug& plug, MColor& value)
 {
-	if (plug.isCompound() && plug.numChildren() >= 3)
+	const auto isCompound = plug.isCompound();
+	const auto numChildren = plug.numChildren();
+
+	if (isCompound && numChildren >= 3)
 	{
 		auto status = plug.child(0).getValue(value.r);
 		if (status != MStatus::kSuccess)
@@ -206,7 +209,7 @@ bool DagHelper::getPlugValue(const MPlug& plug, MColor& value)
 		if (status != MStatus::kSuccess)
 			return false;
 
-		if (plug.numChildren() >= 4)
+		if (numChildren >= 4)
 		{
 			status = plug.child(3).getValue(value.a);
 			if (status != MStatus::kSuccess)

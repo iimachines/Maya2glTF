@@ -15,6 +15,13 @@ global string $maya2glTF_default_texture_patterns[];
 global string $maya2glTF_default_shader_path;
 global string $maya2glTF_last_texture_directory;
 
+proc string _ensureTrailingSlash( string $folderPath ) {
+    if (substring($folderPath, size($folderPath), size($folderPath)) != "/")
+        $folderPath += "/";
+
+    return $folderPath;
+}
+
 global proc maya2glTF_assignMaterialAndTextures(
     string $objectNames[],
     string $shaderPath,
@@ -167,5 +174,9 @@ global proc maya2glTF_assignMaterialAndTextures(
 
 global proc maya2glTF_assignPbrShader() 
 {
-    maya2glTF_assignMaterialAndTextures({}, "", {});
+	// Pass the path to the default shader location. 
+	// If it doesn't exist, a prompt will be given to the user.
+	string $home = _ensureTrailingSlash(`getenv "HOME"`);
+	string $shaderPath = $home + "maya/Maya2glTF/PBR/shaders/glTF_PBR.ogsfx";
+    maya2glTF_assignMaterialAndTextures({}, $shaderPath, {});
 }

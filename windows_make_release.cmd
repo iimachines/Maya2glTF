@@ -39,7 +39,7 @@ if errorlevel 0 (
     for /r %%f in (*.mel) do (dos2unix %%f)
 )
 
-"c:\Program Files\WinRAR\rar.exe" A -r "Maya2glTF_v0.9.5-beta.zip" "Maya2glTF\*" 
+"c:\Program Files\WinRAR\rar.exe" A -r "Maya2glTF_v0.9.6-beta.zip" "Maya2glTF\*" 
 if errorlevel 1 goto :error
 
 echo ### SUCCESS ###

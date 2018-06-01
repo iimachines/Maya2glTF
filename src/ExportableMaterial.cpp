@@ -172,10 +172,16 @@ void ExportableMaterialPBR::loadPBR(ExportableResources& resources, const MFnDep
 	const auto shaderObject = shaderNode.object(&status);
 	THROW_ON_FAILURE(status);
 
-	// Base color 
+	// Base color. For some reason Maya splits this attribute into separate RGB and A attributes
 	m_glBaseColorFactor = { 1, 1, 1, resources.arguments().opacityFactor };
-	if (getColor(shaderObject, "u_BaseColorFactor", m_glBaseColorFactor))
+
+	Float4 customBaseColor = m_glBaseColorFactor;
+	float customBaseAlpha = m_glBaseColorFactor[3];
+	if (getColor(shaderObject, "u_BaseColorFactorRGB", customBaseColor) ||
+		getScalar(shaderObject, "u_BaseColorFactorA", customBaseAlpha))
 	{
+		customBaseColor[3] = customBaseAlpha;
+		m_glBaseColorFactor = customBaseColor;
 		m_glMetallicRoughness.baseColorFactor = &m_glBaseColorFactor[0];
 		m_glMaterial.metallicRoughness = &m_glMetallicRoughness;
 	}
