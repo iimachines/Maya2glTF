@@ -1,5 +1,9 @@
 # Maya to glTF exporter
 
+## Update
+
+0.9.6-BETA is released! See the [releases](https://github.com/Ziriax/Maya2glTF/releases) tab. 
+
 ![Maya Tiger screenshot](/img/tiger-wim@koetan.gif)
 
 ![Maya Helmet screenshot](/img/maya_screenshot.jpg)
@@ -76,10 +80,6 @@
                 putenv "AW_JPEG_Q_FACTOR" "100";
                 putenv "AW_JPEG_SUB_SAMPLING" "1x1,1x1,1x1";
                 ```
-## Update
-
-The fifth BETA is released! See the [releases](https://github.com/Ziriax/Maya2glTF/releases) tab. 
-
 ## Rationale
 
 At **[Wonder Media](https://wondermedia.tv)**, we are specialized in creating realtime interactive 3D animation, for education, events and broadcast television, since 1992. We have developed our own multi-machine real-time 3D puppeteering software called **AnimationNow**, and we are about to upgrade this to make use of up-to-date rendering techniques. 
