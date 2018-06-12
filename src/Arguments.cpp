@@ -50,7 +50,7 @@ namespace flag
 
 	const auto selectedNodesOnly = "sno";
 
-	const auto includeUnusedTexcoord = "iut";
+	const auto excludeUnusedTexcoord = "eut";
 }
 
 inline const char* getArgTypeName(const MSyntax::MArgType argType)
@@ -128,7 +128,7 @@ SyntaxFactory::SyntaxFactory()
 
 	registerFlag(ss, flag::selectedNodesOnly, "selectedNodesOnly", kNoArg);
 
-	registerFlag(ss, flag::includeUnusedTexcoord, "includeUnusedTexcoord", kNoArg);
+	registerFlag(ss, flag::excludeUnusedTexcoord, "excludeUnusedTexcoord", kNoArg);
 
 	registerFlag(ss, flag::ignoreSegmentScaleCompensation, "ignoreSegmentScaleCompensation", kNoArg);
 
@@ -429,7 +429,7 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	skipSkinClusters = adb.isFlagSet(flag::skipSkinClusters);
 	skipBlendShapes = adb.isFlagSet(flag::skipBlendShapes);
 	redrawViewport = adb.isFlagSet(flag::redrawViewport);
-	includeUnusedTexcoord = adb.isFlagSet(flag::includeUnusedTexcoord);
+	excludeUnusedTexcoord = adb.isFlagSet(flag::excludeUnusedTexcoord);
 	ignoreSegmentScaleCompensation = adb.isFlagSet(flag::ignoreSegmentScaleCompensation);
 
 	adb.optional(flag::globalOpacityFactor, opacityFactor);

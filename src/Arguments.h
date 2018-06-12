@@ -133,8 +133,8 @@ public:
 	/** The semantics (aka glTF attributes) that should be exported for blend shapes. Defaults to NORMAL and TANGENT */
 	MeshSemanticSet blendPrimitiveAttributes;
 
-	/** Include TEXCOORD semantics (aka glTF attributes) even if a primitive doesn't use textures? By default TEXCOORD attributes are only added when needed */
-	bool includeUnusedTexcoord = false;
+	/** Exclude TEXCOORD semantics (aka glTF attributes) when the mesh primitive doesn't have textures? By default TEXCOORD attributes are always included */
+	bool excludeUnusedTexcoord = false;
 
 	/** Ignore all skin clusters */
 	bool skipSkinClusters = false;

@@ -77,8 +77,8 @@ ExportablePrimitive::ExportablePrimitive(
 
 	auto mainShapeSemanticSet = args.meshPrimitiveAttributes;
 
-	// Don't add texture coordinates if no textures are used, unless explicitly enabled
-	if (!args.includeUnusedTexcoord && !material->hasTextures())
+	// Don't add texture coordinates if no textures are used, if option is enabled
+	if (args.excludeUnusedTexcoord && !material->hasTextures())
 		mainShapeSemanticSet.set(Semantic::TEXCOORD, false);
 
 	const auto blendShapeSemanticSet = args.blendPrimitiveAttributes & mainShapeSemanticSet;
