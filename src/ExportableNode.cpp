@@ -146,3 +146,17 @@ std::unique_ptr<NodeAnimation> ExportableNode::createAnimation(const ExportableF
 {
 	return std::make_unique<NodeAnimation>(*this, frameTimes, scaleFactor);
 }
+
+void ExportableNode::updateNodeTransforms(NodeTransformCache& transformCache)
+{
+	currentTransformState = transformCache.getTransform(this, scaleFactor);
+	m_glNodes[0].transform = &currentTransformState.localTransforms[0];
+	m_glNodes[1].transform = &currentTransformState.localTransforms[1];
+
+	if (!currentTransformState.hasValidLocalTransforms)
+	{
+		// TODO: Use SVG to decompose the 3x3 matrix into a product of rotation and scale matrices.
+		cerr << prefix << "WARNING: node '" << name() << "' has transforms at the current frame that are not representable by glTF! Skewing is not supported, use 3 nodes to simulate this" << endl;
+	}
+}
+

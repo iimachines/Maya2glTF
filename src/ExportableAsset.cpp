@@ -22,6 +22,8 @@ ExportableAsset::ExportableAsset(const Arguments& args)
 		*args.dumpMaya << "{" << indent << endl;
 	}
 
+	const auto currentFrameTime = MAnimControl::currentTime();
+
 	setCurrentTime(args.initialValuesTime, args.redrawViewport);
 
 	size_t progressStepCount = args.selection.size();
@@ -55,6 +57,14 @@ ExportableAsset::ExportableAsset(const Arguments& args)
 				m_clips.emplace_back(std::move(clip));
 			}
 		}
+	}
+	else if (currentFrameTime != args.initialValuesTime)
+	{
+		// When we export just a single frame, we normally bake the geometry at that frame.
+		// However, when explicitly specifying a different initialValuesTime argument, we bake the values at the initial frame,
+		// and re-evaluate the node-transforms and blend-shape-weights of the current frame, not the initial-values frame.
+		setCurrentTime(currentFrameTime, args.redrawViewport);
+		m_scene.updateCurrentValues();
 	}
 
 	if (args.dumpMaya)

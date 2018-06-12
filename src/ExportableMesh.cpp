@@ -188,3 +188,13 @@ void ExportableMesh::setupNode(GLTF::Node& node)
 		node.skin = &glSkin;
 	}
 }
+
+void ExportableMesh::updateWeights()
+{
+	for (size_t i=0; i<m_weightPlugs.size(); ++i)
+	{
+		auto& plug = m_weightPlugs.at(i);
+		auto& weight = glMesh.weights.at(i);
+		THROW_ON_FAILURE(plug.getValue(weight));
+	}
+}

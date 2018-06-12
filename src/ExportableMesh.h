@@ -29,6 +29,8 @@ public:
 
 	void setupNode(GLTF::Node& node);
 
+	void updateWeights();
+
 private:
 	DISALLOW_COPY_MOVE_ASSIGN(ExportableMesh);
 

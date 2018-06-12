@@ -18,6 +18,9 @@ public:
 
 	const Arguments& arguments() const { return m_resources.arguments(); }
 
+	// Update all node transforms using the values at the current frame
+	void updateCurrentValues();
+
 	GLTF::Scene glScene;
 
 	// Gets or creates the node
@@ -39,6 +42,7 @@ private:
 
 	ExportableResources& m_resources;
 	NodeTable m_table;
-	NodeTransformCache m_transformCache;
+	NodeTransformCache m_initialTransformCache;
+	NodeTransformCache m_currentTransformCache;
 };
 

@@ -26,6 +26,7 @@ public:
 	ExportableNode* parentNode;
 
 	NodeTransformState initialTransformState;
+	NodeTransformState currentTransformState;
 
 	std::unique_ptr<NodeAnimation> createAnimation(const ExportableFrames& frameTimes, const double scaleFactor) override;
 
@@ -40,6 +41,9 @@ public:
 	const GLTF::Node& glNodeTU() const { return const_cast<ExportableNode*>(this)->glNodeTU(); }
 
 	MDagPath parentDagPath() const { return parentNode ? parentNode->dagPath : MDagPath(); }
+
+	// Update the node transforms using the values at the current frame
+	void updateNodeTransforms(NodeTransformCache& transformCache);
 
 private:
 	friend class ExportableScene;

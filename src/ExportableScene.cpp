@@ -9,6 +9,20 @@ ExportableScene::ExportableScene(ExportableResources& resources) :m_resources(re
 
 ExportableScene::~ExportableScene() = default;
 
+void ExportableScene::updateCurrentValues()
+{
+	for (auto&& pair: m_table)
+	{
+		auto& node = pair.second;
+		node->updateNodeTransforms(m_currentTransformCache);
+		auto* mesh = node->mesh();
+		if (mesh)
+		{
+			mesh->updateWeights();
+		}
+	}
+}
+
 ExportableNode* ExportableScene::getNode(const MDagPath& dagPath)
 {
 	MStatus status;
@@ -27,7 +41,7 @@ ExportableNode* ExportableScene::getNode(const MDagPath& dagPath)
 	if (ptr == nullptr)
 	{
 		ptr.reset(new ExportableNode(dagPath));
-		ptr->load(*this, m_transformCache);
+		ptr->load(*this, m_initialTransformCache);
 	}
 	return ptr.get();
 }
