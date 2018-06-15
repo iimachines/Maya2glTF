@@ -281,6 +281,10 @@ I consider this plugin to be in *beta* stage, use it at your own risk :)
         * do not export standard materials (lambert, phong, etc), only GLTF PBR materials.
         * by default standard materials are converted
             * but just the color and transparency is copied for now.
+
+    * `-excludeUnusedTexcoord (-eut)` *(optional)* 
+    	* exclude texture coordinates when the mesh primitive doesn't have textures? 
+        * by default texture coordinates are always exported
 	
     * `-defaultMaterial (-dm)` *(optional)* 
         * always generates a glTF PBR material, even if no material is assigned to a mesh in Maya

@@ -139,7 +139,7 @@ void ExportableAsset::save()
 	const auto outputFolder = path(args.outputFolder.asChar());
 	create_directories(outputFolder);
 
-	const auto outputFilename = std::string(args.sceneName.asChar()) + (args.glb ? ".glb" : ".glTF");
+	const auto outputFilename = std::string(args.sceneName.asChar()) + (args.glb ? ".glb" : ".gltf");
 	const auto outputPath = outputFolder / outputFilename;
 
 	cout << prefix << "Writing glTF file to '" << outputPath << "'" << endl;
