@@ -8,6 +8,9 @@ using namespace std::experimental;
 
 namespace flag
 {
+	const auto gltfFileExtension = "gfe";
+	const auto glbFileExtension = "gbe";
+
 	const auto outputFolder = "of";
 	const auto sceneName = "sn";
 	const auto binary = "glb";
@@ -90,6 +93,8 @@ SyntaxFactory::SyntaxFactory()
 	useSelectionAsDefault(true);
 
 	std::stringstream ss;
+	registerFlag(ss, flag::gltfFileExtension, "gltfFileExtension", kString);
+	registerFlag(ss, flag::glbFileExtension, "glbFileExtension", kString);
 	registerFlag(ss, flag::outputFolder, "outputFolder", kString);
 	registerFlag(ss, flag::sceneName, "sceneName", kString);
 	registerFlag(ss, flag::scaleFactor, "scaleFactor", kDouble);
@@ -457,8 +462,10 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	debugNormalVectors = adb.isFlagSet(flag::debugNormalVectors);
 
 	adb.optional(flag::debugVectorLength, debugVectorLength);
-
 	adb.optional(flag::copyright, copyright);
+
+	adb.optional(flag::gltfFileExtension, gltfFileExtension);
+	adb.optional(flag::glbFileExtension, glbFileExtension);
 
 	// Parse mesh deformers to ignore
 	const auto deformerNameCount = adb.flagUsageCount(flag::ignoreMeshDeformers);

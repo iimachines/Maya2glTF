@@ -82,6 +82,12 @@ public:
 	MString outputFolder;
 	Selection selection;
 
+	/* The extension to use for glTF files. Some viewers require lower-case gltf, others might need the official glTF */
+	MString gltfFileExtension = "gltf";
+
+	/* The extension to use for glb files. */
+	MString glbFileExtension = "glb";
+
 	/** Outputs a single binary GLB file */
 	bool glb = false;
 
