@@ -24,6 +24,7 @@ protected:
 
 	static bool getScalar(const MObject& shaderObject, const char* attributeName, float& scalar);
 	static bool getColor(const MObject& shaderObject, const char* attributeName, Float4& color);
+	static bool getString(const MObject& shaderObject, const char* attributeName, MString& string);
 
 private:
 	DISALLOW_COPY_MOVE_ASSIGN(ExportableMaterial);

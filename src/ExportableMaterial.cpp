@@ -47,6 +47,11 @@ bool ExportableMaterial::getScalar(const MObject& obj, const char* attributeName
 	return DagHelper::getPlugValue(obj, attributeName, scalar);
 }
 
+bool ExportableMaterial::getString(const MObject& obj, const char* attributeName, MString& string)
+{
+	return DagHelper::getPlugValue(obj, attributeName, string);
+}
+
 bool ExportableMaterial::getColor(const MObject& obj, const char* attributeName, Float4& color)
 {
 	MColor c;
@@ -177,8 +182,13 @@ void ExportableMaterialPBR::loadPBR(ExportableResources& resources, const MFnDep
 
 	Float4 customBaseColor = m_glBaseColorFactor;
 	float customBaseAlpha = m_glBaseColorFactor[3];
-	if (getColor(shaderObject, "u_BaseColorFactorRGB", customBaseColor) ||
-		getScalar(shaderObject, "u_BaseColorFactorA", customBaseAlpha))
+	MString technique = "solid";
+
+	const auto hasCustomColor = getColor(shaderObject, "u_BaseColorFactorRGB", customBaseColor);
+	const auto hasCustomAlpha = getScalar(shaderObject, "u_BaseColorFactorA", customBaseAlpha);
+	const auto hasTechnique = getString(shaderObject, "technique", technique);
+
+	if (hasCustomColor | hasCustomAlpha)
 	{
 		customBaseColor[3] = customBaseAlpha;
 		m_glBaseColorFactor = customBaseColor;
@@ -186,8 +196,7 @@ void ExportableMaterialPBR::loadPBR(ExportableResources& resources, const MFnDep
 		m_glMaterial.metallicRoughness = &m_glMetallicRoughness;
 	}
 
-	// TODO: Add transparency texture to our shader!
-	if (m_glBaseColorFactor[3] != 1)
+	if (hasTechnique && technique.toLowerCase() == "transparent")
 	{
 		m_glMaterial.alphaMode = "BLEND";
 	}
