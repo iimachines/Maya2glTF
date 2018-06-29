@@ -147,17 +147,18 @@ ExportableMesh::ExportableMesh(
 			glSkin.inverseBindMatrices = m_inverseBindMatricesAccessor.get();
 
 			// Find root
-			const auto& roots = distanceToRootMap.begin()->second;
+			// NOTE: Disabled to support skeletons with multiple roots, the skeleton property is optional anyway
+			//const auto& roots = distanceToRootMap.begin()->second;
 
-			if (roots.size() > 1)
-			{
-				MayaException::printError(
-					formatted("Skeletons with multiple roots are not yet supported, mesh '%s'", shapeName.c_str()));
-			}
+			//if (roots.size() > 1)
+			//{
+			//	MayaException::printError(
+			//		formatted("Skeletons with multiple roots are not yet supported, mesh '%s'", shapeName.c_str()));
+			//}
 
-			auto rootJointNode = roots.at(0);
-			cout << prefix << "Using joint " << quoted(rootJointNode->name(), '\'') << " as skeleton root for mesh " << quoted(shapeName, '\'') << endl;
-			glSkin.skeleton = &rootJointNode->glNodeRS();
+			//auto rootJointNode = roots.at(0);
+			//cout << prefix << "Using joint " << quoted(rootJointNode->name(), '\'') << " as skeleton root for mesh " << quoted(shapeName, '\'') << endl;
+			//glSkin.skeleton = &rootJointNode->glNodeRS();
 		}
 	}
 }
@@ -183,7 +184,7 @@ void ExportableMesh::setupNode(GLTF::Node& node)
 {
 	node.mesh = &glMesh;
 
-	if (glSkin.skeleton)
+	if (glSkin.inverseBindMatrices)
 	{
 		node.skin = &glSkin;
 	}
