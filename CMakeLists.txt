@@ -1,0 +1,77 @@
+cmake_minimum_required(VERSION 3.5)
+project(Maya2glTF)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/modules")
+
+find_package(Maya REQUIRED)
+
+include(ExternalProject)
+
+# COLLADA2GLTF
+ExternalProject_Add(COLLADA2GLTF
+  GIT_REPOSITORY https://github.com/KhronosGroup/COLLADA2GLTF.git
+  GIT_TAG v2.1.3
+  PREFIX COLLADA2GLTF
+  INSTALL_DIR
+  CMAKE_ARGS
+	-DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+)
+
+# cpp-linq
+ExternalProject_Add(linq
+  GIT_REPOSITORY https://github.com/coveo/linq.git
+  GIT_TAG v2.0.2
+  PREFIX linq
+  INSTALL_DIR
+  CMAKE_ARGS
+  -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+  CONFIGURE_COMMAND ""
+  BUILD_COMMAND ""
+  INSTALL_COMMAND ""
+)
+
+# GSL
+ExternalProject_Add(GSL
+  GIT_REPOSITORY https://github.com/Microsoft/GSL.git
+  GIT_TAG v1.0.0
+  PREFIX GSL
+  INSTALL_DIR
+  CMAKE_ARGS
+	-DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+)
+
+set(GLTF_INCLUDE_DIR "${CMAKE_BINARY_DIR}/COLLADA2GLTF/src/COLLADA2GLTF/GLTF/include")
+set(RAPIDJSON_INCLUDE_DIR "${CMAKE_BINARY_DIR}/COLLADA2GLTF/src/COLLADA2GLTF/GLTF/dependencies/rapidjson/include")
+set(COLLADA2GLTF_INCLUDE_DIR "${CMAKE_BINARY_DIR}/COLLADA2GLTF/include")
+set(GSL_INCLUDE_DIR "${CMAKE_BINARY_DIR}/GSL/include")
+set(LINQ_INCLUDE_DIR "${CMAKE_BINARY_DIR}/linq/src/linq/lib")
+
+file(GLOB SOURCES "src/*.cpp" "src/*.h")
+
+include_directories(
+  ${GLTF_INCLUDE_DIR}
+  ${RAPIDJSON_INCLUDE_DIR}
+  ${COLLADA2GLTF_INCLUDE_DIR}
+  ${GSL_INCLUDE_DIR}
+  ${MAYA_INCLUDE_DIR}
+  ${LINQ_INCLUDE_DIR}
+)
+
+link_directories(
+  ${COLLADA2GLTF_LIB_DIR}
+  ${MAYA_LIBRARY_DIR}
+)
+
+add_library(${PROJECT_NAME} ${SOURCES})
+
+add_dependencies(${PROJECT_NAME}
+  GSL
+  COLLADA2GLTF
+)
+
+target_link_libraries(${PROJECT_NAME} ${MAYA_LIBRARIES} stdc++fs)
+
+MAYA_PLUGIN(${PROJECT_NAME})

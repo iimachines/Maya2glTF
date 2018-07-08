@@ -6,6 +6,8 @@
 #include "ExportableResources.h"
 #include "Arguments.h"
 
+using namespace std::experimental::filesystem;
+
 ExportableMaterial::ExportableMaterial() = default;
 ExportableMaterial::~ExportableMaterial() = default;
 

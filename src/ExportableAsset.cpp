@@ -5,6 +5,8 @@
 #include "timeControl.h"
 #include "version.h"
 
+using namespace std::experimental::filesystem;
+
 ExportableAsset::ExportableAsset(const Arguments& args)
 	: m_resources{ args }
 	, m_scene{ m_resources }
