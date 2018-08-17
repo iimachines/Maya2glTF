@@ -122,7 +122,7 @@ void ExportableAsset::save()
 	rapidjson::Writer<rapidjson::StringBuffer> jsonWriter(jsonStringBuffer);
 	jsonWriter.StartObject();
 
-	const auto embed = !args.glb && args.embedded;
+	const auto embed = args.glb || args.embedded;
 
 	GLTF::Options options;
 	options.embeddedBuffers = embed;

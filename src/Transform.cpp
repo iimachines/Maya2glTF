@@ -37,7 +37,7 @@ float cleanupScalar(const double v)
 	return static_cast<float>(round(v * precision) / precision);
 }
 
-MMatrix getObjectSpaceMatrix(const MMatrix& pivotTransform, const MDagPath& dagPath, const MDagPath& parentPath)
+MMatrix getObjectSpaceMatrix(const MDagPath& dagPath, const MDagPath& parentPath)
 {
 	MStatus status;
 
@@ -51,12 +51,12 @@ MMatrix getObjectSpaceMatrix(const MMatrix& pivotTransform, const MDagPath& dagP
 	THROW_ON_FAILURE(status);
 
 	if (parentPathLength == 0)
-		return pivotTransform * childWorldMatrix;
+		return childWorldMatrix;
 
 	const auto parentWorldMatrixInverse = parentPath.inclusiveMatrixInverse(&status);
 	THROW_ON_FAILURE(status);
 
-	return pivotTransform * childWorldMatrix * parentWorldMatrixInverse;
+	return childWorldMatrix * parentWorldMatrixInverse;
 }
 
 void makeIdentity(GLTF::Node::TransformTRS &trs)
@@ -97,16 +97,52 @@ const NodeTransformState& NodeTransformCache::getTransform(const ExportableNode*
 	if (node == nullptr)
 	{
 		// World 
-		state.hasSegmentScaleCompensation = false;
+		state.requiresExtraNode = false;
 		state.hasValidLocalTransforms = true;
 	}
 	else
 	{
-		state.hasSegmentScaleCompensation = node->hasSegmentScaleCompensation;
+		state.requiresExtraNode = node->transformKind != TransformKind::Simple;
 
-		const auto localMatrix = getObjectSpaceMatrix(node->pivotTransform, node->dagPath, node->parentDagPath());
+		const auto localMatrix = getObjectSpaceMatrix(node->dagPath, node->parentDagPath());
 
-		if (state.hasSegmentScaleCompensation)
+		switch (node->transformKind)
+		{
+		case TransformKind::Simple:
+		{
+			state.hasValidLocalTransforms = hasOrthogonalAxes(localMatrix);
+
+			// TODO: We're not using the GLTF code here yet, we got non-normalized rotations...
+			MTransformationMatrix mayaLocalMatrix(localMatrix);
+
+			auto& trs = state.localTransforms[0];
+
+			// Get translation
+			const MVector t = mayaLocalMatrix.translation(MSpace::kPostTransform);
+			trs.translation[0] = cleanupScalar(t.x * scaleFactor);
+			trs.translation[1] = cleanupScalar(t.y * scaleFactor);
+			trs.translation[2] = cleanupScalar(t.z*  scaleFactor);
+
+			// Extract rotation 
+			double qx, qy, qz, qw;
+			// ReSharper disable once CppExpressionWithoutSideEffects
+			mayaLocalMatrix.getRotationQuaternion(qx, qy, qz, qw);
+			trs.rotation[0] = cleanupScalar(qx);
+			trs.rotation[1] = cleanupScalar(qy);
+			trs.rotation[2] = cleanupScalar(qz);
+			trs.rotation[3] = cleanupScalar(qw);
+
+			// Extract scale factors
+			double scale[3];
+			// ReSharper disable once CppExpressionWithoutSideEffects
+			mayaLocalMatrix.getScale(scale, MSpace::kPostTransform);
+			trs.scale[0] = cleanupScalar(scale[0]);
+			trs.scale[1] = cleanupScalar(scale[1]);
+			trs.scale[2] = cleanupScalar(scale[2]);
+		}
+		break;
+
+		case TransformKind::ComplexJoint:
 		{
 			auto& parentTransform = getTransform(node->parentNode, scaleFactor);
 			auto& parentRS = parentTransform.localTransformRS();
@@ -160,17 +196,39 @@ const NodeTransformState& NodeTransformCache::getTransform(const ExportableNode*
 			rs.scale[1] = cleanupScalar(scale[1]);
 			rs.scale[2] = cleanupScalar(scale[2]);
 		}
-		else
+		break;
+
+		case TransformKind::ComplexTransform:
 		{
-			state.hasValidLocalTransforms = hasOrthogonalAxes(localMatrix);
+			MTransformationMatrix pivotTransformationMatrix;
+			const MVector pivotOffset = node->pivotPoint - MPoint::origin;
+			pivotTransformationMatrix.setTranslation(pivotOffset, MSpace::kObject);
+			const auto pivotMatrix = pivotTransformationMatrix.asMatrix();
+
+			cout << "local matrix = " << localMatrix << endl;
+
+			// Decompose localMatrix into inverse(pivotMatrix) * innerMatrix * pivotMatrix
+			// Since we combine the pivot translation and local translation, this becomes
+			// localMatrix = inverse(pivotMatrix) * combinedMatrix
+			// => combinedMatrix = pivotMatrix * localMatrix
+			const auto combinedMatrix = pivotMatrix * localMatrix;
+
+			state.hasValidLocalTransforms = hasOrthogonalAxes(combinedMatrix);
+
+			// Inverse pivot translation node
+			auto& ipt = state.localTransforms[0];
+			ipt.translation[0] = cleanupScalar(-pivotOffset.x * scaleFactor);
+			ipt.translation[1] = cleanupScalar(-pivotOffset.y * scaleFactor);
+			ipt.translation[2] = cleanupScalar(-pivotOffset.z*  scaleFactor);
 
 			// TODO: We're not using the GLTF code here yet, we got non-normalized rotations...
-			MTransformationMatrix mayaLocalMatrix(localMatrix);
+			MTransformationMatrix mayaMatrix(combinedMatrix);
 
-			auto& trs = state.localTransforms[0];
+			// Scale, rotation and translation + pivot-offset combined
+			auto& trs = state.localTransforms[1];
 
 			// Get translation
-			const MVector t = mayaLocalMatrix.translation(MSpace::kPostTransform);
+			const MVector t = mayaMatrix.translation(MSpace::kPostTransform);
 			trs.translation[0] = cleanupScalar(t.x * scaleFactor);
 			trs.translation[1] = cleanupScalar(t.y * scaleFactor);
 			trs.translation[2] = cleanupScalar(t.z*  scaleFactor);
@@ -178,7 +236,7 @@ const NodeTransformState& NodeTransformCache::getTransform(const ExportableNode*
 			// Extract rotation 
 			double qx, qy, qz, qw;
 			// ReSharper disable once CppExpressionWithoutSideEffects
-			mayaLocalMatrix.getRotationQuaternion(qx, qy, qz, qw);
+			mayaMatrix.getRotationQuaternion(qx, qy, qz, qw);
 			trs.rotation[0] = cleanupScalar(qx);
 			trs.rotation[1] = cleanupScalar(qy);
 			trs.rotation[2] = cleanupScalar(qz);
@@ -187,11 +245,17 @@ const NodeTransformState& NodeTransformCache::getTransform(const ExportableNode*
 			// Extract scale factors
 			double scale[3];
 			// ReSharper disable once CppExpressionWithoutSideEffects
-			mayaLocalMatrix.getScale(scale, MSpace::kPostTransform);
+			mayaMatrix.getScale(scale, MSpace::kPostTransform);
 			trs.scale[0] = cleanupScalar(scale[0]);
 			trs.scale[1] = cleanupScalar(scale[1]);
 			trs.scale[2] = cleanupScalar(scale[2]);
 		}
+		break;
+
+		default:
+			throw std::runtime_error("Unsupported node transform kind");
+		}
+
 	}
 
 	state.isInitialized = 1;

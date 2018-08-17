@@ -50,7 +50,7 @@ MeshSkeleton::MeshSkeleton(
 		const auto shapeDagPath = mesh.dagPath(&status);
 		THROW_ON_FAILURE(status);
 
-		const auto meshMatrix = node.pivotTransform * shapeDagPath.inclusiveMatrix(&status);
+		const auto meshMatrix = shapeDagPath.inclusiveMatrix(&status);
 		THROW_ON_FAILURE(status);
 
 		for (size_t index = 0; index < jointCount; ++index)

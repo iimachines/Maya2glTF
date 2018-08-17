@@ -22,7 +22,7 @@ NodeAnimation::NodeAnimation(
 	m_rotations = std::make_unique<PropAnimation>(frames, glNodeRs, GLTF::Animation::Path::ROTATION, 4, false);
 	m_scales = std::make_unique<PropAnimation>(frames, glNodeRs, GLTF::Animation::Path::SCALE, 3, false);
 
-	if (node.hasSegmentScaleCompensation)
+	if (node.transformKind == TransformKind::ComplexJoint)
 	{
 		m_inverseParentScales = std::make_unique<PropAnimation>(frames, glNodeTiS, GLTF::Animation::Path::SCALE, 3, false);
 	}
@@ -48,7 +48,7 @@ void NodeAnimation::sampleAt(const MTime& absoluteTime, const int frameIndex, No
 	m_rotations->append(gsl::make_span(localTransformRS.rotation));
 	m_scales->append(gsl::make_span(localTransformRS.scale));
 
-	if (node.hasSegmentScaleCompensation)
+	if (node.transformKind == TransformKind::ComplexJoint)
 	{
 		m_inverseParentScales->append(gsl::make_span(localTransformTU.scale));
 	}
@@ -85,7 +85,7 @@ void NodeAnimation::exportTo(GLTF::Animation& glAnimation)
 	finish(glAnimation, m_rotations, localTransformRS.rotation);
 	finish(glAnimation, m_scales, localTransformRS.scale);
 
-	if (node.hasSegmentScaleCompensation)
+	if (node.transformKind == TransformKind::ComplexJoint)
 	{
 		finish(glAnimation, m_inverseParentScales, localTransformTU.scale);
 	}
@@ -127,3 +127,4 @@ void NodeAnimation::finish(
 		glAnimation.channels.push_back(&animatedProp->glChannel);
 	}
 }
+
