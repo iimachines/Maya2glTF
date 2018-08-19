@@ -264,7 +264,7 @@ global proc maya2glTF_UI()
 	global string $gMainProgressBar;  
 
     // This is auto-updated by msbuild 
-	string $maya2glTF_version = "V0.9.7-BETA 86d42c4";
+	string $maya2glTF_version = "V0.9.7-BETA 119f26a";
 
 	if (`window -exists maya2glTF_exporter_window`)
 		deleteUI maya2glTF_exporter_window;
