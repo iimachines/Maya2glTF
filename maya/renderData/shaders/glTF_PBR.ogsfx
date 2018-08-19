@@ -312,9 +312,15 @@ uniform bool u_UseMeshTangents
 <
     string UIName = "Use mesh tangents?";
     string UIGroup = "PBR Advanced";
-    int UIOrder = 3000;
+    int UIOrder = 3001;
 > = false;
 
+uniform bool u_IsDoubleSided
+<
+    string UIName = "Double sided material?";
+    string UIGroup = "PBR Advanced";
+    int UIOrder = 3000;
+> = false;
 
 // Encapsulate the various inputs used by the various functions in the shading equation
 // We store values in this struct to simplify the integration of alternative implementations
@@ -546,6 +552,12 @@ GLSLShader PS
 
     void main()
     {
+        vec3 n = getNormal();                             // normal at surface point
+        vec3 v = normalize(v_CameraPos - v_Position);        // Vector from surface point to camera
+
+		if (!u_IsDoubleSided && dot(n,v) <= 0)
+			discard;
+
         // Metallic and Roughness material properties are packed together
         // In glTF, these factors can be specified by fixed scalar values
         // or from a metallic-roughness map
@@ -585,8 +597,6 @@ GLSLShader PS
         vec3 specularEnvironmentR0 = specularColor.rgb;
         vec3 specularEnvironmentR90 = vec3(1.0, 1.0, 1.0) * reflectance90;
 
-        vec3 n = getNormal();                             // normal at surface point
-        vec3 v = normalize(v_CameraPos - v_Position);        // Vector from surface point to camera
 #ifdef USE_LIGHT_BINDING
         // Vector from surface point to light
         vec3 l = normalize(-u_LightDir);
