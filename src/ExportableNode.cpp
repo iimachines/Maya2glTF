@@ -81,26 +81,35 @@ void ExportableNode::load(
 	// becomes
 	// parent.TU <- parent.RS <- child.TU <- child.RS
 
-	auto& nodeTU = glNodeTU();
-	auto& nodeRS = glNodeRS();
+	auto& sNode = glSecondaryNode();
+	auto& pNode = glPrimaryNode();
 
-	args.assignName(nodeTU, name.asChar());
-
-	if (transformKind != TransformKind::Simple)
+	switch (transformKind)
 	{
-		args.assignName(nodeRS, (name + ":SSC").asChar());
-		nodeTU.children.emplace_back(&nodeRS);
+	case TransformKind::ComplexJoint: 
+		args.assignName(sNode, (name + ":SSC").asChar());
+		args.assignName(pNode, name.asChar());
+		sNode.children.emplace_back(&pNode);
+		break;
+	case TransformKind::ComplexTransform: 
+		args.assignName(pNode, (name + ":PIV").asChar());
+		args.assignName(sNode, name.asChar());
+		sNode.children.emplace_back(&pNode);
+		break;
+	default: ;
+		args.assignName(pNode, name.asChar());
+		break;
 	}
 
 	if (parentNode)
 	{
 		// Register as child
-		parentNode->glNodeRS().children.push_back(&nodeTU);
+		parentNode->glPrimaryNode().children.push_back(&sNode);
 	}
 	else
 	{
 		// Add root nodes to the scene
-		scene.glScene.nodes.emplace_back(&nodeTU);
+		scene.glScene.nodes.emplace_back(&sNode);
 	}
 
 	// Get transform
@@ -125,7 +134,7 @@ void ExportableNode::load(
 		{
 			// The shape is a mesh
 			m_mesh = std::make_unique<ExportableMesh>(scene, *this, shapeDagPath);
-			m_mesh->setupNode(nodeRS);
+			m_mesh->setupNode(pNode);
 		}
 	}
 }

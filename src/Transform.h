@@ -58,12 +58,12 @@ public:
 	// For Maya joints with SSC, the GLTF transform storing the rotation and scale
 	// For Maya transforms with pivot points, the GLTF transform storing the negative pivot offset
 	// Otherwise the GLTF transform storing the rotation, scale and translation
-	const GLTF::Node::TransformTRS& localTransformRS() const { return localTransforms[0]; }
+	const GLTF::Node::TransformTRS& primaryTRS() const { return localTransforms[0]; }
 
 	// For Maya joints with SSC, the GLTF transform storing the translation and inverse parent scale
 	// For Maya transforms with pivot points, the GLTF transform storing the rotation, scale and (translation+pivot offset) combined
 	// Otherwise this is an identity transform
-	const GLTF::Node::TransformTRS& localTransformTU() const { return localTransforms[requiresExtraNode]; }
+	const GLTF::Node::TransformTRS& secondaryTRS() const { return localTransforms[requiresExtraNode]; }
 
 	DEFAULT_COPY_MOVE_ASSIGN_CTOR_DTOR(NodeTransformState);
 

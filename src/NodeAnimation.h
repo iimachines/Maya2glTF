@@ -30,7 +30,7 @@ private:
 	std::unique_ptr<PropAnimation> m_positions;
 	std::unique_ptr<PropAnimation> m_rotations;
 	std::unique_ptr<PropAnimation> m_scales;
-	std::unique_ptr<PropAnimation> m_inverseParentScales;
+	std::unique_ptr<PropAnimation> m_correctors; // Either the inverse parent scales, or pivot offsets
 	std::unique_ptr<PropAnimation> m_weights;
 
 	void finish(GLTF::Animation& glAnimation,

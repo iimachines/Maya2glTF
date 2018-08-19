@@ -40,16 +40,20 @@ public:
 
 	std::unique_ptr<NodeAnimation> createAnimation(const ExportableFrames& frameTimes, const double scaleFactor) override;
 
-	// The first node to represent the transform
+	// The primary node to represent the transform
 	// See Transform.h for details
-	GLTF::Node& glNodeRS() { return m_glNodes[0]; }
-	const GLTF::Node& glNodeRS() const { return const_cast<ExportableNode*>(this)->glNodeRS(); }
+	GLTF::Node& glPrimaryNode() { return m_glNodes[0]; }
+	const GLTF::Node& glPrimaryNode() const { return const_cast<ExportableNode*>(this)->glPrimaryNode(); }
 
-	// The second node to represent the transform
-	// Can be the same as the first node for simple transforms
+	// The secondary node to represent the transform
+	// Can be the same as the primary node for simple transforms
 	// See Transform.h for details
-	GLTF::Node& glNodeTU() { return m_glNodes[transformKind != TransformKind::Simple]; }
-	const GLTF::Node& glNodeTU() const { return const_cast<ExportableNode*>(this)->glNodeTU(); }
+	GLTF::Node& glSecondaryNode() { return m_glNodes[transformKind != TransformKind::Simple]; }
+	const GLTF::Node& glSecondaryNode() const { return const_cast<ExportableNode*>(this)->glSecondaryNode(); }
+
+	// The node that stores the translation
+	GLTF::Node& glTranslationNode() { return m_glNodes[transformKind != TransformKind::Simple]; }
+
 
 	MDagPath parentDagPath() const { return parentNode ? parentNode->dagPath : MDagPath(); }
 

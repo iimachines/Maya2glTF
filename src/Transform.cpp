@@ -88,11 +88,11 @@ const NodeTransformState& NodeTransformCache::getTransform(const ExportableNode*
 
 	state.isInitialized = -1;
 
-	auto& rs = state.localTransforms[0];
-	makeIdentity(rs);
+	auto& trs0 = state.localTransforms[0];
+	makeIdentity(trs0);
 
-	auto& tu = state.localTransforms[1];
-	makeIdentity(tu);
+	auto& trs1 = state.localTransforms[1];
+	makeIdentity(trs1);
 
 	if (node == nullptr)
 	{
@@ -145,8 +145,8 @@ const NodeTransformState& NodeTransformCache::getTransform(const ExportableNode*
 		case TransformKind::ComplexJoint:
 		{
 			auto& parentTransform = getTransform(node->parentNode, scaleFactor);
-			auto& parentRS = parentTransform.localTransformRS();
-			double parentScale[3] = { parentRS.scale[0], parentRS.scale[1], parentRS.scale[2] };
+			auto& parentPrimaryTRS = parentTransform.primaryTRS();
+			double parentScale[3] = { parentPrimaryTRS.scale[0], parentPrimaryTRS.scale[1], parentPrimaryTRS.scale[2] };
 
 			// The local matrix = scale * rotation * inverse-parent-scale * translation
 			// Extract and clear the translation, undo  the inverse parent scale, and extract rotation and scale.
@@ -154,13 +154,13 @@ const NodeTransformState& NodeTransformCache::getTransform(const ExportableNode*
 
 			// Get translation
 			const auto t = m[3];
-			tu.translation[0] = cleanupScalar(t[0] * scaleFactor);
-			tu.translation[1] = cleanupScalar(t[1] * scaleFactor);
-			tu.translation[2] = cleanupScalar(t[2] * scaleFactor);
+			trs1.translation[0] = cleanupScalar(t[0] * scaleFactor);
+			trs1.translation[1] = cleanupScalar(t[1] * scaleFactor);
+			trs1.translation[2] = cleanupScalar(t[2] * scaleFactor);
 
-			tu.scale[0] = 1.0f / parentRS.scale[0];
-			tu.scale[1] = 1.0f / parentRS.scale[1];
-			tu.scale[2] = 1.0f / parentRS.scale[2];
+			trs1.scale[0] = 1.0f / parentPrimaryTRS.scale[0];
+			trs1.scale[1] = 1.0f / parentPrimaryTRS.scale[1];
+			trs1.scale[2] = 1.0f / parentPrimaryTRS.scale[2];
 
 			// Clear translation
 			t[0] = t[1] = t[2] = 0;
@@ -183,18 +183,18 @@ const NodeTransformState& NodeTransformCache::getTransform(const ExportableNode*
 			double qx, qy, qz, qw;
 			// ReSharper disable once CppExpressionWithoutSideEffects
 			mayaLocalMatrix.getRotationQuaternion(qx, qy, qz, qw);
-			rs.rotation[0] = cleanupScalar(qx);
-			rs.rotation[1] = cleanupScalar(qy);
-			rs.rotation[2] = cleanupScalar(qz);
-			rs.rotation[3] = cleanupScalar(qw);
+			trs0.rotation[0] = cleanupScalar(qx);
+			trs0.rotation[1] = cleanupScalar(qy);
+			trs0.rotation[2] = cleanupScalar(qz);
+			trs0.rotation[3] = cleanupScalar(qw);
 
 			// Extract scale factors
 			double scale[3];
 			// ReSharper disable once CppExpressionWithoutSideEffects
 			mayaLocalMatrix.getScale(scale, MSpace::kPostTransform);
-			rs.scale[0] = cleanupScalar(scale[0]);
-			rs.scale[1] = cleanupScalar(scale[1]);
-			rs.scale[2] = cleanupScalar(scale[2]);
+			trs0.scale[0] = cleanupScalar(scale[0]);
+			trs0.scale[1] = cleanupScalar(scale[1]);
+			trs0.scale[2] = cleanupScalar(scale[2]);
 		}
 		break;
 
@@ -205,7 +205,7 @@ const NodeTransformState& NodeTransformCache::getTransform(const ExportableNode*
 			pivotTransformationMatrix.setTranslation(pivotOffset, MSpace::kObject);
 			const auto pivotMatrix = pivotTransformationMatrix.asMatrix();
 
-			cout << "local matrix = " << localMatrix << endl;
+			// cout << "local matrix = " << localMatrix << endl;
 
 			// Decompose localMatrix into inverse(pivotMatrix) * innerMatrix * pivotMatrix
 			// Since we combine the pivot translation and local translation, this becomes
@@ -216,46 +216,43 @@ const NodeTransformState& NodeTransformCache::getTransform(const ExportableNode*
 			state.hasValidLocalTransforms = hasOrthogonalAxes(combinedMatrix);
 
 			// Inverse pivot translation node
-			auto& ipt = state.localTransforms[0];
-			ipt.translation[0] = cleanupScalar(-pivotOffset.x * scaleFactor);
-			ipt.translation[1] = cleanupScalar(-pivotOffset.y * scaleFactor);
-			ipt.translation[2] = cleanupScalar(-pivotOffset.z*  scaleFactor);
+			trs0.translation[0] = cleanupScalar(-pivotOffset.x * scaleFactor);
+			trs0.translation[1] = cleanupScalar(-pivotOffset.y * scaleFactor);
+			trs0.translation[2] = cleanupScalar(-pivotOffset.z*  scaleFactor);
 
 			// TODO: We're not using the GLTF code here yet, we got non-normalized rotations...
 			MTransformationMatrix mayaMatrix(combinedMatrix);
 
-			// Scale, rotation and translation + pivot-offset combined
-			auto& trs = state.localTransforms[1];
+			// trs1: scale, rotation and translation + pivot-offset combined
 
 			// Get translation
 			const MVector t = mayaMatrix.translation(MSpace::kPostTransform);
-			trs.translation[0] = cleanupScalar(t.x * scaleFactor);
-			trs.translation[1] = cleanupScalar(t.y * scaleFactor);
-			trs.translation[2] = cleanupScalar(t.z*  scaleFactor);
+			trs1.translation[0] = cleanupScalar(t.x * scaleFactor);
+			trs1.translation[1] = cleanupScalar(t.y * scaleFactor);
+			trs1.translation[2] = cleanupScalar(t.z*  scaleFactor);
 
 			// Extract rotation 
 			double qx, qy, qz, qw;
 			// ReSharper disable once CppExpressionWithoutSideEffects
 			mayaMatrix.getRotationQuaternion(qx, qy, qz, qw);
-			trs.rotation[0] = cleanupScalar(qx);
-			trs.rotation[1] = cleanupScalar(qy);
-			trs.rotation[2] = cleanupScalar(qz);
-			trs.rotation[3] = cleanupScalar(qw);
+			trs1.rotation[0] = cleanupScalar(qx);
+			trs1.rotation[1] = cleanupScalar(qy);
+			trs1.rotation[2] = cleanupScalar(qz);
+			trs1.rotation[3] = cleanupScalar(qw);
 
 			// Extract scale factors
 			double scale[3];
 			// ReSharper disable once CppExpressionWithoutSideEffects
 			mayaMatrix.getScale(scale, MSpace::kPostTransform);
-			trs.scale[0] = cleanupScalar(scale[0]);
-			trs.scale[1] = cleanupScalar(scale[1]);
-			trs.scale[2] = cleanupScalar(scale[2]);
+			trs1.scale[0] = cleanupScalar(scale[0]);
+			trs1.scale[1] = cleanupScalar(scale[1]);
+			trs1.scale[2] = cleanupScalar(scale[2]);
 		}
 		break;
 
 		default:
 			throw std::runtime_error("Unsupported node transform kind");
 		}
-
 	}
 
 	state.isInitialized = 1;
