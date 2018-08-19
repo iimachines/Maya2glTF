@@ -1,6 +1,6 @@
 //Maya ASCII 2018ff07 scene
-//Name: CubePivotTest1.ma
-//Last modified: Fri, Aug 17, 2018 05:20:56 PM
+//Name: CubeScalePivotTest2.ma
+//Last modified: Fri, Aug 17, 2018 05:37:33 PM
 //Codeset: 1252
 requires maya "2018ff07";
 currentUnit -l centimeter -a degree -t film;
@@ -12,13 +12,13 @@ fileInfo "osv" "Microsoft Windows 8 Business Edition, 64-bit  (Build 9200)\n";
 createNode transform -s -n "persp";
 	rename -uid "EEB63D68-48EF-EE9B-BE67-F2A96C3CBE7E";
 	setAttr ".v" no;
-	setAttr ".t" -type "double3" -11.024664818820424 4.8092586395679557 2.00732882878778 ;
-	setAttr ".r" -type "double3" -26.138352729528624 -796.59999999950344 -6.8621002248419643e-15 ;
+	setAttr ".t" -type "double3" -9.8681187769777434 3.740544985184699 -0.14011317869837681 ;
+	setAttr ".r" -type "double3" -24.338352729583498 -807.79999999950542 -1.2427987255658087e-13 ;
 createNode camera -s -n "perspShape" -p "persp";
 	rename -uid "F774B9F5-4118-59FF-6DEF-47BCADB9AA78";
 	setAttr -k off ".v" no;
 	setAttr ".fl" 34.999999999999993;
-	setAttr ".coi" 12.051700898651438;
+	setAttr ".coi" 10.289479557404871;
 	setAttr ".imn" -type "string" "persp";
 	setAttr ".den" -type "string" "persp_depth";
 	setAttr ".man" -type "string" "persp_mask";
@@ -75,6 +75,7 @@ createNode transform -n "pCube1";
 	rename -uid "95C11406-4146-11DD-A881-0FB16659DACA";
 	addAttr -ci true -sn "nts" -ln "notes" -dt "string";
 	setAttr ".t" -type "double3" 0.5 0.5 0.5 ;
+	setAttr ".s" -type "double3" 1 2 3 ;
 	setAttr ".rp" -type "double3" -0.5 -0.5 -0.5 ;
 	setAttr ".sp" -type "double3" -0.5 -0.5 -0.5 ;
 	setAttr ".dsp" yes;
@@ -182,19 +183,19 @@ createNode mesh -n "pPlaneShape1" -p "pPlane1";
 	setAttr ".bck" 1;
 	setAttr ".vbc" no;
 createNode lightLinker -s -n "lightLinker1";
-	rename -uid "2B19106C-42E6-4136-19A2-5D8B0D0019F6";
+	rename -uid "E6D2E951-4758-3691-CE2E-5C9E103DF80C";
 	setAttr -s 5 ".lnk";
 	setAttr -s 5 ".slnk";
 createNode shapeEditorManager -n "shapeEditorManager";
-	rename -uid "401D13B5-4E4B-4B5F-3BBC-528F6E11CCBC";
+	rename -uid "71EC9925-40FE-8B67-3A6D-96B5639F0788";
 createNode poseInterpolatorManager -n "poseInterpolatorManager";
-	rename -uid "0C8F8166-4B7A-AC04-4847-A1B06891B035";
+	rename -uid "1A6A14A1-453A-885C-AEC4-03A3B521A53E";
 createNode displayLayerManager -n "layerManager";
-	rename -uid "FC40523D-42A0-B0BB-AEFA-D7B573E42BE3";
+	rename -uid "8AA2BE31-4E2D-8940-4EEE-BE9B1CE0A32C";
 createNode displayLayer -n "defaultLayer";
 	rename -uid "D68121DD-4939-E44D-CCE1-199ABACA74BB";
 createNode renderLayerManager -n "renderLayerManager";
-	rename -uid "31D0ABD9-4381-1A5D-7C46-9688A4CD2D51";
+	rename -uid "D20637C0-4F88-C442-5C0F-73B4DD431B99";
 createNode renderLayer -n "defaultRenderLayer";
 	rename -uid "D1F50823-4F9C-2974-11A1-EAAFD518318F";
 	setAttr ".g" yes;
@@ -307,6 +308,25 @@ createNode shadingEngine -n "lambert4SG";
 	setAttr ".ro" yes;
 createNode materialInfo -n "materialInfo3";
 	rename -uid "1D2ABE2C-4A94-FBB5-A3A6-30A019C25C7E";
+createNode script -n "maya2glTF_scriptNode";
+	rename -uid "87DB0939-4C2A-E94B-2264-CF8F9E7F4F13";
+	addAttr -ci true -sn "outputFolder" -ln "outputFolder" -dt "string";
+	addAttr -ci true -sn "sceneName" -ln "sceneName" -dt "string";
+	addAttr -ci true -sn "copyright" -ln "copyright" -dt "string";
+	addAttr -ci true -sn "scale" -ln "scale" -at "float";
+	addAttr -ci true -sn "flags" -ln "flags" -dt "string";
+	addAttr -ci true -sn "char" -ln "char" -dt "string";
+	addAttr -ci true -sn "anim" -ln "anim" -at "long";
+	addAttr -ci true -sn "clip" -ln "clip" -dt "string";
+	setAttr ".st" 2;
+	setAttr ".outputFolder" -type "string" "C:/dev/glTF/Maya2glTF/maya/scenes/export/";
+	setAttr ".sceneName" -type "string" "CubeScaledPivotTest2";
+	setAttr ".copyright" -type "string" "(C)2018 bugfa";
+	setAttr ".scale" 1;
+	setAttr ".flags" -type "string" "";
+	setAttr ".char" -type "string" "";
+	setAttr ".anim" 1;
+	setAttr ".clip" -type "string" "clip";
 select -ne :time1;
 	setAttr ".o" 1;
 	setAttr ".unw" 1;
@@ -385,4 +405,4 @@ connectAttr "defaultRenderLayer.msg" ":defaultRenderingList1.r" -na;
 connectAttr "pCubeShape1.iog" ":initialShadingGroup.dsm" -na;
 connectAttr "pPlaneShape1.ciog.cog[0]" ":initialShadingGroup.dsm" -na;
 connectAttr "groupId2.msg" ":initialShadingGroup.gn" -na;
-// End of CubePivotTest1.ma
+// End of CubeScalePivotTest2.ma

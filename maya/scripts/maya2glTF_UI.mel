@@ -19,6 +19,14 @@ proc string _ensureScriptNode() {
 	return $node;
 }
 
+proc _deleteScriptNode() {
+	string $node = "maya2glTF_scriptNode";
+
+	if (`objExists $node`) {
+		delete $node;
+	}
+}
+
 proc _setInt(string $key, int $value) {
 	string $node = _ensureScriptNode();
 	if (!attributeExists($key, $node)) {
@@ -245,13 +253,18 @@ proc string _getDefaultSceneName() {
 	return size($sceneName) == 0 ? "untitled" : $sceneName;
 }
 
+global proc maya2glTF_resetUI() {
+	_deleteScriptNode();
+	maya2glTF_UI();
+}
+
 global proc maya2glTF_UI()
 {
     // This is defined on maya startup
 	global string $gMainProgressBar;  
 
     // This is auto-updated by msbuild 
-	string $maya2glTF_version = "V0.9.7-BETA 9e73cf5";
+	string $maya2glTF_version = "V0.9.7-BETA e59a7a0";
 
 	if (`window -exists maya2glTF_exporter_window`)
 		deleteUI maya2glTF_exporter_window;
@@ -339,6 +352,7 @@ global proc maya2glTF_UI()
 
 	separator;
 
+	button -label "reset user interface" -command "evalDeferred(\"maya2glTF_resetUI();\");";
 	button -label "refresh user interface" -command "evalDeferred(\"maya2glTF_UI();\");";
 	
 	showWindow maya2glTF_exporter_window;

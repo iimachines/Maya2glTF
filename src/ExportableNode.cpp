@@ -11,7 +11,7 @@
 ExportableNode::ExportableNode(MDagPath dagPath)
 	: ExportableObject(dagPath.node())
 	, dagPath(dagPath)
-	, hasSegmentScaleCompensation(false)
+	, transformKind(TransformKind::Simple)
 	, scaleFactor(1)
 	, parentNode(nullptr)
 {
@@ -40,25 +40,53 @@ void ExportableNode::load(
 	// Get parent
 	parentNode = scene.getParent(this);
 
+	// Deal with segment scale compensation
 	// A root joint never has segment scale compensation, since the parent is the world.
-	hasSegmentScaleCompensation =
-		maybeSegmentScaleCompensation &&
+	if (maybeSegmentScaleCompensation &&
 		parentNode &&
 		parentNode->obj.hasFn(MFn::kJoint) &&
-		!args.ignoreSegmentScaleCompensation;
+		!args.ignoreSegmentScaleCompensation)
+	{
+		transformKind = TransformKind::ComplexJoint;
+	}
 
-	// In the presence of segment scale compensation, 
+	// Deal with pivot points.
+	// We currently only support a single pivot point, 
+	// but Maya has both a rotation and scaling pivot, 
+	// so warn the user if these are different.
+	MFnTransform fnTransform(dagPath, &status);
+	if (status)
+	{
+		const auto scalePivot = fnTransform.scalePivot(MSpace::kObject);
+		const auto rotatePivot = fnTransform.rotatePivot(MSpace::kObject);
+
+		if (scalePivot != rotatePivot)
+		{
+			MayaException::printError(formatted("Transform '%s' has different scaling and rotation pivots, this is not supported, ignoring scaling pivot!",
+				dagPath.partialPathName().asChar()), MStatus::kNotImplemented);
+		}
+
+		pivotPoint = rotatePivot;
+
+		if (pivotPoint != MPoint::origin)
+		{
+			cout << prefix << "Transform " << dagPath.partialPathName() << " has a pivot point, extra GLTF nodes will be added to handle this" << endl;
+
+			transformKind = TransformKind::ComplexTransform;
+		}
+	}
+
+	// In the presence of segment scale compensation or pivot points, 
 	// parent.TRS <- child.TRS 
 	// becomes
 	// parent.TU <- parent.RS <- child.TU <- child.RS
 
-	// TODO: Cleanup the segment scale compensation code
 	auto& nodeTU = glNodeTU();
 	auto& nodeRS = glNodeRS();
 
 	args.assignName(nodeTU, name.asChar());
 
-	if (hasSegmentScaleCompensation)
+	if (transformKind != TransformKind::Simple)
 	{
 		args.assignName(nodeRS, (name + ":SSC").asChar());
 		nodeTU.children.emplace_back(&nodeRS);
@@ -75,52 +103,6 @@ void ExportableNode::load(
 		scene.glScene.nodes.emplace_back(&nodeTU);
 	}
 
-	// Get mesh, but only if the node was selected.
-	MDagPath meshDagPath;
-
-	if (args.selection.find(dagPath) != args.selection.end())
-	{
-		MDagPath shapeDagPath = dagPath;
-		status = shapeDagPath.extendToShape();
-
-		if (status && shapeDagPath.hasFn(MFn::kMesh))
-		{
-			// The shape is a mesh
-			meshDagPath = shapeDagPath;
-
-			// We can only simulate a single pivot point, 
-			// but Maya has both a rotation and scaling pivot, 
-			// so warn the user if these are different.
-			MDagPath parentDagPath = meshDagPath;
-			status = parentDagPath.pop();
-			THROW_ON_FAILURE(status);
-
-			MFnTransform parentTransform(parentDagPath, &status);
-			THROW_ON_FAILURE(status);
-
-			const auto scalePivot = parentTransform.scalePivot(MSpace::kObject);
-			const auto rotatePivot = parentTransform.rotatePivot(MSpace::kObject);
-
-			if (scalePivot != rotatePivot)
-			{
-				MayaException::printError(formatted("Transform '%s' of mesh '%s' has different scaling and rotation pivots, this is not supported, ignoring scaling pivot!",
-					parentDagPath.partialPathName().asChar(), meshDagPath.partialPathName().asChar()), MStatus::kNotImplemented);
-			}
-
-			pivotPoint = rotatePivot;
-
-			if (pivotPoint != MPoint::origin)
-			{
-				const auto meshName = meshDagPath.partialPathName();
-				cout << prefix << "Offsetting all vertices of '" << meshName << "' around rotation pivot" << endl;
-			}
-
-			MTransformationMatrix pivotTransformationMatrix;
-			pivotTransformationMatrix.setTranslation(pivotPoint - MPoint::origin, MSpace::kObject);
-			pivotTransform = pivotTransformationMatrix.asMatrix();
-		}
-	}
-
 	// Get transform
 	initialTransformState = transformCache.getTransform(this, scaleFactor);
 	m_glNodes[0].transform = &initialTransformState.localTransforms[0];
@@ -133,10 +115,18 @@ void ExportableNode::load(
 	}
 
 	// Create mesh, if any
-	if (meshDagPath.isValid(&status) && status)
+	// Get mesh, but only if the node was selected.
+	if (args.selection.find(dagPath) != args.selection.end())
 	{
-		m_mesh = std::make_unique<ExportableMesh>(scene, *this, meshDagPath);
-		m_mesh->setupNode(nodeRS);
+		MDagPath shapeDagPath = dagPath;
+		status = shapeDagPath.extendToShape();
+
+		if (status && shapeDagPath.hasFn(MFn::kMesh))
+		{
+			// The shape is a mesh
+			m_mesh = std::make_unique<ExportableMesh>(scene, *this, shapeDagPath);
+			m_mesh->setupNode(nodeRS);
+		}
 	}
 }
 

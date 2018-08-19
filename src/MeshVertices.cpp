@@ -203,10 +203,9 @@ MeshVertices::MeshVertices(
 	m_positions.reserve(numPoints);
 
 	const auto positionScale = args.scaleFactor;
-	const MPoint pivotPoint = node.pivotPoint;
 	for (int i = 0; i < numPoints; ++i)
 	{
-		const auto p = (mPoints[i] - pivotPoint) * positionScale;
+		const auto p = mPoints[i] * positionScale;
 		m_positions.push_back({ static_cast<float>(p.x), static_cast<float>(p.y), static_cast<float>(p.z) });
 	}
 

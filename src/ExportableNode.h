@@ -5,6 +5,17 @@
 #include "ExportableScene.h"
 #include "Transform.h"
 
+enum class TransformKind
+{
+	// A simple transform without segment scale compensation nor pivot point
+	Simple,
+
+	// A joint with segment scale compensation
+	ComplexJoint,
+
+	// A transform with a pivot point
+	ComplexTransform
+};
 
 class ExportableNode : public ExportableObject
 {
@@ -15,12 +26,11 @@ public:
 
 	const MDagPath dagPath;
 
-	bool hasSegmentScaleCompensation;
+	TransformKind transformKind;
 
 	double scaleFactor;
 
 	MPoint pivotPoint;
-	MMatrix pivotTransform;
 
 	// nullptr for root nodes.
 	ExportableNode* parentNode;
@@ -30,14 +40,15 @@ public:
 
 	std::unique_ptr<NodeAnimation> createAnimation(const ExportableFrames& frameTimes, const double scaleFactor) override;
 
-	// The node that stores the rotation and scale
+	// The first node to represent the transform
 	// See Transform.h for details
 	GLTF::Node& glNodeRS() { return m_glNodes[0]; }
 	const GLTF::Node& glNodeRS() const { return const_cast<ExportableNode*>(this)->glNodeRS(); }
 
-	// The node that stores the translation and optional inverse parent scale
+	// The second node to represent the transform
+	// Can be the same as the first node for simple transforms
 	// See Transform.h for details
-	GLTF::Node& glNodeTU() { return m_glNodes[hasSegmentScaleCompensation]; }
+	GLTF::Node& glNodeTU() { return m_glNodes[transformKind != TransformKind::Simple]; }
 	const GLTF::Node& glNodeTU() const { return const_cast<ExportableNode*>(this)->glNodeTU(); }
 
 	MDagPath parentDagPath() const { return parentNode ? parentNode->dagPath : MDagPath(); }
