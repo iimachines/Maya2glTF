@@ -352,8 +352,7 @@ global proc maya2glTF_UI()
 
 	separator;
 
-	button -label "reset user interface" -command "evalDeferred(\"maya2glTF_resetUI();\");";
-	button -label "refresh user interface" -command "evalDeferred(\"maya2glTF_UI();\");";
+	button -label "reset to default values" -command "evalDeferred(\"maya2glTF_resetUI();\");";
 	
 	showWindow maya2glTF_exporter_window;
 }
