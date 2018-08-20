@@ -1,8 +1,8 @@
-# Maya to glTF exporter
+﻿# Maya to glTF exporter
 
 ## Update
 
-0.9.6-BETA is released! See the [releases](https://github.com/Ziriax/Maya2glTF/releases) tab. 
+V0.9.8-alpha is released! See the [releases](https://github.com/Ziriax/Maya2glTF/releases) tab. 
 
 ![Maya Tiger screenshot](/img/tiger-wim@koetan.gif)
 
@@ -148,7 +148,7 @@ I consider this plugin to be in *beta* stage, use it at your own risk :)
 * Install the Win64-x64 version of **[CMAKE](https://cmake.org)**
     * Make sure to add CMake to the system path
 
-* Install the **[latest Maya devkit matching your Maya application version](https://apps.autodesk.com/All/en/List/Search?isAppSearch=True&searchboxstore=All&facet=&collection=&sort=&query=maya+devkit)**
+* Install the **[latest Maya devkit matching your Maya application version](https://www.autodesk.com/developer-network/platform-technologies/maya)**
     
 * We need to tell the Maya2glTF project where it can find the Maya devkit header and library files. Declare the following environment variables, or add `user macros` to the Visual Studio `Microsoft.Cpp.x64.user` property page
     * For Maya 2018:
