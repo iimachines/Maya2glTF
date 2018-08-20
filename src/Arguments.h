@@ -154,6 +154,9 @@ public:
 	/** Ignore segment scale compensation */
 	bool ignoreSegmentScaleCompensation = false;
 
+	/** Keep GLTF shape nodes that are the only child of their parent transform node */
+	bool keepShapeNodes = false;
+
 	/** 
 	 * The time where the 'initial values' of all nodes are to be found (aka neutral base pose) 
 	 * By default the current time is used, unless animation is used, then frame 0 is used.

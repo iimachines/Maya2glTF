@@ -8,12 +8,9 @@
 #include "Arguments.h"
 #include "DagHelper.h"
 
-ExportableNode::ExportableNode(MDagPath dagPath)
+ExportableNode::ExportableNode(const MDagPath& dagPath)
 	: ExportableObject(dagPath.node())
 	, dagPath(dagPath)
-	, transformKind(TransformKind::Simple)
-	, scaleFactor(1)
-	, parentNode(nullptr)
 {
 }
 
@@ -159,3 +156,49 @@ void ExportableNode::updateNodeTransforms(NodeTransformCache& transformCache)
 	}
 }
 
+bool ExportableNode::tryMergeRedundantShapeNode()
+{
+	if (this->mesh() == nullptr)
+		return false;
+
+	if (transformKind != TransformKind::Simple)
+		return false;
+
+	if (parentNode == nullptr)
+		return false;
+
+	if (parentNode->mesh() != nullptr)
+		return false;
+
+	auto& glParentNode = parentNode->glPrimaryNode();
+	if (glParentNode.children.size() != 1)
+		return false;
+
+	auto& glNode = this->glPrimaryNode();
+
+	assert(glParentNode.children.at(0) == &glNode);
+
+	auto& transform = glNode.transform;
+	
+	if (transform->type != GLTF::Node::Transform::TRS)
+		return false;
+
+	auto* trs = static_cast<const GLTF::Node::TransformTRS*>(transform);
+	if (trs->translation[0] != 0 || trs->translation[1] != 0 || trs->translation[2] != 0)
+		return false;
+	if (trs->rotation[0] != 0 || trs->rotation[1] != 0 || trs->rotation[2] != 0 || trs->rotation[3] != 1)
+		return false;
+	if (trs->scale[0] != 1 || trs->scale[1] != 1 || trs->scale[2] != 1)
+		return false;
+
+	cout << prefix << "Shape node '" << name() << "' is redundant, moving its mesh to parent node '" << parentNode->name() << "'" << endl;
+
+	glParentNode.children.clear();
+	glNode.mesh = nullptr;
+	glNode.skin = nullptr;
+
+	m_mesh->setupNode(glParentNode);
+	m_mesh.swap(parentNode->m_mesh);
+
+	return true;
+}

@@ -26,14 +26,14 @@ public:
 
 	const MDagPath dagPath;
 
-	TransformKind transformKind;
+	TransformKind transformKind = TransformKind::Simple;
 
-	double scaleFactor;
+	double scaleFactor = 1.0;
 
 	MPoint pivotPoint;
 
 	// nullptr for root nodes.
-	ExportableNode* parentNode;
+	ExportableNode* parentNode = nullptr;
 
 	NodeTransformState initialTransformState;
 	NodeTransformState currentTransformState;
@@ -51,19 +51,18 @@ public:
 	GLTF::Node& glSecondaryNode() { return m_glNodes[transformKind != TransformKind::Simple]; }
 	const GLTF::Node& glSecondaryNode() const { return const_cast<ExportableNode*>(this)->glSecondaryNode(); }
 
-	// The node that stores the translation
-	GLTF::Node& glTranslationNode() { return m_glNodes[transformKind != TransformKind::Simple]; }
-
-
 	MDagPath parentDagPath() const { return parentNode ? parentNode->dagPath : MDagPath(); }
 
 	// Update the node transforms using the values at the current frame
 	void updateNodeTransforms(NodeTransformCache& transformCache);
 
+	// If this node is a redundant shape node, move the mesh to the parent node, and return true. 
+	bool tryMergeRedundantShapeNode();
+
 private:
 	friend class ExportableScene;
 
-	ExportableNode(MDagPath dagPath);
+	ExportableNode(const MDagPath& dagPath);
 
 	void load(ExportableScene& scene, NodeTransformCache& transformCache);
 

@@ -42,6 +42,11 @@ ExportableAsset::ExportableAsset(const Arguments& args)
 		m_scene.getNode(dagPath);
 	}
 
+	if (!args.keepShapeNodes)
+	{
+		m_scene.mergeRedundantShapeNodes();
+	}
+
 	// Now export animation clips of all the nodes, in one pass over the slow timeline
 	const auto clipCount = args.animationClips.size();
 

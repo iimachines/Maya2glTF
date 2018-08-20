@@ -21,6 +21,8 @@ public:
 	// Update all node transforms using the values at the current frame
 	void updateCurrentValues();
 
+	void mergeRedundantShapeNodes();
+
 	GLTF::Scene glScene;
 
 	// Gets or creates the node

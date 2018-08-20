@@ -23,6 +23,25 @@ void ExportableScene::updateCurrentValues()
 	}
 }
 
+void ExportableScene::mergeRedundantShapeNodes()
+{
+	std::set<NodeTable::key_type> redundantKeys;
+
+	for (auto&& pair : m_table)
+	{
+		auto& node = pair.second;
+		if (node->tryMergeRedundantShapeNode())
+		{
+			redundantKeys.insert(pair.first);
+		}
+	}
+
+	for (auto&& key: redundantKeys)
+	{
+		m_table.erase(key);
+	}
+}
+
 ExportableNode* ExportableScene::getNode(const MDagPath& dagPath)
 {
 	MStatus status;

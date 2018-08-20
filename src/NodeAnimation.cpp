@@ -46,7 +46,7 @@ NodeAnimation::NodeAnimation(
 
 	if (mesh)
 	{
-		m_weights = std::make_unique<PropAnimation>(frames, sNode, GLTF::Animation::Path::WEIGHTS, mesh->blendShapeCount(), true);
+		m_weights = std::make_unique<PropAnimation>(frames, pNode, GLTF::Animation::Path::WEIGHTS, mesh->blendShapeCount(), true);
 	}
 }
 

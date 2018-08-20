@@ -54,6 +54,8 @@ namespace flag
 	const auto selectedNodesOnly = "sno";
 
 	const auto excludeUnusedTexcoord = "eut";
+
+	const auto keepShapeNodes = "ksn";
 }
 
 inline const char* getArgTypeName(const MSyntax::MArgType argType)
@@ -136,6 +138,8 @@ SyntaxFactory::SyntaxFactory()
 	registerFlag(ss, flag::excludeUnusedTexcoord, "excludeUnusedTexcoord", kNoArg);
 
 	registerFlag(ss, flag::ignoreSegmentScaleCompensation, "ignoreSegmentScaleCompensation", kNoArg);
+
+	registerFlag(ss, flag::keepShapeNodes, "keepShapeNodes", kNoArg);
 
 	m_usage = ss.str();
 }
@@ -436,6 +440,7 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	redrawViewport = adb.isFlagSet(flag::redrawViewport);
 	excludeUnusedTexcoord = adb.isFlagSet(flag::excludeUnusedTexcoord);
 	ignoreSegmentScaleCompensation = adb.isFlagSet(flag::ignoreSegmentScaleCompensation);
+	keepShapeNodes = adb.isFlagSet(flag::keepShapeNodes);
 
 	adb.optional(flag::globalOpacityFactor, opacityFactor);
 
