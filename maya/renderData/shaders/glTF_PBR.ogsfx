@@ -552,11 +552,12 @@ GLSLShader PS
 
     void main()
     {
-        vec3 n = getNormal();                             // normal at surface point
         vec3 v = normalize(v_CameraPos - v_Position);        // Vector from surface point to camera
 
-		if (!u_IsDoubleSided && dot(n,v) <= 0)
+		if (!u_IsDoubleSided && dot(v_TBN[2],v) <= 0)
 			discard;
+
+        vec3 n = getNormal();                             // normal at surface point
 
         // Metallic and Roughness material properties are packed together
         // In glTF, these factors can be specified by fixed scalar values
