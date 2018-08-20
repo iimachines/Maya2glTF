@@ -24,7 +24,7 @@ createNode camera -s -n "perspShape" -p "persp";
 	setAttr ".man" -type "string" "persp_mask";
 	setAttr ".tp" -type "double3" 1.288615345954895 0.49971240758895874 0 ;
 	setAttr ".hc" -type "string" "viewSet -p %camera";
-	setAttr ".ai_translator" -type "string" "perspective";
+	
 createNode transform -s -n "top";
 	rename -uid "6ABC8681-4CA8-6EC6-E978-BC83FEC82DDA";
 	setAttr ".v" no;
@@ -41,7 +41,7 @@ createNode camera -s -n "topShape" -p "top";
 	setAttr ".man" -type "string" "top_mask";
 	setAttr ".hc" -type "string" "viewSet -t %camera";
 	setAttr ".o" yes;
-	setAttr ".ai_translator" -type "string" "orthographic";
+	
 createNode transform -s -n "front";
 	rename -uid "9273C02D-4DEA-079F-9471-33B5F5964D5F";
 	setAttr ".v" no;
@@ -57,7 +57,7 @@ createNode camera -s -n "frontShape" -p "front";
 	setAttr ".man" -type "string" "front_mask";
 	setAttr ".hc" -type "string" "viewSet -f %camera";
 	setAttr ".o" yes;
-	setAttr ".ai_translator" -type "string" "orthographic";
+	
 createNode transform -s -n "side";
 	rename -uid "DA7FEE80-422D-A135-CE07-DCA5224309C7";
 	setAttr ".v" no;
@@ -74,7 +74,7 @@ createNode camera -s -n "sideShape" -p "side";
 	setAttr ".man" -type "string" "side_mask";
 	setAttr ".hc" -type "string" "viewSet -s %camera";
 	setAttr ".o" yes;
-	setAttr ".ai_translator" -type "string" "orthographic";
+	
 createNode transform -n "upper_body";
 	rename -uid "A417DE91-4A02-A708-5FB2-F69F6089D05B";
 	setAttr ".rp" -type "double3" 0 0.48400179783362041 0 ;
@@ -91,7 +91,7 @@ createNode mesh -n "upper_bodyShape" -p "upper_body";
 	setAttr ".cdvm[0]"  0 1 1;
 	setAttr ".bck" 1;
 	setAttr ".vbc" no;
-	setAttr ".ai_translator" -type "string" "polymesh";
+	
 createNode transform -n "lower_body" -p "upper_body";
 	rename -uid "2E1315DF-4EC3-0021-07C7-6EB8FA0028AA";
 createNode mesh -n "lower_bodyShape" -p "lower_body";
@@ -106,7 +106,7 @@ createNode mesh -n "lower_bodyShape" -p "lower_body";
 	setAttr ".cdvm[0]"  0 1 1;
 	setAttr ".bck" 1;
 	setAttr ".vbc" no;
-	setAttr ".ai_translator" -type "string" "polymesh";
+	
 createNode transform -n "upper_arm" -p "lower_body";
 	rename -uid "776D3D2E-4B8D-1192-5F12-7BBAF548B3B7";
 	setAttr ".rp" -type "double3" 0.52545520229978726 0.99942482012246825 0 ;
@@ -124,7 +124,7 @@ createNode mesh -n "upper_armShape" -p "upper_arm";
 	setAttr ".cdvm[0]"  0 1 1;
 	setAttr ".bck" 1;
 	setAttr ".vbc" no;
-	setAttr ".ai_translator" -type "string" "polymesh";
+	
 createNode mesh -n "polySurfaceShape1" -p "upper_arm";
 	rename -uid "8A6E0702-472C-6FE2-6479-3882F4CD3AD9";
 	setAttr -k off ".v";
@@ -162,7 +162,7 @@ createNode mesh -n "polySurfaceShape1" -p "upper_arm";
 	setAttr ".hfd" -type "dataPolyComponent" Index_Data Face 0 ;
 	setAttr ".bck" 1;
 	setAttr ".vbc" no;
-	setAttr ".ai_translator" -type "string" "polymesh";
+	
 createNode transform -n "elbow" -p "upper_arm";
 	rename -uid "4F0EDD06-47C5-0D3D-B20F-32A77B51757E";
 	setAttr ".rp" -type "double3" 1.5206469262684985 0.99942482012246825 0 ;
@@ -180,7 +180,7 @@ createNode mesh -n "elbowShape" -p "elbow";
 	setAttr ".cdvm[0]"  0 1 1;
 	setAttr ".bck" 1;
 	setAttr ".vbc" no;
-	setAttr ".ai_translator" -type "string" "polymesh";
+	
 createNode mesh -n "polySurfaceShape3" -p "elbow";
 	rename -uid "49F8223C-4105-ACD8-D142-17BDBEBA75E0";
 	setAttr -k off ".v";
@@ -224,7 +224,7 @@ createNode mesh -n "polySurfaceShape3" -p "elbow";
 	setAttr ".hfd" -type "dataPolyComponent" Index_Data Face 0 ;
 	setAttr ".bck" 1;
 	setAttr ".vbc" no;
-	setAttr ".ai_translator" -type "string" "polymesh";
+	
 createNode transform -n "lower_arm" -p "elbow";
 	rename -uid "A74D28E5-4D0B-5FDE-F2D6-4A84CFEA40C8";
 	setAttr ".rp" -type "double3" 1.7106468840558857 0.99942482012246825 0 ;
@@ -241,7 +241,7 @@ createNode mesh -n "lower_armShape" -p "lower_arm";
 	setAttr ".cdvm[0]"  0 1 1;
 	setAttr ".bck" 1;
 	setAttr ".vbc" no;
-	setAttr ".ai_translator" -type "string" "polymesh";
+	
 createNode mesh -n "polySurfaceShape2" -p "lower_arm";
 	rename -uid "14C63E4A-46D7-E3CC-5EF1-6D9A4829766C";
 	setAttr -k off ".v";
@@ -279,7 +279,7 @@ createNode mesh -n "polySurfaceShape2" -p "lower_arm";
 	setAttr ".hfd" -type "dataPolyComponent" Index_Data Face 0 ;
 	setAttr ".bck" 1;
 	setAttr ".vbc" no;
-	setAttr ".ai_translator" -type "string" "polymesh";
+	
 createNode transform -n "palm" -p "lower_arm";
 	rename -uid "33BEA552-4AEB-FCB0-3114-CA86D4E3D442";
 	setAttr ".rp" -type "double3" 2.6856871630728727 0.99942482012246825 0 ;
@@ -297,7 +297,7 @@ createNode mesh -n "palmShape" -p "palm";
 	setAttr ".cdvm[0]"  0 1 1;
 	setAttr ".bck" 1;
 	setAttr ".vbc" no;
-	setAttr ".ai_translator" -type "string" "polymesh";
+	
 createNode mesh -n "polySurfaceShape4" -p "palm";
 	rename -uid "E0D5EDA2-4CE4-D745-2AB7-63A81F7452C2";
 	setAttr -k off ".v";
@@ -341,7 +341,7 @@ createNode mesh -n "polySurfaceShape4" -p "palm";
 	setAttr ".hfd" -type "dataPolyComponent" Index_Data Face 0 ;
 	setAttr ".bck" 1;
 	setAttr ".vbc" no;
-	setAttr ".ai_translator" -type "string" "polymesh";
+	
 createNode transform -n "finger1" -p "palm";
 	rename -uid "A348BFEF-488B-3D73-2A68-F5B547815B9B";
 	setAttr ".rp" -type "double3" 2.8689475417889438 0.99942482012246825 0.012528567686649117 ;
@@ -359,7 +359,7 @@ createNode mesh -n "fingerShape1" -p "finger1";
 	setAttr ".cdvm[0]"  0 1 1;
 	setAttr ".bck" 1;
 	setAttr ".vbc" no;
-	setAttr ".ai_translator" -type "string" "polymesh";
+	
 createNode mesh -n "polySurfaceShape6" -p "finger1";
 	rename -uid "60DF0074-4A15-2004-0C2D-CA96C28ED56D";
 	setAttr -k off ".v";
@@ -403,7 +403,7 @@ createNode mesh -n "polySurfaceShape6" -p "finger1";
 	setAttr ".hfd" -type "dataPolyComponent" Index_Data Face 0 ;
 	setAttr ".bck" 1;
 	setAttr ".vbc" no;
-	setAttr ".ai_translator" -type "string" "polymesh";
+	
 createNode transform -n "finger2" -p "palm";
 	rename -uid "891ACCC0-4AF7-D451-435F-F3A02F2C9A08";
 	setAttr ".rp" -type "double3" 2.8689475417889438 0.99942482012246825 0.10955786981025847 ;
@@ -421,7 +421,7 @@ createNode mesh -n "fingerShape2" -p "finger2";
 	setAttr ".cdvm[0]"  0 1 1;
 	setAttr ".bck" 1;
 	setAttr ".vbc" no;
-	setAttr ".ai_translator" -type "string" "polymesh";
+	
 createNode mesh -n "polySurfaceShape5" -p "finger2";
 	rename -uid "49A4B1EA-4A22-79F8-208A-E9A70E306F88";
 	setAttr -k off ".v";
@@ -465,7 +465,7 @@ createNode mesh -n "polySurfaceShape5" -p "finger2";
 	setAttr ".hfd" -type "dataPolyComponent" Index_Data Face 0 ;
 	setAttr ".bck" 1;
 	setAttr ".vbc" no;
-	setAttr ".ai_translator" -type "string" "polymesh";
+	
 createNode transform -n "finger3" -p "palm";
 	rename -uid "598D64FE-4329-D582-D702-C7B553F255B2";
 	setAttr ".rp" -type "double3" 2.8689475417889438 0.99942482012246825 -0.084067756963181792 ;
@@ -483,7 +483,7 @@ createNode mesh -n "fingerShape3" -p "finger3";
 	setAttr ".cdvm[0]"  0 1 1;
 	setAttr ".bck" 1;
 	setAttr ".vbc" no;
-	setAttr ".ai_translator" -type "string" "polymesh";
+	
 createNode mesh -n "polySurfaceShape7" -p "finger3";
 	rename -uid "21D91840-4B4B-40A4-BCA3-4A836C9F4318";
 	setAttr -k off ".v";
@@ -527,7 +527,7 @@ createNode mesh -n "polySurfaceShape7" -p "finger3";
 	setAttr ".hfd" -type "dataPolyComponent" Index_Data Face 0 ;
 	setAttr ".bck" 1;
 	setAttr ".vbc" no;
-	setAttr ".ai_translator" -type "string" "polymesh";
+	
 createNode lightLinker -s -n "lightLinker1";
 	rename -uid "CAF17D5A-49F9-9F9B-0259-D1A60BD62C7D";
 	setAttr -s 2 ".lnk";

@@ -24,7 +24,7 @@ createNode camera -s -n "perspShape" -p "persp";
 	setAttr ".den" -type "string" "persp_depth";
 	setAttr ".man" -type "string" "persp_mask";
 	setAttr ".hc" -type "string" "viewSet -p %camera";
-	setAttr ".ai_translator" -type "string" "perspective";
+	
 createNode transform -s -n "top";
 	rename -uid "CA0150A9-4938-0642-65C8-B2BB7D6B3519";
 	setAttr ".v" no;
@@ -41,7 +41,7 @@ createNode camera -s -n "topShape" -p "top";
 	setAttr ".man" -type "string" "top_mask";
 	setAttr ".hc" -type "string" "viewSet -t %camera";
 	setAttr ".o" yes;
-	setAttr ".ai_translator" -type "string" "orthographic";
+	
 createNode transform -s -n "front";
 	rename -uid "FB8DD006-4959-8B6D-FC86-E693F9D27538";
 	setAttr ".v" no;
@@ -57,7 +57,7 @@ createNode camera -s -n "frontShape" -p "front";
 	setAttr ".man" -type "string" "front_mask";
 	setAttr ".hc" -type "string" "viewSet -f %camera";
 	setAttr ".o" yes;
-	setAttr ".ai_translator" -type "string" "orthographic";
+	
 createNode transform -s -n "side";
 	rename -uid "9BCB3701-44BC-E80D-86E1-8C91A34949FA";
 	setAttr ".v" no;
@@ -74,7 +74,7 @@ createNode camera -s -n "sideShape" -p "side";
 	setAttr ".man" -type "string" "side_mask";
 	setAttr ".hc" -type "string" "viewSet -s %camera";
 	setAttr ".o" yes;
-	setAttr ".ai_translator" -type "string" "orthographic";
+	
 createNode transform -n "pCube1";
 	rename -uid "D6F2B3D4-48EE-C88F-17CC-798C2B503B5B";
 createNode mesh -n "pCubeShape1" -p "pCube1";
@@ -89,7 +89,7 @@ createNode mesh -n "pCubeShape1" -p "pCube1";
 	setAttr ".cdvm[0]"  0 1 1;
 	setAttr ".bck" 1;
 	setAttr ".vbc" no;
-	setAttr ".ai_translator" -type "string" "polymesh";
+	
 createNode transform -n "pSphere1" -p "pCube1";
 	rename -uid "B574368F-4B6C-514D-DB58-028F82E8208D";
 	setAttr ".r" -type "double3" 0 180 0 ;
@@ -106,7 +106,7 @@ createNode mesh -n "pSphereShape1" -p "pSphere1";
 	setAttr ".cdvm[0]"  0 1 1;
 	setAttr ".bck" 1;
 	setAttr ".vbc" no;
-	setAttr ".ai_translator" -type "string" "polymesh";
+	
 createNode lightLinker -s -n "lightLinker1";
 	rename -uid "37CBDC48-4E31-FC72-E37E-64803BBA2663";
 	setAttr -s 2 ".lnk";

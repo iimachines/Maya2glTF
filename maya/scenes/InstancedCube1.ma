@@ -24,7 +24,7 @@ createNode camera -s -n "perspShape" -p "persp";
 	setAttr ".den" -type "string" "persp_depth";
 	setAttr ".man" -type "string" "persp_mask";
 	setAttr ".hc" -type "string" "viewSet -p %camera";
-	setAttr ".ai_translator" -type "string" "perspective";
+	
 createNode transform -s -n "top";
 	rename -uid "658D612C-44D1-50B8-A188-AFB5F56AF690";
 	setAttr ".v" no;
@@ -41,7 +41,7 @@ createNode camera -s -n "topShape" -p "top";
 	setAttr ".man" -type "string" "top_mask";
 	setAttr ".hc" -type "string" "viewSet -t %camera";
 	setAttr ".o" yes;
-	setAttr ".ai_translator" -type "string" "orthographic";
+	
 createNode transform -s -n "front";
 	rename -uid "EB1F7A64-41EB-5BB7-9142-D5BBAE625BF4";
 	setAttr ".v" no;
@@ -57,7 +57,7 @@ createNode camera -s -n "frontShape" -p "front";
 	setAttr ".man" -type "string" "front_mask";
 	setAttr ".hc" -type "string" "viewSet -f %camera";
 	setAttr ".o" yes;
-	setAttr ".ai_translator" -type "string" "orthographic";
+	
 createNode transform -s -n "side";
 	rename -uid "BCA7EEDA-498C-6043-AB3B-ACA065FC82EC";
 	setAttr ".v" no;
@@ -74,7 +74,7 @@ createNode camera -s -n "sideShape" -p "side";
 	setAttr ".man" -type "string" "side_mask";
 	setAttr ".hc" -type "string" "viewSet -s %camera";
 	setAttr ".o" yes;
-	setAttr ".ai_translator" -type "string" "orthographic";
+	
 createNode transform -n "pCube1";
 	rename -uid "047A51E7-485D-40F0-DC4C-8DAD10F16640";
 	setAttr ".t" -type "double3" -1.5 0 0 ;
@@ -91,7 +91,7 @@ createNode mesh -n "pCubeShape1" -p "pCube1";
 	setAttr ".cdvm[0]"  0 1 1;
 	setAttr ".bck" 1;
 	setAttr ".vbc" no;
-	setAttr ".ai_translator" -type "string" "polymesh";
+	
 createNode transform -n "pCube2";
 	rename -uid "075D9B6B-4FB4-EDEB-C436-BC8A41B2F9BC";
 	setAttr ".t" -type "double3" 1.5 0 0 ;

@@ -24,7 +24,7 @@ createNode camera -s -n "perspShape" -p "persp";
 	setAttr ".man" -type "string" "persp_mask";
 	setAttr ".tp" -type "double3" 0 3 0 ;
 	setAttr ".hc" -type "string" "viewSet -p %camera";
-	setAttr ".ai_translator" -type "string" "perspective";
+	
 createNode transform -s -n "top";
 	rename -uid "47775968-481D-959C-DEC2-C4912A1B5C1A";
 	setAttr ".v" no;
@@ -41,7 +41,7 @@ createNode camera -s -n "topShape" -p "top";
 	setAttr ".man" -type "string" "top_mask";
 	setAttr ".hc" -type "string" "viewSet -t %camera";
 	setAttr ".o" yes;
-	setAttr ".ai_translator" -type "string" "orthographic";
+	
 createNode transform -s -n "front";
 	rename -uid "D2B058DF-4F52-A165-3820-02ACBF177175";
 	setAttr ".v" no;
@@ -58,7 +58,7 @@ createNode camera -s -n "frontShape" -p "front";
 	setAttr ".tp" -type "double3" 0 2.5 0 ;
 	setAttr ".hc" -type "string" "viewSet -f %camera";
 	setAttr ".o" yes;
-	setAttr ".ai_translator" -type "string" "orthographic";
+	
 createNode transform -s -n "side";
 	rename -uid "16C0B8E8-4BA7-F9BB-4576-23BDBB79EA1F";
 	setAttr ".v" no;
@@ -75,7 +75,7 @@ createNode camera -s -n "sideShape" -p "side";
 	setAttr ".man" -type "string" "side_mask";
 	setAttr ".hc" -type "string" "viewSet -s %camera";
 	setAttr ".o" yes;
-	setAttr ".ai_translator" -type "string" "orthographic";
+	
 createNode transform -n "character";
 	rename -uid "308473CD-49C6-7C12-3686-70A190B85479";
 	setAttr ".t" -type "double3" 0 2.5 0 ;
@@ -104,7 +104,7 @@ createNode mesh -n "characterShape" -p "character";
 	setAttr ".bck" 1;
 	setAttr ".vbc" no;
 	setAttr ".vcs" 2;
-	setAttr ".ai_translator" -type "string" "polymesh";
+	
 createNode mesh -n "characterShapeOrig" -p "character";
 	rename -uid "BB1EBB54-47C9-CA20-0ED8-C4BDF9550EE1";
 	setAttr -k off ".v";
@@ -118,7 +118,7 @@ createNode mesh -n "characterShapeOrig" -p "character";
 	setAttr ".cdvm[0]"  0 1 1;
 	setAttr ".bck" 1;
 	setAttr ".vbc" no;
-	setAttr ".ai_translator" -type "string" "polymesh";
+	
 createNode transform -n "target1";
 	rename -uid "1862B60C-4CCB-46C8-6EE3-E1A3BB6F4E93";
 	setAttr ".v" no;
@@ -209,7 +209,7 @@ createNode mesh -n "target1Shape" -p "target1";
 	setAttr ".hfd" -type "dataPolyComponent" Index_Data Face 0 ;
 	setAttr ".bck" 1;
 	setAttr ".vbc" no;
-	setAttr ".ai_translator" -type "string" "polymesh";
+	
 createNode transform -n "target2";
 	rename -uid "6461DEC0-45A5-45D4-85F3-3AB9838E5E98";
 	setAttr ".v" no;
@@ -304,7 +304,7 @@ createNode mesh -n "targetShape2" -p "target2";
 	setAttr ".hfd" -type "dataPolyComponent" Index_Data Face 0 ;
 	setAttr ".bck" 1;
 	setAttr ".vbc" no;
-	setAttr ".ai_translator" -type "string" "polymesh";
+	
 createNode transform -n "target3";
 	rename -uid "C30B2E7D-489D-A02B-AEC9-4989C22B2313";
 	setAttr ".v" no;
@@ -399,7 +399,7 @@ createNode mesh -n "targetShape3" -p "target3";
 	setAttr ".hfd" -type "dataPolyComponent" Index_Data Face 0 ;
 	setAttr ".bck" 1;
 	setAttr ".vbc" no;
-	setAttr ".ai_translator" -type "string" "polymesh";
+	
 createNode joint -n "joint1";
 	rename -uid "657D87BB-4410-833E-2100-56AF3A81B2C2";
 	addAttr -ci true -sn "liw" -ln "lockInfluenceWeights" -min 0 -max 1 -at "bool";
