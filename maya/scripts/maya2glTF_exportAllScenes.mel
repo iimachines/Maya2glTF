@@ -1,6 +1,9 @@
 global string $maya2glTF_tempFolder = "C:/temp/maya2glTF_tests";
 
 proc string _ensureTrailingSlash( string $folderPath ) {
+    if (size($folderPath) == 0)
+        error ("Invalid folder path!");
+
     if (substring($folderPath, size($folderPath), size($folderPath)) != "/")
         $folderPath += "/";
 
@@ -8,7 +11,9 @@ proc string _ensureTrailingSlash( string $folderPath ) {
 }
 
 proc string _combinePaths(string $path1, string $path2) {
-    return _ensureTrailingSlash($path1)+$path2;
+    return size($path1) == 0
+     ? $path2
+     : _ensureTrailingSlash($path1)+$path2;
 }
 
 proc _deleteFolder( string $folderPath )
@@ -84,7 +89,7 @@ proc _exportTestScene(string $scenesDir, string $filename) {
 }
 
 global proc _exportTestScenes(string $scenesDir, string $subDir) {
-    
+
 	string $folder = _combinePaths($scenesDir, $subDir);
     print ("Scanning "+$folder+"...\n");
 
@@ -98,14 +103,14 @@ global proc _exportTestScenes(string $scenesDir, string $subDir) {
         { 
             _exportTestScenes($scenesDir, $subPath);
         }
-        else
+        else if (tolower(fileExtension($filePath)) == "ma")
         {
             _exportTestScene($scenesDir, $subPath);
         }
     }
 }
 
-global proc maya2glTF_exportAllScenes_callback(string $cmd) {
+proc _exportAllScenes() {
     global string $maya2glTF_tempFolder;
 
     _deleteFolder($maya2glTF_tempFolder);
@@ -125,8 +130,23 @@ global proc maya2glTF_exportAllScenes_callback(string $cmd) {
     loadPlugin -rc maya2glTF_exportAllScenes_callback;
 }
 
-global proc maya2glTF_exportAllScenes() {
+global proc maya2glTF_exportAllScenes_callback(string $cmd) {
+    global string $maya2glTF_tempFolder;
 
+    string $logPath = _combinePaths($maya2glTF_tempFolder, "log.txt");
+
+    scriptEditorInfo -historyFilename $logPath  -writeHistory true;
+
+    scriptEditorInfo -clearHistoryFile;
+
+    if (catch (_exportAllScenes())) {
+        print ("Failed to export all scenes!");
+    }
+
+    scriptEditorInfo -writeHistory false;
+}
+
+global proc maya2glTF_exportAllScenes() {
     unloadPlugin  "maya2glTF";
     loadPlugin -rc maya2glTF_exportAllScenes_callback;
     loadPlugin -ac maya2glTF_exportAllScenes_callback  "maya2glTF";
