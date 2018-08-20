@@ -521,5 +521,6 @@ xcopy /y /s /i "$(ProjectDir)maya\renderData\*.*" "$(userprofile)\Documents\Maya
     <FileUpdate Files="$(ProjectDir)\src\version.cpp" Multiline="true" Singleline="false" Regex="version\s*\=\s*&quot;(.+)&quot;" ReplacementText="version = &quot;$(GIT_Tag) $(GIT_Hash)&quot;" />
     <FileUpdate Files="$(ProjectDir)\maya\scripts\maya2glTF_UI.mel" Multiline="true" Singleline="false" Regex="\$maya2glTF_version\s*\=\s*&quot;(.+)&quot;" ReplacementText="$maya2glTF_version = &quot;$(GIT_Tag) $(GIT_Hash)&quot;" Encoding="utf-8-without-bom" />
     <FileUpdate Files="$(ProjectDir)\windows_make_release.cmd" Multiline="true" Singleline="false" Regex="_.+\.zip" ReplacementText="_$(GIT_Tag).zip" />
+    <FileUpdate Files="$(ProjectDir)\readme.md" Multiline="true" Singleline="false" Regex=".+\sis\sreleased\!" ReplacementText="$(GIT_Tag) is released!" />
   </Target>
 </Project>
