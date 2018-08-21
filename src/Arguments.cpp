@@ -5,6 +5,7 @@
 #include "MeshSemantics.h"
 
 using namespace std::experimental;
+using namespace std::experimental::filesystem;
 
 namespace flag
 {

@@ -31,10 +31,14 @@
 #include <GLTFPrimitive.h>
 
 #ifdef _MSC_VER
-#	pragma  warning(default:4267)
+#	pragma warning(push)  
+#	pragma warning(disable:4996)  
+#	pragma warning(default:4267)
 #endif
-
 #include "rapidjson/document.h"
+#ifdef _MSC_VER
+#	pragma warning(pop)  
+#endif
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
@@ -45,7 +49,6 @@
 #include <coveo/enumerable.h>
 
 #include <maya/MPxCommand.h>
-#include <maya/MFnPlugin.h>
 #include <maya/MIOStream.h>
 #include <maya/MGlobal.h>
 #include <maya/MArgList.h>
