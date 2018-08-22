@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
+
 project(Maya2glTF)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -56,7 +57,7 @@ set(LINQ_INCLUDE_DIR          "${CMAKE_BINARY_DIR}/linq/src/linq/lib")
 
 # TODO: It seems the gltf.lib is not installed by COLLADA2GLTF, although draco.lib is? Figure out why
 ExternalProject_Get_Property(COLLADA2GLTF binary_dir)
-message("Using ${binary_dir}/${CMAKE_BUILD_TYPE} as GLTF target folder")
+#message("Using ${binary_dir}/${CMAKE_BUILD_TYPE} as GLTF target folder")
 set(GLTF_LIBRARY_DIR "${binary_dir}/${CMAKE_BUILD_TYPE}") 
 set(DRACO_LIBRARY_DIR "${binary_dir}/dependencies/draco/${CMAKE_BUILD_TYPE}") 
 
@@ -88,21 +89,18 @@ add_library(${PROJECT_NAME} SHARED ${SOURCES})
 add_dependencies(${PROJECT_NAME}
   GSL
   COLLADA2GLTF
+  linq
 )
 
+target_link_libraries(${PROJECT_NAME} ${MAYA_LIBRARIES} glTF draco)
 
 if(MSVC)
   
-  target_link_libraries(${PROJECT_NAME} ${MAYA_LIBRARIES} glTF draco)
   add_custom_command(TARGET Maya2glTF POST_BUILD 
     COMMAND XCOPY /Y "$<SHELL_PATH:$<TARGET_FILE:Maya2glTF>>" "$<SHELL_PATH:$ENV{USERPROFILE}/maya/${MAYA_VERSION}/plug-ins/>"
     COMMAND xcopy /y "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/scripts/maya2glTF*.mel>" "$<SHELL_PATH:$ENV{USERPROFILE}/maya/${MAYA_VERSION}/scripts/>"
     COMMAND xcopy /y /s /i "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/renderData/*.*>" "$<SHELL_PATH:$ENV{USERPROFILE}/maya/Maya2glTF/PBR/>"
   )
-
-else()
-
-  target_link_libraries(${PROJECT_NAME} ${MAYA_LIBRARIES} glTF draco stdc++fs)
 
 endif()
 
