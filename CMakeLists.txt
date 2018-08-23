@@ -48,12 +48,27 @@ ExternalProject_Add(GSL
 	-DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
 )
 
+# filesystem
+ExternalProject_Add(filesystem
+  GIT_REPOSITORY https://github.com/WonderMediaProductions/filesystem
+  GIT_TAG maya2glTF
+  PREFIX filesystem
+  INSTALL_DIR
+  CMAKE_ARGS
+	-DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+  CONFIGURE_COMMAND ""
+  BUILD_COMMAND ""
+  INSTALL_COMMAND ""
+)
+
+
 set(GLTF_INCLUDE_DIR          "${CMAKE_BINARY_DIR}/COLLADA2GLTF/src/COLLADA2GLTF/GLTF/include")
 set(DRACO_INCLUDE_DIR         "${CMAKE_BINARY_DIR}/COLLADA2GLTF/src/COLLADA2GLTF/GLTF/dependencies/draco/src")
 set(RAPIDJSON_INCLUDE_DIR     "${CMAKE_BINARY_DIR}/COLLADA2GLTF/src/COLLADA2GLTF/GLTF/dependencies/rapidjson/include")
 #set(COLLADA2GLTF_INCLUDE_DIR  "${CMAKE_BINARY_DIR}/COLLADA2GLTF/include")
 set(GSL_INCLUDE_DIR           "${CMAKE_BINARY_DIR}/GSL/include")
 set(LINQ_INCLUDE_DIR          "${CMAKE_BINARY_DIR}/linq/src/linq/lib")
+set(FS_INCLUDE_DIR            "${CMAKE_BINARY_DIR}/filesystem/src/filesystem")
 
 # TODO: It seems the gltf.lib is not installed by COLLADA2GLTF, although draco.lib is? Figure out why
 ExternalProject_Get_Property(COLLADA2GLTF binary_dir)
@@ -76,6 +91,7 @@ include_directories(
   ${GSL_INCLUDE_DIR}
   ${MAYA_INCLUDE_DIR}
   ${LINQ_INCLUDE_DIR}
+  ${FS_INCLUDE_DIR}
 )
 
 link_directories(
@@ -90,6 +106,7 @@ add_dependencies(${PROJECT_NAME}
   GSL
   COLLADA2GLTF
   linq
+  filesystem
 )
 
 target_link_libraries(${PROJECT_NAME} ${MAYA_LIBRARIES} glTF draco)

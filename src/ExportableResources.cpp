@@ -3,6 +3,7 @@
 #include "DagHelper.h"
 #include "MayaException.h"
 #include "ExportableMaterial.h"
+#include "filesystem.h"
 
 ExportableResources::ExportableResources(const Arguments& args)
 	:m_args(args)
@@ -48,7 +49,7 @@ ExportableMaterial* ExportableResources::getMaterial(const MObject& shaderGroup)
 
 GLTF::Image* ExportableResources::getImage(const char* path)
 {
-	if (!std::experimental::filesystem::exists(path)) 
+	if (!exists(path)) 
 	{
 		MayaException::printError(formatted("Image with path '%s' does not exist!", path));
 		MayaException::printError("(it is adviced to use a Maya project and relative paths)");

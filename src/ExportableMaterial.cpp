@@ -5,8 +5,7 @@
 #include "MayaException.h"
 #include "ExportableResources.h"
 #include "Arguments.h"
-
-using namespace std::experimental::filesystem;
+#include "filesystem.h"
 
 ExportableMaterial::ExportableMaterial() = default;
 ExportableMaterial::~ExportableMaterial() = default;
