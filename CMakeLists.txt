@@ -14,8 +14,8 @@ include(ExternalProject)
 # COLLADA2GLTF
 # We only need to build the GLTF sub-library, hence the SOURCE_SUBDIR
 ExternalProject_Add(COLLADA2GLTF
-  GIT_REPOSITORY https://github.com/KhronosGroup/COLLADA2GLTF.git
-  GIT_TAG v2.1.3
+  GIT_REPOSITORY https://github.com/WonderMediaProductions/COLLADA2GLTF
+  GIT_TAG Maya2glTF
   PREFIX COLLADA2GLTF
   SOURCE_SUBDIR GLTF
   INSTALL_DIR
@@ -97,9 +97,9 @@ target_link_libraries(${PROJECT_NAME} ${MAYA_LIBRARIES} glTF draco)
 if(MSVC)
   
   add_custom_command(TARGET Maya2glTF POST_BUILD 
-    COMMAND XCOPY /Y "$<SHELL_PATH:$<TARGET_FILE:Maya2glTF>>" "$<SHELL_PATH:$ENV{USERPROFILE}/maya/${MAYA_VERSION}/plug-ins/>"
-    COMMAND xcopy /y "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/scripts/maya2glTF*.mel>" "$<SHELL_PATH:$ENV{USERPROFILE}/maya/${MAYA_VERSION}/scripts/>"
-    COMMAND xcopy /y /s /i "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/renderData/*.*>" "$<SHELL_PATH:$ENV{USERPROFILE}/maya/Maya2glTF/PBR/>"
+    COMMAND XCOPY /Y "$<SHELL_PATH:$<TARGET_FILE:Maya2glTF>>" "$<SHELL_PATH:$ENV{USERPROFILE}/Documents/maya/${MAYA_VERSION}/plug-ins/>"
+    COMMAND xcopy /y "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/scripts/maya2glTF*.mel>" "$<SHELL_PATH:$ENV{USERPROFILE}/Documents/maya/${MAYA_VERSION}/scripts/>"
+    COMMAND xcopy /y /s /i "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/renderData/*.*>" "$<SHELL_PATH:$ENV{USERPROFILE}/Documents/maya/Maya2glTF/PBR/>"
   )
 
 endif()
