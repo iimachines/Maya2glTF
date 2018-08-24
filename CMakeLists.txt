@@ -119,6 +119,14 @@ if(MSVC)
     COMMAND xcopy /y /s /i "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/renderData/*.*>" "$<SHELL_PATH:$ENV{USERPROFILE}/Documents/maya/maya2glTF/PBR/>"
   )
 
+elseif(APPLE)
+
+  add_custom_command(TARGET maya2glTF POST_BUILD 
+    COMMAND ${CMAKE_COMMAND} -E copy
+            "$<SHELL_PATH:$<TARGET_FILE:maya2glTF>>"
+            "~/Library/Preferences/Autodesk/maya/${MAYA_VERSION}/plug-ins/maya2glTF.bundle"
+  )
+
 endif()
 
 MAYA_PLUGIN(${PROJECT_NAME})
