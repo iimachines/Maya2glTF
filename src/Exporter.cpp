@@ -20,7 +20,7 @@ void Exporter::printFatalError()
 	ss << "Ouch something went really wrong (an access violation occurred) :-(  " << endl;
 	ss << "Your Maya scene might be corrupt! Save to a *temp* file, and restart " << endl;
 	ss << "We're sorry for the inconvenience. Please file a bug report at:      " << endl;
-	ss << "https://github.com/Ziriax/Maya2glTF/issues                           " << endl;
+	ss << "https://github.com/WonderMediaProductions/maya2glTF/issues           " << endl;
 	ss << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << endl;
 
 	const auto message = ss.str();

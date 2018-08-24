@@ -2,7 +2,7 @@
 
 ## Update
 
-V0.9.8-alpha is released! See the [releases](https://github.com/Ziriax/Maya2glTF/releases) tab. 
+V0.9.8-alpha is released! See the [releases](https://github.com/WonderMediaProductions/maya2glTF/releases) tab. 
 
 ![Maya Tiger screenshot](/img/tiger-wim@koetan.gif)
 
@@ -15,9 +15,9 @@ V0.9.8-alpha is released! See the [releases](https://github.com/Ziriax/Maya2glTF
 * To **install**: 
     * install the [Microsoft Visual C++ redistributables](https://go.microsoft.com/fwlink/?LinkId=746572).
         * on many systems this is already installed, so you might want to skip this step.
-    * download the desired [Maya2glTF_xxx.zip release](https://github.com/Ziriax/Maya2glTF/releases)
+    * download the desired [Maya2glTF_xxx.zip release](https://github.com/WonderMediaProductions/maya2glTF/releases)
     * extract the downloaded `zip` file to any location (e.g. your desktop)
-    * open the created `Maya2glTF` folder
+    * open the created `maya2glTF` folder
     * double click on the `deploy.bat` file
         * This will copy the plug-in and scripts to your `Documents` folder
     * re-launch Maya 2017 or 2018
@@ -39,14 +39,14 @@ V0.9.8-alpha is released! See the [releases](https://github.com/Ziriax/Maya2glTF
 * To **help**:
     * let me know if this doesn't work for you, this is BETA stuff ;-)
         * ideally make an issue, providing the OS, Maya and plug-in version, and a test-scene.
-    * if it *does* work, please give Maya2glTF a :star: on GitHUB, and spread the word :sunglasses:
+    * if it *does* work, please give maya2glTF a :star: on GitHUB, and spread the word :sunglasses:
 
 * To **shade**: 
     * *I assume you already used something like Substance Painter to create glTF-PBR textures*
     * select the polygons you want to shade
     * click the `assign PBR shader to selection` button
     * the first time, you need to select our PBR OpenGL shader at:
-        * `Documents\maya\Maya2glTF\PBR\shaders\glTF_PBR.ogsfx`
+        * `Documents\maya\maya2glTF\PBR\shaders\glTF_PBR.ogsfx`
     * next, select all the PBR textures you want to apply in one go:
         * for example, for the [damaged helmet model](https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0/DamagedHelmet/glTF), multi-select the following textures:
             * `Default_normal.jpg`
@@ -117,11 +117,11 @@ I consider this plugin to be in *beta* stage, use it at your own risk :)
 * Currently Phong, Lambert and Blinn shaders are converted to PBR, but only the color texture and transparency is taken into account (this is mainly done for testing with existing models). 
 
 * Comes with GLSL code with a friendly UI ported from the official Khronos PBR WebGL code.
-    * See `Maya2glTF\maya\renderData\shaders\glTF_PBR.ogsfx`  
+    * See `maya2glTF\maya\renderData\shaders\glTF_PBR.ogsfx`  
     * To use this hardware shader
         * make sure the GLSL shader plugin is loaded 
         * use the *OpenGL/Core Profile* in Preferences/Display 
-    * You can use the `Maya2glTF\maya\scripts\assign_glTF_PBR_material_and_textures.mel` script to assign multiple textures at once, based on filename patterns
+    * You can use the `maya2glTF\maya\scripts\assign_glTF_PBR_material_and_textures.mel` script to assign multiple textures at once, based on filename patterns
 
 * No lights or cameras yet
     * unlikely to be added, we don't really need this, although not a lot of work
@@ -150,7 +150,7 @@ I consider this plugin to be in *beta* stage, use it at your own risk :)
 
 * Install the **[latest Maya devkit matching your Maya application version](https://www.autodesk.com/developer-network/platform-technologies/maya)**
     
-* We need to tell the Maya2glTF project where it can find the Maya devkit header and library files. Declare the following environment variables, or add `user macros` to the Visual Studio `Microsoft.Cpp.x64.user` property page
+* We need to tell the maya2glTF project where it can find the Maya devkit header and library files. Declare the following environment variables, or add `user macros` to the Visual Studio `Microsoft.Cpp.x64.user` property page
     * For Maya 2018:
         * `MAYA_2018_SDK` -> *the `devkitBase` sub-folder of the Maya devkit*, e.g. `C:\dev\Maya-2018-SDK\devkitBase`
     * For Maya 2017:
@@ -163,16 +163,16 @@ I consider this plugin to be in *beta* stage, use it at your own risk :)
 * Run the `Developer Command Prompt for VS 2017`, and then clone this repository, including ***all dependencies***. *Oh, did I mention not to forget the dependencies? ;-)*
     
     ```
-    git clone https://github.com/Ziriax/Maya2glTF --branch develop --recursive
+    git clone https://github.com/WonderMediaProductions/maya2glTF --branch develop --recursive
     ```
 
-* Enter the `Maya2glTF` folder, and run 
+* Enter the `maya2glTF` folder, and run 
     ```
     windows_build_dependencies
     ```
     * After a couple of minutes, your console should turn green if this succeeds, or red if this fails. In the latter case, make sure you cloned the GIT dependencies, see the previous step...
 
-* Next build the `Maya2glTF` plugin itself, by running the following command inside the `Maya2glTF` folder
+* Next build the `maya2glTF` plugin itself, by running the following command inside the `maya2glTF` folder
     ```
     windows_build_plugin *MAYA_VERSION*
     ```
@@ -185,8 +185,8 @@ I consider this plugin to be in *beta* stage, use it at your own risk :)
     * Start Maya
     
     * Load a scene
-		* **NOTE** to load scenes from this project, first set the Maya project to the `Maya2glTF\maya` folder
-        * to see if the plugin was built correctly, it's best to use a scene from this repository, for example `Maya2glTF\maya\scenes\damaged_helmet.ma`
+		* **NOTE** to load scenes from this project, first set the Maya project to the `maya2glTF\maya` folder
+        * to see if the plugin was built correctly, it's best to use a scene from this repository, for example `maya2glTF\maya\scenes\damaged_helmet.ma`
     
     * select the nodes you want to export
         * by default all descendants are also exported, unless you add the -selectedNodesOnly (sno) flag.
@@ -199,7 +199,7 @@ I consider this plugin to be in *beta* stage, use it at your own risk :)
     * I use the [vscode](https://code.visualstudio.com/) [glTF viewer](https://github.com/AnalyticalGraphicsInc/gltf-vscode)
         * Make sure to switch between BabylonJS, Cesium and ThreeJS, they all give different results...
 
-    * If you want to contribute to the development, you might want to use the MEL script `Maya2glTF\maya\scripts\test-iteration.mel`. This unloads and reloads the plugin everytime, unlocking the DLL.
+    * If you want to contribute to the development, you might want to use the MEL script `maya2glTF\maya\scripts\test-iteration.mel`. This unloads and reloads the plugin everytime, unlocking the DLL.
 
 * The supported plugin arguments are
 	* `-outputFolder (-of) STRING` *(required)* 

@@ -177,6 +177,6 @@ global proc maya2glTF_assignPbrShader()
 	// Pass the path to the default shader location. 
 	// If it doesn't exist, a prompt will be given to the user.
 	string $home = _ensureTrailingSlash(`getenv "HOME"`);
-	string $shaderPath = $home + "maya/Maya2glTF/PBR/shaders/glTF_PBR.ogsfx";
+	string $shaderPath = $home + "maya/maya2glTF/PBR/shaders/glTF_PBR.ogsfx";
     maya2glTF_assignMaterialAndTextures({}, $shaderPath, {});
 }

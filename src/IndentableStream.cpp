@@ -6,7 +6,11 @@ ostream& prefix(ostream& stream)
 	tm buf;
 	const auto now = std::chrono::system_clock::now();
 	const auto time = std::chrono::system_clock::to_time_t(now);
+#ifdef _MSC_VER
 	localtime_s(&buf, &time);
+#else
+	localtime_r(&time, &buf);
+#endif
 	stream << "maya2glTF [" << std::put_time(&buf, "%T") << "] ";
 	return stream;
 }

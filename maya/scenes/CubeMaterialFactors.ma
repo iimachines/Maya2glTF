@@ -168,7 +168,7 @@ createNode script -n "maya2glTF_scriptNode";
 	addAttr -ci true -sn "anim" -ln "anim" -at "long";
 	addAttr -ci true -sn "clip" -ln "clip" -dt "string";
 	setAttr ".st" 2;
-	setAttr ".outputFolder" -type "string" "C:/dev/glTF/Maya2glTF/maya/scenes/export/";
+	setAttr ".outputFolder" -type "string" "C:/dev/glTF/maya2glTF/maya/scenes/export/";
 	setAttr ".sceneName" -type "string" "CubeMaterialFactors";
 	setAttr ".copyright" -type "string" "(C)2018 bugfa";
 	setAttr ".scale" 1;

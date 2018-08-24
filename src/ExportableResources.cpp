@@ -76,7 +76,7 @@ GLTF::Image* ExportableResources::getImage(const char* path)
 static GLTF::Constants::WebGL getSamplerWrapping(const ImageTilingFlags tiling)
 {
 	// TODO: Verify mapping
-	switch (tiling)
+	switch ((int)tiling)
 	{
 	case IMAGE_TILING_Wrap:
 		return GLTF::Constants::WebGL::REPEAT;

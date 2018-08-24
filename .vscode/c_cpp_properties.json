@@ -7,9 +7,12 @@
                 "${workspaceFolder}/build/COLLADA2GLTF/src/COLLADA2GLTF/GLTF/include",
                 "${workspaceFolder}/build/COLLADA2GLTF/src/COLLADA2GLTF/GLTF/dependencies/draco/src",
                 "${workspaceFolder}/build/COLLADA2GLTF/src/COLLADA2GLTF/GLTF/dependencies/rapidjson/include",
-                "/Applications/Autodesk/maya2018/include/**"
+                "/Applications/Autodesk/maya2018/include/**",
+                "${workspaceFolder}/build/GSL/include",
+                "${workspaceFolder}/build/linq/src/linq/lib",
+                "${workspaceFolder}/build/filesystem/src/filesystem"
             ],
-            "defines": [],
+            "defines": ["OSMac_"],
             "macFrameworkPath": [
                 "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"
             ],

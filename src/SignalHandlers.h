@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef OSMac_
+typedef void (*_crt_signal_t) (int);
+#endif
+
 /** Overrides calls to abort to throw an exception instead of killing the process */
 class SignalHandlers
 {

@@ -29,7 +29,7 @@ ExportableTexture::ExportableTexture(ExportableResources& resources, const MObje
 	if (!DagHelper::getPlugValue(connectedObject, "fileTextureName", imageFilePath))
 	{
 		MayaException::printError(
-			formatted("Failed to get %s.fileTextureName", connectedNode.name()));
+			formatted("Failed to get %s.fileTextureName", connectedNode.name().asChar()));
 		return;
 	}
 

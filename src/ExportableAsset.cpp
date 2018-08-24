@@ -14,7 +14,7 @@ ExportableAsset::ExportableAsset(const Arguments& args)
 	m_glAsset.scene = 0;
 
 	m_glAsset.metadata = &m_glMetadata;
-	m_glMetadata.generator = std::string("Maya2glTF ") + version;
+	m_glMetadata.generator = std::string("maya2glTF ") + version;
 	m_glMetadata.version = "2.0";
 	m_glMetadata.copyright = args.copyright.asChar();
 
@@ -252,7 +252,7 @@ void ExportableAsset::create(std::ofstream& file, const std::string& path, const
 	{
 		std::ostringstream ss;
 		ss << "Couldn't write to '" << path << "'";
-		throw std::exception(ss.str().c_str());
+		throw std::runtime_error(ss.str());
 	}
 }
 

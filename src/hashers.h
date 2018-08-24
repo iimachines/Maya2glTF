@@ -3,6 +3,18 @@
 #include "basicTypes.h"
 #include "spans.h"
 
+#ifdef OSMac_
+
+namespace std
+{
+	inline size_t hash_value(size_t value) 
+	{
+		return value;
+	}
+}
+
+#endif
+
 struct CollectionHashers
 {
 	std::size_t operator()(const gsl::span<int>& vec) const

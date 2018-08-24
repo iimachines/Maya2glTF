@@ -283,10 +283,10 @@ void ExportableMaterialPBR::loadPBR(ExportableResources& resources, const MFnDep
 				// Merge metallic into roughness
 				auto metallicPixels = reinterpret_cast<uint32_t*>(metallicImage.pixels());
 				auto roughnessPixels = reinterpret_cast<uint32_t*>(roughnessImage.pixels());
-				__int64 pixelCount = width * height;
-				while (--pixelCount >= 0)
+				int64_t pixelCount = int64_t(width) * int64_t(height);
+				for (int64_t i=0; i<pixelCount; ++i)
 				{
-					*roughnessPixels++ = (*roughnessPixels & 0xff00) | (*metallicPixels++ & 0xff0000) | 0xff000000;
+					roughnessPixels[i] = (roughnessPixels[i] & 0xff00) | (metallicPixels[i] & 0xff0000) | 0xff000000;
 				}
 
 				// TODO: Add argument for output image file mime-type
