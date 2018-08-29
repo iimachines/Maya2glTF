@@ -10,9 +10,9 @@ To try it out:
 * open a Terminal window
     * See `Finder` `Utilities` `Terminal`
 * clone the `cmake` branch of this repository
-   * e.g. `git clone -b cmake https://github.com/WonderMediaProductions/Maya2glTF ~\Documents\Maya2glTF`
+   * e.g. `git clone -b cmake https://github.com/WonderMediaProductions/Maya2glTF ~/Documents/Maya2glTF`
 * enter the cloned directory
-   * e.g. `cd ~\Documents\Maya2glTF`
+   * e.g. `~/Documents/Maya2glTF`
 * run the build script
    * `sudo ./macos_build_plugin.sh` 
       * *for some reason, the script needs be run as root*
