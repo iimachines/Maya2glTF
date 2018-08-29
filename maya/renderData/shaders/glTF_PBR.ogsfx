@@ -490,7 +490,12 @@ GLSLShader PS
     vec3 getIBLContribution(PBRInfo pbrInputs, vec3 n, vec3 reflection)
     {
 #ifdef USE_IBL
+#   ifdef GL_ARB_texture_query_levels
         float mipMax = textureQueryLevels(u_SpecularEnvSampler) - 1;
+#   else
+        // Extension not available, just guess 
+        const float mipMax = 9;
+#   endif
         float lod = pbrInputs.perceptualRoughness * mipMax;
         // retrieve a scale and bias to F0. See [1], Figure 3
         vec3 brdf = SRGBtoLINEAR(tex2D(u_brdfLUT, vec2(pbrInputs.NdotV, 1.0 - pbrInputs.perceptualRoughness), vec4(0))).rgb;

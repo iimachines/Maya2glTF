@@ -121,19 +121,20 @@ if(MSVC)
 
 elseif(APPLE)
 
-  add_custom_command(TARGET maya2glTF POST_BUILD 
-    COMMAND ${CMAKE_COMMAND} -E copy
-            "$<SHELL_PATH:$<TARGET_FILE:maya2glTF>>"
-            "~/Library/Preferences/Autodesk/maya/${MAYA_VERSION}/plug-ins/maya2glTF.bundle"
+  install (
+    TARGETS maya2glTF 
+    DESTINATION "/Users/Shared/Autodesk/maya/${MAYA_VERSION}/plug-ins/"
+  )
+  
+  install (
+    DIRECTORY "${PROJECT_SOURCE_DIR}/maya/scripts/" 
+    DESTINATION "/Users/Shared/Autodesk/maya/scripts"
+    FILES_MATCHING PATTERN "maya2glTF*.mel"
+  )
 
-    COMMAND ${CMAKE_COMMAND} -E copy 
-            "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/scripts/maya2glTF*.mel>" 
-            "~/Library/Preferences/Autodesk/maya/scripts/>"
-
-    COMMAND ${CMAKE_COMMAND} -E copy 
-            "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/renderData/*.*>" 
-            "~/maya/maya2glTF/PBR/>"
-        
+  install (
+    DIRECTORY "${PROJECT_SOURCE_DIR}/maya/renderData/"
+    DESTINATION "/Users/Shared/Autodesk/maya/maya2glTF/PBR"
   )
 
 endif()
