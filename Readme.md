@@ -27,7 +27,7 @@ Happy exporting!
 
 ## Update
 
-V0.9.8-alpha is released! See the [releases](https://github.com/Ziriax/Maya2glTF/releases) tab. 
+V0.9.9 is released! See the [releases](https://github.com/Ziriax/Maya2glTF/releases) tab. 
 
 ![Maya Tiger screenshot](/img/tiger-wim@koetan.gif)
 
@@ -62,7 +62,7 @@ V0.9.8-alpha is released! See the [releases](https://github.com/Ziriax/Maya2glTF
     * good luck! ;-)
 
 * To **help**:
-    * let me know if this doesn't work for you, this is BETA stuff ;-)
+    * let me know if this doesn't work for you
         * ideally make an issue, providing the OS, Maya and plug-in version, and a test-scene.
     * if it *does* work, please give Maya2glTF a :star: on GitHUB, and spread the word :sunglasses:
 
@@ -119,7 +119,7 @@ Maya interally uses a dataflow architecture (called the *dependency graph*). Thi
 
 ## Status
 
-I consider this plugin to be in *beta* stage, use it at your own risk :) 
+I consider this plugin to be production quality now, but use it at your own risk :) 
 
 * Supports **Maya 2016 EXT2, 2017, 2018** (64-bit only)
     * Maya 2016 is a different product from Maya 2016 EXT2 and is ***not supported***, since I can't find a compatible devkit for it.
