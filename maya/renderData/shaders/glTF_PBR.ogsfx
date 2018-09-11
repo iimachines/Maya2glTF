@@ -308,6 +308,20 @@ uniform vec4 u_ScaleIBL_Occl
     int UIOrder = 9003;
 > = {1.0, 1.0, 0.0, 1.0};
 
+uniform bool u_FlipCubeMapZ
+<
+    string UIName = "Flip cube map Z?";
+    string UIGroup = "PBR Debug";
+    int UIOrder = 9004;
+> = true;
+
+uniform bool u_ForceCubeMapSRGB
+<
+    string UIName = "Force cube map sRGB?";
+    string UIGroup = "PBR Debug";
+    int UIOrder = 9005;
+> = true;
+
 uniform bool u_UseMeshTangents
 <
     string UIName = "Use mesh tangents?";
@@ -421,21 +435,6 @@ GLSLShader PS
         return sign(p) * pow(abs(p), vec3(1)) * 0.5 + vec3(0.5);
     }
 
-    vec4 tex2D(sampler2D s, vec2 uv, vec4 defaultColor)
-    {
-        return textureSize(s, 0).x > 1 ? texture(s, uv) : defaultColor;
-    }
-
-    vec4 texCube(samplerCube s, vec3 n, vec4 defaultColor)
-    {
-        return textureSize(s, 0).x > 1 ? texture(s, n) : defaultColor;
-    }
-
-    vec4 texCubeLod(samplerCube s, vec3 n, float lod, vec4 defaultColor)
-    {
-        return textureSize(s, 0).x > 1 ? textureLod(s, n, lod) : defaultColor;
-    }
-
     vec4 SRGBtoLINEAR(vec4 srgbIn)
     {
 #ifdef MANUAL_SRGB
@@ -449,6 +448,31 @@ GLSLShader PS
 #else //MANUAL_SRGB
         return srgbIn;
 #endif //MANUAL_SRGB
+    }
+
+    vec4 tex2D(sampler2D s, vec2 uv, vec4 defaultColor)
+    {
+        return textureSize(s, 0).x > 1 ? texture(s, uv) : defaultColor;
+    }
+
+    vec4 linearCubeMap(vec4 color) 
+    {
+        return u_ForceCubeMapSRGB ? SRGBtoLINEAR(color) : color;
+    }
+
+    vec3 flipCubeMapNormal(vec3 n) 
+    {
+        return u_FlipCubeMapZ ? n * vec3(1,1,-1) : n;
+    }
+
+    vec4 texCube(samplerCube s, vec3 n, vec4 defaultColor)
+    {
+        return textureSize(s, 0).x > 1 ? linearCubeMap(texture(s, flipCubeMapNormal(n))) : defaultColor;
+    }
+
+    vec4 texCubeLod(samplerCube s, vec3 n, float lod, vec4 defaultColor)
+    {
+        return textureSize(s, 0).x > 1 ? linearCubeMap(textureLod(s, flipCubeMapNormal(n), lod)) : defaultColor;
     }
 
     // Find the normal for this fragment, pulling either from a predefined normal map
@@ -494,8 +518,8 @@ GLSLShader PS
         float lod = pbrInputs.perceptualRoughness * mipMax;
         // retrieve a scale and bias to F0. See [1], Figure 3
         vec3 brdf = SRGBtoLINEAR(tex2D(u_brdfLUT, vec2(pbrInputs.NdotV, 1.0 - pbrInputs.perceptualRoughness), vec4(0))).rgb;
-        vec3 diffuseLight = (texCube(u_DiffuseEnvSampler, n, vec4(0))).rgb;
-        vec3 specularLight = (texCubeLod(u_SpecularEnvSampler, reflection, lod, vec4(0))).rgb;
+        vec3 diffuseLight = texCube(u_DiffuseEnvSampler, n, vec4(0)).rgb;
+        vec3 specularLight = texCubeLod(u_SpecularEnvSampler, reflection, lod, vec4(0)).rgb;
 
         vec3 diffuse = diffuseLight * pbrInputs.diffuseColor;
         vec3 specular = specularLight * (pbrInputs.specularColor * brdf.x + brdf.y);
@@ -608,7 +632,7 @@ GLSLShader PS
         vec3 reflection = normalize(-reflect(v, n));
 
         float NdotL = clamp(dot(n, l), 0.001, 1.0);
-        float NdotV = abs(dot(n, v)) + 0.001;
+        float NdotV = clamp(abs(dot(n, v)), 0.001, 1.0);
         float NdotH = clamp(dot(n, h), 0.0, 1.0);
         float LdotH = clamp(dot(l, h), 0.0, 1.0);
         float VdotH = clamp(dot(v, h), 0.0, 1.0);
@@ -640,7 +664,8 @@ GLSLShader PS
 
         // Calculate lighting contribution from image based lighting source (IBL)
 #ifdef USE_IBL
-        color += getIBLContribution(pbrInputs, n, reflection);
+        vec3 ibl = getIBLContribution(pbrInputs, n, reflection);
+        color += ibl;
 #endif
 
         // Apply optional PBR terms for additional (optional) shading
@@ -669,6 +694,8 @@ GLSLShader PS
         //out_color = vec4(pow(color,vec3(1.0/2.2)), baseColor.a);
         out_color = vec4(color, baseColor.a);
         //out_color = vec4(n, baseColor.a);
+
+        out_color = vec4(ibl, baseColor.a);
     }
 }
 
