@@ -34,5 +34,9 @@ public:
 private:
 	std::vector<std::unique_ptr<GLTF::Accessor>> glAccessors;
 
+	std::array<std::map<SetIndex, SetIndex>, Semantic::COUNT> m_glAttributeIndexMaps;
+
+	std::string glAttributeName(Semantic::Kind s, int setIndex);
+
 	DISALLOW_COPY_MOVE_ASSIGN(ExportablePrimitive);
 };

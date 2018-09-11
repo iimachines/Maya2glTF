@@ -9,26 +9,6 @@
 using namespace GLTF::Constants;
 using namespace coveo::linq;
 
-namespace Semantic
-{
-	inline std::string glTFattributeName(const Kind s, const int setIndex)
-	{
-		// NOTE: Although Maya has multiple tangent sets, glTW only accepts one. 
-		// Need to dig deeper to understand this correctly.
-		switch (s)
-		{
-		case POSITION:	return std::string("POSITION");
-		case NORMAL:	return std::string("NORMAL");
-		case TANGENT:	return std::string("TANGENT");
-		case COLOR:		return std::string("COLOR_") + std::to_string(setIndex);
-		case TEXCOORD:	return std::string("TEXCOORD_") + std::to_string(setIndex);
-		case WEIGHTS:	return std::string("WEIGHTS_") + std::to_string(setIndex);
-		case JOINTS:	return std::string("JOINTS_") + std::to_string(setIndex);
-		default: assert(false); return "UNKNOWN";
-		}
-	}
-}
-
 ExportablePrimitive::ExportablePrimitive(
 	const VertexBuffer& vertexBuffer,
 	ExportableResources& resources, 
@@ -96,7 +76,7 @@ ExportablePrimitive::ExportablePrimitive(
 			if (semanticSet.test(slot.semantic))
 			{
 				auto accessor = contiguousElementAccessor(slot.semantic, slot.shapeIndex, pair.second);
-				glAttributes[Semantic::glTFattributeName(slot.semantic, slot.setIndex)] = accessor.get();
+				glAttributes[glAttributeName(slot.semantic, slot.setIndex)] = accessor.get();
 				glAccessors.emplace_back(std::move(accessor));
 			}
 		}
@@ -151,13 +131,33 @@ ExportablePrimitive::ExportablePrimitive(
 	glPrimitive.indices = glIndices.get();
 
 	auto pointAccessor = contiguousElementAccessor(Semantic::Kind::POSITION, ShapeIndex::main(), reinterpret_span<byte>(linePoints));
-	glPrimitive.attributes[glTFattributeName(Semantic::Kind::POSITION, 0)] = pointAccessor.get();
-	glAccessors.emplace_back(move(pointAccessor));
+	glPrimitive.attributes[glAttributeName(Semantic::Kind::POSITION, 0)] = pointAccessor.get();
+	glAccessors.emplace_back(std::move(pointAccessor));
 
 	auto colorAccessor = contiguousElementAccessor(Semantic::Kind::COLOR, ShapeIndex::main(), reinterpret_span<byte>(lineColors));
-	glPrimitive.attributes[glTFattributeName(Semantic::Kind::COLOR, 0)] = colorAccessor.get();
-	glAccessors.emplace_back(move(colorAccessor));
+	glPrimitive.attributes[glAttributeName(Semantic::Kind::COLOR, 0)] = colorAccessor.get();
+	glAccessors.emplace_back(std::move(colorAccessor));
 }
 
 ExportablePrimitive::~ExportablePrimitive() = default;
 
+std::string ExportablePrimitive::glAttributeName(Semantic::Kind s, int setIndex)
+{
+	auto& map = m_glAttributeIndexMaps[s];
+	auto it = map.find(setIndex);
+	auto glSetIndex = it == map.end() ? (map[setIndex] = map.size()) : it->second;
+
+	// NOTE: Although Maya has multiple tangent sets, glTF only accepts one. 
+	// Need to dig deeper to understand this correctly.
+	switch (s)
+	{
+	case Semantic::POSITION:	return std::string("POSITION");
+	case Semantic::NORMAL:	return std::string("NORMAL");
+	case Semantic::TANGENT:	return std::string("TANGENT");
+	case Semantic::COLOR:		return std::string("COLOR_") + std::to_string(glSetIndex);
+	case Semantic::TEXCOORD:	return std::string("TEXCOORD_") + std::to_string(glSetIndex);
+	case Semantic::WEIGHTS:	return std::string("WEIGHTS_") + std::to_string(glSetIndex);
+	case Semantic::JOINTS:	return std::string("JOINTS_") + std::to_string(glSetIndex);
+	default: assert(false); return "UNKNOWN";
+	}
+}
