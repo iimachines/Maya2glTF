@@ -17,7 +17,6 @@
 #define HAS_EMISSIVEMAP
 #define HAS_METALROUGHNESSMAP
 #define HAS_OCCLUSIONMAP
-#define USE_TEX_LOD
 #define MANUAL_SRGB
 #define SRGB_FAST_APPROXIMATION
 #undef USE_LIGHT_BINDING
@@ -694,8 +693,7 @@ GLSLShader PS
         //out_color = vec4(pow(color,vec3(1.0/2.2)), baseColor.a);
         out_color = vec4(color, baseColor.a);
         //out_color = vec4(n, baseColor.a);
-
-        out_color = vec4(ibl, baseColor.a);
+        //out_color = vec4(ibl, baseColor.a);
     }
 }
 
