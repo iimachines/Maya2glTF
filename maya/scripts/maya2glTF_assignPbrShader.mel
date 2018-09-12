@@ -5,8 +5,9 @@
 *
 * param $shaderPath         The path to the glTF PBR shader used by the new material.
 *
-* param $texturePatterns    The regex patterns used to map the texture paths to the glTF PBR shader texture attributes. The
-*                           shader texture attributes have the following order:
+* param $texturePatterns    The regex patterns used to map the texture paths to the glTF PBR shader texture attributes. 
+*                           You can use "|" to combine multiple patterns (Maya doesn't support that natively)
+*                           The shader texture attributes have the following order:
 *                               u_BaseColorTexture, u_MetallicTexture, u_RoughnessTexture, u_OcclusionTexture, u_NormalTexture,
 *                               u_EmissiveTexture, u_DiffuseEnvTexture, u_SpecularEnvTexture, u_brdfTexture
 */
@@ -34,12 +35,13 @@ global proc maya2glTF_assignMaterialAndTextures(
 	
 	string $filePaths[];
 	
-	if (size($maya2glTF_default_texture_patterns) == 0) {
+	if (size($maya2glTF_default_texture_patterns) == 0) 
+	{
 		$maya2glTF_default_texture_patterns = {
-			"base|albedo",
-			"metal|orm",
-			"rough|orm",
-			"occlusion|orm|ao",
+			"basecolor|albedo",
+			"metal|_orm",
+			"rough|_orm",
+			"occl|_orm|_ao",
 			"normal",
 			"emissive",
 			"diffuse[\\W\\d_]*env",
@@ -114,7 +116,7 @@ global proc maya2glTF_assignMaterialAndTextures(
     // match texture paths to material texture attributes
     for ($i = 0; $i < size($attrNames); ++$i)
     {
-        string $texturePattern = `tolower $texturePatterns[$i]`;
+        string $texturePattern = $texturePatterns[$i];
 		string $texturePatterns[];
 		tokenize $texturePattern "|" $texturePatterns;
 
@@ -124,23 +126,30 @@ global proc maya2glTF_assignMaterialAndTextures(
         {
             string $filePath = $filePaths[$j];
             string $filePathLower = `tolower $filePath`;
+			// if ($i==0) print ($filePathLower+"\n");
+
 			string $currentPattern;
-
-			int $matches = false;
-
+			string $matchedPattern;
+			 
 			for ($currentPattern in $texturePatterns)
 			{
-				$matches = $matches || (`match $currentPattern $filePathLower` != "");
+				if(`match $currentPattern $filePathLower` != "") 
+				{
+					$matchedPattern = $currentPattern;
+					$found = true;
+					break;
+				}
 			}
 
-            if ($matches)
+            if (size($matchedPattern))
             {
+				print ("'"+$filePathLower+"' matched texture pattern '"+$matchedPattern+"'\n");
+
                 string $shAttrName = ($sh+"."+$attrNames[$i]);
                 string $fileNode = `createRenderNodeCB -as2DTexture "" file ("defaultNavigation -force true -connectToExisting -source %node -destination "+$shAttrName+";")`;
                 setAttr -type "string" ($fileNode+".fileTextureName") $filePath;
 				string $suffix = substring($attrNames[$i],3,size($attrNames[$i]));
 				rename $fileNode ($objectNames[0]+"_"+$suffix);
-				$found = true;
 
 				// If a texture is found, set the corresponding strength to 1
 				switch ($i) 
@@ -168,15 +177,30 @@ global proc maya2glTF_assignMaterialAndTextures(
         }
 
 		if (!$found) 
-			print ("Not assigning '"+$attrNames[$i]+"' since no texture matches pattern '"+$texturePattern+"'\n");
+			print ("Not assigning '"+$attrNames[$i]+"' since no texture filename matches pattern '"+$texturePattern+"'\n");
     }
 }
 
 global proc maya2glTF_assignPbrShader() 
 {
+	// If the PBR shader is in the current workspace, use the relative path
+	string $home = _ensureTrailingSlash(`getenv "HOME"`);
+	string $root = _ensureTrailingSlash(`workspace -q -rd`);
+	string $shaderPath = $root + "renderData/shaders/glTF_PBR.ogsfx";
+	if (`filetest -r $shaderPath`) 
+	{
+		print ("Using glTF PBR shader from your Maya workspace:\n");
+	} 
+	else 
+	{
+		// Shader does not exist in workspace, use the installed one.
+		$shaderPath = $home + "maya/Maya2glTF/PBR/shaders/glTF_PBR.ogsfx";
+		print ("Using glTF PBR shader from your home directory:\n");
+	}
+
+	print ($shaderPath+"\n");
+
 	// Pass the path to the default shader location. 
 	// If it doesn't exist, a prompt will be given to the user.
-	string $home = _ensureTrailingSlash(`getenv "HOME"`);
-	string $shaderPath = $home + "maya/Maya2glTF/PBR/shaders/glTF_PBR.ogsfx";
-    maya2glTF_assignMaterialAndTextures({}, $shaderPath, {});
+	maya2glTF_assignMaterialAndTextures({}, $shaderPath, {});
 }
