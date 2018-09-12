@@ -27,7 +27,7 @@ Happy exporting!
 
 ## Update
 
-V0.9.9 is released! See the [releases](https://github.com/Ziriax/Maya2glTF/releases) tab. 
+V0.9.9 is released! See the [releases](https://github.com/WonderMediaProductions/Maya2glTF/releases) tab. 
 
 ![Maya Tiger screenshot](/img/tiger-wim@koetan.gif)
 
@@ -40,7 +40,7 @@ V0.9.9 is released! See the [releases](https://github.com/Ziriax/Maya2glTF/relea
 * To **install**: 
     * install the [Microsoft Visual C++ redistributables](https://go.microsoft.com/fwlink/?LinkId=746572).
         * on many systems this is already installed, so you might want to skip this step.
-    * download the desired [Maya2glTF_xxx.zip release](https://github.com/Ziriax/Maya2glTF/releases)
+    * download the desired [Maya2glTF_xxx.zip release](https://github.com/WonderMediaProductions/Maya2glTF/releases)
     * extract the downloaded `zip` file to any location (e.g. your desktop)
     * open the created `Maya2glTF` folder
     * double click on the `deploy.bat` file
@@ -154,12 +154,12 @@ I consider this plugin to be production quality now, but use it at your own risk
 
 ## Building
 
-* No out-of-the-box downloads are available yet, currently you have to build the plugin from sources.
+* Currently out-of-the-box downloads are only provided for Windows x64, the MacOS plugin must be build from sources, using the `cmake` branch. The following guide describes how to build the `master` branch on Windows only. 
     * *If you want to try the exporter, but you can't build it, give me a sign*
 
 * Right now this project requires **Microsoft Windows x64 8.1 or higher**
-    * It should be easily ported to OSX and Linux, or older versions of Windows.
-    * Feel free to provide a patch request, e.g. one that uses CMake :)
+    * It should be easily ported Linux, or older versions of Windows.
+    * Feel free to provide a patch request :)
 
 * I assume you already installed a [GIT client for Windows](https://git-scm.com/downloads)
 
@@ -188,7 +188,7 @@ I consider this plugin to be production quality now, but use it at your own risk
 * Run the `Developer Command Prompt for VS 2017`, and then clone this repository, including ***all dependencies***. *Oh, did I mention not to forget the dependencies? ;-)*
     
     ```
-    git clone https://github.com/Ziriax/Maya2glTF --branch develop --recursive
+    git clone https://github.com/WonderMediaProductions/Maya2glTF --branch master --recursive
     ```
 
 * Enter the `Maya2glTF` folder, and run 
