@@ -13,18 +13,18 @@ class ExportablePrimitive
 {
 public:
 	ExportablePrimitive(
-		const VertexBuffer& vertexBuffer,
-		ExportableResources& resources,
-		ExportableMaterial* material);
-	
+			const VertexBuffer &vertexBuffer,
+			ExportableResources &resources,
+			ExportableMaterial *material);
+
 	ExportablePrimitive(
-		const VertexBuffer& vertexBuffer, 
-		ExportableResources& resources,
-		Semantic::Kind debugSemantic,
-		const ShapeIndex& debugShapeIndex,
-		double debugLineLength,
-		Color debugLineColor);
-	
+			const VertexBuffer &vertexBuffer,
+			ExportableResources &resources,
+			Semantic::Kind debugSemantic,
+			const ShapeIndex &debugShapeIndex,
+			double debugLineLength,
+			Color debugLineColor);
+
 	virtual ~ExportablePrimitive();
 
 	GLTF::Primitive glPrimitive;
@@ -36,7 +36,7 @@ private:
 
 	std::array<std::map<SetIndex, SetIndex>, Semantic::COUNT> m_glAttributeIndexMaps;
 
-	std::string glAttributeName(Semantic::Kind s, int setIndex);
+	std::string glAttributeName(Semantic::Kind s, SetIndex setIndex);
 
 	DISALLOW_COPY_MOVE_ASSIGN(ExportablePrimitive);
 };
