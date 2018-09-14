@@ -56,6 +56,9 @@ namespace flag
 	const auto excludeUnusedTexcoord = "eut";
 
 	const auto keepShapeNodes = "ksn";
+
+	const auto bakeScalingFactor = "bsf";
+	const auto forceRootNode = "frn";
 }
 
 inline const char* getArgTypeName(const MSyntax::MArgType argType)
@@ -140,6 +143,8 @@ SyntaxFactory::SyntaxFactory()
 	registerFlag(ss, flag::ignoreSegmentScaleCompensation, "ignoreSegmentScaleCompensation", kNoArg);
 
 	registerFlag(ss, flag::keepShapeNodes, "keepShapeNodes", kNoArg);
+	registerFlag(ss, flag::forceRootNode, "forceRootNode", kNoArg);
+	registerFlag(ss, flag::bakeScalingFactor, "bakeScalingFactor", kNoArg);
 
 	m_usage = ss.str();
 }
@@ -166,6 +171,9 @@ void SyntaxFactory::registerFlag(std::stringstream& ss, const char* shortName, c
 
 void SyntaxFactory::registerFlag(std::stringstream& ss, const char *shortName, const char *longName, const bool isMultiUse, const MArgType argType1)
 {
+	// short-name should be unique
+	assert(m_argNames.find(shortName) == m_argNames.end());
+
 	m_argNames[shortName] = longName;
 
 	auto status = addFlag(shortName, longName, argType1);
@@ -418,7 +426,7 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	}
 
 	adb.required(flag::outputFolder, outputFolder);
-	adb.optional(flag::scaleFactor, scaleFactor);
+	adb.optional(flag::scaleFactor, globalScaleFactor);
 
 	glb = adb.isFlagSet(flag::binary);
 
@@ -441,6 +449,8 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	excludeUnusedTexcoord = adb.isFlagSet(flag::excludeUnusedTexcoord);
 	ignoreSegmentScaleCompensation = adb.isFlagSet(flag::ignoreSegmentScaleCompensation);
 	keepShapeNodes = adb.isFlagSet(flag::keepShapeNodes);
+	bakeScalingFactor = adb.isFlagSet(flag::bakeScalingFactor);
+	forceRootNode = adb.isFlagSet(flag::forceRootNode);
 
 	adb.optional(flag::globalOpacityFactor, opacityFactor);
 

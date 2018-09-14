@@ -16,7 +16,7 @@ ExportableClip::ExportableClip(
 	glAnimation.name = clipArg.name;
 
 	const auto frameCount = clipArg.frameCount();
-	const auto scaleFactor = args.scaleFactor;
+	const auto scaleFactor = args.getBakeScaleFactor();
 
 	auto& items = scene.table();
 

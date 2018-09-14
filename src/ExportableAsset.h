@@ -30,6 +30,8 @@ private:
 
 	GLTF::Asset m_glAsset;
 	GLTF::Asset::Metadata m_glMetadata;
+	GLTF::Node m_glRootNode;
+	GLTF::Node::TransformTRS m_glRootTransform;
 
 	ExportableResources m_resources;
 	ExportableScene m_scene;

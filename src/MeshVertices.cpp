@@ -202,7 +202,7 @@ MeshVertices::MeshVertices(
 	const int numPoints = mPoints.length();
 	m_positions.reserve(numPoints);
 
-	const auto positionScale = args.scaleFactor;
+	const auto positionScale = args.getBakeScaleFactor();
 	for (int i = 0; i < numPoints; ++i)
 	{
 		const auto p = mPoints[i] * positionScale;

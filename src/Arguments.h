@@ -128,7 +128,7 @@ public:
 	float mikkelsenTangentAngularThreshold = 0;
 
 	/** The scale factor to apply to the vertex positions */
-	float scaleFactor = 1;
+	float globalScaleFactor = 1;
 
 	/** The opacity factor to apply to the material */
 	float opacityFactor = 1;
@@ -156,6 +156,12 @@ public:
 
 	/** Keep GLTF shape nodes that are the only child of their parent transform node */
 	bool keepShapeNodes = false;
+
+	/** Bake scaling factor by scaling vertices and positions? By default a root scaling node is added instead */
+	bool bakeScalingFactor = false;
+
+	/** Force the creation of a root node, even when the scaling factor is 1, in which case an extra root node is not needed*/
+	bool forceRootNode = false;
 
 	/** 
 	 * The time where the 'initial values' of all nodes are to be found (aka neutral base pose) 
@@ -188,6 +194,9 @@ public:
 			glObj.name = name;
 		}
 	}
+
+	float getBakeScaleFactor() const { return bakeScalingFactor ? globalScaleFactor : 1; }
+	float getRootScaleFactor() const { return bakeScalingFactor ? 1 : globalScaleFactor; }
 
 private:
 	DISALLOW_COPY_MOVE_ASSIGN(Arguments);

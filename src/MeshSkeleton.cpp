@@ -58,9 +58,10 @@ MeshSkeleton::MeshSkeleton(
 		const auto shapeDagPath = mesh.dagPath(&status);
 		THROW_ON_FAILURE(status);
 
+		const auto bakeScaleFactor = args.getBakeScaleFactor();
 		auto meshMatrix = shapeDagPath.inclusiveMatrix(&status);
 		THROW_ON_FAILURE(status);
-		scaleTranslation(meshMatrix, args.scaleFactor);
+		scaleTranslation(meshMatrix, bakeScaleFactor);
 
 		for (size_t index = 0; index < jointCount; ++index)
 		{
@@ -68,7 +69,7 @@ MeshSkeleton::MeshSkeleton(
 			auto* jointNode = scene.getNode(jointDagPath);
 			auto jointMatrix = jointDagPath.inclusiveMatrix(&status);
 			THROW_ON_FAILURE(status);
-			scaleTranslation(jointMatrix, args.scaleFactor);
+			scaleTranslation(jointMatrix, bakeScaleFactor);
 
 			const auto inverseJointMatrix = jointMatrix.inverse();
 

@@ -2,6 +2,8 @@
 
 bool hasOrthogonalAxes(const MMatrix& m);
 
+void makeIdentity(GLTF::Node::TransformTRS &trs);
+
 class ExportableNode;
 
 /*

@@ -28,7 +28,7 @@ void ExportableNode::load(
 	DagHelper::getPlugValue(obj, "segmentScaleCompensate", maybeSegmentScaleCompensation);
 
 	// Remember scale factor
-	scaleFactor = args.scaleFactor;
+	scaleFactor = args.getBakeScaleFactor();
 
 	// Get name
 	const auto name = dagPath.partialPathName(&status);
@@ -105,8 +105,10 @@ void ExportableNode::load(
 	}
 	else
 	{
-		// Add root nodes to the scene
-		scene.glScene.nodes.emplace_back(&sNode);
+		// Register node without parent 
+		// We do not yet add the glNode to the glScene,
+		// since we might introduce an extra global root node (typically for global scaling)
+		scene.registerOrphanNode(this);
 	}
 
 	// Get transform

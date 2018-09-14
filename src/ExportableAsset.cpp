@@ -72,6 +72,32 @@ ExportableAsset::ExportableAsset(const Arguments& args)
 		m_scene.updateCurrentValues();
 	}
 
+	const auto rootScaleFactor = args.getRootScaleFactor();
+	if (args.forceRootNode || rootScaleFactor != 1)
+	{
+		// Create global root node for scaling.
+		m_scene.glScene.nodes.push_back(&m_glRootNode);
+		if (rootScaleFactor != 1)
+		{
+			auto& trs = m_glRootTransform;
+			m_glRootNode.transform = &trs;
+			makeIdentity(trs);
+			trs.scale[0] = trs.scale[1] = trs.scale[2] = rootScaleFactor;
+		}
+
+		for (auto* node : m_scene.orphans())
+		{
+			m_glRootNode.children.push_back(&node->glSecondaryNode());
+		}
+	}
+	else
+	{
+		for (auto* node: m_scene.orphans())
+		{
+			m_scene.glScene.nodes.push_back(&node->glSecondaryNode());
+		}
+	}
+
 	if (args.dumpMaya)
 	{
 		*args.dumpMaya << undent << "}" << endl;
