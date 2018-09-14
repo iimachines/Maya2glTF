@@ -21,6 +21,14 @@ struct VertexJointAssignmentSlice
 	DEFAULT_COPY_MOVE_ASSIGN_CTOR_DTOR(VertexJointAssignmentSlice);
 };
 
+void scaleTranslation(MMatrix& m, double s)
+{
+	double* t = m[3];
+	t[0] *= s;
+	t[1] *= s;
+	t[2] *= s;
+}
+
 MeshSkeleton::MeshSkeleton(
 	ExportableScene& scene, 
 	const ExportableNode& node,
@@ -50,16 +58,19 @@ MeshSkeleton::MeshSkeleton(
 		const auto shapeDagPath = mesh.dagPath(&status);
 		THROW_ON_FAILURE(status);
 
-		const auto meshMatrix = shapeDagPath.inclusiveMatrix(&status);
+		auto meshMatrix = shapeDagPath.inclusiveMatrix(&status);
 		THROW_ON_FAILURE(status);
+		scaleTranslation(meshMatrix, args.scaleFactor);
 
 		for (size_t index = 0; index < jointCount; ++index)
 		{
 			auto& jointDagPath = jointDagPaths[static_cast<unsigned int>(index)];
 			auto* jointNode = scene.getNode(jointDagPath);
-
-			const auto inverseJointMatrix = jointDagPath.inclusiveMatrixInverse(&status);
+			auto jointMatrix = jointDagPath.inclusiveMatrix(&status);
 			THROW_ON_FAILURE(status);
+			scaleTranslation(jointMatrix, args.scaleFactor);
+
+			const auto inverseJointMatrix = jointMatrix.inverse();
 
 			MMatrix inverseBindMatrix = meshMatrix * inverseJointMatrix;
 
