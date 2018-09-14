@@ -9,20 +9,40 @@
 using namespace GLTF::Constants;
 using namespace coveo::linq;
 
-ExportablePrimitive::ExportablePrimitive(
-		const VertexBuffer &vertexBuffer,
-		ExportableResources &resources,
-		ExportableMaterial *material)
+namespace Semantic
 {
-	auto &args = resources.arguments();
+	inline std::string glTFattributeName(const Kind s, const int setIndex)
+	{
+		// NOTE: Although Maya has multiple tangent sets, glTW only accepts one. 
+		// Need to dig deeper to understand this correctly.
+		switch (s)
+		{
+		case POSITION:	return std::string("POSITION");
+		case NORMAL:	return std::string("NORMAL");
+		case TANGENT:	return std::string("TANGENT");
+		case COLOR:		return std::string("COLOR_") + std::to_string(setIndex);
+		case TEXCOORD:	return std::string("TEXCOORD_") + std::to_string(setIndex);
+		case WEIGHTS:	return std::string("WEIGHTS_") + std::to_string(setIndex);
+		case JOINTS:	return std::string("JOINTS_") + std::to_string(setIndex);
+		default: assert(false); return "UNKNOWN";
+		}
+	}
+}
+
+ExportablePrimitive::ExportablePrimitive(
+	const VertexBuffer& vertexBuffer,
+	ExportableResources& resources, 
+	ExportableMaterial* material)
+{
+	auto& args = resources.arguments();
 
 	glPrimitive.mode = GLTF::Primitive::TRIANGLES;
 	glPrimitive.material = material->glMaterial();
 
-	auto &vertexIndices = vertexBuffer.indices;
+	auto& vertexIndices = vertexBuffer.indices;
 
 	if (args.force32bitIndices ||
-			vertexBuffer.maxIndex() > std::numeric_limits<uint16_t>::max())
+		vertexBuffer.maxIndex() > std::numeric_limits<uint16_t>::max())
 	{
 		// Use 32-bit indices
 		glIndices = contiguousAccessor("indices", GLTF::Accessor::Type::SCALAR, WebGL::UNSIGNED_INT, WebGL::ELEMENT_ARRAY_BUFFER, span(vertexIndices), 1);
@@ -37,7 +57,10 @@ ExportablePrimitive::ExportablePrimitive(
 		glPrimitive.indices = glIndices.get();
 	}
 
-	auto componentsPerShapeIndex = from(vertexBuffer.componentsMap) | group_by([](auto &pair) { return pair.first.shapeIndex; }) | to_vector();
+	auto componentsPerShapeIndex
+		= from(vertexBuffer.componentsMap)
+		| group_by([](auto& pair) { return pair.first.shapeIndex; })
+		| to_vector();
 
 	// Allocate a glTF morph-target for each blend-shape
 	const auto shapeCount = componentsPerShapeIndex.size();
@@ -60,20 +83,20 @@ ExportablePrimitive::ExportablePrimitive(
 
 	const auto blendShapeSemanticSet = args.blendPrimitiveAttributes & mainShapeSemanticSet;
 
-	for (auto &&group : componentsPerShapeIndex)
+	for (auto && group: componentsPerShapeIndex)
 	{
 		const auto shapeIndex = group.first;
 
-		auto &glAttributes = shapeIndex.isMainShapeIndex() ? glPrimitive.attributes : glTargetTable.at(shapeIndex.targetIndex())->attributes;
-		auto &semanticSet = shapeIndex.isMainShapeIndex() ? mainShapeSemanticSet : blendShapeSemanticSet;
+		auto& glAttributes = shapeIndex.isMainShapeIndex() ? glPrimitive.attributes : glTargetTable.at(shapeIndex.targetIndex())->attributes;
+		auto& semanticSet = shapeIndex.isMainShapeIndex() ? mainShapeSemanticSet : blendShapeSemanticSet;
 
-		for (auto &&pair : group.second)
+		for (auto && pair : group.second) 
 		{
-			auto &slot = pair.first;
+			auto& slot = pair.first;
 			if (semanticSet.test(slot.semantic))
 			{
 				auto accessor = contiguousElementAccessor(slot.semantic, slot.shapeIndex, pair.second);
-				glAttributes[glAttributeName(slot.semantic, slot.setIndex)] = accessor.get();
+				glAttributes[Semantic::glTFattributeName(slot.semantic, slot.setIndex)] = accessor.get();
 				glAccessors.emplace_back(std::move(accessor));
 			}
 		}
@@ -81,12 +104,12 @@ ExportablePrimitive::ExportablePrimitive(
 }
 
 ExportablePrimitive::ExportablePrimitive(
-		const VertexBuffer &vertexBuffer,
-		ExportableResources &resources,
-		const Semantic::Kind debugSemantic,
-		const ShapeIndex &debugShapeIndex,
-		const double debugLineLength,
-		const Color debugLineColor)
+	const VertexBuffer& vertexBuffer, 
+	ExportableResources& resources,
+	const Semantic::Kind debugSemantic,
+	const ShapeIndex& debugShapeIndex,
+	const double debugLineLength,
+	const Color debugLineColor)
 {
 	glPrimitive.mode = GLTF::Primitive::LINES;
 
@@ -128,42 +151,13 @@ ExportablePrimitive::ExportablePrimitive(
 	glPrimitive.indices = glIndices.get();
 
 	auto pointAccessor = contiguousElementAccessor(Semantic::Kind::POSITION, ShapeIndex::main(), reinterpret_span<byte>(linePoints));
-	glPrimitive.attributes[glAttributeName(Semantic::Kind::POSITION, 0)] = pointAccessor.get();
-	glAccessors.emplace_back(std::move(pointAccessor));
+	glPrimitive.attributes[glTFattributeName(Semantic::Kind::POSITION, 0)] = pointAccessor.get();
+	glAccessors.emplace_back(move(pointAccessor));
 
 	auto colorAccessor = contiguousElementAccessor(Semantic::Kind::COLOR, ShapeIndex::main(), reinterpret_span<byte>(lineColors));
-	glPrimitive.attributes[glAttributeName(Semantic::Kind::COLOR, 0)] = colorAccessor.get();
-	glAccessors.emplace_back(std::move(colorAccessor));
+	glPrimitive.attributes[glTFattributeName(Semantic::Kind::COLOR, 0)] = colorAccessor.get();
+	glAccessors.emplace_back(move(colorAccessor));
 }
 
 ExportablePrimitive::~ExportablePrimitive() = default;
 
-std::string ExportablePrimitive::glAttributeName(Semantic::Kind s, SetIndex setIndex)
-{
-	auto &map = m_glAttributeIndexMaps[s];
-	auto it = map.find(setIndex);
-	auto glSetIndex = it == map.end() ? (map[setIndex] = SetIndex(map.size())) : it->second;
-
-	// NOTE: Although Maya has multiple tangent sets, glTF only accepts one.
-	// Need to dig deeper to understand this correctly.
-	switch (s)
-	{
-	case Semantic::POSITION:
-		return std::string("POSITION");
-	case Semantic::NORMAL:
-		return std::string("NORMAL");
-	case Semantic::TANGENT:
-		return std::string("TANGENT");
-	case Semantic::COLOR:
-		return std::string("COLOR_") + std::to_string(glSetIndex);
-	case Semantic::TEXCOORD:
-		return std::string("TEXCOORD_") + std::to_string(glSetIndex);
-	case Semantic::WEIGHTS:
-		return std::string("WEIGHTS_") + std::to_string(glSetIndex);
-	case Semantic::JOINTS:
-		return std::string("JOINTS_") + std::to_string(glSetIndex);
-	default:
-		assert(false);
-		return "UNKNOWN";
-	}
-}
