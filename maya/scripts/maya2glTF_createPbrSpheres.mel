@@ -1,0 +1,34 @@
+global proc maya2glTF_createPbrSpheres() 
+{
+    file -f -new;
+
+    polySphere -r 0.5 -sx 20 -sy 20 -ax 0 1 0 -cuv 2 -ch 1 -name "pbrSphere"; 
+
+    loadPlugin "glslShader.mll";
+    source "createAndAssignShader.mel";
+
+    float $n = 6;
+
+    for ($m=0; $m<=$n; ++$m) {
+        for ($r=0; $r<=$n; ++$r) {
+            select "pbrSphere";
+            string $nns[] = `instance`;
+            string $nn = $nns[0];
+            move -a -xy (2*($r-$n/2)) (2*($m-$n/2));
+            print ($m + ", " + $r + "\n");
+
+            // create new glTF PBR GLSL shader
+            string $sh = `shadingNode -asShader GLSLShader`;
+            setAttr -type "string" ($sh+".shader") "renderData/shaders/glTF_PBR.ogsfx";
+            assignCreatedShader "GLSLShader" "" $sh $nn;
+            setAttr ($sh+".u_MetallicStrength") ($m/$n);      
+            setAttr ($sh+".u_RoughnessStrength") ($r/$n);
+            setAttr ($sh+".u_LightIntensity") 0;
+            setAttr ($sh+".u_BaseColorFactorRGB") -type double3 0.61 0.61 0.61;
+
+        }
+    }
+
+    select "pbrSphere";
+    doDelete;
+}
