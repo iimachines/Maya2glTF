@@ -325,11 +325,18 @@ uniform bool u_IsEnvMapInsRGB
     int UIOrder = 9005;
 > = false;
 
+uniform bool u_IsEnvMapInRGBM
+<
+    string UIName = "RGBM environment?";
+    string UIGroup = "PBR Debug";
+    int UIOrder = 9006;
+> = false;
+
 uniform bool u_IsBRDFsSRGB
 <
     string UIName = "sRGB BRDF table?";
     string UIGroup = "PBR Debug";
-    int UIOrder = 9006;
+    int UIOrder = 9007;
 > = true;
 
 uniform bool u_UseMeshTangents
@@ -440,6 +447,12 @@ GLSLShader PS
 	const float c_NormalMapZeroValue = 128.0/255.0;
 	const float c_NormalMapZeroScale = 255.0/128.0;
 
+    // http://graphicrants.blogspot.com/2009/04/rgbm-color-encoding.html
+    vec4 RGBMDecode(vec4 rgbm, bool isEncoded) 
+    {
+        return isEncoded ? vec4(6.0 * rgbm.rgb * rgbm.a, rgbm.a) : rgbm;
+    }
+
     vec3 colorize(vec3 p)
     {
         return sign(p) * pow(abs(p), vec3(1)) * 0.5 + vec3(0.5);
@@ -475,14 +488,14 @@ GLSLShader PS
         return u_FlipEnvMapZ ? n * vec3(1,1,-1) : n;
     }
 
-    vec4 texCube(samplerCube s, vec3 n, vec4 defaultColor, bool isSRGB = true)
+    vec4 texCube(samplerCube s, vec3 n, vec4 defaultColor, bool isSRGB, bool isRGBM)
     {
-        return textureSize(s, 0).x > 1 ? SRGBtoLINEAR(texture(s, flipEnvMapNormal(n)), isSRGB) : defaultColor;
+        return textureSize(s, 0).x > 1 ? SRGBtoLINEAR(RGBMDecode(texture(s, flipEnvMapNormal(n)), isRGBM), isSRGB) : defaultColor;
     }
 
-    vec4 texCubeLod(samplerCube s, vec3 n, float lod, vec4 defaultColor, bool isSRGB = true)
+    vec4 texCubeLod(samplerCube s, vec3 n, float lod, vec4 defaultColor, bool isSRGB, bool isRGBM)
     {
-        return textureSize(s, 0).x > 1 ? SRGBtoLINEAR(textureLod(s, flipEnvMapNormal(n), lod), isSRGB) : defaultColor;
+        return textureSize(s, 0).x > 1 ? SRGBtoLINEAR(RGBMDecode(textureLod(s, flipEnvMapNormal(n), lod), isRGBM), isSRGB) : defaultColor;
     }
 
     // Find the normal for this fragment, pulling either from a predefined normal map
@@ -528,8 +541,8 @@ GLSLShader PS
         float lod = pbrInputs.perceptualRoughness * mipMax;
         // retrieve a scale and bias to F0. See [1], Figure 3
         vec3 brdf = SRGBtoLINEAR(tex2D(u_brdfLUT, vec2(pbrInputs.NdotV, 1.0 - pbrInputs.perceptualRoughness), vec4(0)), u_IsBRDFsSRGB).rgb;
-        vec3 diffuseLight = texCube(u_DiffuseEnvSampler, n, vec4(0), u_IsEnvMapInsRGB).rgb;
-        vec3 specularLight = texCubeLod(u_SpecularEnvSampler, reflection, lod, vec4(0), u_IsEnvMapInsRGB).rgb;
+        vec3 diffuseLight = texCube(u_DiffuseEnvSampler, n, vec4(0), u_IsEnvMapInsRGB, u_IsEnvMapInRGBM).rgb;
+        vec3 specularLight = texCubeLod(u_SpecularEnvSampler, reflection, lod, vec4(0), u_IsEnvMapInsRGB, u_IsEnvMapInRGBM).rgb;
 
         vec3 diffuse = diffuseLight * pbrInputs.diffuseColor;
         vec3 specular = specularLight * (pbrInputs.specularColor * brdf.x + brdf.y);
