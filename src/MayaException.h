@@ -14,7 +14,7 @@ public:
 	static void throwIt(const MStatus status, const std::string& message, const char* file, int line, const char* function);
 
 	/** Prints an error to the standard error and the Maya script window */
-	static MStatus printError(const std::string& message, MStatus error = MStatus::kFailure);
+	static MStatus printError(const std::string& message, const MStatus& error = MStatus::kFailure);
 };
 
 
