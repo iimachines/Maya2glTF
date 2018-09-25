@@ -324,13 +324,17 @@ uniform int u_RoughnessOffset
 	string UIWidget = "Slider";
 > = 0;
 
-uniform bool u_MipMapRoughnessBurley
+uniform float u_BurleyFactor
 <
-    string UIName = "Burley roughness?";
+    string UIName = "Burley factor";
     string UIGroup = "IBL Advanced";
-   
     int UIOrder = 9001;
-> = false;
+	float UIMin = 0.01;
+	float UISoftMin = 0.01;
+	float UIMax = 1.00;
+	float UISoftMax = 1.00;
+	float UIStep = 0.01;
+> = 0;
 
 uniform bool u_UndoEdgeStretch
 <
@@ -515,7 +519,7 @@ GLSLShader PS
     {
         // https://docs.knaldtech.com/doku.php?id=specular_lys
         // approximate remap from LdotR based distribution to NdotH
-        float fScale = fPerceptualRoughness*(1.7 - 0.7*fPerceptualRoughness);    
+        float fScale = fPerceptualRoughness*((1+u_BurleyFactor) - u_BurleyFactor*fPerceptualRoughness);    
         return fScale * nMipMax;
     }
 
@@ -540,10 +544,7 @@ GLSLShader PS
         {
             int mipMapCount = textureQueryLevels(u_SpecularEnvSampler);
             int mipMax = max(0, mipMapCount - u_RoughnessOffset - 1);
-
-            float lod = u_MipMapRoughnessBurley 
-                ? BurleyToMipSimple((pbrInputs.perceptualRoughness - c_MinRoughness) / (1.0 - c_MinRoughness), mipMax) 
-                : pbrInputs.perceptualRoughness * mipMax;
+            float lod = BurleyToMipSimple(pbrInputs.perceptualRoughness, mipMax);
 
             if (u_UndoEdgeStretch)
             {
@@ -713,11 +714,17 @@ GLSLShader PS
         perceptualRoughness = tex2D(u_RoughnessSampler, v_UV, vec4(1)).g * perceptualRoughness;
         metallic = tex2D(u_MetallicSampler, v_UV, vec4(1)).b * metallic;
 #endif
-        perceptualRoughness = clamp(perceptualRoughness, c_MinRoughness, 1.0);
+        // To get perfect sharp reflection in IBL shader, don't clamp to minimum roughness here.
+        perceptualRoughness = clamp(perceptualRoughness, 0.0, 1.0);
+
+        // But do clamp for lighting
+        float minPerceptualRoughness = clamp(perceptualRoughness, c_MinRoughness, 1.0);
+
         metallic = clamp(metallic, 0.0, 1.0);
+
         // Roughness is authored as perceptual roughness; as is convention,
         // convert to material roughness by squaring the perceptual roughness [2].
-        float alphaRoughness = perceptualRoughness * perceptualRoughness;
+        float alphaRoughness = minPerceptualRoughness * minPerceptualRoughness;
 
         // The albedo may be defined from a base texture or a flat color
 #ifdef HAS_BASECOLORMAP
