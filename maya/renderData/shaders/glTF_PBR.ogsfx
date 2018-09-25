@@ -135,7 +135,7 @@ uniform texture2D u_brdfTexture
 <
     string UIName = "BRDF LUT (sRGB)";
     string ResourceType = "2D";
-    string ResourceName = "../images/brdfLUT.png";
+    string ResourceName = "../images/brdfLUT.dds";
     string UIGroup = "PBR IBL";
     int UIOrder = 2003;
 >;
@@ -306,38 +306,66 @@ uniform vec4 u_ScaleFGDSpec
 uniform vec4 u_ScaleIBL_Occl
 <
     string UIName = "Scale IBL AO(w)";
-    string UIGroup = "PBR Debug";
+    string UIGroup = "IBL Debug";
     string UIWidget = "";
     int UIOrder = 9003;
 > = {1.0, 1.0, 0.0, 1.0};
 
+uniform int u_RoughnessOffset
+<
+    string UIName = "Roughness offset";
+    string UIGroup = "IBL Advanced";
+    int UIOrder = 9000;
+	float UIMin = 0;
+	float UISoftMin = 0;
+	float UIMax = 12;
+	float UISoftMax = 12;
+	float UIStep = 1;
+	string UIWidget = "Slider";
+> = 0;
+
+uniform bool u_MipMapRoughnessBurley
+<
+    string UIName = "Burley roughness?";
+    string UIGroup = "IBL Advanced";
+   
+    int UIOrder = 9001;
+> = false;
+
+uniform bool u_UndoEdgeStretch
+<
+    string UIName = "Undo edge stretch?";
+    string UIGroup = "IBL Advanced";
+    int UIOrder = 9002;
+> = false;
+
 uniform bool u_FlipEnvMapZ
 <
     string UIName = "Flip environment Z?";
-    string UIGroup = "PBR Debug";
+    string UIGroup = "IBL Advanced";
     int UIOrder = 9004;
 > = true;
 
 uniform bool u_IsEnvMapInsRGB
 <
     string UIName = "sRGB environment?";
-    string UIGroup = "PBR Debug";
+    string UIGroup = "IBL Advanced";
     int UIOrder = 9005;
 > = false;
 
 uniform bool u_IsEnvMapInRGBM
 <
     string UIName = "RGBM environment?";
-    string UIGroup = "PBR Debug";
+    string UIGroup = "IBL Advanced";
     int UIOrder = 9006;
 > = false;
 
 uniform bool u_IsBRDFsSRGB
 <
     string UIName = "sRGB BRDF table?";
-    string UIGroup = "PBR Debug";
+    string UIGroup = "IBL Advanced";
     int UIOrder = 9007;
-> = true;
+> = false;
 
 uniform bool u_UseMeshTangents
 <
@@ -483,19 +511,88 @@ GLSLShader PS
         return textureSize(s, 0).x > 1 ? texture(s, uv) : defaultColor;
     }
 
-    vec3 flipEnvMapNormal(vec3 n) 
+    float BurleyToMipSimple(float fPerceptualRoughness, float nMipMax)
     {
-        return u_FlipEnvMapZ ? n * vec3(1,1,-1) : n;
+        // https://docs.knaldtech.com/doku.php?id=specular_lys
+        // approximate remap from LdotR based distribution to NdotH
+        float fScale = fPerceptualRoughness*(1.7 - 0.7*fPerceptualRoughness);    
+        return fScale * nMipMax;
     }
 
-    vec4 texCube(samplerCube s, vec3 n, vec4 defaultColor, bool isSRGB, bool isRGBM)
+    vec3 undoCubeMapStretch(vec3 v, float cube_size) 
     {
-        return textureSize(s, 0).x > 1 ? SRGBtoLINEAR(RGBMDecode(texture(s, flipEnvMapNormal(n)), isRGBM), isSRGB) : defaultColor;
+        // http://the-witness.net/news/2012/02/seamless-cube-map-filtering/
+        float scale = (cube_size-1)/cube_size;
+        //float scale = 1 - exp2(lod - textureQueryLevels(s));
+        float M = max(max(abs(v.x), abs(v.y)), abs(v.z));
+        if (abs(v.x) != M) v.x *= scale;
+        if (abs(v.y) != M) v.y *= scale;
+        if (abs(v.z) != M) v.z *= scale;
+        return u_FlipEnvMapZ ? v * vec3(1,1,-1) : v;
     }
 
-    vec4 texCubeLod(samplerCube s, vec3 n, float lod, vec4 defaultColor, bool isSRGB, bool isRGBM)
+    vec3 texEnvSpecular(vec3 v, PBRInfo pbrInputs)
     {
-        return textureSize(s, 0).x > 1 ? SRGBtoLINEAR(RGBMDecode(textureLod(s, flipEnvMapNormal(n), lod), isRGBM), isSRGB) : defaultColor;
+        vec4 color = vec4(0);
+
+        // HACK: It seems Maya passes a single pixel texture when no texture is assigned
+        if (textureSize(u_SpecularEnvSampler, 0).x > 1)
+        {
+            int mipMapCount = textureQueryLevels(u_SpecularEnvSampler);
+            int mipMax = max(0, mipMapCount - u_RoughnessOffset - 1);
+
+            float lod = u_MipMapRoughnessBurley 
+                ? BurleyToMipSimple((pbrInputs.perceptualRoughness - c_MinRoughness) / (1.0 - c_MinRoughness), mipMax) 
+                : pbrInputs.perceptualRoughness * mipMax;
+
+            if (u_UndoEdgeStretch)
+            {
+                int lod0 = int(lod);
+                int lod1 = lod0 + 1;
+                float lodf = fract(lod);
+
+                int size0 = textureSize(u_SpecularEnvSampler, lod0).x;
+                int size1 = textureSize(u_SpecularEnvSampler, lod1).x;
+
+                vec3 v0 = undoCubeMapStretch(v, size0);
+                vec3 v1 = undoCubeMapStretch(v, size1);
+
+                vec4 c0 = textureLod(u_SpecularEnvSampler, v0, lod0);
+                vec4 c1 = textureLod(u_SpecularEnvSampler, v1, lod1);
+                color = lerp(c0, c1, lodf);
+            }
+            else 
+            {
+                color = textureLod(u_SpecularEnvSampler, v, lod);
+            }
+
+            color = SRGBtoLINEAR(RGBMDecode(color, u_IsEnvMapInRGBM), u_IsEnvMapInsRGB);
+        }
+
+        return color.rgb;
+    }
+
+    vec3 texEnvDiffuse(vec3 v)
+    {
+        vec4 color = vec4(0);
+
+        // HACK: It seems Maya passes a single pixel texture when no texture is assigned
+        int size = textureSize(u_DiffuseEnvSampler, 0).x;
+        if (size > 1)
+        {
+            // TODO: Diffuse LOD
+            const float lod = 0;
+
+            if (u_UndoEdgeStretch)
+            {
+                v = undoCubeMapStretch(v, size);
+            }
+
+            color = textureLod(u_DiffuseEnvSampler, v, lod);
+            color = SRGBtoLINEAR(RGBMDecode(color, u_IsEnvMapInRGBM), u_IsEnvMapInsRGB);
+        }
+
+        return color.rgb;
     }
 
     // Find the normal for this fragment, pulling either from a predefined normal map
@@ -537,12 +634,10 @@ GLSLShader PS
     vec3 getIBLContribution(PBRInfo pbrInputs, vec3 n, vec3 reflection)
     {
 #ifdef USE_IBL
-        float mipMax = textureQueryLevels(u_SpecularEnvSampler) - 1;
-        float lod = pbrInputs.perceptualRoughness * mipMax;
         // retrieve a scale and bias to F0. See [1], Figure 3
         vec3 brdf = SRGBtoLINEAR(tex2D(u_brdfLUT, vec2(pbrInputs.NdotV, 1.0 - pbrInputs.perceptualRoughness), vec4(0)), u_IsBRDFsSRGB).rgb;
-        vec3 diffuseLight = texCube(u_DiffuseEnvSampler, n, vec4(0), u_IsEnvMapInsRGB, u_IsEnvMapInRGBM).rgb;
-        vec3 specularLight = texCubeLod(u_SpecularEnvSampler, reflection, lod, vec4(0), u_IsEnvMapInsRGB, u_IsEnvMapInRGBM).rgb;
+        vec3 diffuseLight = texEnvDiffuse(n);
+        vec3 specularLight = texEnvSpecular(reflection, pbrInputs);
 
         vec3 diffuse = diffuseLight * pbrInputs.diffuseColor;
         vec3 specular = specularLight * (pbrInputs.specularColor * brdf.x + brdf.y);
