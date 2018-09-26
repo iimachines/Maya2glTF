@@ -311,6 +311,19 @@ uniform vec4 u_ScaleIBL_Occl
     int UIOrder = 9003;
 > = {1.0, 1.0, 0.0, 1.0};
 
+uniform float u_EnvRotationAngle
+<
+    string UIName = "Environment Rotation";
+    string UIGroup = "IBL Debug";
+    int UIOrder = 9004;
+	float UIMin = 0;
+	float UISoftMin = 0;
+	float UIMax = 360;
+	float UISoftMax = 360;
+	float UIStep = 1;
+	string UIWidget = "Slider";
+> = 0;
+
 uniform int u_RoughnessOffset
 <
     string UIName = "Roughness offset";
@@ -384,6 +397,20 @@ uniform bool u_IsDoubleSided
     string UIGroup = "PBR Advanced";
     int UIOrder = 3000;
 > = false;
+
+uniform bool u_IsBaseColorInsRGB
+<
+    string UIName = "sRGB basecolor?";
+    string UIGroup = "PBR Debug";
+    int UIOrder = 9010;
+> = true;
+
+uniform bool u_IsEmissiveInsRGB
+<
+    string UIName = "sRGB emissive?";
+    string UIGroup = "PBR Debug";
+    int UIOrder = 9003;
+> = true;
 
 // Encapsulate the various inputs used by the various functions in the shading equation
 // We store values in this struct to simplify the integration of alternative implementations
@@ -515,6 +542,14 @@ GLSLShader PS
         return textureSize(s, 0).x > 1 ? texture(s, uv) : defaultColor;
     }
 
+    vec3 rotateAboutY(vec3 v, float degrees)
+    {
+        float angle =degrees * M_PI / 180.0;
+        float ca = cos(angle);
+        float sa = sin(angle);
+        return vec3(v.x * ca + v.z * sa, v.y, v.z * ca-v.x * sa);
+    }
+
     float BurleyToMipSimple(float fPerceptualRoughness, float nMipMax)
     {
         // https://docs.knaldtech.com/doku.php?id=specular_lys
@@ -545,6 +580,8 @@ GLSLShader PS
             int mipMapCount = textureQueryLevels(u_SpecularEnvSampler);
             int mipMax = max(0, mipMapCount - u_RoughnessOffset - 1);
             float lod = BurleyToMipSimple(pbrInputs.perceptualRoughness, mipMax);
+            
+            v = rotateAboutY(v, u_EnvRotationAngle);
 
             if (u_UndoEdgeStretch)
             {
@@ -583,6 +620,8 @@ GLSLShader PS
         {
             // TODO: Diffuse LOD
             const float lod = 0;
+
+            v = rotateAboutY(v, u_EnvRotationAngle);
 
             if (u_UndoEdgeStretch)
             {
@@ -728,7 +767,7 @@ GLSLShader PS
 
         // The albedo may be defined from a base texture or a flat color
 #ifdef HAS_BASECOLORMAP
-        vec4 baseColor = SRGBtoLINEAR(tex2D(u_BaseColorSampler, v_UV, vec4(1))) * u_BaseColorFactor;
+        vec4 baseColor = SRGBtoLINEAR(tex2D(u_BaseColorSampler, v_UV, vec4(1)), u_IsBaseColorInsRGB) * u_BaseColorFactor;
 #else
         vec4 baseColor = u_BaseColorFactor;
 #endif
@@ -800,7 +839,7 @@ GLSLShader PS
 #endif
 
 #ifdef HAS_EMISSIVEMAP
-        vec3 emissive = SRGBtoLINEAR(tex2D(u_EmissiveSampler, v_UV, vec4(1))).rgb * u_EmissiveColor.rgb;
+        vec3 emissive = SRGBtoLINEAR(tex2D(u_EmissiveSampler, v_UV, vec4(1)), u_IsEmissiveInsRGB).rgb * u_EmissiveColor.rgb;
         color += emissive;
 #endif
 
