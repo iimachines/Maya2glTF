@@ -2,10 +2,39 @@ cmake_minimum_required(VERSION 3.8)
 
 project(maya2glTF)
 
+if(NOT WIN32)
+  string(ASCII 27 Esc)
+  set(ColourReset "${Esc}[m")
+  set(ColourBold  "${Esc}[1m")
+  set(Red         "${Esc}[31m")
+  set(Green       "${Esc}[32m")
+  set(Yellow      "${Esc}[33m")
+  set(Blue        "${Esc}[34m")
+  set(Magenta     "${Esc}[35m")
+  set(Cyan        "${Esc}[36m")
+  set(White       "${Esc}[37m")
+  set(BoldRed     "${Esc}[1;31m")
+  set(BoldGreen   "${Esc}[1;32m")
+  set(BoldYellow  "${Esc}[1;33m")
+  set(BoldBlue    "${Esc}[1;34m")
+  set(BoldMagenta "${Esc}[1;35m")
+  set(BoldCyan    "${Esc}[1;36m")
+  set(BoldWhite   "${Esc}[1;37m")
+endif()
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/modules")
+
+if (NOT DEFINED MAYA_VERSION)
+  set(MAYA_VERSION $ENV{MAYA_VERSION})
+  if (NOT MAYA_VERSION)
+    set(MAYA_VERSION 2018 CACHE STRING "Maya version")
+  endif()
+endif()
+
+message (STATUS "${BoldMagenta}Using Maya version " ${MAYA_VERSION} "${ColourReset}")
 
 find_package(Maya REQUIRED)
 
