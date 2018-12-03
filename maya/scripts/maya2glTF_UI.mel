@@ -1,110 +1,154 @@
 proc string _quoted(string $text)
 {
-	string $quote = "\"";
-	return $quote+$text+$quote;
+    string $quote = "\"";
+    return $quote+$text+$quote;
 }
 
 proc string _terminateWithSlash(string $folder)
 {
-	return $folder + (endsWith($folder,"/") ? "" : "/");
+    return $folder + (endsWith($folder,"/") ? "" : "/");
 }
 
 proc string _ensureScriptNode() {
-	string $node = "maya2glTF_scriptNode";
+    string $node = "maya2glTF_scriptNode";
 
-	if (!`objExists $node`) {
-		scriptNode -st 2 -n $node;
-	}
+    if (!`objExists $node`) {
+        scriptNode -st 2 -n $node;
+    }
 
-	return $node;
+    return $node;
 }
 
 proc _deleteScriptNode() {
-	string $node = "maya2glTF_scriptNode";
+    string $node = "maya2glTF_scriptNode";
 
-	if (`objExists $node`) {
-		delete $node;
-	}
+    if (`objExists $node`) {
+        delete $node;
+    }
 }
 
 proc _setInt(string $key, int $value) {
-	string $node = _ensureScriptNode();
-	if (!attributeExists($key, $node)) {
-		addAttr -sn $key -ln $key -at "long" $node;
-	}
-	setAttr ($node+"."+$key) $value;
+    string $node = _ensureScriptNode();
+    if (!attributeExists($key, $node)) {
+        addAttr -sn $key -ln $key -at "long" $node;
+    }
+    setAttr ($node+"."+$key) $value;
 }
 
 proc _setFlt(string $key, float $value) {
-	string $node = _ensureScriptNode();
-	if (!attributeExists($key, $node)) {
-		addAttr -sn $key -ln $key -at "float" $node;
-	}
-	setAttr ($node+"."+$key) $value;
+    string $node = _ensureScriptNode();
+    if (!attributeExists($key, $node)) {
+        addAttr -sn $key -ln $key -at "float" $node;
+    }
+    setAttr ($node+"."+$key) $value;
 }
 
 proc _setStr(string $key, string $value) {
-	string $node = _ensureScriptNode();
-	if (!attributeExists($key, $node)) {
-		addAttr -sn $key -ln $key -dt "string" $node;
-	}
-	setAttr ($node+"."+$key) -type "string" $value;
+    string $node = _ensureScriptNode();
+    if (!attributeExists($key, $node)) {
+        addAttr -sn $key -ln $key -dt "string" $node;
+    }
+    setAttr ($node+"."+$key) -type "string" $value;
 }
 
 proc int _getInt(string $key, int $defaultValue) {
-	string $node = _ensureScriptNode();
-	return attributeExists($key, $node) ? `getAttr ($node+"."+$key)` : $defaultValue;
+    string $node = _ensureScriptNode();
+    return attributeExists($key, $node) ? `getAttr ($node+"."+$key)` : $defaultValue;
 }
 
 proc float _getFlt(string $key, float $defaultValue) {
-	string $node = _ensureScriptNode();
-	return attributeExists($key, $node) ? `getAttr ($node+"."+$key)` : $defaultValue;
+    string $node = _ensureScriptNode();
+    return attributeExists($key, $node) ? `getAttr ($node+"."+$key)` : $defaultValue;
 }
 
 proc string _getStr(string $key, string $defaultValue) {
-	string $node = _ensureScriptNode();
-	return attributeExists($key, $node) ? `getAttr ($node+"."+$key)` : $defaultValue;
+    string $node = _ensureScriptNode();
+    return attributeExists($key, $node) ? `getAttr ($node+"."+$key)` : $defaultValue;
 }
 
 proc string _getTraxClips(string $char) {
-	string $fps = `currentTimeUnitToFPS`;
-	string $flags = `format -s($fps) " -afr ^1s"`;
-	
-	// Get character's clip scheduler
-	string $scheduler = `character -q -sc $char`;
+    string $fps = `currentTimeUnitToFPS`;
+    string $flags = `format -s($fps) " -afr ^1s"`;
+    
+    // Get character's clip scheduler
+    string $scheduler = `character -q -sc $char`;
 
-	// Get all clips in the scheduler
-	string $clips[] = `clipSchedule -q -ci $scheduler`;
+    // Get all clips in the scheduler
+    string $clips[] = `clipSchedule -q -ci $scheduler`;
 
-	// Get enabled clips
-	string $clip;
-	for($clip in $clips )
-	{
-		// (clipName,index,start,sourceStart,sourceEnd,scale,preCycle,postCycle) 
-		string $parts[] = stringToStringArray($clip,",");
-		string $clipName = $parts[0];
-		int $clipIndex = $parts[1];
-		float $timeStart = $parts[2];
-		float $sourceStart = $parts[3];
-		float $sourceEnd = $parts[4];
-		float $scale = $parts[5];
-		float $timeEnd = $timeStart + ($sourceEnd-$sourceStart)*$scale;
-		int $clipEnabled = `clipSchedule -clipIndex $clipIndex -q -enable $scheduler`;
-		int $trackIndex = `clipSchedule -clipIndex $clipIndex -q -track $scheduler`;
-		// HACK: We export enabled clips from the top track, to allow other tracks to contain adjusting clips 
-		if($clipEnabled && $trackIndex == 1) {
-			$flags += `format -s(_quoted($clipName)) -s($timeStart) -s($timeEnd)" -acn ^1s -ast ^2s -aet ^3s"`;
-		} 
-	}
+    // Get enabled clips
+    string $clip;
+    for($clip in $clips )
+    {
+        // (clipName,index,start,sourceStart,sourceEnd,scale,preCycle,postCycle) 
+        string $parts[] = stringToStringArray($clip,",");
+        string $clipName = $parts[0];
+        int $clipIndex = $parts[1];
+        float $timeStart = $parts[2];
+        float $sourceStart = $parts[3];
+        float $sourceEnd = $parts[4];
+        float $scale = $parts[5];
+        float $timeEnd = $timeStart + ($sourceEnd-$sourceStart)*$scale;
+        int $clipEnabled = `clipSchedule -clipIndex $clipIndex -q -enable $scheduler`;
+        int $trackIndex = `clipSchedule -clipIndex $clipIndex -q -track $scheduler`;
+        // HACK: We export enabled clips from the top track, to allow other tracks to contain adjusting clips 
+        if($clipEnabled && $trackIndex == 1) {
+            $flags += `format -s(_quoted($clipName)) -s($timeStart) -s($timeEnd)" -acn ^1s -ast ^2s -aet ^3s"`;
+        } 
+    }
 
-	print ($flags+"\n");
+    print ($flags+"\n");
 
-	return $flags;
+    return $flags;
 }
 
 global proc maya2glTF_polySelectAndFrame() 
 {
-    select -r `ls -v -type mesh -ap`;
+    // clear the selection    
+    select -cl;
+
+    // gather the display layers
+    string $layers[] = `ls -type displayLayer`;
+
+    string $objects[] = {};
+
+    // if we don't find any layers, select by visibility
+    if (size($layers) == 0) 
+    {
+        $objects = `ls -v -type mesh -ap`; 
+    } 
+    else 
+    {
+        print ("NOTE: Using display layers to find visible objects\n");
+
+        for ($layer in $layers)
+        {
+            // if the display layer is visible, continue
+            if (getAttr($layer+".visibility"))
+            {
+                // gather the items that are connected to the layer
+                string $conns[] = `listConnections -d 1 -s 0 ($layer+".drawInfo")`;
+
+                // as this gives us transform nodes, 
+                // do a selection on the result of that running through the dag, 
+                // selecting all the meshes that are set to visible
+                string $shapes[] = `ls -dag -type mesh -visible $conns`;
+                
+                if (size($shapes) > 0) 
+                {
+                    appendStringArray($objects, $shapes, size($shapes));
+                }
+            }
+        }
+    }
+
+    // Sort the objects for consistency
+    $objects = sort($objects);
+
+    print ("Selecting:\n" + stringArrayToString($objects, "\n") + "\n");
+
+    select -r $objects;
+
     viewFit -an 1;
 }
 
@@ -120,239 +164,239 @@ global proc maya2glTF_onExport
 )
 {
     // This is defined on maya startup
-	global string $gMainProgressBar;  
+    global string $gMainProgressBar;  
 
-	// Workaround a maya bug: progress is cancelled twice
-	progressBar -edit
-		-beginProgress
-		-isInterruptable true
-		-status "maya2glTF: preparing for export..."
-		-minValue 0
-		-maxValue 1
-		$gMainProgressBar;
+    // Workaround a maya bug: progress is cancelled twice
+    progressBar -edit
+        -beginProgress
+        -isInterruptable true
+        -status "maya2glTF: preparing for export..."
+        -minValue 0
+        -maxValue 1
+        $gMainProgressBar;
 
-	while(`progressBar -query -isCancelled $gMainProgressBar`) 
-	{
-		print ("maya2glTF: aborting previous export...\n");
-		progressBar -edit -endProgress $gMainProgressBar;
-	}
+    while(`progressBar -query -isCancelled $gMainProgressBar`) 
+    {
+        print ("maya2glTF: aborting previous export...\n");
+        progressBar -edit -endProgress $gMainProgressBar;
+    }
 
-	progressBar -edit -endProgress $gMainProgressBar;
+    progressBar -edit -endProgress $gMainProgressBar;
 
     string $copyright = `textFieldGrp -q -fileName $copyrightFLD`; 
-	string $folder = `textFieldGrp -q -fileName $folderFLD`;
-	$folder = _terminateWithSlash($folder);
-	string $sceneName = `textFieldGrp -q -text $sceneNameFLD`;
-	float $scale = `floatFieldGrp -q -value1 $scaleFLD`;
-	string $flags = `textFieldGrp -q -text $flagsFLD`;
-	int $anim = `optionMenuGrp -q -sl $animFLD`;
-	string $clip = `textFieldGrp -q -text $clipFLD`;
-	string $char = `optionMenuGrp -q -v $charFLD`;
+    string $folder = `textFieldGrp -q -fileName $folderFLD`;
+    $folder = _terminateWithSlash($folder);
+    string $sceneName = `textFieldGrp -q -text $sceneNameFLD`;
+    float $scale = `floatFieldGrp -q -value1 $scaleFLD`;
+    string $flags = `textFieldGrp -q -text $flagsFLD`;
+    int $anim = `optionMenuGrp -q -sl $animFLD`;
+    string $clip = `textFieldGrp -q -text $clipFLD`;
+    string $char = `optionMenuGrp -q -v $charFLD`;
 
-	// Persist values
-	_setStr("outputFolder", $folder);
-	_setStr("sceneName", $sceneName);
-	_setStr("copyright", $copyright);
-	_setFlt("scale", $scale);
-	_setStr("flags", $flags);
-	_setStr("char", $char);
-	_setInt("anim", $anim);
-	_setStr("clip", $clip);
+    // Persist values
+    _setStr("outputFolder", $folder);
+    _setStr("sceneName", $sceneName);
+    _setStr("copyright", $copyright);
+    _setFlt("scale", $scale);
+    _setStr("flags", $flags);
+    _setStr("char", $char);
+    _setInt("anim", $anim);
+    _setStr("clip", $clip);
 
-	switch ($anim) 
-	{
-		case 2:
-		case 3:
-		{
-			string $ast = $anim == 2 ? `playbackOptions -q -min` : `playbackOptions -q -ast`;
-			string $aet = $anim == 2 ? `playbackOptions -q -max` : `playbackOptions -q -aet`;
-			string $fps = `currentTimeUnitToFPS`;
-			$flags += `format -s(_quoted($clip)) -s($ast) -s($aet) -s($fps) " -acn ^1s -ast ^2s -aet ^3s -afr ^4s"`;
-		}
-		break;
+    switch ($anim) 
+    {
+        case 2:
+        case 3:
+        {
+            string $ast = $anim == 2 ? `playbackOptions -q -min` : `playbackOptions -q -ast`;
+            string $aet = $anim == 2 ? `playbackOptions -q -max` : `playbackOptions -q -aet`;
+            string $fps = `currentTimeUnitToFPS`;
+            $flags += `format -s(_quoted($clip)) -s($ast) -s($aet) -s($fps) " -acn ^1s -ast ^2s -aet ^3s -afr ^4s"`;
+        }
+        break;
 
-		case 4:
-			// Fetch clips from TRAX
-			$flags += _getTraxClips($char);
-			break;
-	}
+        case 4:
+            // Fetch clips from TRAX
+            $flags += _getTraxClips($char);
+            break;
+    }
 
-	string $cmd = `format 
-		-s(_quoted($sceneName)) 
-		-s(_quoted($folder)) 
-		-s($scale) 
-		-s(_quoted($copyright)) 
-		-s($flags)
-		"maya2glTF -sn ^1s -of ^2s -sf ^3s -cpr ^4s ^5s"
-	`;
+    string $cmd = `format 
+        -s(_quoted($sceneName)) 
+        -s(_quoted($folder)) 
+        -s($scale) 
+        -s(_quoted($copyright)) 
+        -s($flags)
+        "maya2glTF -sn ^1s -of ^2s -sf ^3s -cpr ^4s ^5s"
+    `;
 
-	print ($cmd+"\n");
+    print ($cmd+"\n");
 
-	print ("maya2glTF: loading plugin...\n");
+    print ("maya2glTF: loading plugin...\n");
 
-	loadPlugin "maya2glTF";
+    loadPlugin "maya2glTF";
 
-	print ("maya2glTF: plugin loaded.\n");
+    print ("maya2glTF: plugin loaded.\n");
 
-	int $failed = catch(eval($cmd));
+    int $failed = catch(eval($cmd));
 
-	unloadPlugin "maya2glTF";
+    unloadPlugin "maya2glTF";
 
-	int $aborted = `progressBar -query -isCancelled $gMainProgressBar`;
+    int $aborted = `progressBar -query -isCancelled $gMainProgressBar`;
 
-	if ($aborted) {
-		print ("*** maya2glTF: aborted at "+`date -time`+" ***\n");
-	} else if ($failed) {
-		print ("!!! maya2glTF: failed at "+`date -time`+" !!!\n");
-	} else {
-		print ("+++ maya2glTF: completed at "+`date -time`+" +++\n");
-	}
+    if ($aborted) {
+        print ("*** maya2glTF: aborted at "+`date -time`+" ***\n");
+    } else if ($failed) {
+        print ("!!! maya2glTF: failed at "+`date -time`+" !!!\n");
+    } else {
+        print ("+++ maya2glTF: completed at "+`date -time`+" +++\n");
+    }
 
-	progressBar -edit -endProgress $gMainProgressBar;
+    progressBar -edit -endProgress $gMainProgressBar;
 }
 
 global proc maya2glTF_exportProgressUI(int $max) {
     // This is defined on maya startup
-	global string $gMainProgressBar;  
+    global string $gMainProgressBar;  
 
-	$max = max(1, $max);
+    $max = max(1, $max);
 
-	progressBar -edit
-		-beginProgress
-		-isInterruptable true
-		-status "maya2glTF: exporting..."
-		-minValue 0
-		-maxValue $max
-		$gMainProgressBar;
+    progressBar -edit
+        -beginProgress
+        -isInterruptable true
+        -status "maya2glTF: exporting..."
+        -minValue 0
+        -maxValue $max
+        $gMainProgressBar;
 }
 
 // Returns -1 if abortion is requested
 global proc int maya2glTF_advanceExportProgressUI(string $stepName) 
 {
-	global string $gMainProgressBar;  // This is defined on maya startup
+    global string $gMainProgressBar;  // This is defined on maya startup
 
     progressBar -edit -step 1 -status ("maya2glTF: " + $stepName + "...") $gMainProgressBar;
 
-	if(`progressBar -query -isCancelled $gMainProgressBar`) {
-		print ("maya2glTF: aborting at "+`date -time`+"\n");
+    if(`progressBar -query -isCancelled $gMainProgressBar`) {
+        print ("maya2glTF: aborting at "+`date -time`+"\n");
         return -1;
-	}
+    }
 
-	return 0;
+    return 0;
 }
 
 proc string _getDefaultOutputFolder() {
-	string $scenePath = `file -q -loc`;
-	string $sceneDir = dirname($scenePath);
-	string $actualDir = size($sceneDir) == 0 ? `getenv "MAYA_APP_DIR"` : $sceneDir;
-	return  _terminateWithSlash($actualDir)+"export/";
+    string $scenePath = `file -q -loc`;
+    string $sceneDir = dirname($scenePath);
+    string $actualDir = size($sceneDir) == 0 ? `getenv "MAYA_APP_DIR"` : $sceneDir;
+    return  _terminateWithSlash($actualDir)+"export/";
 }
 
 proc string _getDefaultSceneName() {
-	string $sceneName = basenameEx(`file -q -sceneName -shortName`);
-	return size($sceneName) == 0 ? "untitled" : $sceneName;
+    string $sceneName = basenameEx(`file -q -sceneName -shortName`);
+    return size($sceneName) == 0 ? "untitled" : $sceneName;
 }
 
 global proc maya2glTF_resetUI() {
-	_deleteScriptNode();
-	maya2glTF_UI();
+    _deleteScriptNode();
+    maya2glTF_UI();
 }
 
 global proc maya2glTF_UI()
 {
     // This is defined on maya startup
-	global string $gMainProgressBar;  
+    global string $gMainProgressBar;  
 
     // This is auto-updated by msbuild 
-	string $maya2glTF_version = "V0.9.10 973ef57";
+    string $maya2glTF_version = "V0.9.10 dd5f469";
 
-	if (`window -exists maya2glTF_exporter_window`)
-		deleteUI maya2glTF_exporter_window;
+    if (`window -exists maya2glTF_exporter_window`)
+        deleteUI maya2glTF_exporter_window;
 
     string $year = `date -format "YYYY"`;
-	string $chars[] = `ls -type character`;
+    string $chars[] = `ls -type character`;
 
-	// Load previous or default values
-	string $exportDir = fromNativePath(_getStr("outputFolder", _getDefaultOutputFolder()));
-	string $sceneName = _getStr("sceneName", _getDefaultSceneName());
-	string $copyright = _getStr("copyright", "(C)"+$year+" "+getenv("username"));
-	float $scale = _getFlt("scale", 1);
-	string $flags = _getStr("flags", "");
-	string $char = _getStr("char", $chars[0]);
-	int $anim = _getInt("anim", 1);
-	string $clip = _getStr("clip", "clip");
+    // Load previous or default values
+    string $exportDir = fromNativePath(_getStr("outputFolder", _getDefaultOutputFolder()));
+    string $sceneName = _getStr("sceneName", _getDefaultSceneName());
+    string $copyright = _getStr("copyright", "(C)"+$year+" "+getenv("username"));
+    float $scale = _getFlt("scale", 1);
+    string $flags = _getStr("flags", "");
+    string $char = _getStr("char", $chars[0]);
+    int $anim = _getInt("anim", 1);
+    string $clip = _getStr("clip", "clip");
 
-	window -title ("maya2glTF") maya2glTF_exporter_window;
+    window -title ("maya2glTF") maya2glTF_exporter_window;
 
     frameLayout -mw 30 -mh 30 ("Copyright (C)" + $year + " wondermedia.tv         version " + $maya2glTF_version);
 
-	columnLayout -adjustableColumn true -rowSpacing 10; 
+    columnLayout -adjustableColumn true -rowSpacing 10; 
 
-	button -label "assign PBR shader to selection" -command "maya2glTF_assignPbrShader();";
+    button -label "assign PBR shader to selection" -command "maya2glTF_assignPbrShader();";
 
-	separator;
+    separator;
 
-	button -label "select all polygon meshes" -command "maya2glTF_polySelectAndFrame();";
+    button -label "select all polygon meshes" -command "maya2glTF_polySelectAndFrame();";
 
-	separator;
+    separator;
 
-	string $folderFLD = `textFieldGrp -fileName $exportDir -label "output folder:" -adjustableColumn 2`;
-	string $copyrightFLD = `textFieldGrp -text $copyright -label "copyright:" -adjustableColumn 2`;
-	string $sceneNameFLD = `textFieldGrp -text $sceneName -label "scene name:" -adjustableColumn 2`;
-	string $scaleFLD = `floatFieldGrp -value1 $scale -label "scale factor:"`;
-	string $flagsFLD = `textFieldGrp -text $flags -label "extra flags:" -adjustableColumn 2 `;
+    string $folderFLD = `textFieldGrp -fileName $exportDir -label "output folder:" -adjustableColumn 2`;
+    string $copyrightFLD = `textFieldGrp -text $copyright -label "copyright:" -adjustableColumn 2`;
+    string $sceneNameFLD = `textFieldGrp -text $sceneName -label "scene name:" -adjustableColumn 2`;
+    string $scaleFLD = `floatFieldGrp -value1 $scale -label "scale factor:"`;
+    string $flagsFLD = `textFieldGrp -text $flags -label "extra flags:" -adjustableColumn 2 `;
 
-	string $animFLD = `optionMenuGrp -label "animation:" -adjustableColumn 2`;
-		menuItem -label "none";
-		menuItem -label "time slider";
-		menuItem -label "range slider";
+    string $animFLD = `optionMenuGrp -label "animation:" -adjustableColumn 2`;
+        menuItem -label "none";
+        menuItem -label "time slider";
+        menuItem -label "range slider";
 
-	if (size($chars) > 0)
-		menuItem -label "trax";	
+    if (size($chars) > 0)
+        menuItem -label "trax";	
 
-	string $clipFLD = `textFieldGrp -label "clip name:" -text $clip -enable 0 -adjustableColumn 2`;
+    string $clipFLD = `textFieldGrp -label "clip name:" -text $clip -enable 0 -adjustableColumn 2`;
 
-	string $charFLD = `optionMenuGrp -label "character:" -enable 0 -adjustableColumn 2`;
-	
-	for ($c in $chars)
-		menuItem -label $c;
+    string $charFLD = `optionMenuGrp -label "character:" -enable 0 -adjustableColumn 2`;
+    
+    for ($c in $chars)
+        menuItem -label $c;
 
-	if (size($chars) == 0)
-		menuItem -label "";
+    if (size($chars) == 0)
+        menuItem -label "";
 
-	string $animCMD = `format 
-		-s(_quoted($animFLD)) 
-		-s(_quoted($charFLD)) 
-		-s(_quoted($clipFLD))
-		( 
-			"optionMenuGrp -edit -enable (`optionMenuGrp -q -sl ^1s` == 4) ^2s;" +
-			"textFieldGrp -edit -enable (`optionMenuGrp -q -sl ^1s` == 2 || `optionMenuGrp -q -sl ^1s` == 3) ^3s;"
-		)`;
+    string $animCMD = `format 
+        -s(_quoted($animFLD)) 
+        -s(_quoted($charFLD)) 
+        -s(_quoted($clipFLD))
+        ( 
+            "optionMenuGrp -edit -enable (`optionMenuGrp -q -sl ^1s` == 4) ^2s;" +
+            "textFieldGrp -edit -enable (`optionMenuGrp -q -sl ^1s` == 2 || `optionMenuGrp -q -sl ^1s` == 3) ^3s;"
+        )`;
 
-	optionMenuGrp -edit -changeCommand $animCMD $animFLD;
+    optionMenuGrp -edit -changeCommand $animCMD $animFLD;
 
-	catch(`optionMenuGrp -edit -value $char $charFLD`);
-	catch(`optionMenuGrp -edit -select $anim $animFLD`);
-	catch(`eval $animCMD`);
+    catch(`optionMenuGrp -edit -value $char $charFLD`);
+    catch(`optionMenuGrp -edit -select $anim $animFLD`);
+    catch(`eval $animCMD`);
 
-	separator;
+    separator;
 
-	string $exportCMD = `format 
-		-s(_quoted($copyrightFLD)) 
-		-s(_quoted($folderFLD)) 
-		-s(_quoted($sceneNameFLD)) 
-		-s(_quoted($scaleFLD))
-		-s(_quoted($flagsFLD))
-		-s(_quoted($animFLD))
-		-s(_quoted($clipFLD))
-		-s(_quoted($charFLD))
-	 	"maya2glTF_onExport(^1s, ^2s, ^3s, ^4s, ^5s, ^6s, ^7s, ^8s);"`;
+    string $exportCMD = `format 
+        -s(_quoted($copyrightFLD)) 
+        -s(_quoted($folderFLD)) 
+        -s(_quoted($sceneNameFLD)) 
+        -s(_quoted($scaleFLD))
+        -s(_quoted($flagsFLD))
+        -s(_quoted($animFLD))
+        -s(_quoted($clipFLD))
+        -s(_quoted($charFLD))
+         "maya2glTF_onExport(^1s, ^2s, ^3s, ^4s, ^5s, ^6s, ^7s, ^8s);"`;
 
-	button -label "export selected meshes" -command $exportCMD;
+    button -label "export selected meshes" -command $exportCMD;
 
-	separator;
+    separator;
 
-	button -label "reset to default values" -command "evalDeferred(\"maya2glTF_resetUI();\");";
-	
-	showWindow maya2glTF_exporter_window;
+    button -label "reset to default values" -command "evalDeferred(\"maya2glTF_resetUI();\");";
+    
+    showWindow maya2glTF_exporter_window;
 }
