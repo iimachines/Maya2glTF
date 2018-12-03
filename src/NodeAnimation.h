@@ -25,6 +25,8 @@ public:
 
 private:
 	const double m_scaleFactor;
+
+    double m_maxNonOrthogonality = 0;
 	std::vector<MTime> m_invalidLocalTransformTimes;
 
 	std::unique_ptr<PropAnimation> m_positions;

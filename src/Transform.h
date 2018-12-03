@@ -1,6 +1,9 @@
 #pragma once
 
-bool hasOrthogonalAxes(const MMatrix& m);
+const double MAX_NON_ORTHOGONALITY = 1e-4f;
+
+// How much the axes deviate from being orthogonal
+double getAxesNonOrthogonality(const MMatrix& m);
 
 void makeIdentity(GLTF::Node::TransformTRS &trs);
 
@@ -45,8 +48,8 @@ class NodeTransformState
 public:
 
 	// Can the local matrix be represented by the one or two local transforms?
-	// False if the local Maya matrix is skewed, even after dealing with segment scale compensation.
-	bool hasValidLocalTransforms = false;
+	// This value is larger than epsilon when the local Maya matrix is skewed, even after dealing with segment scale compensation.
+	double maxNonOrthogonality = 0;
 
 	// Is an extra GLTF node is required to represent the Maya transform?
 	// This occurs for Maya joints with segment scale compensation (SSC) and transforms with non-zero pivot points.

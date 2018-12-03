@@ -29,7 +29,7 @@ Happy exporting!
 
 ## Update
 
-V0.9.9 is released! See the [releases](https://github.com/WonderMediaProductions/Maya2glTF/releases) tab.
+V0.9.10 is released! See the [releases](https://github.com/WonderMediaProductions/Maya2glTF/releases) tab.
 
 ![Maya Tiger screenshot](/img/tiger-wim@koetan.gif)
 
