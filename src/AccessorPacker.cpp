@@ -19,18 +19,16 @@ GLTF::BufferView* AccessorPacker::packAccessorsForTargetByteStride(const std::ve
         byteLength += componentByteLength * accessor->getNumberOfComponents() * accessor->count;
     }
 
-    std::vector<byte> bufferData;
-    bufferData.resize(byteLength);
+    auto bufferData = new byte[byteLength];
     m_data.emplace_back(bufferData);
 
-    const auto bufferView = new GLTF::BufferView(&bufferData[0], byteLength, target);
+    const auto bufferView = new GLTF::BufferView(bufferData, byteLength, target);
     m_views.emplace_back(bufferView);
 
     for (GLTF::Accessor* accessor : accessors)
     {
         const auto byteOffset = byteOffsets[accessor];
-        const auto packedAccessor = new GLTF::Accessor(accessor->type, accessor->componentType, byteOffset,
-            accessor->count, bufferView);
+        const auto packedAccessor = new GLTF::Accessor(accessor->type, accessor->componentType, byteOffset, accessor->count, bufferView);
         m_accessors.emplace_back(packedAccessor);
 
         const size_t numberOfComponents = accessor->getNumberOfComponents();
@@ -69,15 +67,12 @@ void AccessorPacker::packAccessors(const std::vector<GLTF::Accessor*>& accessors
         auto targetGroup = accessorGroups[target];
         auto byteStride = accessor->getByteStride();
         auto findByteStrideGroup = targetGroup.find(byteStride);
-        std::vector<GLTF::Accessor*> byteStrideGroup;
-        if (findByteStrideGroup == targetGroup.end())
-        {
-            byteStrideGroup = std::vector<GLTF::Accessor*>();
-        }
-        else
-        {
-            byteStrideGroup = findByteStrideGroup->second;
-        }
+
+        std::vector<GLTF::Accessor*> byteStrideGroup =
+            findByteStrideGroup == targetGroup.end()
+            ? std::vector<GLTF::Accessor*>()
+            : findByteStrideGroup->second;
+
         byteStrideGroup.push_back(accessor);
         targetGroup[byteStride] = byteStrideGroup;
         accessorGroups[target] = targetGroup;
@@ -100,7 +95,7 @@ void AccessorPacker::packAccessors(const std::vector<GLTF::Accessor*>& accessors
     {
         for (auto byteStrideGroup : targetGroup.second)
         {
-            WebGL target = targetGroup.first;
+            const WebGL target = targetGroup.first;
             int byteStride = byteStrideGroup.first;
             GLTF::BufferView* bufferView = packAccessorsForTargetByteStride(byteStrideGroup.second, target);
             if (target == WebGL::ARRAY_BUFFER)
@@ -127,11 +122,10 @@ void AccessorPacker::packAccessors(const std::vector<GLTF::Accessor*>& accessors
     if (byteLength > 0)
     {
         // Pack these into a buffer sorted from largest byteStride to smallest
-        std::vector<byte> bufferData;
-        bufferData.resize(byteLength);
+        auto bufferData = new byte[byteLength];
         m_data.emplace_back(bufferData);
 
-        auto buffer = new GLTF::Buffer(&bufferData[0], byteLength);
+        auto buffer = new GLTF::Buffer(bufferData, byteLength);
         m_buffers.emplace_back(buffer);
 
         int byteOffset = 0;
@@ -166,4 +160,4 @@ std::vector<GLTF::Buffer*> AccessorPacker::getPackedBuffers() const
         buffers.emplace_back(buffer.get());
     }
     return move(buffers);
-}
+        }
