@@ -91,8 +91,11 @@ public:
 	/** Outputs a single binary GLB file */
 	bool glb = false;
 
-    /** Separate the animation and mesh into two combined buffers? */
-    bool separateAnimationBuffers = false;
+    /** Split the animation and mesh into two combined buffers? */
+    bool splitMeshAnimation = false;
+
+    /** Separate all accessors buffers? */
+    bool separateAccessorBuffers = false;
 
 	/** Create a default material for primitives that don't have shading in Maya? */
 	bool defaultMaterial = false;
@@ -197,6 +200,11 @@ public:
 			glObj.name = name;
 		}
 	}
+
+    std::string makeName(const std::string& name) const
+    {
+        return disableNameAssignment ? "" : name;
+    }
 
 	float getBakeScaleFactor() const { return bakeScalingFactor ? globalScaleFactor : 1; }
 	float getRootScaleFactor() const { return bakeScalingFactor ? 1 : globalScaleFactor; }

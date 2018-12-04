@@ -11,156 +11,159 @@
 #include "accessors.h"
 
 ExportableMesh::ExportableMesh(
-	ExportableScene& scene, 
-	ExportableNode& node,
-	const MDagPath& shapeDagPath)
-	: ExportableObject(shapeDagPath.node())
+    ExportableScene& scene,
+    ExportableNode& node,
+    const MDagPath& shapeDagPath)
+    : ExportableObject(shapeDagPath.node())
 {
-	MStatus status;
+    MStatus status;
 
-	const std::string shapeName{ shapeDagPath.partialPathName(&status).asChar() };
+    const std::string shapeName{ shapeDagPath.partialPathName(&status).asChar() };
 
-	auto& resources = scene.resources();
-	auto& args = resources.arguments();
+    auto& resources = scene.resources();
+    auto& args = resources.arguments();
 
-	const auto mayaMesh = std::make_unique<Mesh>(scene, shapeDagPath, node);
+    const auto mayaMesh = std::make_unique<Mesh>(scene, shapeDagPath, node);
 
-	if (args.dumpMaya)
-	{
-		mayaMesh->dump(*args.dumpMaya, shapeDagPath.fullPathName().asChar());
-	}
+    if (args.dumpMaya)
+    {
+        mayaMesh->dump(*args.dumpMaya, shapeDagPath.fullPathName().asChar());
+    }
 
-	if (!mayaMesh->isEmpty())
-	{
-		args.assignName(glMesh, shapeName);
+    if (!mayaMesh->isEmpty())
+    {
+        args.assignName(glMesh, shapeName);
 
-		auto& mainShape = mayaMesh->shape();
+        auto& mainShape = mayaMesh->shape();
 
-		// Generate primitives
-		MeshRenderables renderables(mayaMesh->allShapes(), args);
-		const auto& shadingMap = mainShape.indices().shadingPerInstance();
-		const auto& shading = shadingMap.at(renderables.instanceNumber);
-		const auto shaderCount = static_cast<int>(shading.shaderGroups.length());
+        // Generate primitives
+        MeshRenderables renderables(mayaMesh->allShapes(), args);
+        const auto& shadingMap = mainShape.indices().shadingPerInstance();
+        const auto& shading = shadingMap.at(renderables.instanceNumber);
+        const auto shaderCount = static_cast<int>(shading.shaderGroups.length());
 
-		const auto& vertexBufferEntries = renderables.table();
-		const size_t vertexBufferCount = vertexBufferEntries.size();
-		{
-			size_t vertexBufferIndex = 0;
-			for (auto && pair : vertexBufferEntries)
-			{
-				const auto& vertexSignature = pair.first;
-				const auto& vertexBuffer = pair.second;
+        const auto& vertexBufferEntries = renderables.table();
+        const size_t vertexBufferCount = vertexBufferEntries.size();
+        {
+            size_t vertexBufferIndex = 0;
+            for (auto && pair : vertexBufferEntries)
+            {
+                const auto& vertexSignature = pair.first;
+                const auto& vertexBuffer = pair.second;
 
-				const int shaderIndex = vertexSignature.shaderIndex;
-				auto& shaderGroup = shaderIndex >= 0 && shaderIndex < shaderCount
-					? shading.shaderGroups[shaderIndex]
-					: MObject::kNullObj;
+                const int shaderIndex = vertexSignature.shaderIndex;
+                auto& shaderGroup = shaderIndex >= 0 && shaderIndex < shaderCount
+                    ? shading.shaderGroups[shaderIndex]
+                    : MObject::kNullObj;
 
 
-				ExportableMaterial* material = nullptr;
+                ExportableMaterial* material = nullptr;
 
-				// Assign material to primitive
-				if (args.colorizeMaterials)
-				{
-					const float h = vertexBufferIndex * 1.0f / vertexBufferCount;
-					const float s = shaderCount == 0 ? 0.5f : 1;
-					const float v = shaderIndex < 0 ? 0.5f : 1;
-					material = resources.getDebugMaterial({ h,s,v });
-					++vertexBufferIndex;
-				}
-				else
-				{
-					material = resources.getMaterial(shaderGroup);
-					if (!material && resources.arguments().defaultMaterial)
-						material = resources.getDefaultMaterial();
-				}
+                // Assign material to primitive
+                if (args.colorizeMaterials)
+                {
+                    const float h = vertexBufferIndex * 1.0f / vertexBufferCount;
+                    const float s = shaderCount == 0 ? 0.5f : 1;
+                    const float v = shaderIndex < 0 ? 0.5f : 1;
+                    material = resources.getDebugMaterial({ h,s,v });
+                }
+                else
+                {
+                    material = resources.getMaterial(shaderGroup);
+                    if (!material && resources.arguments().defaultMaterial)
+                        material = resources.getDefaultMaterial();
+                }
 
-				if (material)
-				{
-					auto exportablePrimitive = std::make_unique<ExportablePrimitive>(vertexBuffer, resources, material);
+                if (material)
+                {
+                    const auto primitiveName = shapeName + "#" + std::to_string(vertexBufferIndex);
 
-					glMesh.primitives.push_back(&exportablePrimitive->glPrimitive);
+                    auto exportablePrimitive = std::make_unique<ExportablePrimitive>(primitiveName, vertexBuffer, resources, material);
 
-					m_primitives.emplace_back(std::move(exportablePrimitive));
+                    glMesh.primitives.push_back(&exportablePrimitive->glPrimitive);
 
-					if (args.debugTangentVectors)
-					{
-						auto debugPrimitive = std::make_unique<ExportablePrimitive>(
-							vertexBuffer, resources, Semantic::Kind::TANGENT, ShapeIndex::main(), args.debugVectorLength, Color({ 1,0,0,1 }));
-						glMesh.primitives.push_back(&debugPrimitive->glPrimitive);
-						m_primitives.emplace_back(move(debugPrimitive));
-					}
+                    m_primitives.emplace_back(std::move(exportablePrimitive));
 
-					if (args.debugNormalVectors)
-					{
-						auto debugPrimitive = std::make_unique<ExportablePrimitive>(
-							vertexBuffer, resources, Semantic::Kind::NORMAL, ShapeIndex::main(), args.debugVectorLength, Color({ 1,1,0,1 }));
-						glMesh.primitives.push_back(&debugPrimitive->glPrimitive);
-						m_primitives.emplace_back(move(debugPrimitive));
-					}
-				}
-			}
+                    if (args.debugTangentVectors)
+                    {
+                        auto debugPrimitive = std::make_unique<ExportablePrimitive>(
+                            primitiveName, vertexBuffer, resources, Semantic::Kind::TANGENT, ShapeIndex::main(), args.debugVectorLength, Color({ 1,0,0,1 }));
+                        glMesh.primitives.push_back(&debugPrimitive->glPrimitive);
+                        m_primitives.emplace_back(move(debugPrimitive));
+                    }
 
-			for (auto&& shape: mayaMesh->allShapes())
-			{
-				if (shape->shapeIndex.isBlendShapeIndex())
-				{
-					m_weightPlugs.emplace_back(shape->weightPlug);
-					m_initialWeights.emplace_back(shape->initialWeight);
-					glMesh.weights.emplace_back(shape->initialWeight);
-				}
-			}
-		}
+                    if (args.debugNormalVectors)
+                    {
+                        auto debugPrimitive = std::make_unique<ExportablePrimitive>(
+                            primitiveName, vertexBuffer, resources, Semantic::Kind::NORMAL, ShapeIndex::main(), args.debugVectorLength, Color({ 1,1,0,1 }));
+                        glMesh.primitives.push_back(&debugPrimitive->glPrimitive);
+                        m_primitives.emplace_back(move(debugPrimitive));
+                    }
+                }
 
-		// Generate skin
-		auto& skeleton = mainShape.skeleton();
-		if (!skeleton.isEmpty())
-		{
-			args.assignName(glSkin, shapeName);
+                ++vertexBufferIndex;
+            }
 
-			auto& joints = skeleton.joints();
+            for (auto&& shape : mayaMesh->allShapes())
+            {
+                if (shape->shapeIndex.isBlendShapeIndex())
+                {
+                    m_weightPlugs.emplace_back(shape->weightPlug);
+                    m_initialWeights.emplace_back(shape->initialWeight);
+                    glMesh.weights.emplace_back(shape->initialWeight);
+                }
+            }
+        }
 
-			std::map<int, std::vector<ExportableNode*>> distanceToRootMap;
+        // Generate skin
+        auto& skeleton = mainShape.skeleton();
+        if (!skeleton.isEmpty())
+        {
+            args.assignName(glSkin, shapeName);
 
-			m_inverseBindMatrices.reserve(joints.size());
+            auto& joints = skeleton.joints();
 
-			// Get joints, and build inverse bind matrices.
-			for (auto& joint: joints)
-			{
-				auto* jointNode = joint.node;
-				glSkin.joints.emplace_back(const_cast<GLTF::Node*>(&jointNode->glPrimaryNode()));
-				
-				auto distanceToRoot = ExportableScene::distanceToRoot(jointNode->dagPath);
-				distanceToRootMap[distanceToRoot].emplace_back(jointNode);
+            std::map<int, std::vector<ExportableNode*>> distanceToRootMap;
 
-				Float4x4 inverseBindMatrix;
-				joint.inverseBindMatrix.get(reinterpret_cast<float(&)[4][4]>(inverseBindMatrix));
+            m_inverseBindMatrices.reserve(joints.size());
 
-				m_inverseBindMatrices.emplace_back(inverseBindMatrix);
-			}
+            // Get joints, and build inverse bind matrices.
+            for (auto& joint : joints)
+            {
+                auto* jointNode = joint.node;
+                glSkin.joints.emplace_back(const_cast<GLTF::Node*>(&jointNode->glPrimaryNode()));
 
-			m_inverseBindMatricesAccessor = contiguousChannelAccessor(
-				shapeName + "/B",
-				reinterpret_span<float>(m_inverseBindMatrices),
-				16);
+                auto distanceToRoot = ExportableScene::distanceToRoot(jointNode->dagPath);
+                distanceToRootMap[distanceToRoot].emplace_back(jointNode);
 
-			glSkin.inverseBindMatrices = m_inverseBindMatricesAccessor.get();
+                Float4x4 inverseBindMatrix;
+                joint.inverseBindMatrix.get(reinterpret_cast<float(&)[4][4]>(inverseBindMatrix));
 
-			// Find root
-			// NOTE: Disabled to support skeletons with multiple roots, the skeleton property is optional anyway
-			//const auto& roots = distanceToRootMap.begin()->second;
+                m_inverseBindMatrices.emplace_back(inverseBindMatrix);
+            }
 
-			//if (roots.size() > 1)
-			//{
-			//	MayaException::printError(
-			//		formatted("Skeletons with multiple roots are not yet supported, mesh '%s'", shapeName.c_str()));
-			//}
+            m_inverseBindMatricesAccessor = contiguousChannelAccessor(
+                args.makeName(shapeName + "/skin/IBM"),
+                reinterpret_span<float>(m_inverseBindMatrices),
+                16);
 
-			//auto rootJointNode = roots.at(0);
-			//cout << prefix << "Using joint " << quoted(rootJointNode->name(), '\'') << " as skeleton root for mesh " << quoted(shapeName, '\'') << endl;
-			//glSkin.skeleton = &rootJointNode->glPrimaryNode();
-		}
-	}
+            glSkin.inverseBindMatrices = m_inverseBindMatricesAccessor.get();
+
+            // Find root
+            // NOTE: Disabled to support skeletons with multiple roots, the skeleton property is optional anyway
+            //const auto& roots = distanceToRootMap.begin()->second;
+
+            //if (roots.size() > 1)
+            //{
+            //	MayaException::printError(
+            //		formatted("Skeletons with multiple roots are not yet supported, mesh '%s'", shapeName.c_str()));
+            //}
+
+            //auto rootJointNode = roots.at(0);
+            //cout << prefix << "Using joint " << quoted(rootJointNode->name(), '\'') << " as skeleton root for mesh " << quoted(shapeName, '\'') << endl;
+            //glSkin.skeleton = &rootJointNode->glPrimaryNode();
+        }
+    }
 }
 
 ExportableMesh::~ExportableMesh() = default;
@@ -180,35 +183,35 @@ void ExportableMesh::getAllAccessors(std::vector<GLTF::Accessor*>& accessors) co
 
 std::vector<float> ExportableMesh::currentWeights() const
 {
-	std::vector<float> weights;
-	weights.reserve(m_weightPlugs.size());
+    std::vector<float> weights;
+    weights.reserve(m_weightPlugs.size());
 
-	for(auto& plug: m_weightPlugs)
-	{
-		float weight;
-		THROW_ON_FAILURE(plug.getValue(weight));
-		weights.emplace_back(weight);
-	}
+    for (auto& plug : m_weightPlugs)
+    {
+        float weight;
+        THROW_ON_FAILURE(plug.getValue(weight));
+        weights.emplace_back(weight);
+    }
 
-	return weights;
+    return weights;
 }
 
 void ExportableMesh::setupNode(GLTF::Node& node)
 {
-	node.mesh = &glMesh;
+    node.mesh = &glMesh;
 
-	if (glSkin.inverseBindMatrices)
-	{
-		node.skin = &glSkin;
-	}
+    if (glSkin.inverseBindMatrices)
+    {
+        node.skin = &glSkin;
+    }
 }
 
 void ExportableMesh::updateWeights()
 {
-	for (size_t i=0; i<m_weightPlugs.size(); ++i)
-	{
-		auto& plug = m_weightPlugs.at(i);
-		auto& weight = glMesh.weights.at(i);
-		THROW_ON_FAILURE(plug.getValue(weight));
-	}
+    for (size_t i = 0; i < m_weightPlugs.size(); ++i)
+    {
+        auto& plug = m_weightPlugs.at(i);
+        auto& weight = glMesh.weights.at(i);
+        THROW_ON_FAILURE(plug.getValue(weight));
+    }
 }

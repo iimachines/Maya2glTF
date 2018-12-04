@@ -190,7 +190,7 @@ void NodeAnimation::finish(
     }
     else
     {
-        animatedProp->finish(m_disableNameAssignment ? "" : glAnimation.name + "/" + propName);
+        animatedProp->finish(m_disableNameAssignment ? "" : node.name() + "/anim/" + glAnimation.name + "/" + propName);
         glAnimation.channels.push_back(&animatedProp->glChannel);
     }
 }

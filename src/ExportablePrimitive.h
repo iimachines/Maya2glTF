@@ -13,12 +13,14 @@ class ExportablePrimitive
 {
 public:
 	ExportablePrimitive(
+        const std::string& name,
 		const VertexBuffer& vertexBuffer,
 		ExportableResources& resources,
 		ExportableMaterial* material);
 	
 	ExportablePrimitive(
-		const VertexBuffer& vertexBuffer, 
+        const std::string& name,
+        const VertexBuffer& vertexBuffer,
 		ExportableResources& resources,
 		Semantic::Kind debugSemantic,
 		const ShapeIndex& debugShapeIndex,

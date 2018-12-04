@@ -151,14 +151,21 @@ void ExportableAsset::save()
 {
     const auto& args = m_resources.arguments();
 
+    const auto sceneName = std::string(args.sceneName.asChar());
+
     const auto embed = args.glb || args.embedded;
 
     const auto allAccessors = m_glAsset.getAllAccessors();
 
     AccessorPacker bufferPacker;
 
-    if (!args.glb && args.separateAnimationBuffers)
+    std::vector<GLTF::Buffer*> packedBuffers;
+
+    // NOTE: when exporting glb, we always merge everything into a single buffer.
+    if (!args.glb && !args.separateAccessorBuffers && args.splitMeshAnimation)
     {
+        // Combine mesh and clip accessors into two separate buffers
+
         // Gather mesh accessors
         std::vector<GLTF::Accessor*> meshAccessors;
         m_scene.getAllAccessors(meshAccessors);
@@ -185,12 +192,26 @@ void ExportableAsset::save()
 
         cout << endl;
 
-        bufferPacker.packAccessors(meshAccessors);
-        bufferPacker.packAccessors(clipAccessors);
+        bufferPacker.packAccessors(meshAccessors, args.makeName(sceneName + "/mesh_data"));
+        bufferPacker.packAccessors(clipAccessors, args.makeName(sceneName + "/clip_data"));
+
+        packedBuffers = bufferPacker.getPackedBuffers();
+    }
+    else if(!args.glb && args.separateAccessorBuffers)
+    {
+        // Keep every accessor separate, useful for debugging.
+        for (auto accessor : allAccessors)
+        {
+            accessor->bufferView->name = accessor->name;
+            accessor->bufferView->buffer->name = accessor->name;
+            packedBuffers.emplace_back(accessor->bufferView->buffer);
+        }
     }
     else
     {
-        bufferPacker.packAccessors(allAccessors);
+        // Pack everything into a single buffer (default and glb case)
+        bufferPacker.packAccessors(allAccessors, args.makeName(sceneName+"/data"));
+        packedBuffers = bufferPacker.getPackedBuffers();
     }
 
     // Generate glTF JSON file
@@ -230,7 +251,6 @@ void ExportableAsset::save()
 
     if (!options.embeddedBuffers)
     {
-        const auto packedBuffers = bufferPacker.getPackedBuffers();
         for (const auto buffer : packedBuffers)
         {
             if (buffer->data && buffer->byteLength)
@@ -263,7 +283,6 @@ void ExportableAsset::save()
 
         if (args.glb)
         {
-            const auto packedBuffers = bufferPacker.getPackedBuffers();
             assert(packedBuffers.size() <= 1);
             const auto maybeBuffer = packedBuffers.empty() ? nullptr : packedBuffers[0];
             const auto bufferLength = maybeBuffer ? maybeBuffer->byteLength : 0;

@@ -9,7 +9,7 @@ ExportableClip::ExportableClip(
 	const AnimClipArg& clipArg,
 	const ExportableScene& scene)
 	: m_frames(
-		args.disableNameAssignment ? "" : clipArg.name + "_inputs",
+		args.makeName(clipArg.name + "/anim/frames"),
 		clipArg.frameCount(),
 		clipArg.framesPerSecond)
 {

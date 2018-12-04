@@ -1,5 +1,6 @@
 #include "externals.h"
 #include "AccessorPacker.h"
+#include "accessors.h"
 
 using GLTF::Constants::WebGL;
 
@@ -28,8 +29,7 @@ GLTF::BufferView* AccessorPacker::packAccessorsForTargetByteStride(const std::ve
     for (GLTF::Accessor* accessor : accessors)
     {
         const auto byteOffset = byteOffsets[accessor];
-        const auto packedAccessor = new GLTF::Accessor(accessor->type, accessor->componentType, byteOffset, accessor->count, bufferView);
-        m_accessors.emplace_back(packedAccessor);
+        GLTF::Accessor packedAccessor(accessor->type, accessor->componentType, byteOffset, accessor->count, bufferView);
 
         const size_t numberOfComponents = accessor->getNumberOfComponents();
 
@@ -38,16 +38,16 @@ GLTF::BufferView* AccessorPacker::packAccessorsForTargetByteStride(const std::ve
         for (auto i = 0; i < accessor->count; i++)
         {
             accessor->getComponentAtIndex(i, components);
-            packedAccessor->writeComponentAtIndex(i, components);
+            packedAccessor.writeComponentAtIndex(i, components);
         }
 
-        accessor->byteOffset = packedAccessor->byteOffset;
-        accessor->bufferView = packedAccessor->bufferView;
+        accessor->byteOffset = packedAccessor.byteOffset;
+        accessor->bufferView = packedAccessor.bufferView;
     }
     return bufferView;
 }
 
-void AccessorPacker::packAccessors(const std::vector<GLTF::Accessor*>& accessors)
+void AccessorPacker::packAccessors(const std::vector<GLTF::Accessor*>& accessors, const std::string& bufferName)
 {
     std::map<WebGL, std::map<int, std::vector<GLTF::Accessor*>>> accessorGroups;
     accessorGroups[WebGL::ARRAY_BUFFER] = std::map<int, std::vector<GLTF::Accessor*>>();
@@ -97,7 +97,14 @@ void AccessorPacker::packAccessors(const std::vector<GLTF::Accessor*>& accessors
         {
             const WebGL target = targetGroup.first;
             int byteStride = byteStrideGroup.first;
+            
             GLTF::BufferView* bufferView = packAccessorsForTargetByteStride(byteStrideGroup.second, target);
+
+            if (!bufferName.empty())
+            {
+                bufferView->name = bufferName + "/" + glAccessorTargetPurpose(target) + "-" + std::to_string(byteStride);
+            }
+
             if (target == WebGL::ARRAY_BUFFER)
             {
                 bufferView->byteStride = byteStride;
@@ -127,6 +134,7 @@ void AccessorPacker::packAccessors(const std::vector<GLTF::Accessor*>& accessors
 
         auto buffer = new GLTF::Buffer(bufferData, byteLength);
         m_buffers.emplace_back(buffer);
+        buffer->name = bufferName;
 
         int byteOffset = 0;
         for (int byteStride : byteStrides)
@@ -160,4 +168,4 @@ std::vector<GLTF::Buffer*> AccessorPacker::getPackedBuffers() const
         buffers.emplace_back(buffer.get());
     }
     return move(buffers);
-        }
+}
