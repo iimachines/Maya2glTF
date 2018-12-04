@@ -87,6 +87,15 @@ ExportableNode* ExportableScene::getParent(ExportableNode* node)
 	return parentNode;
 }
 
+void ExportableScene::getAllAccessors(std::vector<GLTF::Accessor*>& accessors)
+{
+    for (auto&& pair : m_table)
+    {
+        auto& node = pair.second;
+        node->getAllAccessors(accessors);
+    }
+}
+
 int ExportableScene::distanceToRoot(MDagPath dagPath)
 {
 	int distance;

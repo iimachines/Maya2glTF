@@ -47,6 +47,8 @@ public:
 	//std::map<MayaNodeName, std::unique_ptr<GLTF::Texture>> textureMap;
 	//std::map<MayaNodeName, std::unique_ptr<GLTF::Sampler>> samplerMap;
 
+    void getAllAccessors(std::vector<GLTF::Accessor*>& accessors);
+
 private:
 	std::map<MayaNodeName, std::unique_ptr<ExportableMaterial>> m_materialMap;
 	std::map<Float3, std::unique_ptr<ExportableMaterial>> m_debugMaterialMap;

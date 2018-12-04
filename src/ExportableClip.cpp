@@ -57,3 +57,13 @@ ExportableClip::ExportableClip(
 }
 
 ExportableClip::~ExportableClip() = default;
+
+void ExportableClip::getAllAccessors(std::vector<GLTF::Accessor*>& accessors) const
+{
+    m_frames.getAllAccessors(accessors);
+
+    for (auto&& animation : m_nodeAnimations)
+    {
+        animation->getAllAccessors(accessors);
+    }
+}

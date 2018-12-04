@@ -18,6 +18,7 @@ namespace flag
 	const auto dumpGLTF = "dgl";
 	const auto embedded = "emb";
 	const auto copyright = "cpr";
+    const auto separateAnimationBuffers = "sab";
 
 	const auto defaultMaterial = "dm";
 	const auto colorizeMaterials = "cm";
@@ -104,6 +105,7 @@ SyntaxFactory::SyntaxFactory()
 	registerFlag(ss, flag::sceneName, "sceneName", kString);
 	registerFlag(ss, flag::scaleFactor, "scaleFactor", kDouble);
 	registerFlag(ss, flag::binary, "binary", kNoArg);
+    registerFlag(ss, flag::separateAnimationBuffers, "separateAnimationBuffers", kNoArg);
 	registerFlag(ss, flag::dumpGLTF, "dumpGTLF", kString);
 	registerFlag(ss, flag::dumpMaya, "dumpMaya", kString);
 	registerFlag(ss, flag::embedded, "embedded", kNoArg);
@@ -438,6 +440,7 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	dumpGLTF = m_gltfOutputStream.get();
 
 	embedded = adb.isFlagSet(flag::embedded);
+    separateAnimationBuffers = adb.isFlagSet(flag::separateAnimationBuffers);
 	defaultMaterial = adb.isFlagSet(flag::defaultMaterial);
 	colorizeMaterials = adb.isFlagSet(flag::colorizeMaterials);
 	skipStandardMaterials = adb.isFlagSet(flag::skipStandardMaterials);
@@ -616,4 +619,3 @@ void Arguments::select(Selection& selection, const MDagPath& dagPath, const bool
 		}
 	}
 }
-

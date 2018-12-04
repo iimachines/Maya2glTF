@@ -161,3 +161,13 @@ ExportablePrimitive::ExportablePrimitive(
 
 ExportablePrimitive::~ExportablePrimitive() = default;
 
+void ExportablePrimitive::getAllAccessors(std::vector<GLTF::Accessor*>& accessors) const
+{
+    accessors.emplace_back(glIndices.get());
+
+    for (auto&& accessor : glAccessors)
+    {
+        accessors.emplace_back(accessor.get());
+    }
+}
+

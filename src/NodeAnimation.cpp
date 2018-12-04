@@ -1,4 +1,5 @@
 #include "externals.h"
+#include "Arguments.h"
 #include "NodeAnimation.h"
 #include "ExportableNode.h"
 #include "ExportableMesh.h"
@@ -8,10 +9,12 @@
 NodeAnimation::NodeAnimation(
     const ExportableNode& node,
     const ExportableFrames& frames,
-    const double scaleFactor)
+    const double scaleFactor,
+    const bool disableNameAssignment)
     : node(node)
     , mesh(node.mesh())
     , m_scaleFactor(scaleFactor)
+    , m_disableNameAssignment(disableNameAssignment)
 {
     auto& sNode = node.glSecondaryNode();
     auto& pNode = node.glPrimaryNode();
@@ -121,22 +124,22 @@ void NodeAnimation::exportTo(GLTF::Animation& glAnimation)
     switch (node.transformKind)
     {
     case TransformKind::Simple:
-        finish(glAnimation, m_positions, pTRS.translation);
-        finish(glAnimation, m_rotations, pTRS.rotation);
-        finish(glAnimation, m_scales, pTRS.scale);
+        finish(glAnimation, "T", m_positions, pTRS.translation);
+        finish(glAnimation, "R", m_rotations, pTRS.rotation);
+        finish(glAnimation, "S", m_scales, pTRS.scale);
         break;
     case TransformKind::ComplexJoint:
-        finish(glAnimation, m_positions, sTRS.translation);
-        finish(glAnimation, m_rotations, pTRS.rotation);
-        finish(glAnimation, m_scales, pTRS.scale);
-        finish(glAnimation, m_correctors, sTRS.scale);
+        finish(glAnimation, "T", m_positions, sTRS.translation);
+        finish(glAnimation, "R", m_rotations, pTRS.rotation);
+        finish(glAnimation, "S", m_scales, pTRS.scale);
+        finish(glAnimation, "C", m_correctors, sTRS.scale);
         break;
 
     case TransformKind::ComplexTransform:
-        finish(glAnimation, m_positions, sTRS.translation);
-        finish(glAnimation, m_rotations, sTRS.rotation);
-        finish(glAnimation, m_scales, sTRS.scale);
-        finish(glAnimation, m_correctors, pTRS.translation);
+        finish(glAnimation, "T", m_positions, sTRS.translation);
+        finish(glAnimation, "R", m_rotations, sTRS.rotation);
+        finish(glAnimation, "S", m_scales, sTRS.scale);
+        finish(glAnimation, "C", m_correctors, pTRS.translation);
         break;
 
     default:
@@ -147,12 +150,22 @@ void NodeAnimation::exportTo(GLTF::Animation& glAnimation)
     if (mesh)
     {
         const auto initialWeights = mesh->initialWeights();
-        finish(glAnimation, m_weights, initialWeights);
+        finish(glAnimation, "W", m_weights, initialWeights);
     }
+}
+
+void NodeAnimation::getAllAccessors(std::vector<GLTF::Accessor*>& accessors) const
+{
+    getAllAccessors(m_positions, accessors);
+    getAllAccessors(m_rotations, accessors);
+    getAllAccessors(m_scales, accessors);
+    getAllAccessors(m_correctors, accessors);
+    getAllAccessors(m_weights, accessors);
 }
 
 void NodeAnimation::finish(
     GLTF::Animation& glAnimation,
+    const char* propName,
     std::unique_ptr<PropAnimation>& animatedProp,
     const gsl::span<const float>& baseValues) const
 {
@@ -177,8 +190,16 @@ void NodeAnimation::finish(
     }
     else
     {
-        animatedProp->finish(glAnimation.name + "_outputs");
+        animatedProp->finish(m_disableNameAssignment ? "" : glAnimation.name + "/" + propName);
         glAnimation.channels.push_back(&animatedProp->glChannel);
+    }
+}
+
+void NodeAnimation::getAllAccessors(const std::unique_ptr<PropAnimation>& animatedProp, std::vector<GLTF::Accessor*>& accessors)
+{
+    if (animatedProp)
+    {
+        animatedProp->getAllAccessors(accessors);
     }
 }
 

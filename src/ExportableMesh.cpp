@@ -165,6 +165,14 @@ ExportableMesh::ExportableMesh(
 
 ExportableMesh::~ExportableMesh() = default;
 
+void ExportableMesh::getAllAccessors(std::vector<GLTF::Accessor*>& accessors) const
+{
+    for (auto&& primitive : m_primitives)
+    {
+        primitive->getAllAccessors(accessors);
+    }
+}
+
 std::vector<float> ExportableMesh::currentWeights() const
 {
 	std::vector<float> weights;

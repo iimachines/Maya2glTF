@@ -31,6 +31,8 @@ public:
 	std::unique_ptr<GLTF::Accessor> glIndices;
 	BlendShapeToTargetTable glTargetTable;
 
+    void getAllAccessors(std::vector<GLTF::Accessor*>& accessors) const;
+
 private:
 	std::vector<std::unique_ptr<GLTF::Accessor>> glAccessors;
 

@@ -91,6 +91,9 @@ public:
 	/** Outputs a single binary GLB file */
 	bool glb = false;
 
+    /** Separate the animation and mesh into two combined buffers? */
+    bool separateAnimationBuffers = false;
+
 	/** Create a default material for primitives that don't have shading in Maya? */
 	bool defaultMaterial = false;
 

@@ -48,7 +48,7 @@ public:
 		std::copy(components.begin(), components.end(), std::back_inserter(componentValuesPerFrame));
 	}
 
-	void finish(const std::string outputsName)
+	void finish(const std::string& outputsName)
 	{
 		if (!m_outputs)
 		{
@@ -58,6 +58,14 @@ public:
 		}
 
 		glSampler.output = m_outputs.get();
+	}
+
+    void getAllAccessors(std::vector<GLTF::Accessor*>& accessors) const
+	{
+        if (m_outputs && m_outputs->count > 0)
+        {
+            accessors.emplace_back(m_outputs.get());
+        }
 	}
 
 private:

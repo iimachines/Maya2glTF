@@ -3,7 +3,7 @@
 #include "accessors.h"
 
 ExportableFrames::ExportableFrames(
-	const std::string accessorName, 
+	const std::string& accessorName, 
 	const int frameCount, 
 	const double framesPerSecond)
 	: count(frameCount)
@@ -17,4 +17,9 @@ ExportableFrames::ExportableFrames(
 	}
 
 	glInputs = contiguousChannelAccessor(accessorName, times, 1);
+}
+
+void ExportableFrames::getAllAccessors(std::vector<GLTF::Accessor*>& accessors) const
+{
+    accessors.emplace_back(glInputs.get());
 }

@@ -31,6 +31,8 @@ public:
 
 	void updateWeights();
 
+    void getAllAccessors(std::vector<GLTF::Accessor*>& accessors) const;
+
 private:
 	DISALLOW_COPY_MOVE_ASSIGN(ExportableMesh);
 

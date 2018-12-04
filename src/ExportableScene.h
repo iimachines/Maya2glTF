@@ -9,7 +9,7 @@ typedef std::set<ExportableNode*> OrphanNodes;
 
 // Maps each DAG path to the corresponding node
 // Owns and creates each node on the fly.
-class ExportableScene
+class ExportableScene 
 {
 public:
 	explicit ExportableScene(ExportableResources& resources);
@@ -33,6 +33,8 @@ public:
 	// Gets or creates the parent of the node.
 	// Returns null if the node has no logical parent.
 	ExportableNode* getParent(ExportableNode* node);
+
+    void getAllAccessors(std::vector<GLTF::Accessor*>& accessors);
 
 	// Register a node without parent
 	void registerOrphanNode(ExportableNode* node)

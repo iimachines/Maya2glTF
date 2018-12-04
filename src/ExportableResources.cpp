@@ -162,6 +162,11 @@ GLTF::Texture* ExportableResources::getTexture(GLTF::Image* image, GLTF::Sampler
 	return texturePtr.get();
 }
 
+void ExportableResources::getAllAccessors(std::vector<GLTF::Accessor*>& accessors)
+{
+    // None
+}
+
 ExportableMaterial* ExportableResources::getDebugMaterial(const Float3& hsv)
 {
 	auto& materialPtr = m_debugMaterialMap[hsv];

@@ -23,6 +23,8 @@ void ExportableNode::load(
     auto& resources = scene.resources();
     auto& args = resources.arguments();
 
+    m_disableNameAssignment = args.disableNameAssignment;
+
     // Is this a joint with segment scale compensation? (the default in Maya)
     bool maybeSegmentScaleCompensation = false;
     DagHelper::getPlugValue(obj, "segmentScaleCompensate", maybeSegmentScaleCompensation);
@@ -143,7 +145,7 @@ ExportableNode::~ExportableNode() = default;
 
 std::unique_ptr<NodeAnimation> ExportableNode::createAnimation(const ExportableFrames& frameTimes, const double scaleFactor)
 {
-    return std::make_unique<NodeAnimation>(*this, frameTimes, scaleFactor);
+    return std::make_unique<NodeAnimation>(*this, frameTimes, scaleFactor, m_disableNameAssignment);
 }
 
 void ExportableNode::updateNodeTransforms(NodeTransformCache& transformCache)
@@ -207,4 +209,12 @@ bool ExportableNode::tryMergeRedundantShapeNode()
     m_mesh.swap(parentNode->m_mesh);
 
     return true;
+}
+
+void ExportableNode::getAllAccessors(std::vector<GLTF::Accessor*>& accessors) const
+{
+    if (m_mesh)
+    {
+        m_mesh->getAllAccessors(accessors);
+    }
 }
