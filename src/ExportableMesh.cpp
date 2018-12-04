@@ -140,7 +140,7 @@ ExportableMesh::ExportableMesh(
 			}
 
 			m_inverseBindMatricesAccessor = contiguousChannelAccessor(
-				shapeName + "_ibm",
+				shapeName + "/B",
 				reinterpret_span<float>(m_inverseBindMatrices),
 				16);
 
@@ -170,6 +170,11 @@ void ExportableMesh::getAllAccessors(std::vector<GLTF::Accessor*>& accessors) co
     for (auto&& primitive : m_primitives)
     {
         primitive->getAllAccessors(accessors);
+    }
+
+    if (m_inverseBindMatricesAccessor)
+    {
+        accessors.emplace_back(m_inverseBindMatricesAccessor.get());
     }
 }
 
