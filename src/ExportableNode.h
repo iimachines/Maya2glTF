@@ -71,6 +71,7 @@ private:
 	std::array<GLTF::Node, 2> m_glNodes;
 	std::unique_ptr<ExportableMesh> m_mesh;
     bool m_disableNameAssignment = false;
+    bool m_forceAnimationChannels = false;
 
 	DISALLOW_COPY_MOVE_ASSIGN(ExportableNode);
 };

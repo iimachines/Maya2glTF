@@ -10,11 +10,14 @@ NodeAnimation::NodeAnimation(
     const ExportableNode& node,
     const ExportableFrames& frames,
     const double scaleFactor,
-    const bool disableNameAssignment)
+    const bool disableNameAssignment,
+    const bool forceConstantKey)
     : node(node)
     , mesh(node.mesh())
     , m_scaleFactor(scaleFactor)
     , m_disableNameAssignment(disableNameAssignment)
+    , m_forceChannels(forceConstantKey)
+    , m_blendShapeCount(mesh ? mesh->blendShapeCount() : 0)
 {
     auto& sNode = node.glSecondaryNode();
     auto& pNode = node.glPrimaryNode();
@@ -47,9 +50,9 @@ NodeAnimation::NodeAnimation(
         break;
     }
 
-    if (mesh)
+    if (m_blendShapeCount > 0)
     {
-        m_weights = std::make_unique<PropAnimation>(frames, pNode, GLTF::Animation::Path::WEIGHTS, mesh->blendShapeCount(), true);
+        m_weights = std::make_unique<PropAnimation>(frames, pNode, GLTF::Animation::Path::WEIGHTS, m_blendShapeCount, true);
     }
 }
 
@@ -91,15 +94,11 @@ void NodeAnimation::sampleAt(const MTime& absoluteTime, const int frameIndex, No
         break;
     }
 
-    if (mesh)
+    if (m_blendShapeCount)
     {
-        const auto weightCount = mesh->blendShapeCount();
-        if (weightCount)
-        {
-            auto weights = mesh->currentWeights();
-            assert(weights.size() == weightCount);
-            m_weights->append(span(weights));
-        }
+        auto weights = mesh->currentWeights();
+        assert(weights.size() == m_blendShapeCount);
+        m_weights->append(span(weights));
     }
 }
 
@@ -147,9 +146,10 @@ void NodeAnimation::exportTo(GLTF::Animation& glAnimation)
         break;
     }
 
-    if (mesh)
+    if (m_blendShapeCount)
     {
         const auto initialWeights = mesh->initialWeights();
+        assert(initialWeights.size() == m_blendShapeCount);
         finish(glAnimation, "W", m_weights, initialWeights);
     }
 }
@@ -170,28 +170,34 @@ void NodeAnimation::finish(
     const gsl::span<const float>& baseValues) const
 {
     const auto dimension = animatedProp->dimension;
-    assert(dimension == baseValues.size());
 
-    auto& componentValues = animatedProp->componentValuesPerFrame;
-
-    bool isFrozen = true;
-
-    for (size_t offset = 0; offset < componentValues.size() && isFrozen; offset += dimension)
+    if (dimension)
     {
-        for (size_t index = 0; index < dimension && isFrozen; ++index)
+        assert(dimension == baseValues.size());
+
+        auto& componentValues = animatedProp->componentValuesPerFrame;
+
+        bool isConstant = true;
+
+        for (size_t offset = 0; offset < componentValues.size() && isConstant; offset += dimension)
         {
-            isFrozen = std::abs(baseValues[index] - componentValues[offset + index]) < 1e-9;
+            for (size_t index = 0; index < dimension && isConstant; ++index)
+            {
+                isConstant = std::abs(baseValues[index] - componentValues[offset + index]) < 1e-9;
+            }
         }
-    }
 
-    if (isFrozen)
-    {
-        animatedProp.release();
-    }
-    else
-    {
-        animatedProp->finish(m_disableNameAssignment ? "" : node.name() + "/anim/" + glAnimation.name + "/" + propName);
-        glAnimation.channels.push_back(&animatedProp->glChannel);
+        if (isConstant && !m_forceChannels)
+        {
+            // All animation frames are the same as the scene, to need to animate the prop.
+            animatedProp.release();
+        }
+        else
+        {
+            // TODO: Apply a curve simplifier.
+            animatedProp->finish(m_disableNameAssignment ? "" : node.name() + "/anim/" + glAnimation.name + "/" + propName, isConstant);
+            glAnimation.channels.push_back(&animatedProp->glChannel);
+        }
     }
 }
 

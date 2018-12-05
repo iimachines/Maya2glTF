@@ -60,7 +60,10 @@ namespace flag
 	const auto keepShapeNodes = "ksn";
 
 	const auto bakeScalingFactor = "bsf";
-	const auto forceRootNode = "frn";
+
+    const auto forceRootNode = "frn";
+
+    const auto forceAnimationChannels = "fac";
 }
 
 inline const char* getArgTypeName(const MSyntax::MArgType argType)
@@ -147,8 +150,9 @@ SyntaxFactory::SyntaxFactory()
 	registerFlag(ss, flag::ignoreSegmentScaleCompensation, "ignoreSegmentScaleCompensation", kNoArg);
 
 	registerFlag(ss, flag::keepShapeNodes, "keepShapeNodes", kNoArg);
-	registerFlag(ss, flag::forceRootNode, "forceRootNode", kNoArg);
-	registerFlag(ss, flag::bakeScalingFactor, "bakeScalingFactor", kNoArg);
+    registerFlag(ss, flag::bakeScalingFactor, "bakeScalingFactor", kNoArg);
+    registerFlag(ss, flag::forceRootNode, "forceRootNode", kNoArg);
+    registerFlag(ss, flag::forceAnimationChannels, "forceAnimationChannels", kNoArg);
 
 	m_usage = ss.str();
 }
@@ -457,6 +461,7 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 	keepShapeNodes = adb.isFlagSet(flag::keepShapeNodes);
 	bakeScalingFactor = adb.isFlagSet(flag::bakeScalingFactor);
 	forceRootNode = adb.isFlagSet(flag::forceRootNode);
+    forceAnimationChannels = adb.isFlagSet(flag::forceAnimationChannels);
 
 	adb.optional(flag::globalOpacityFactor, opacityFactor);
 

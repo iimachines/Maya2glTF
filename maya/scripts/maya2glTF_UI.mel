@@ -1,3 +1,5 @@
+source "maya2glTF_common";
+
 proc string _quoted(string $text)
 {
     string $quote = "\"";
@@ -100,56 +102,6 @@ proc string _getTraxClips(string $char) {
     print ($flags+"\n");
 
     return $flags;
-}
-
-global proc maya2glTF_polySelectAndFrame() 
-{
-    // clear the selection    
-    select -cl;
-
-    // gather the display layers
-    string $layers[] = `ls -type displayLayer`;
-
-    string $objects[] = {};
-
-    // if we don't find any layers, select by visibility
-    if (size($layers) == 0) 
-    {
-        $objects = `ls -v -type mesh -ap`; 
-    } 
-    else 
-    {
-        print ("NOTE: Using display layers to find visible objects\n");
-
-        for ($layer in $layers)
-        {
-            // if the display layer is visible, continue
-            if (getAttr($layer+".visibility"))
-            {
-                // gather the items that are connected to the layer
-                string $conns[] = `listConnections -d 1 -s 0 ($layer+".drawInfo")`;
-
-                // as this gives us transform nodes, 
-                // do a selection on the result of that running through the dag, 
-                // selecting all the meshes that are set to visible
-                string $shapes[] = `ls -dag -type mesh -visible $conns`;
-                
-                if (size($shapes) > 0) 
-                {
-                    appendStringArray($objects, $shapes, size($shapes));
-                }
-            }
-        }
-    }
-
-    // Sort the objects for consistency
-    $objects = sort($objects);
-
-    print ("Selecting:\n" + stringArrayToString($objects, "\n") + "\n");
-
-    select -r $objects;
-
-    viewFit -an 1;
 }
 
 global proc maya2glTF_onExport
@@ -308,7 +260,7 @@ global proc maya2glTF_UI()
     global string $gMainProgressBar;  
 
     // This is auto-updated by msbuild 
-    string $maya2glTF_version = "V0.9.10 9afe1d9";
+    string $maya2glTF_version = "V0.9.10 52a3a81";
 
     if (`window -exists maya2glTF_exporter_window`)
         deleteUI maya2glTF_exporter_window;

@@ -166,8 +166,11 @@ public:
 	/** Bake scaling factor by scaling vertices and positions? By default a root scaling node is added instead */
 	bool bakeScalingFactor = false;
 
-	/** Force the creation of a root node, even when the scaling factor is 1, in which case an extra root node is not needed*/
+	/** Force the creation of a root node, even when the scaling factor is 1, in which case an extra root node is not always needed? */
 	bool forceRootNode = false;
+
+    /** Force the creation of an animation channel for each node, even if the node doesn't contain any animation? */
+    bool forceAnimationChannels = false;
 
 	/** 
 	 * The time where the 'initial values' of all nodes are to be found (aka neutral base pose) 

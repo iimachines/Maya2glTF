@@ -24,6 +24,7 @@ void ExportableNode::load(
     auto& args = resources.arguments();
 
     m_disableNameAssignment = args.disableNameAssignment;
+    m_forceAnimationChannels = args.forceAnimationChannels;
 
     // Is this a joint with segment scale compensation? (the default in Maya)
     bool maybeSegmentScaleCompensation = false;
@@ -145,7 +146,7 @@ ExportableNode::~ExportableNode() = default;
 
 std::unique_ptr<NodeAnimation> ExportableNode::createAnimation(const ExportableFrames& frameTimes, const double scaleFactor)
 {
-    return std::make_unique<NodeAnimation>(*this, frameTimes, scaleFactor, m_disableNameAssignment);
+    return std::make_unique<NodeAnimation>(*this, frameTimes, scaleFactor, m_disableNameAssignment, m_forceAnimationChannels);
 }
 
 void ExportableNode::updateNodeTransforms(NodeTransformCache& transformCache)
@@ -218,3 +219,4 @@ void ExportableNode::getAllAccessors(std::vector<GLTF::Accessor*>& accessors) co
         m_mesh->getAllAccessors(accessors);
     }
 }
+

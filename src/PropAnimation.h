@@ -18,6 +18,7 @@ public:
         const char* interpolation = "LINEAR")
         : dimension(dimension)
         , useFloatArray(useFloatArray)
+        , frames(frames)
     {
         componentValuesPerFrame.reserve(frames.count * dimension);
 
@@ -27,7 +28,6 @@ public:
         glChannel.sampler = &glSampler;
         glChannel.target = &glTarget;
 
-        glSampler.input = const_cast<GLTF::Accessor*>(frames.glInputs.get());
         glSampler.interpolation = interpolation;
     }
 
@@ -35,6 +35,7 @@ public:
 
     const size_t dimension;
     const bool useFloatArray;
+    const ExportableFrames& frames;
 
     std::vector<float> componentValuesPerFrame;
 
@@ -48,18 +49,29 @@ public:
         std::copy(components.begin(), components.end(), std::back_inserter(componentValuesPerFrame));
     }
 
-    void finish(const std::string& name)
+    void finish(const std::string& name, const bool useSingleKey)
     {
         if (!m_outputs)
         {
+            if (useSingleKey)
+            {
+                componentValuesPerFrame.resize(dimension);
+                glSampler.input = frames.glInput0();
+            }
+            else
+            {
+                glSampler.input = frames.glInputs();
+            }
+
             m_outputs = useFloatArray
                 ? contiguousChannelAccessor(name, reinterpret_span<float>(componentValuesPerFrame), 1)
                 : contiguousChannelAccessor(name, span(componentValuesPerFrame), dimension);
+
+            glSampler.output = m_outputs.get();
+
+            // A channel cannot have a name according to the spec.
+            // glChannel.name = name;
         }
-
-        glSampler.output = m_outputs.get();
-
-        glChannel.name = name;
     }
 
     void getAllAccessors(std::vector<GLTF::Accessor*>& accessors) const
