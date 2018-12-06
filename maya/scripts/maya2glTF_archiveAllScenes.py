@@ -7,20 +7,22 @@ import maya.mel as mel
 
 from os import path
 
-def zipScenes():
+def zipScenes(scenesDir=''):
     # get the default character encoding of the system
     theLocale = cmds.about(codeset=True)
 
-    currentScenePath = cmds.file(q=True, sn=True)
-
-    if (currentScenePath == ''):
-        cmds.error('Current scene has no filename! Please reload it.' )
-
-    # get the folder of the current scene
-    scenesDir = os.path.dirname(currentScenePath)
-
     if (scenesDir == ''):
-        cmds.error('Cannot extract directory from current scene! Please reload it.' )
+
+        currentScenePath = cmds.file(q=True, sn=True)
+
+        if (currentScenePath == ''):
+            cmds.error('Current scene has no filename! Please reload it.' )
+
+        # get the folder of the current scene
+        scenesDir = os.path.dirname(currentScenePath)
+
+        if (scenesDir == ''):
+            cmds.error('Cannot extract directory from current scene! Please reload it.' )
 
     # get all Maya scene files in that folder
     sceneFilenames = [f for f in os.listdir(scenesDir) if os.path.isfile(os.path.join(scenesDir, f)) and f.endswith('.ma')]   

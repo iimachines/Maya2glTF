@@ -27,9 +27,9 @@ proc string _combinePaths(string $path1, string $path2) {
 proc _exportClipScene(string $exportDir, string $scenesDir, string $filename) {
     string $path = _combinePaths($scenesDir, $filename);
 
-	if (catch (`file -f -ignoreVersion -strict on -typ "mayaAscii" -o $path`)) {
+    if (catch (`file -f -ignoreVersion -strict on -typ "mayaAscii" -o $path`)) {
         print ("Some errors occurred while loading the scene, this can happen if some Maya components (like Arnold) are not installed");
-	}
+    }
 
     if ( `progressWindow -query -isCancelled` ) 
         error ("Aborted!");
@@ -38,22 +38,27 @@ proc _exportClipScene(string $exportDir, string $scenesDir, string $filename) {
 
     string $name = basenameEx($filename);
 
-	$min = `playbackOptions -q -min`;
-	$max = `playbackOptions -q -max`;
-	$fps = `currentTimeUnitToFPS`;
+    $min = `playbackOptions -q -min`;
+    $max = `playbackOptions -q -max`;
+    $fps = `currentTimeUnitToFPS`;
 
     maya2glTF -mts -sma -fac -acn _quoted($name) -ast $min -aet $max -afr $fps  -outputFolder _quoted($exportDir);
 }
 
 global proc _exportClipScenes(string $exportDir, string $scenesDir) {
 
-	string $filenames[] = `getFileList -folder $scenesDir`;
+    string $filenames[] = `getFileList -folder $scenesDir`;
+    int $sceneCount = size($filenames);
 
-    progressWindow
-         -title "Maya2glTF"
-         -progress len($filenames)
-         -status "Exporting..."
-         -isInterruptable true;
+    progressWindow -endProgress;
+
+    progressWindow 
+        -title "Maya2glTF" 
+        -min 0 
+        -max $sceneCount 
+        -status "Exporting..." 
+        -isInterruptable true 
+        -progress 0;
 
     int $progress = 0;
 
@@ -74,9 +79,9 @@ global proc _exportClipScenes(string $exportDir, string $scenesDir) {
 global proc maya2glTF_exportClipScenes_callback(string $cmd) {
     global string $maya2glTF_clipExportFolder;
 
-    string $scenesName = dirname(`file -q -sn`);
+    string $scenesDir = dirname(`file -q -sn`);
 
-    if (catch (_exportClipScenes($maya2glTF_clipExportFolder, $scenesName))) {
+    if (catch (_exportClipScenes($maya2glTF_clipExportFolder, $scenesDir))) {
         print ("Failed to export clip scenes!");
     }
 
