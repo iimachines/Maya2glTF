@@ -1,0 +1,79 @@
+proc string _quoted(string $text)
+{
+    string $quote = "\"";
+    return $quote+$text+$quote;
+}
+
+proc string _ensureTrailingSlash( string $folderPath ) {
+    if (size($folderPath) == 0)
+        error ("Invalid folder path!");
+
+    if (substring($folderPath, size($folderPath), size($folderPath)) != "/")
+        $folderPath += "/";
+
+    return $folderPath;
+}
+
+proc string _combinePaths(string $path1, string $path2) {
+    return size($path1) == 0
+     ? $path2
+     : _ensureTrailingSlash($path1)+$path2;
+}
+
+global proc maya2glTF_pasteKeyInScenes(string $setupScenePath, int $setupKeyFrame, string $inputScenesDir, string $outputScenesDir)
+{
+    sysFile -makeDir $outputScenesDir;
+
+    string $filenames[] = `getFileList -folder $inputScenesDir`;
+    int $sceneCount = size($filenames);
+
+    progressWindow -endProgress;
+
+    progressWindow 
+        -title "Maya2glTF" 
+        -min 0 
+        -max ($sceneCount+1) 
+        -status "Setup..." 
+        -isInterruptable true 
+        -progress 0;
+
+    // Load setup scene
+    if (catch (`file -f -ignoreVersion -o $setupScenePath`)) {
+        print ("Some errors occurred while loading the setup scene");
+    }
+
+    // Create a key for all controllers, and copy to the API clipboard
+    select -r `listTransforms "-type nurbsCurve"`;
+    setKeyframe -breakdown 0 -hierarchy none -controlPoints 0 -shape 0 -time $setupKeyFrame;
+    copyKey -clipboard "api" -shape 0 -time $setupKeyFrame;
+
+    // Copy the key
+        
+    int $progress = 0;
+
+    for($filename in $filenames) {
+        string $inputFilePath = _combinePaths($inputScenesDir, $filename);
+        string $outputFilePath = _combinePaths($outputScenesDir, $filename);
+
+         progressWindow -edit -progress (++$progress) -status $filename;
+
+        if (catch (`file -f -ignoreVersion -strict on -typ "mayaAscii" -o $inputFilePath`)) {
+            print ("Some errors occurred while loading the scene, this can happen if some Maya components (like Arnold) are not installed");
+        }
+    
+        if ( `progressWindow -query -isCancelled` ) {
+            break;
+        }
+
+        select -r `listTransforms "-type nurbsCurve"`;
+        pasteKey -clipboard "api" -time $setupKeyFrame;
+
+        file -rename $outputFilePath;
+         
+        file -f -type "mayaAscii" -save;
+    }
+
+    progressWindow -endProgress;
+}
+
+maya2glTF_pasteKeyInScenes("d:/nova/scenes/Nova_SetUp.ma", -10, "d:/nova/scenes", "d:/nova/keyed");
