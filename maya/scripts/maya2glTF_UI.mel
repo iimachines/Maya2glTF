@@ -113,6 +113,8 @@ global proc maya2glTF_onExport
 , string $animFLD
 , string $clipFLD
 , string $charFLD
+, string $selOnlyFLD
+, string $visOnlyFLD
 )
 {
     // This is defined on maya startup
@@ -144,6 +146,8 @@ global proc maya2glTF_onExport
     int $anim = `optionMenuGrp -q -sl $animFLD`;
     string $clip = `textFieldGrp -q -text $clipFLD`;
     string $char = `optionMenuGrp -q -v $charFLD`;
+    int $selOnly = `checkBoxGrp -q -value1 $selOnlyFLD`;
+    int $visOnly = `checkBoxGrp -q -value1 $visOnlyFLD`;
 
     // Persist values
     _setStr("outputFolder", $folder);
@@ -154,6 +158,8 @@ global proc maya2glTF_onExport
     _setStr("char", $char);
     _setInt("anim", $anim);
     _setStr("clip", $clip);
+    _setInt("selOnly", $selOnly);
+    _setInt("visOnly", $visOnly);
 
     switch ($anim) 
     {
@@ -171,6 +177,14 @@ global proc maya2glTF_onExport
             // Fetch clips from TRAX
             $flags += _getTraxClips($char);
             break;
+    }
+
+    if ($selOnly) {
+        $flags += " -sno";
+    }
+
+    if ($visOnly) {
+        $flags += " -vno";
     }
 
     string $cmd = `format 
@@ -260,7 +274,7 @@ global proc maya2glTF_UI()
     global string $gMainProgressBar;  
 
     // This is auto-updated by msbuild 
-    string $maya2glTF_version = "V0.9.10 52a3a81";
+    string $maya2glTF_version = "V0.9.10 80ec82f";
 
     if (`window -exists maya2glTF_exporter_window`)
         deleteUI maya2glTF_exporter_window;
@@ -277,6 +291,8 @@ global proc maya2glTF_UI()
     string $char = _getStr("char", $chars[0]);
     int $anim = _getInt("anim", 1);
     string $clip = _getStr("clip", "clip");
+    int $selOnly = _getInt("selOnly", 1);
+    int $visOnly = _getInt("visOnly", 1);
 
     window -title ("maya2glTF") maya2glTF_exporter_window;
 
@@ -296,6 +312,9 @@ global proc maya2glTF_UI()
     string $copyrightFLD = `textFieldGrp -text $copyright -label "copyright:" -adjustableColumn 2`;
     string $sceneNameFLD = `textFieldGrp -text $sceneName -label "scene name:" -adjustableColumn 2`;
     string $scaleFLD = `floatFieldGrp -value1 $scale -label "scale factor:"`;
+    string $selOnlyFLD = `checkBoxGrp -value1 $selOnly -label "selected only?" -annotation "fdgfdg"`;
+    string $visOnlyFLD = `checkBoxGrp -value1 $visOnly -label "visible only?"`;
+
     string $flagsFLD = `textFieldGrp -text $flags -label "extra flags:" -adjustableColumn 2 `;
 
     string $animFLD = `optionMenuGrp -label "animation:" -adjustableColumn 2`;
@@ -342,7 +361,9 @@ global proc maya2glTF_UI()
         -s(_quoted($animFLD))
         -s(_quoted($clipFLD))
         -s(_quoted($charFLD))
-         "maya2glTF_onExport(^1s, ^2s, ^3s, ^4s, ^5s, ^6s, ^7s, ^8s);"`;
+        -s(_quoted($selOnlyFLD))
+        -s(_quoted($visOnlyFLD))
+         "maya2glTF_onExport(^1s, ^2s, ^3s, ^4s, ^5s, ^6s, ^7s, ^8s, ^9s, ^10s);"`;
 
     button -label "export selected meshes" -command $exportCMD;
 

@@ -82,6 +82,9 @@ public:
 	MString outputFolder;
 	Selection selection;
 
+    /** Before exporting, delete the output folder, recursively? */
+    bool cleanOutputFolder = false;
+
 	/* The extension to use for glTF files. Some viewers require lower-case gltf, others might need the official glTF */
 	MString gltfFileExtension = "gltf";
 
@@ -114,6 +117,9 @@ public:
 
 	/** If non-null, dump the GLTF JSON to the stream */
 	IndentableStream* dumpGLTF;
+
+    /** If set, dumps all non-combined accessor components as text files, each row one component, for debugging */
+    bool dumpAccessorComponents = false;
 
 	/** Embed all resources in the GLTF file? By default a separate GLTF JSON and binary BIN file is exported */
 	bool embedded = false;
@@ -172,6 +178,9 @@ public:
     /** Force the creation of an animation channel for each node, even if the node doesn't contain any animation? */
     bool forceAnimationChannels = false;
 
+    /** Use a hash of the buffer for its URI? Useful when exporting the same mesh buffer per animation scene */
+    bool hashBufferUri = false;
+
 	/** 
 	 * The time where the 'initial values' of all nodes are to be found (aka neutral base pose) 
 	 * By default the current time is used, unless animation is used, then frame 0 is used.
@@ -186,10 +195,13 @@ public:
 #endif
 
 	/** 
-	 * Only export the directly selected nodes only, not the descendants of these 
+	 * Only export the directly selected nodes, not the descendants of these.
 	 * By default all descendants are exported too.
 	 */
 	bool selectedNodesOnly = false;
+
+    /** Only export visible nodes. By default invisible objects are exported too. */
+    bool visibleNodesOnly = false;
 
 	std::vector<AnimClipArg> animationClips;
 
@@ -215,7 +227,7 @@ public:
 private:
 	DISALLOW_COPY_MOVE_ASSIGN(Arguments);
 
-	static void select(Selection& selection, const MDagPath& dagPath, bool includeDescendants);
+	static void select(Selection& selection, const MDagPath& dagPath, bool includeDescendants, bool visibleNodesOnly);
 
 	std::ofstream m_mayaOutputFileStream;
 	std::ofstream m_gltfOutputFileStream;
@@ -223,4 +235,3 @@ private:
 	std::unique_ptr<IndentableStream> m_mayaOutputStream;
 	std::unique_ptr<IndentableStream> m_gltfOutputStream;
 };
-

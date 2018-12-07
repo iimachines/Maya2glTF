@@ -38,7 +38,6 @@ ExportablePrimitive::ExportablePrimitive(
 
 	glPrimitive.mode = GLTF::Primitive::TRIANGLES;
 	glPrimitive.material = material->glMaterial();
-    glPrimitive.name = args.makeName(name);
 
 	auto& vertexIndices = vertexBuffer.indices;
 
@@ -109,7 +108,7 @@ ExportablePrimitive::ExportablePrimitive(
 
                     if (slot.shapeIndex.isBlendShapeIndex())
                     {
-                        ss << "/shape#" + std::to_string(slot.shapeIndex.targetIndex());
+                        ss << "/target#" + std::to_string(slot.shapeIndex.targetIndex());
                     }
 
                     ss << "/vertices/" << attributeSlot;

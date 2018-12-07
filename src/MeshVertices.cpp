@@ -81,6 +81,8 @@ struct MikkTSpaceContext : SMikkTSpaceContext
         interface.m_getNormal = getNormal;
         interface.m_getTexCoord = getTexCoord;
         interface.m_setTSpaceBasic = setTSpaceBasic;
+        interface.m_reportDegenerateTriangle = reportDegenerateTriangle;
+
     }
 
     void computeTangents(const double angularThreshold) const
@@ -181,6 +183,12 @@ struct MikkTSpaceContext : SMikkTSpaceContext
             }
         }
     }
+
+    static void reportDegenerateTriangle(SMikkTSpaceContext *pContext, int triangleIndex)
+    {
+        const auto context = reinterpret_cast<const MikkTSpaceContext*>(pContext);
+        context->invalidTriangleIndices.insert(triangleIndex);
+    }
 };
 
 MeshVertices::MeshVertices(
@@ -206,7 +214,11 @@ MeshVertices::MeshVertices(
     for (int i = 0; i < numPoints; ++i)
     {
         const auto p = mPoints[i] * positionScale;
-        m_positions.push_back({ static_cast<float>(p.x), static_cast<float>(p.y), static_cast<float>(p.z) });
+        m_positions.push_back({ 
+            roundToFloat(p.x, posPrecision), 
+            roundToFloat(p.y, posPrecision), 
+            roundToFloat(p.z, posPrecision) 
+        });
     }
 
     const auto positionsSpan = floats(span(m_positions));
@@ -231,7 +243,11 @@ MeshVertices::MeshVertices(
     for (int i = 0; i < numNormals; ++i)
     {
         auto n = mNormals[i];
-        m_normals.push_back({ normalSign * n.x, normalSign * n.y, normalSign * n.z });
+        m_normals.push_back({ 
+            roundToFloat(normalSign * n.x, dirPrecision), 
+            roundToFloat(normalSign * n.y, dirPrecision), 
+            roundToFloat(normalSign * n.z, dirPrecision) 
+        });
     }
 
     const auto normalsSpan = floats(span(m_normals));
@@ -251,7 +267,11 @@ MeshVertices::MeshVertices(
         for (int i = 0; i < numColors; ++i)
         {
             const auto& c = mColors[i];;
-            colors.push_back({ c.r, c.g, c.b, c.a });
+            colors.push_back({ 
+                roundToFloat(c.r, colPrecision), 
+                roundToFloat(c.g, colPrecision),
+                roundToFloat(c.b, colPrecision),
+                roundToFloat(c.a, colPrecision) });
         }
 
         const auto colorsSpan = floats(span(colors));
@@ -273,8 +293,8 @@ MeshVertices::MeshVertices(
         for (auto uIndex = 0; uIndex < uCount; uIndex++)
         {
             auto& uvArray = uvSet[uIndex];
-            uvArray[0] = uArray[uIndex];
-            uvArray[1] = 1 - vArray[uIndex];
+            uvArray[0] = roundToFloat(uArray[uIndex], texPrecision);
+            uvArray[1] = roundToFloat(1 - vArray[uIndex], texPrecision);
         }
 
         const auto uvSpan = floats(span(uvSet));
@@ -313,7 +333,7 @@ MeshVertices::MeshVertices(
                 }
                 ss << ";";
 
-                MayaException::printError(formatted("MikkTSpace generated zero tangents!\nCleanup your mesh and try again please.\nUse the following command select the first invalid faces:\n%s\n\n", ss.str().c_str()));
+                MayaException::printError(formatted("Your mesh contains degenerate triangles!\nCleanup your mesh and try again please.\nUse the following command select the first invalid faces:\n%s\n\n", ss.str().c_str()));
             }
         }
         else
@@ -340,9 +360,9 @@ MeshVertices::MeshVertices(
                     auto t = mTangents[i];
                     const auto rht = 2 * mesh.isRightHandedTangent(i, &semantic.setName, &status) - 1.0f;
                     THROW_ON_FAILURE(status);
-                    tangentSet.push_back(t.x);
-                    tangentSet.push_back(t.y);
-                    tangentSet.push_back(t.z);
+                    tangentSet.push_back(roundToFloat(t.x, dirPrecision));
+                    tangentSet.push_back(roundToFloat(t.y, dirPrecision));
+                    tangentSet.push_back(roundToFloat(t.z, dirPrecision));
 
                     auto l = t.x*t.x + t.y*t.y + t.z*t.z;
                     if (abs(l - 1) > 1e-6)
@@ -438,7 +458,7 @@ MeshVertices::MeshVertices(
                 {
                     const auto& components = sourceComponents.at(componentIndex);
                     targetIndices[componentIndex] = components.jointIndex;
-                    targetWeights[componentIndex] = components.jointWeight;
+                    targetWeights[componentIndex] = roundToFloat(components.jointWeight, sclPrecision);
                 }
             }
         }

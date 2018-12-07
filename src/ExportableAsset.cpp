@@ -5,6 +5,8 @@
 #include "progress.h"
 #include "timeControl.h"
 #include "version.h"
+#include "picosha2.h"
+#include "milo.h"
 
 using GLTF::Constants::WebGL;
 
@@ -23,6 +25,17 @@ ExportableAsset::ExportableAsset(const Arguments& args)
     if (args.dumpMaya)
     {
         *args.dumpMaya << "{" << indent << endl;
+    }
+
+    // Delete the folder before saving:
+    // (1) this is async on NTFS, so deleting it first allows overlap with the export.
+    // (2) if anything goes wrong, we don't want the user to think the export succeeded.
+    const auto sceneName = std::string(args.sceneName.asChar());
+    const auto outputFolder = path(args.outputFolder.asChar());
+    if (args.cleanOutputFolder && exists(outputFolder))
+    {
+        std::cout << prefix << "Deleting " << outputFolder << "..." << endl;
+        remove_all(outputFolder);
     }
 
     const auto currentFrameTime = MAnimControl::currentTime();
@@ -130,7 +143,7 @@ const std::string& ExportableAsset::prettyJsonString() const
 
         if (hasParseErrors)
         {
-            cerr << "Failed to reformat glTF JSON, outputting raw JSON" << endl;
+            cerr << prefix << "Failed to reformat glTF JSON, outputting raw JSON" << endl;
             m_prettyJsonString = m_rawJsonString;
         }
         else
@@ -153,9 +166,35 @@ void ExportableAsset::save()
 
     const auto sceneName = std::string(args.sceneName.asChar());
 
+    const auto outputFolder = path(args.outputFolder.asChar());
+
+    std::cerr << prefix << "Creating " << outputFolder << "..." << endl;
+
+    for (int retry = 0; retry < 10; ++retry)
+    {
+        // It seems this can fail with "operation not permitted" if the recursive deletion above is not flushed yet on NTFS
+        std::error_code errorCode;
+        create_directories(outputFolder, errorCode);
+        if (!errorCode)
+            break;
+
+        std::cerr << prefix << "Waiting for " << outputFolder << " to be created..." << endl;
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
+
+    // Last try, this will throw an exception if it fails.
+    create_directories(outputFolder);
+
     const auto embed = args.glb || args.embedded;
 
     const auto allAccessors = m_glAsset.getAllAccessors();
+
+    if (args.dumpAccessorComponents)
+    {
+        dumpAccessorComponents(allAccessors);
+    }
+
 
     AccessorPacker bufferPacker;
 
@@ -197,7 +236,7 @@ void ExportableAsset::save()
 
         packedBuffers = bufferPacker.getPackedBuffers();
     }
-    else if(!args.glb && args.separateAccessorBuffers)
+    else if (!args.glb && args.separateAccessorBuffers)
     {
         // Keep every accessor separate, useful for debugging.
         for (auto accessor : allAccessors)
@@ -210,8 +249,26 @@ void ExportableAsset::save()
     else
     {
         // Pack everything into a single buffer (default and glb case)
-        bufferPacker.packAccessors(allAccessors, args.makeName(sceneName+"/data"));
+        bufferPacker.packAccessors(allAccessors, args.makeName(sceneName + "/data"));
         packedBuffers = bufferPacker.getPackedBuffers();
+    }
+
+    if (args.hashBufferUri)
+    {
+        // Generate hash buffer URIs 
+        for (auto buffer : packedBuffers)
+        {
+            std::string hash_hex_str;
+            picosha2::hash256_hex_string(buffer->data, buffer->data + buffer->byteLength, hash_hex_str);
+
+            std::string filename = sceneName;
+            filename += '_';
+            filename += hash_hex_str;
+            filename += ".bin";
+
+            buffer->uri = filename;
+
+        }
     }
 
     // Generate glTF JSON file
@@ -230,9 +287,6 @@ void ExportableAsset::save()
     jsonWriter.EndObject();
 
     m_rawJsonString = jsonStringBuffer.GetString();
-
-    const auto outputFolder = path(args.outputFolder.asChar());
-    create_directories(outputFolder);
 
     const auto outputFilename = args.sceneName + "." + (args.glb ? args.glbFileExtension : args.gltfFileExtension);
     const auto outputPath = outputFolder / outputFilename.asChar();
@@ -301,7 +355,7 @@ void ExportableAsset::save()
 
             writeHeader[1] = headerLength +
                 (chunkHeaderLength + jsonLength + jsonPadding) +
-                (chunkHeaderLength + bufferLength  + binPadding); // length
+                (chunkHeaderLength + bufferLength + binPadding); // length
 
             file.write(reinterpret_cast<char*>(writeHeader), sizeof(uint32_t) * 2); // GLB header
 
@@ -341,6 +395,70 @@ void ExportableAsset::save()
         out << "glTF dump:" << endl;
         out << prettyJsonString();
         out << endl;
+    }
+}
+
+void ExportableAsset::dumpAccessorComponents(const std::vector<GLTF::Accessor*>& accessors) const
+{
+    // NOTE: Because formatting with std::ostream is so slow, 
+    // we use the milo.h implementation for fast floating point printing.
+    const auto& args = m_resources.arguments();
+    const auto outputFolder = path(args.outputFolder.asChar());
+
+    int fileIndex = 0;
+
+    for (auto&& accessor : accessors)
+    {
+        // TODO: Add support for integers
+        if (accessor->componentType != WebGL::FLOAT)
+            continue;
+
+        std::ofstream ofs;
+        std::string filename = accessor->name;
+        if (filename.empty())
+        {
+            filename = std::string(args.sceneName.asChar()) + "_" + std::to_string(fileIndex);
+        }
+
+        std::replace_if(filename.begin(), filename.end(), ::ispunct, '_');
+
+        ofs.open((outputFolder / (filename + ".txt")).c_str(), std::ofstream::out | std::ofstream::binary);
+
+        ++fileIndex;
+
+        const float* data = reinterpret_cast<float*>(accessor->bufferView->buffer->data);
+
+        const int dimension = GLTF::Accessor::getNumberOfComponents(accessor->type);
+
+        const int rowBufferSize = dimension * fmt::BUFFER_SIZE + 2 * (dimension + 1);
+        const auto rowBuffer = static_cast<char*>(alloca(rowBufferSize));
+
+        const auto colWidth = 16;
+
+        for (int row = 0; row < accessor->count; ++row)
+        {
+            char* str = rowBuffer;
+            char* end = str;
+
+            int step = 0;
+
+            for (int col = 0; col < dimension; ++col)
+            {
+                while (str < end) *str++ = ' ';
+                end = str + colWidth;
+                str = fmt::format_double(str, data[col], 8);
+            }
+
+            *str++ = '\n';
+
+            assert((str - rowBuffer) <= rowBufferSize);
+
+            ofs.write(rowBuffer, str - rowBuffer);
+
+            data += dimension;
+        }
+
+        ofs.close();
     }
 }
 

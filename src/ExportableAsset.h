@@ -42,6 +42,8 @@ private:
 	std::string m_rawJsonString;
 	mutable std::string m_prettyJsonString;
 
+    void dumpAccessorComponents(const std::vector<GLTF::Accessor*>& accessors) const;
+
 	static void create(std::ofstream& file, const std::string& path, const std::ios_base::openmode mode);
 };
 

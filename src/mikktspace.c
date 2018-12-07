@@ -289,6 +289,10 @@ tbool genTangSpace(const SMikkTSpaceContext * pContext, const float fAngularThre
 		if (veq(p0, p1) || veq(p0, p2) || veq(p1, p2))	// degenerate
 		{
 			pTriInfos[t].iFlag |= MARK_DEGENERATE;
+            if (pContext->m_pInterface->m_reportDegenerateTriangle)
+            {
+                pContext->m_pInterface->m_reportDegenerateTriangle(pContext, t);
+            }
 			++iDegenTriangles;
 		}
 	}

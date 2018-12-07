@@ -16,3 +16,9 @@ MStatus MayaException::printError(const std::string& message, const MStatus& sta
     cerr << prefix << "*** ERROR *** " << message << " [" << status.errorString().asChar() << "]" << endl;
 	return status;
 }
+
+void MayaException::printError(const std::string& message)
+{
+    MGlobal::executeCommand(MString("error ") + escaped(message).c_str());
+    cerr << prefix << "*** ERROR *** " << message << endl;
+}

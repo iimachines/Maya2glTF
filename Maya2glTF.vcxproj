@@ -474,6 +474,8 @@ xcopy /y /s /i "$(ProjectDir)maya\renderData\*.*" "$(userprofile)\Documents\Maya
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\AccessorPacker.h" />
+    <ClInclude Include="src\milo.h" />
+    <ClInclude Include="src\picosha2.h" />
     <ClInclude Include="src\progress.h" />
     <ClInclude Include="src\accessors.h" />
     <ClInclude Include="src\ExportableFrames.h" />

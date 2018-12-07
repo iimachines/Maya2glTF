@@ -103,14 +103,17 @@ MStatus Exporter::run(const MArgList& args)
 	}
 	catch (const MayaException &ex)
 	{
-		return MayaException::printError(ex.what(), ex.status);
+		MayaException::printError(ex.what(), ex.status);
 	}
 	catch (const std::exception &ex)
 	{
-		return MayaException::printError(ex.what());
+		MayaException::printError(ex.what());
 	}
 	catch (...)
 	{
-		return MayaException::printError("Unexpected fatal error!");
-	}
+		MayaException::printError("Unexpected fatal error!");
+    }
+
+    return MStatus::kFailure;
 }
+

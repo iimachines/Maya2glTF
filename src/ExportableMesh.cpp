@@ -136,8 +136,18 @@ ExportableMesh::ExportableMesh(
                 auto distanceToRoot = ExportableScene::distanceToRoot(jointNode->dagPath);
                 distanceToRootMap[distanceToRoot].emplace_back(jointNode);
 
+                double ibm[4][4];
+                THROW_ON_FAILURE(joint.inverseBindMatrix.get(ibm));
+
                 Float4x4 inverseBindMatrix;
-                joint.inverseBindMatrix.get(reinterpret_cast<float(&)[4][4]>(inverseBindMatrix));
+
+                for (int i = 0; i < 4; ++i)
+                {
+                    for (int j = 0; j < 4; ++j)
+                    {
+                        inverseBindMatrix[i][j] = roundToFloat(ibm[i][j], matPrecision);
+                    }
+                }
 
                 m_inverseBindMatrices.emplace_back(inverseBindMatrix);
             }

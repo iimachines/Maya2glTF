@@ -17,6 +17,8 @@
 #include <bitset>
 #include <numeric>
 #include <cmath>
+#include <chrono>
+#include <thread>
 
 #ifdef _MSC_VER
 #	pragma  warning(disable:4267)
@@ -29,6 +31,7 @@
 #include <GLTFAccessor.h>
 #include <GLTFMesh.h>
 #include <GLTFPrimitive.h>
+#include "Base64.h"
 
 #ifdef _MSC_VER
 #	pragma  warning(default:4267)
@@ -89,4 +92,4 @@
 #include <maya/MItGeometry.h>
 #include <maya/MItDependencyNodes.h>
 #include <maya/MItMeshFaceVertex.h>
-
+#include <maya/MQuaternion.h>
