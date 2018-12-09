@@ -47,7 +47,7 @@ GLTF::BufferView* AccessorPacker::packAccessorsForTargetByteStride(const std::ve
     return bufferView;
 }
 
-void AccessorPacker::packAccessors(const std::vector<GLTF::Accessor*>& accessors, const std::string& bufferName)
+GLTF::Buffer* AccessorPacker::packAccessors(const std::vector<GLTF::Accessor*>& accessors, const std::string& bufferName)
 {
     std::map<WebGL, std::map<int, std::vector<GLTF::Accessor*>>> accessorGroups;
     accessorGroups[WebGL::ARRAY_BUFFER] = std::map<int, std::vector<GLTF::Accessor*>>();
@@ -126,13 +126,15 @@ void AccessorPacker::packAccessors(const std::vector<GLTF::Accessor*>& accessors
     }
     std::sort(byteStrides.begin(), byteStrides.end(), std::greater<>());
 
+    GLTF::Buffer* buffer = nullptr;
+
     if (byteLength > 0)
     {
         // Pack these into a buffer sorted from largest byteStride to smallest
         auto bufferData = new byte[byteLength];
         m_data.emplace_back(bufferData);
 
-        auto buffer = new GLTF::Buffer(bufferData, byteLength);
+        buffer = new GLTF::Buffer(bufferData, byteLength);
         m_buffers.emplace_back(buffer);
         buffer->name = bufferName;
 
@@ -158,6 +160,8 @@ void AccessorPacker::packAccessors(const std::vector<GLTF::Accessor*>& accessors
         }
 #endif
     }
+
+    return buffer;
 }
 
 std::vector<GLTF::Buffer*> AccessorPacker::getPackedBuffers() const

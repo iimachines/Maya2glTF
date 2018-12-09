@@ -10,6 +10,14 @@
 
 using GLTF::Constants::WebGL;
 
+struct MStringComparer
+{
+    bool operator ()(const MString& a, const MString& b) const
+    {
+        return strcmp(a.asChar(), b.asChar()) < 0;
+    }
+};
+
 ExportableAsset::ExportableAsset(const Arguments& args)
     : m_resources{ args }
     , m_scene{ m_resources }
@@ -198,76 +206,108 @@ void ExportableAsset::save()
 
     AccessorPacker bufferPacker;
 
-    std::vector<GLTF::Buffer*> packedBuffers;
+    PackedBufferMap packedBufferMap;
 
     // NOTE: when exporting glb, we always merge everything into a single buffer.
     if (!args.glb && !args.separateAccessorBuffers && args.splitMeshAnimation)
     {
         // Combine mesh and clip accessors into two separate buffers
 
-        // Gather mesh accessors
-        std::vector<GLTF::Accessor*> meshAccessors;
-        m_scene.getAllAccessors(meshAccessors);
+        // Gather mesh accessors, per dag-path
+        AccessorsPerDagPath meshAccessorsPerDagPath;
+        m_scene.getAllAccessors(meshAccessorsPerDagPath);
 
-        // Compute clip accessors
-        std::vector< GLTF::Accessor*> clipAccessors;
+        // Compute animation clip accessors
+        std::vector<GLTF::Accessor*> animAccessors;
 
-        std::set<GLTF::Accessor*> meshAccessorSet(meshAccessors.begin(), meshAccessors.end());
+        // Flatten mesh accessors into a set.
+        std::set<GLTF::Accessor*> meshAccessorSet;
+        for (auto& pair : meshAccessorsPerDagPath)
+        {
+            std::copy(pair.second.begin(), pair.second.end(), std::inserter(meshAccessorSet, meshAccessorSet.end()));
+        }
 
+        // Clip accessors = allAccessors - meshAccessorSet
         for (auto accessor : allAccessors)
         {
             if (meshAccessorSet.find(accessor) == meshAccessorSet.end())
             {
-                clipAccessors.emplace_back(accessor);
+                animAccessors.emplace_back(accessor);
             }
         }
 
-        cout << "Clip accessors: " << endl;
+        packMeshAccessors(meshAccessorsPerDagPath, bufferPacker, packedBufferMap, "/mesh");
 
-        for (auto clipAccessor : clipAccessors)
+        // TODO: Also associate clips with dag-paths!
+        const auto animBufferName = sceneName+"/anim";
+        const auto animBuffer = bufferPacker.packAccessors(animAccessors, animBufferName);
+        if (animBuffer)
         {
-            cout << clipAccessor->name << ", ";
+            packedBufferMap[animBuffer] = animBufferName;
         }
-
-        cout << endl;
-
-        bufferPacker.packAccessors(meshAccessors, args.makeName(sceneName + "/mesh_data"));
-        bufferPacker.packAccessors(clipAccessors, args.makeName(sceneName + "/clip_data"));
-
-        packedBuffers = bufferPacker.getPackedBuffers();
     }
     else if (!args.glb && args.separateAccessorBuffers)
     {
         // Keep every accessor separate, useful for debugging.
+        auto index = 0;
         for (auto accessor : allAccessors)
         {
-            accessor->bufferView->name = accessor->name;
-            accessor->bufferView->buffer->name = accessor->name;
-            packedBuffers.emplace_back(accessor->bufferView->buffer);
+            const auto name = accessor->name.empty() ? "buffer" + std::to_string(index) : accessor->name;
+            accessor->bufferView->name = name;
+            accessor->bufferView->buffer->name = name;
+            packedBufferMap[accessor->bufferView->buffer] = name;
+            ++index;
         }
     }
     else
     {
         // Pack everything into a single buffer (default and glb case)
-        bufferPacker.packAccessors(allAccessors, args.makeName(sceneName + "/data"));
-        packedBuffers = bufferPacker.getPackedBuffers();
+        const auto bufferName = sceneName + "/data";
+        const auto buffer = bufferPacker.packAccessors(allAccessors, bufferName);
+        if (buffer)
+        {
+            packedBufferMap[buffer] = bufferName;
+        }
+    }
+
+    if (args.niceBufferURIs)
+    {
+        std::map<std::string, int> bufferNameSuffix;
+
+        for (const auto& pair : packedBufferMap)
+        {
+            auto buffer = pair.first;
+            auto uri = pair.second;
+            makeValidFilename(uri);
+
+            auto& suffix = bufferNameSuffix[uri];
+            suffix += 1;
+
+            uri += std::to_string(suffix);
+
+            uri += ".bin";
+
+            buffer->uri = uri;
+        }
     }
 
     if (args.hashBufferUri)
     {
         // Generate hash buffer URIs 
-        for (auto buffer : packedBuffers)
+        for (const auto& pair : packedBufferMap)
         {
+            auto buffer = pair.first;
+
             std::string hash_hex_str;
             picosha2::hash256_hex_string(buffer->data, buffer->data + buffer->byteLength, hash_hex_str);
 
-            std::string filename = sceneName;
+            std::string filename = pair.second;
+            makeValidFilename(filename);
             filename += '_';
             filename += hash_hex_str;
             filename += ".bin";
 
             buffer->uri = filename;
-
         }
     }
 
@@ -305,8 +345,9 @@ void ExportableAsset::save()
 
     if (!options.embeddedBuffers)
     {
-        for (const auto buffer : packedBuffers)
+        for (const auto& pair: packedBufferMap)
         {
+            const auto buffer = pair.first;
             if (buffer->data && buffer->byteLength)
             {
                 path uri = outputFolder / buffer->uri;
@@ -337,8 +378,8 @@ void ExportableAsset::save()
 
         if (args.glb)
         {
-            assert(packedBuffers.size() <= 1);
-            const auto maybeBuffer = packedBuffers.empty() ? nullptr : packedBuffers[0];
+            assert(packedBufferMap.size() <= 1);
+            const auto maybeBuffer = packedBufferMap.empty() ? nullptr : packedBufferMap.begin()->first;
             const auto bufferLength = maybeBuffer ? maybeBuffer->byteLength : 0;
 
             file.write("glTF", 4); // magic header
@@ -420,7 +461,7 @@ void ExportableAsset::dumpAccessorComponents(const std::vector<GLTF::Accessor*>&
             filename = std::string(args.sceneName.asChar()) + "_" + std::to_string(fileIndex);
         }
 
-        std::replace_if(filename.begin(), filename.end(), ::ispunct, '_');
+        makeValidFilename(filename);
 
         ofs.open((outputFolder / (filename + ".txt")).c_str(), std::ofstream::out | std::ofstream::binary);
 
@@ -462,6 +503,75 @@ void ExportableAsset::dumpAccessorComponents(const std::vector<GLTF::Accessor*>&
     }
 }
 
+
+void ExportableAsset::packMeshAccessors(
+    AccessorsPerDagPath& accessorsPerDagPath,
+    AccessorPacker& packer,
+    PackedBufferMap& packedBufferMap,
+    std::string nameSuffix) const
+{
+    const auto& args = m_resources.arguments();
+
+    if (args.splitByReference)
+    {
+        MFileIO fileIO;
+
+        MStringArray refNames;
+        THROW_ON_FAILURE(fileIO.getReferences(refNames));
+
+        for (auto refIndex = 0U; refIndex < refNames.length(); ++refIndex)
+        {
+            auto refFile = refNames[refIndex];
+
+            // NOTE: Using the much easier MFileIO::getReferenceNodes MSelectionSet overload hangs Maya
+            MStringArray refNodes;
+            THROW_ON_FAILURE(MFileIO::getReferenceNodes(refFile, refNodes));
+
+            std::set<std::string> refNodeSet;
+            for (auto i = 0U; i < refNodes.length(); ++i)
+            {
+                std::string refNodeName = refNodes[i].asChar();
+                refNodeSet.insert(refNodeName);
+            }
+
+            std::vector<GLTF::Accessor*> refAccessors;
+            for (auto& pair : accessorsPerDagPath)
+            {
+                std::string fullName = pair.first.partialPathName().asChar();
+                if (refNodeSet.find(fullName) != refNodeSet.end())
+                {
+                    std::copy(pair.second.begin(), pair.second.end(), std::back_inserter(refAccessors));
+                }
+            }
+
+            path refPath(refFile.asChar());
+            auto refStem = refPath.stem().generic_string();
+
+            const auto bufferName = refStem + nameSuffix;
+            const auto buffer = packer.packAccessors(refAccessors, bufferName);
+
+            packedBufferMap[buffer] = bufferName;
+        }
+    }
+    else
+    {
+        std::vector<GLTF::Accessor*> flatAccessors;
+
+        for (auto& pair : accessorsPerDagPath)
+        {
+            std::copy(pair.second.begin(), pair.second.end(), std::back_inserter(flatAccessors));
+        }
+
+        const auto bufferName = args.sceneName.asChar() + nameSuffix;
+        const auto buffer = packer.packAccessors(flatAccessors, bufferName);
+
+        if (buffer)
+        {
+            packedBufferMap[buffer] = bufferName;
+        }
+    }
+}
+
 void ExportableAsset::create(std::ofstream& file, const std::string& path, const std::ios_base::openmode mode)
 {
     file.open(path, mode);
@@ -470,7 +580,7 @@ void ExportableAsset::create(std::ofstream& file, const std::string& path, const
     {
         std::ostringstream ss;
         ss << "Couldn't write to '" << path << "'";
-        throw std::exception(ss.str().c_str());
+        throw std::runtime_error(ss.str().c_str());
     }
 }
 

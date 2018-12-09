@@ -21,6 +21,7 @@ namespace flag
     const auto embedded = "emb";
     const auto copyright = "cpr";
     const auto splitMeshAnimation = "sma";
+    const auto splitByReference = "sbr";
     const auto separateAccessorBuffers = "sab";
 
     const auto defaultMaterial = "dm";
@@ -71,6 +72,8 @@ namespace flag
     const auto hashBufferUri = "hbu";
 
     const auto dumpAccessorComponents = "dac";
+
+    const auto niceBufferURIs = "nbu";
 }
 
 inline const char* getArgTypeName(const MSyntax::MArgType argType)
@@ -119,6 +122,7 @@ SyntaxFactory::SyntaxFactory()
     registerFlag(ss, flag::binary, "binary", kNoArg);
     registerFlag(ss, flag::separateAccessorBuffers, "separateAccessorBuffers", kNoArg);
     registerFlag(ss, flag::splitMeshAnimation, "splitMeshAnimation", kNoArg);
+    registerFlag(ss, flag::splitByReference, "splitByReference", kNoArg);
     registerFlag(ss, flag::dumpGLTF, "dumpGTLF", kString);
     registerFlag(ss, flag::dumpMaya, "dumpMaya", kString);
     registerFlag(ss, flag::dumpAccessorComponents, "dumpAccessorComponents", kNoArg);
@@ -164,7 +168,8 @@ SyntaxFactory::SyntaxFactory()
     registerFlag(ss, flag::forceRootNode, "forceRootNode", kNoArg);
     registerFlag(ss, flag::forceAnimationChannels, "forceAnimationChannels", kNoArg);
     registerFlag(ss, flag::hashBufferUri, "hashBufferUri", kNoArg);
-
+    registerFlag(ss, flag::niceBufferURIs, "niceBufferNames", kNoArg);
+    
     m_usage = ss.str();
 }
 
@@ -475,6 +480,7 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 
     embedded = adb.isFlagSet(flag::embedded);
     splitMeshAnimation = adb.isFlagSet(flag::splitMeshAnimation);
+    splitByReference = adb.isFlagSet(flag::splitByReference);
     separateAccessorBuffers = adb.isFlagSet(flag::separateAccessorBuffers);
     defaultMaterial = adb.isFlagSet(flag::defaultMaterial);
     colorizeMaterials = adb.isFlagSet(flag::colorizeMaterials);
@@ -491,6 +497,7 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
     forceRootNode = adb.isFlagSet(flag::forceRootNode);
     forceAnimationChannels = adb.isFlagSet(flag::forceAnimationChannels);
     hashBufferUri = adb.isFlagSet(flag::hashBufferUri);
+    niceBufferURIs = adb.isFlagSet(flag::niceBufferURIs);
 
     adb.optional(flag::globalOpacityFactor, opacityFactor);
 

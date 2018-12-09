@@ -5,7 +5,7 @@
 class AccessorPacker
 {
 public:
-    void packAccessors(const std::vector<GLTF::Accessor*>& accessors, const std::string& bufferName);
+    GLTF::Buffer* packAccessors(const std::vector<GLTF::Accessor*>& accessors, const std::string& bufferName);
 
     std::vector<GLTF::Buffer*> getPackedBuffers() const;
 

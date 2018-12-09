@@ -62,7 +62,7 @@ struct AnimClipArg
 	}
 };
 
-struct DagPathComparer
+struct MDagPathComparer
 {
 	bool operator ()(const MDagPath& a, const MDagPath& b) const
 	{
@@ -70,7 +70,7 @@ struct DagPathComparer
 	}
 };
 
-typedef std::set<MDagPath, DagPathComparer> Selection;
+typedef std::set<MDagPath, MDagPathComparer> Selection;
 
 class Arguments
 {
@@ -97,8 +97,14 @@ public:
     /** Split the animation and mesh into two combined buffers? */
     bool splitMeshAnimation = false;
 
-    /** Separate all accessors buffers? */
+    /** Split the buffers per reference? Currently also requires splitMeshAnimation */
+    bool splitByReference = false;
+
+    /** Separate all accessors buffers? Overrides splitMeshAnimation */
     bool separateAccessorBuffers = false;
+
+    /** Use nice buffer URIs instead of auto-generated ones */
+    bool niceBufferURIs = false;
 
 	/** Create a default material for primitives that don't have shading in Maya? */
 	bool defaultMaterial = false;

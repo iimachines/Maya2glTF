@@ -52,7 +52,7 @@ proc _exportClipScene(string $scenesDir, string $exportDir, string $filename, st
 
     string $outputFolder = _combinePaths($exportDir, $name);
 
-    maya2glTF -mts -ivt -1000 -sma -hbu -acn $name -ast $min -aet $max -afr $fps -cof -mn $modelName -of $outputFolder;
+    maya2glTF -mts -ivt -1000 -sma -sbr -hbu -acn $name -ast $min -aet $max -afr $fps -cof -of $outputFolder;
 }
 
 global proc _exportClipScenes(string $scenesDir, string $exportDir, string $modelName) {
@@ -107,4 +107,8 @@ global proc maya2glTF_exportClipScenes(string $scenesDir, string $exportDir, str
     unloadPlugin  "maya2glTF";
 }
 
-maya2glTF_exportClipScenes("d:/nova/keyed", "d:/nova/export", "nova");
+// HACK: Remove this when stable
+if (`getenv "USERNAME"` == "bugfa") {
+    maya2glTF_exportClipScenes("d:/nova/keyed", "d:/nova/export", "nova");
+}
+

@@ -5,6 +5,9 @@
 
 class Arguments;
 
+// A packed buffer and a filename hint.
+typedef std::map<GLTF::Buffer*, std::string> PackedBufferMap;
+
 class ExportableAsset
 {
 public:
@@ -39,10 +42,14 @@ private:
 	//std::vector<std::unique_ptr<ExportableItem>> m_items;
 	std::vector<std::unique_ptr<ExportableClip>> m_clips;
 
+    std::map<std::string, GLTF::Buffer> m_bufferByRefName;
+
 	std::string m_rawJsonString;
 	mutable std::string m_prettyJsonString;
 
     void dumpAccessorComponents(const std::vector<GLTF::Accessor*>& accessors) const;
+
+    void packMeshAccessors(AccessorsPerDagPath& accessors, class AccessorPacker& packer, PackedBufferMap& packedBufferMap, std::string namePrefix) const;
 
 	static void create(std::ofstream& file, const std::string& path, const std::ios_base::openmode mode);
 };

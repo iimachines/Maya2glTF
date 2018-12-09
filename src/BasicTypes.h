@@ -55,3 +55,7 @@ inline float roundToFloat(const double v, const double precision)
     return f == -0 ? +0 : f;
 }
 
+inline void makeValidFilename(std::string& filename)
+{
+    std::replace_if(filename.begin(), filename.end(), ::ispunct, '_');
+}
