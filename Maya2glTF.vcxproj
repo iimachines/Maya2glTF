@@ -270,7 +270,7 @@ xcopy /y /s /i "$(ProjectDir)maya\renderData\*.*" "$(userprofile)\Documents\Maya
       <SDLCheck>true</SDLCheck>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <AdditionalIncludeDirectories>$(MAYA_2018_SDK)\include;$(ProjectDir)dependencies\GSL\include;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\include;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\dependencies\draco\src;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\dependencies\rapidjson\include;$(ProjectDir)dependencies\cpp-linq\lib</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_WIN64;_WINDOWS;_USRDLL;NT_PLUGIN;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;REQUIRE_IOSTREAM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WIN64;_WINDOWS;_USRDLL;NT_PLUGIN;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;REQUIRE_IOSTREAM;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>externals.h</PrecompiledHeaderFile>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -317,7 +317,7 @@ xcopy /y /s /i "$(ProjectDir)maya\renderData\*.*" "$(userprofile)\Documents\Maya
       <SDLCheck>true</SDLCheck>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <AdditionalIncludeDirectories>$(MAYA_2017_INC);$(ProjectDir)dependencies\GSL\include;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\include;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\dependencies\draco\src;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\dependencies\rapidjson\include;$(ProjectDir)dependencies\cpp-linq\lib</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_WIN64;_WINDOWS;_USRDLL;NT_PLUGIN;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;REQUIRE_IOSTREAM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WIN64;_WINDOWS;_USRDLL;NT_PLUGIN;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;REQUIRE_IOSTREAM;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>externals.h</PrecompiledHeaderFile>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -364,7 +364,7 @@ xcopy /y /s /i "$(ProjectDir)maya\renderData\*.*" "$(userprofile)\Documents\Maya
       <SDLCheck>true</SDLCheck>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <AdditionalIncludeDirectories>$(MAYA_2016_EXT2)\include;$(ProjectDir)dependencies\GSL\include;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\include;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\dependencies\draco\src;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\dependencies\rapidjson\include;$(ProjectDir)dependencies\cpp-linq\lib</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_WIN64;_WINDOWS;_USRDLL;NT_PLUGIN;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;REQUIRE_IOSTREAM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WIN64;_WINDOWS;_USRDLL;NT_PLUGIN;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;REQUIRE_IOSTREAM;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>externals.h</PrecompiledHeaderFile>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
