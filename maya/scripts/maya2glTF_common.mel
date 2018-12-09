@@ -1,3 +1,33 @@
+global proc maya2glTF_exportProgressUI(int $max) {
+    // This is defined on maya startup
+    global string $gMainProgressBar;  
+
+    $max = max(1, $max);
+
+    progressBar -edit
+        -beginProgress
+        -isInterruptable true
+        -status "maya2glTF: exporting..."
+        -minValue 0
+        -maxValue $max
+        $gMainProgressBar;
+}
+
+// Returns -1 if abortion is requested
+global proc int maya2glTF_advanceExportProgressUI(string $stepName) 
+{
+    global string $gMainProgressBar;  // This is defined on maya startup
+
+    progressBar -edit -step 1 -status ("maya2glTF: " + $stepName + "...") $gMainProgressBar;
+
+    if(`progressBar -query -isCancelled $gMainProgressBar`) {
+        print ("maya2glTF: aborting at "+`date -time`+"\n");
+        return -1;
+    }
+
+    return 0;
+}
+
 global proc maya2glTF_polySelectAndFrame() 
 {
     // clear the selection    
