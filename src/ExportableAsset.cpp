@@ -510,6 +510,8 @@ void ExportableAsset::packMeshAccessors(
     PackedBufferMap& packedBufferMap,
     std::string nameSuffix) const
 {
+    AccessorsPerDagPath remainingAccessorsPerDagPath = accessorsPerDagPath;
+
     const auto& args = m_resources.arguments();
 
     if (args.splitByReference)
@@ -540,6 +542,7 @@ void ExportableAsset::packMeshAccessors(
                 std::string fullName = pair.first.partialPathName().asChar();
                 if (refNodeSet.find(fullName) != refNodeSet.end())
                 {
+                    remainingAccessorsPerDagPath.erase(pair.first);
                     std::copy(pair.second.begin(), pair.second.end(), std::back_inserter(refAccessors));
                 }
             }
@@ -552,12 +555,18 @@ void ExportableAsset::packMeshAccessors(
 
             packedBufferMap[buffer] = bufferName;
         }
+
+        if (!remainingAccessorsPerDagPath.empty())
+        {
+            std::cerr << prefix << "WARNING: Found unreferenced meshes in scene but -splitByReference flag was passed! Merging all these meshes into a single buffer" << endl;
+        }
     }
-    else
+
+    // Pack all remaining accessors into a single buffer.
     {
         std::vector<GLTF::Accessor*> flatAccessors;
 
-        for (auto& pair : accessorsPerDagPath)
+        for (auto& pair : remainingAccessorsPerDagPath)
         {
             std::copy(pair.second.begin(), pair.second.end(), std::back_inserter(flatAccessors));
         }
@@ -583,4 +592,3 @@ void ExportableAsset::create(std::ofstream& file, const std::string& path, const
         throw std::runtime_error(ss.str().c_str());
     }
 }
-
