@@ -62,6 +62,8 @@ struct DagHelper
 
 	static bool			hasConnection(const MPlug& plug, bool asSource = true, bool asDestination = true);
 
+    static void         dumpAllAttributes(MObject obj);
+
 	/*
 	static bool			getPlugConnectedTo(const MPlug& inPlug, MPlug& plug);
 	static bool			GetPlugArrayConnectedTo(const MObject& node, const MString& attribute, MPlug& plug);

@@ -393,6 +393,16 @@ bool DagHelper::hasConnection(const MPlug& plug, const bool asSource, const bool
 	return plug.numConnectedChildren() > 0;
 }
 
+void DagHelper::dumpAllAttributes(MObject obj)
+{
+    MFnDependencyNode dpNode(obj);
+    for (auto i = 0U; i < dpNode.attributeCount(); ++i)
+    {
+        auto attr = MFnAttribute(dpNode.attribute(i));
+        cout << attr.name() << endl;
+    }
+}
+
 
 #if 0
 bool DagHelper::getPlugConnectedTo(const MPlug& inPlug, MPlug& plug)
