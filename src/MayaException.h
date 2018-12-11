@@ -48,6 +48,6 @@ bool checkAndReportStatus(const MStatus& status, const char* format, Args ... ar
 	if (status == MStatus::kSuccess)
 		return true;
 
-	cerr << formatted(format, args...);
+	cerr << prefix << "WARNING: " << formatted(format, args...) << endl;
 	return false;
 }
