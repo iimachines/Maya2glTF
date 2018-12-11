@@ -49,9 +49,9 @@ protected:
 	
 	GLTF::MaterialPBR::Texture m_glBaseColorTexture;
 	GLTF::MaterialPBR::Texture m_glMetallicRoughnessTexture;
-	GLTF::MaterialPBR::Texture m_glNormalTexture;
+	GLTF::MaterialPBR::NormalTexture m_glNormalTexture;
 	GLTF::MaterialPBR::Texture m_glEmissiveTexture;
-	GLTF::MaterialPBR::Texture m_glOcclusionTexture;
+	GLTF::MaterialPBR::OcclusionTexture m_glOcclusionTexture;
 
 private:
 	DISALLOW_COPY_MOVE_ASSIGN(ExportableMaterialBasePBR);

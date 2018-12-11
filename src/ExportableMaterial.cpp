@@ -328,7 +328,7 @@ void ExportableMaterialPBR::loadPBR(ExportableResources& resources, const MFnDep
 	}
 
 	// Ambient occlusion
-	getScalar(shaderObject, "u_OcclusionStrength", m_glOcclusionTexture.scale);
+	getScalar(shaderObject, "u_OcclusionStrength", m_glOcclusionTexture.strength);
 
 	const ExportableTexture occlusionTexture(resources, shaderObject, "u_OcclusionTexture");
 	if (occlusionTexture)
