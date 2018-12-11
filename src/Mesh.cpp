@@ -45,31 +45,31 @@ Mesh::Mesh(ExportableScene& scene, MDagPath dagPath, const ExportableNode& node)
         MeshBlendShapeWeights weightPlugs(weightArrayPlug);
         weightPlugs.breakConnections();
 
-        for (auto i = 0; i < weightPlugs.numWeights(); ++i)
+        auto& weightEntries = weightPlugs.entries();
+
+        for (auto && pair: weightEntries)
         {
-            auto plugName = weightPlugs.getWeightPlug(i).name(&status);
-            THROW_ON_FAILURE(status);
-            cout << prefix << "target#" << i << ": " << std::quoted(plugName.asChar(), '\'') << endl;
+            cout << prefix << "target#" << pair.second.shapeIndex << ": " << std::quoted(pair.first, '\'') << endl;
             cout.flush();
         }
 
         // Clear all weights to reconstruct base mesh
-        weightPlugs.clearWeightsExceptFor(-1);
+        weightPlugs.clearWeightsExceptFor(nullptr);
 
         // Reconstruct base mesh
         m_mainShape = std::make_unique<MainShape>(scene, fnMesh, node, ShapeIndex::main());
         m_allShapes.emplace_back(m_mainShape.get());
 
-        const auto numWeights = weightPlugs.numWeights();
-
-        for (auto targetIndex = 0U; targetIndex < numWeights; targetIndex++)
+        for (auto && pair : weightEntries)
         {
-            weightPlugs.clearWeightsExceptFor(targetIndex);
-            auto weightPlug = weightPlugs.getWeightPlug(targetIndex);
-            auto initialWeight = static_cast<float>(weightPlugs.getOriginalWeight(targetIndex));
+            auto& entry = pair.second;
+            weightPlugs.clearWeightsExceptFor(&entry);
+            auto weightPlug = weightPlugs.getWeightPlug(entry);
+            auto initialWeight = static_cast<float>(entry.originalWeight);
             auto blendShape = std::make_unique<MeshShape>(m_mainShape->indices(),
                 fnMesh, node,
-                args, ShapeIndex::target(targetIndex),
+                args,
+                ShapeIndex::target(entry.shapeIndex),
                 weightPlug, initialWeight);
             m_allShapes.emplace_back(blendShape.get());
             m_blendShapes.emplace_back(std::move(blendShape));
