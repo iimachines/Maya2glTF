@@ -41,16 +41,17 @@ global proc maya2glTF_polySelectAndFrame()
     // if we don't find any layers, select by visibility
     if (size($layers) == 0) 
     {
+        print "Maya2glTF: No display layers found, just selecting visible objects\n";
         $objects = `ls -v -type mesh -ap`; 
     } 
     else 
     {
-        // print ("NOTE: Using display layers to find visible objects\n");
+        print "Maya2glTF: Using display layers to select visible untemplated objects\n";
 
         for ($layer in $layers)
         {
             // if the display layer is visible, continue
-            if (getAttr($layer+".visibility"))
+            if (getAttr($layer+".displayType") != 1 && getAttr($layer+".visibility"))
             {
                 // gather the items that are connected to the layer
                 string $conns[] = `listConnections -d 1 -s 0 ($layer+".drawInfo")`;
