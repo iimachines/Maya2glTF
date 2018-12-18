@@ -1,0 +1,142 @@
+source "maya2glTF_common.mel";
+
+
+proc string _quoted(string $text)
+{
+    string $quote = "\"";
+    return $quote+$text+$quote;
+}
+
+proc string _ensureTrailingSlash( string $folderPath ) {
+    if (size($folderPath) == 0)
+        error ("Invalid folder path!");
+
+    if (substring($folderPath, size($folderPath), size($folderPath)) != "/")
+        $folderPath += "/";
+
+    return $folderPath;
+}
+
+proc string _combinePaths(string $path1, string $path2) {
+    return size($path1) == 0
+     ? $path2
+     : _ensureTrailingSlash($path1)+$path2;
+}
+
+proc _deleteFolder( string $folderPath )
+{
+    if (`filetest -d ($folderPath)`) {
+        print ("Deleting files in "+$folderPath+"...\n");
+
+        string $subFiles[] = `getFileList -folder $folderPath`;
+
+        for( $filename in $subFiles )
+        {
+            string $filePath = _combinePaths($folderPath, $filename);
+
+            if( `filetest -d $filePath` )
+            { 
+                _deleteFolder($filePath);
+            }
+            else
+            {
+                sysFile -delete $filePath;
+            }
+        }
+
+		sysFile -removeEmptyDir $folderPath;
+    } 
+}
+
+proc _playblastClipScene(string $modelScenePath, string $scenesDir, string $exportDir, string $filename) {
+
+    print ("Loading " + $modelScenePath + "...\n");
+
+    if (catch (`file -f -ignoreVersion -prompt off -o $modelScenePath`)) {
+        warning "Some errors occurred while loading the scene";
+    }
+
+    int $isCancelled = `progressWindow -query -isCancelled`;
+    if ($isCancelled) {
+        error ("Aborted!");
+    }
+    
+    string $clipScenePath = _combinePaths($scenesDir, $filename);
+
+    string $name = basenameEx($filename);
+
+    print ("Importing clip " + $name + "...\n");
+
+    if (catch (`timeEditorClip -showAnimSourceRemapping -importOption connect -track "Composition1:-1" -importMayaFile $clipScenePath -startTime 1 $name`)) {
+        warning "Some errors occurred while importing the animation";
+    }
+
+    string $exportImageFolder = _combinePaths($exportDir, $name);
+    _deleteFolder($exportImageFolder);
+
+    string $exportImagePath = _combinePaths($exportImageFolder, "frame");
+
+    print ("Playblasting clip " + $name + "...\n");
+
+    int $duration = `timeEditorClip -q -duration -absolute 1`;
+
+    if (catch(`playblast -startTime 1 -endTime $duration -format image -filename $exportImagePath -sequenceTime 0 -clearCache 1 -viewer 0 -showOrnaments 0 -offScreen  -fp 4 -percent 100 -compression "png" -quality 100 -widthHeight 1280 720`)) {
+        warning "Some errors occurred while playblasting the animation";
+    }
+}
+
+global proc _playblastClipScenes(string $modelScenePath, string $scenesDir, string $exportDir) {
+
+    string $filenames[] = `getFileList -folder $scenesDir`;
+
+    print ("Playblasting " + stringArrayToString($filenames, ", ") + "...\n");
+
+    int $sceneCount = size($filenames);
+
+    progressWindow -endProgress;
+
+    progressWindow 
+        -title "Maya2glTF" 
+        -min 0 
+        -max $sceneCount 
+        -status "Playblasting..." 
+        -isInterruptable true 
+        -progress 0;
+
+    int $progress = 0;
+
+    for($filename in $filenames) {
+        string $filePath = _combinePaths($scenesDir, $filename);
+
+        if (`filetest -f $filePath`) {
+            ++$progress;
+
+            progressWindow -edit -progress $progress -status $filePath;
+
+            if (tolower(fileExtension($filePath)) == "ma") {
+                if (catch (_playblastClipScene($modelScenePath, $scenesDir, $exportDir, $filename))) {
+                    warning ("Failed to playblasting " + $filename);
+                }
+            }
+
+            int $isCancelled = `progressWindow -query -isCancelled`;
+            if ($isCancelled) {
+                error ("Aborted!");
+            }
+        }
+    }
+}
+
+global proc maya2glTF_playblastClipScenes(string $modelScenePath, string $scenesDir, string $exportDir) {
+    progressWindow -endProgress;
+    loadPlugin "maya2glTF";
+
+    if (catch (_playblastClipScenes($modelScenePath, $scenesDir, $exportDir))) {
+        print ("Failed to playblast clip scenes!");
+    }
+
+    progressWindow -endProgress;
+    unloadPlugin  "maya2glTF";
+}
+
+maya2glTF_playblastClipScenes("P:/024_WM_TheRecyclables/03_Production/08_shading/Nova/Nova_PBR.ma", "P:/024_WM_TheRecyclables/03_Production/03_anim/Nova", "D:/Nova/Playblast");
