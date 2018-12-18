@@ -115,6 +115,9 @@ public:
 	/** Skip all non PBR materials. By default these are converted to PBR materials */
 	bool skipStandardMaterials = false;
 
+    /** Skip all material textures. Useful when exporting just an animation clip */
+    bool skipMaterialTextures = false;
+
 	/** Always use 32-bit indices, even when 16-bit would be sufficient */
 	bool force32bitIndices = false;
 

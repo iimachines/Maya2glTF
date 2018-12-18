@@ -27,6 +27,7 @@ namespace flag
     const auto defaultMaterial = "dm";
     const auto colorizeMaterials = "cm";
     const auto skipStandardMaterials = "ssm";
+    const auto skipMaterialTextures = "smt";
     const auto force32bitIndices = "i32";
     const auto disableNameAssignment = "dnn";
     const auto scaleFactor = "sf";
@@ -130,6 +131,7 @@ SyntaxFactory::SyntaxFactory()
     registerFlag(ss, flag::defaultMaterial, "defaultMaterial", kNoArg);
     registerFlag(ss, flag::colorizeMaterials, "colorizeMaterials", kNoArg);
     registerFlag(ss, flag::skipStandardMaterials, "skipStandardMaterials", kNoArg);
+    registerFlag(ss, flag::skipMaterialTextures, "skipMaterialTextures", kNoArg);
     registerFlag(ss, flag::force32bitIndices, "force32bitIndices", kNoArg);
     registerFlag(ss, flag::disableNameAssignment, "disableNameAssignment", kNoArg);
     registerFlag(ss, flag::mikkelsenTangentSpace, "mikkelsenTangentSpace", kNoArg);
@@ -485,6 +487,8 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
     defaultMaterial = adb.isFlagSet(flag::defaultMaterial);
     colorizeMaterials = adb.isFlagSet(flag::colorizeMaterials);
     skipStandardMaterials = adb.isFlagSet(flag::skipStandardMaterials);
+    skipMaterialTextures = adb.isFlagSet(flag::skipMaterialTextures);
+
     force32bitIndices = adb.isFlagSet(flag::force32bitIndices);
     disableNameAssignment = adb.isFlagSet(flag::disableNameAssignment);
     skipSkinClusters = adb.isFlagSet(flag::skipSkinClusters);
@@ -666,6 +670,4 @@ void Arguments::select(Selection& selection, const MDagPath& dagPath, const bool
         }
     }
 }
-
-
 
