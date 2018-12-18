@@ -157,9 +157,9 @@ struct MikkTSpaceContext : SMikkTSpaceContext
         {
             tangentIndexRef = index;
 
-            const auto tx = fvTangent[0];
-            const auto ty = fvTangent[1];
-            const auto tz = fvTangent[2];
+            const float tx = fvTangent[0];
+            const float ty = fvTangent[1];
+            const float tz = fvTangent[2];
 
             if (tx == 0 && ty == 0 && tz == 0)
             {
@@ -333,7 +333,7 @@ MeshVertices::MeshVertices(
                 }
                 ss << ";";
 
-                MayaException::printError(formatted("Your mesh contains degenerate triangles!\nCleanup your mesh and try again please.\nUse the following command select the first invalid faces:\n%s\n\n", ss.str().c_str()));
+                MayaException::printError(formatted("Tangent generator found degenerate faces!\nThis can cause rendering artifacts.\nPlease check and fix your mesh and UV mapping.\nUse the following command select the first invalid faces:\n%s\n\n", ss.str().c_str()));
             }
         }
         else
