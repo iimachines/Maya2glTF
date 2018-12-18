@@ -76,6 +76,8 @@ global proc maya2glTF_polySelectAndFrame()
 
     select -r $objects;
 
-    viewFit -an 1;
+    if (catch (`viewFit -an 1`)) {
+        warning "Failed to fit viewport to selection";
+    }
 }
 
