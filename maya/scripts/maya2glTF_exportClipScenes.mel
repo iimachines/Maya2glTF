@@ -31,8 +31,10 @@ proc _exportClipScene(string $scenesDir, string $exportDir, string $filename, st
         print ("Some errors occurred while loading the scene, this can happen if some Maya components (like Arnold) are not installed");
     }
 
-    if ( `progressWindow -query -isCancelled` ) 
+    int $isCancelled = `progressWindow -query -isCancelled`;
+    if ($isCancelled) {
         error ("Aborted!");
+    }
 
     maya2glTF_polySelectAndFrame();
 
@@ -50,9 +52,8 @@ proc _exportClipScene(string $scenesDir, string $exportDir, string $filename, st
     currentTime -edit -1000;
     dgdirty -allPlugs;
 
-    string $outputFolder = _combinePaths($exportDir, $name);
-
-    maya2glTF -mts -ivt -1000 -sma -sbr -hbu -acn $name -ast $min -aet $max -afr $fps -cof -of $outputFolder;
+    //maya2glTF -mts -ivt -1000 -sma -sbr -hbu -acn $name -ast $min -aet $max -afr $fps -cof -of $outputFolder;
+    maya2glTF -mts -ivt -1000 -fac -acn $name -ast $min -aet $max -afr $fps -of $exportDir;
 }
 
 global proc _exportClipScenes(string $scenesDir, string $exportDir, string $modelName) {
@@ -89,8 +90,10 @@ global proc _exportClipScenes(string $scenesDir, string $exportDir, string $mode
                 }
             }
 
-          if ( `progressWindow -query -isCancelled` ) 
-              error ("Aborted!");
+            int $isCancelled = `progressWindow -query -isCancelled`;
+            if ($isCancelled) {
+                error ("Aborted!");
+            }
         }
     }
 }
@@ -106,9 +109,3 @@ global proc maya2glTF_exportClipScenes(string $scenesDir, string $exportDir, str
     progressWindow -endProgress;
     unloadPlugin  "maya2glTF";
 }
-
-// HACK: Remove this when stable
-if (`getenv "USERNAME"` == "bugfa") {
-    maya2glTF_exportClipScenes("d:/nova/keyed", "d:/nova/export", "nova");
-}
-
