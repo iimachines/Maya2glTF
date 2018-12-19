@@ -79,12 +79,12 @@ MeshSkeleton::MeshSkeleton(
             {
                 cerr << prefix << "WARNING: Inverse bind matrix of joint '" << jointNode->name() << "' is singular!" << endl;
             }
-            else
+            else if (args.reportSkewedInverseBindMatrices)
             {
                 const auto e = getAxesNonOrthogonality(inverseBindMatrix);
                 if (e > MAX_NON_ORTHOGONALITY)
                 {
-                    cerr << prefix << "WARNING: Inverse bind matrix of joint '" << jointNode->name() << "' is not orthogonal, deviation = " << 
+                    cerr << prefix << "WARNING: Inverse bind matrix of joint '" << jointNode->name() << "' is skewed, deviation = " << 
                         std::fixed << std::setprecision(2) << e * 100 << "%" << endl;
                 }
             }
