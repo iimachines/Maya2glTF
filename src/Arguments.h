@@ -124,6 +124,9 @@ public:
     /** Report skewed inverse-bind-matrix issues. glTF 2.0 does not allow these, but should (see issue 1507). By default no such issues are reported */
     bool reportSkewedInverseBindMatrices = false;
 
+    /** Clear the output window before exporting start */
+    bool clearOutputWindow = false;
+
 	/** Always use 32-bit indices, even when 16-bit would be sufficient */
 	bool force32bitIndices = false;
 

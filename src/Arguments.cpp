@@ -79,6 +79,8 @@ namespace flag
     const auto convertUnsupportedImages = "cui";
 
     const auto reportSkewedInverseBindMatrices = "rsb";
+
+    const auto clearOutputWindow = "cow";
 }
 
 inline const char* getArgTypeName(const MSyntax::MArgType argType)
@@ -178,7 +180,8 @@ SyntaxFactory::SyntaxFactory()
 
     registerFlag(ss, flag::convertUnsupportedImages, "convertUnsupportedImages", kNoArg);
     registerFlag(ss, flag::reportSkewedInverseBindMatrices, "reportSkewedInverseBindMatrices", kNoArg);
-    
+    registerFlag(ss, flag::clearOutputWindow, "clearOutputWindow", kNoArg);
+
     m_usage = ss.str();
 }
 
@@ -511,7 +514,8 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
     niceBufferURIs = adb.isFlagSet(flag::niceBufferURIs);
     convertUnsupportedImages = adb.isFlagSet(flag::convertUnsupportedImages);
     reportSkewedInverseBindMatrices = adb.isFlagSet(flag::reportSkewedInverseBindMatrices);
- 
+    clearOutputWindow = adb.isFlagSet(flag::clearOutputWindow);
+
     adb.optional(flag::globalOpacityFactor, opacityFactor);
 
     if (!adb.optional(flag::sceneName, sceneName))
