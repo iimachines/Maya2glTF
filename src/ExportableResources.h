@@ -37,7 +37,7 @@ public:
 	ExportableMaterial* getDebugMaterial(const Float3& hue);
 	ExportableMaterial* getMaterial(const MObject& shaderGroup);
 
-	GLTF::Image* getImage(const char* path);
+	GLTF::Image* getImage(path path);
 
 	GLTF::Sampler* getSampler(const ImageFilterKind filter, const ImageTilingFlags uTiling, const ImageTilingFlags vTiling);
 

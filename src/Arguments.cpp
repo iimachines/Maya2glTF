@@ -75,6 +75,8 @@ namespace flag
     const auto dumpAccessorComponents = "dac";
 
     const auto niceBufferURIs = "nbu";
+
+    const auto convertUnsupportedImages = "cui";
 }
 
 inline const char* getArgTypeName(const MSyntax::MArgType argType)
@@ -171,7 +173,9 @@ SyntaxFactory::SyntaxFactory()
     registerFlag(ss, flag::forceAnimationChannels, "forceAnimationChannels", kNoArg);
     registerFlag(ss, flag::hashBufferUri, "hashBufferUri", kNoArg);
     registerFlag(ss, flag::niceBufferURIs, "niceBufferNames", kNoArg);
-    
+
+    registerFlag(ss, flag::convertUnsupportedImages, "convertUnsupportedImages", kNoArg);
+
     m_usage = ss.str();
 }
 
@@ -502,6 +506,7 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
     forceAnimationChannels = adb.isFlagSet(flag::forceAnimationChannels);
     hashBufferUri = adb.isFlagSet(flag::hashBufferUri);
     niceBufferURIs = adb.isFlagSet(flag::niceBufferURIs);
+    convertUnsupportedImages = adb.isFlagSet(flag::convertUnsupportedImages);
 
     adb.optional(flag::globalOpacityFactor, opacityFactor);
 
