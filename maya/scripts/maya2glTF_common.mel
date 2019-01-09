@@ -81,3 +81,98 @@ global proc maya2glTF_polySelectAndFrame()
     }
 }
 
+global proc string maya2glTF_quoted(string $text)
+{
+    string $quote = "\"";
+    return $quote + $text + $quote;
+}
+
+global proc string maya2glTF_ensureTrailingSlash( string $folderPath ) {
+    if (size($folderPath) == 0)
+        error ("Invalid folder path!");
+
+    if (substring($folderPath, size($folderPath), size($folderPath)) != "/")
+        $folderPath += "/";
+
+    return $folderPath;
+}
+
+global proc string maya2glTF_combinePaths(string $path1, string $path2) {
+    return size($path1) == 0
+     ? $path2
+     : maya2glTF_ensureTrailingSlash($path1)+$path2;
+}
+
+global proc maya2glTF_deleteFolder( string $folderPath )
+{
+    if (`filetest -d ($folderPath)`) {
+        print ("Deleting files in "+$folderPath+"...\n");
+
+        string $subFiles[] = `getFileList -folder $folderPath`;
+
+        for( $filename in $subFiles )
+        {
+            string $filePath = maya2glTF_combinePaths($folderPath, $filename);
+
+            if( `filetest -d $filePath` )
+            { 
+                maya2glTF_deleteFolder($filePath);
+            }
+            else
+            {
+                sysFile -delete $filePath;
+            }
+        }
+
+		sysFile -removeEmptyDir $folderPath;
+    } 
+}
+
+global proc maya2glTF_checkProgressWindowCancellation() {
+    int $isCancelled = `progressWindow -query -isCancelled`;
+    if ($isCancelled) {
+        error ("Aborted!");
+    }
+}
+
+proc _getScenePaths(string $folder, int $recursive, string $scenePaths[]) {
+	string $filenames[] = `getFileList -folder $folder`;
+
+    for($filename in $filenames)
+    {
+        string $filePath = maya2glTF_combinePaths($folder, $filename);
+        if( `filetest -d $filePath` && $recursive )
+        { 
+            maya2glTF_checkProgressWindowCancellation();
+            _getScenePaths($filePath, $recursive, $scenePaths);
+        }
+        else if (tolower(fileExtension($filePath)) == "ma")
+        {
+            $scenePaths[size($scenePaths)] = $filePath;
+        }
+    }
+}
+
+global proc string[] maya2glTF_getScenePaths(string $folder, int $recursive) {
+    print ("Scanning "+$folder+"...\n");
+    string $scenePaths[] = {};
+    _getScenePaths($folder, $recursive, $scenePaths);
+    return $scenePaths;
+}
+
+// Render to PNG images
+global proc maya2glTF_renderFrames(string $exportImagePath, int $width, int $height, int $duration) {
+    // optionVar -intValue playblastOverrideViewport true;
+    // showAllPlayblastObjects 0;
+    // optionVar -intValue playblastShowPolyMeshes true;
+
+    performPlayblast false;
+    if (catch(`playblast -startTime 1 -endTime $duration -format image -filename $exportImagePath -sequenceTime 0 -clearCache 1 -viewer 0 -showOrnaments 0 -offScreen  -fp 4 -percent 100 -compression "png" -quality 100 -widthHeight $width $height`)) {
+        warning "Some errors occurred while playblasting the scene";
+    }
+}
+
+// print(`maya2glTF_getScenePaths "c:/dev/glTF/Maya2glTF/maya" 1`);
+maya2glTF_renderFrames("c:/temp/playblast", 640, 480, 1);
+
+
