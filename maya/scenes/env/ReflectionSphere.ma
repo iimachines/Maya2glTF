@@ -2363,7 +2363,7 @@ createNode place2dTexture -n "place2dTexture180";
 	rename -uid "DFAD84F3-49F2-F3BE-066E-AF9091039759";
 createNode file -n "file3";
 	rename -uid "1B081514-4C31-FFF0-C4FC-E49C867E5C0A";
-	setAttr ".ftn" -type "string" "R:/08_Development/PBR/images/brdfLUT.png";
+	setAttr ".ftn" -type "string" "R:/08_Development/PBR/images/brdfLUT.dds";
 	setAttr ".cs" -type "string" "sRGB";
 createNode place2dTexture -n "place2dTexture181";
 	rename -uid "91DFD3E3-4292-B567-16EC-48945BDD426A";
