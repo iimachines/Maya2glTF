@@ -143,14 +143,16 @@ void ExportableAsset::save()
 	m_rawJsonString = jsonStringBuffer.GetString();
 
 	const auto outputFolder = path(args.outputFolder.asChar());
-	create_directories(outputFolder);
-
 	const auto outputFilename = args.sceneName + "." + (args.glb ? args.glbFileExtension : args.gltfFileExtension);
 	const auto outputPath = outputFolder / outputFilename.asChar();
 
-	cout << prefix << "Writing glTF file to '" << outputPath << "'" << endl;
+	cout << prefix << "Writing glTF file to '" << outputPath << "'..." << endl;
+
+	cout << prefix << "Creating directories for '" << outputPath << "'..." << endl;
+	create_directories(outputFolder);
 
 	if (!options.embeddedTextures) {
+ 		cout << prefix << "Writing textures..." << endl;
 		for (GLTF::Image* image : m_glAsset.getAllImages()) {
 			path uri = outputFolder / image->uri;
 			std::ofstream file;
@@ -161,9 +163,9 @@ void ExportableAsset::save()
 	}
 
 	if (!options.embeddedBuffers) {
-
 		if (buffer->data && buffer->byteLength)
 		{
+			cout << prefix << "Writing buffers..." << endl;
 			path uri = outputFolder / buffer->uri;
 			std::ofstream file;
 			create(file, uri.generic_string(), ios::out | ios::binary);
@@ -173,6 +175,7 @@ void ExportableAsset::save()
 	}
 
 	if (!options.embeddedShaders) {
+		cout << prefix << "Writing shaders..." << endl;
 		for (GLTF::Shader* shader : m_glAsset.getAllShaders()) {
 			path uri = outputFolder / shader->uri;
 			std::ofstream file;
@@ -184,10 +187,12 @@ void ExportableAsset::save()
 
 	// Write glTF file.
 	{
+		cout << prefix << "Writing glTF..." << endl;
+
 		const auto& jsonString = m_rawJsonString;
 
 		std::ofstream file;
-		create(file, outputPath.string(), ios::out | (args.glb ? ios::binary : 0));
+		create(file, outputPath.string(), std::ios_base::openmode(ios::out | (args.glb ? ios::binary : 0)));
 
 		if (args.glb)
 		{

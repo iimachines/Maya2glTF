@@ -20,4 +20,5 @@
 
 #define DEFAULT_COPY_MOVE_ASSIGN_CTOR_DTOR(TypeName) \
 	TypeName() = default; \
-	DEFAULT_COPY_MOVE_ASSIGN_DTOR(TypeName) \
+	DEFAULT_COPY_MOVE_ASSIGN_DTOR(TypeName)
+	

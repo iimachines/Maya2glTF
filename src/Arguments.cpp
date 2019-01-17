@@ -336,7 +336,7 @@ public:
 
 				cout << prefix << "Writing " << outputName << " output to file " << absolutePath << endl;
 
-				fileOutputStream.open(absolutePath);
+				fileOutputStream.open(absolutePath.generic_string());
 				out = &fileOutputStream;
 			}
 		}
