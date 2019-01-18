@@ -1,5 +1,30 @@
 ﻿# Maya to glTF exporter
 
+## News
+Experimental **Mac OS-X Maya 2018** support in the `cmake` branch!
+
+To try it out:
+* *I assume you installed Maya 2018 already*
+* install [XCode](https://www.apple.com/us/search/xcode) from the app-store
+* install [CMake](https://cmake.org/files/v3.12/cmake-3.12.1-Darwin-x86_64.dmg)
+* open a Terminal window
+    * See `Finder` `Utilities` `Terminal`
+* clone the `cmake` branch of this repository
+   * e.g. `git clone -b cmake https://github.com/WonderMediaProductions/Maya2glTF ~/Documents/Maya2glTF`
+* enter the cloned directory
+   * e.g. `cd ~/Documents/Maya2glTF`
+* run the build script
+   * `sudo ./macos_build_plugin.sh` 
+      * *for some reason, the script needs be run as root*
+
+If all goes well, you should get the message `All done!`.
+
+Now open Maya, and execute the MEL command `maya2glTF_UI`
+
+If this doesn't work for you, please create an [issue](https://github.com/WonderMediaProductions/Maya2glTF/issues/new).
+
+Happy exporting!
+
 ## Update
 
 V0.9.8-alpha is released! See the [releases](https://github.com/WonderMediaProductions/maya2glTF/releases) tab. 
