@@ -4,3 +4,6 @@ packages
 export
 *.bck
 *.swatch
+cmake-build-*
+.DS_Store
+.idea
