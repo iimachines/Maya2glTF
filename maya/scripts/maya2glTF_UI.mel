@@ -1,4 +1,4 @@
-source "maya2glTF_Version.mel";
+source "maya2glTF_version.mel";
 
 proc string _quoted(string $text)
 {
@@ -265,7 +265,7 @@ global proc maya2glTF_UI()
     // This is defined on maya startup
 	global string $gMainProgressBar;  
 
-	global string maya2glTF_version;
+	global string $maya2glTF_version;
 
 	if (`window -exists maya2glTF_exporter_window`)
 		deleteUI maya2glTF_exporter_window;

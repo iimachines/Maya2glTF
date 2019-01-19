@@ -173,7 +173,7 @@ configure_file(
 
 configure_file(
   ${CMAKE_SOURCE_DIR}/version.mel.in
-  ${CMAKE_BINARY_DIR}/generated/maya2glTF_Version.mel
+  ${CMAKE_BINARY_DIR}/generated/maya2glTF_version.mel
 )
 
 include_directories(${CMAKE_BINARY_DIR}/generated)
