@@ -1,3 +1,5 @@
+source "maya2glTF_Version.mel";
+
 proc string _quoted(string $text)
 {
 	string $quote = "\"";
@@ -263,8 +265,7 @@ global proc maya2glTF_UI()
     // This is defined on maya startup
 	global string $gMainProgressBar;  
 
-    // This is auto-updated by msbuild 
-	string $maya2glTF_version = "V0.9.8-alpha fbf2df6";
+	global string maya2glTF_version;
 
 	if (`window -exists maya2glTF_exporter_window`)
 		deleteUI maya2glTF_exporter_window;

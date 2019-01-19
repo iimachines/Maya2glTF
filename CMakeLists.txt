@@ -48,8 +48,9 @@ ExternalProject_Add(COLLADA2GLTF
   PREFIX COLLADA2GLTF
   SOURCE_SUBDIR GLTF
   INSTALL_DIR
-  CMAKE_ARGS
+  CMAKE_ARGS -Dtest=false -DTEST_ENABLED=false
   -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+  PATCH_COMMAND ${CMAKE_COMMAND} -E remove_directory "${CMAKE_BINARY_DIR}/COLLADA2GLTF/src/COLLADA2GLTF/dependencies"
   #CONFIGURE_COMMAND ${CMAKE_COMMAND} -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> <SOURCE_DIR>/GLTF  
 )
 
@@ -73,8 +74,9 @@ ExternalProject_Add(GSL
   GIT_TAG v1.0.0
   PREFIX GSL
   INSTALL_DIR
-  CMAKE_ARGS
+  CMAKE_ARGS -DGSL_TEST=false
 	-DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+  PATCH_COMMAND ${CMAKE_COMMAND} -E remove_directory "${CMAKE_BINARY_DIR}/GSL/src/GSL/tests"
 )
 
 # filesystem
@@ -101,9 +103,9 @@ set(FS_INCLUDE_DIR            "${CMAKE_BINARY_DIR}/filesystem/src/filesystem")
 
 # TODO: It seems the gltf.lib is not installed by COLLADA2GLTF, although draco.lib is? Figure out why
 ExternalProject_Get_Property(COLLADA2GLTF binary_dir)
-#message("Using ${binary_dir}/${CMAKE_BUILD_TYPE} as GLTF target folder")
-set(GLTF_LIBRARY_DIR "${binary_dir}/${CMAKE_BUILD_TYPE}") 
-set(DRACO_LIBRARY_DIR "${binary_dir}/dependencies/draco/${CMAKE_BUILD_TYPE}") 
+message("Using ${binary_dir} as GLTF target folder")
+set(GLTF_LIBRARY_DIR "${binary_dir}") 
+set(DRACO_LIBRARY_DIR "${binary_dir}/dependencies/draco") 
 
 file(GLOB SOURCES "src/*.cpp" "src/*.h" "src/*.c")
 
@@ -138,7 +140,43 @@ add_dependencies(${PROJECT_NAME}
   filesystem
 )
 
-target_link_libraries(${PROJECT_NAME} ${MAYA_LIBRARIES} glTF draco)
+target_link_libraries(${PROJECT_NAME} ${MAYA_LIBRARIES} GLTF draco)
+
+# Get the current working branch
+execute_process(
+  COMMAND git rev-parse --abbrev-ref HEAD
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  OUTPUT_VARIABLE GIT_BRANCH
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+# Get the current tag
+execute_process(
+  COMMAND git describe --tags --abbrev=0
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  OUTPUT_VARIABLE GIT_TAG
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+# Get the latest abbreviated commit hash of the working branch
+execute_process(
+  COMMAND git log -1 --format=%h
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  OUTPUT_VARIABLE GIT_COMMIT_HASH
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+configure_file(
+  ${CMAKE_SOURCE_DIR}/version.inl.in
+  ${CMAKE_BINARY_DIR}/generated/version.inl
+)
+
+configure_file(
+  ${CMAKE_SOURCE_DIR}/version.mel.in
+  ${CMAKE_BINARY_DIR}/generated/maya2glTF_Version.mel
+)
+
+include_directories(${CMAKE_BINARY_DIR}/generated)
 
 if(MSVC)
   
@@ -157,6 +195,12 @@ elseif(APPLE)
   
   install (
     DIRECTORY "${PROJECT_SOURCE_DIR}/maya/scripts/" 
+    DESTINATION "/Users/Shared/Autodesk/maya/scripts"
+    FILES_MATCHING PATTERN "maya2glTF*.mel"
+  )
+
+  install (
+    DIRECTORY "${CMAKE_BINARY_DIR}/generated/" 
     DESTINATION "/Users/Shared/Autodesk/maya/scripts"
     FILES_MATCHING PATTERN "maya2glTF*.mel"
   )

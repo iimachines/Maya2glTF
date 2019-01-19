@@ -1,65 +1,55 @@
 ﻿# Maya to glTF exporter
 
 ## News
-Experimental **Mac OS-X Maya 2018** support in the `cmake` branch!
+New V0.9.11 for **Mac OS** in the `cmake` branch!
 
-To try it out:
-* *I assume you installed Maya 2018 already*
-* install [XCode](https://www.apple.com/us/search/xcode) from the app-store
-* install [CMake](https://cmake.org/files/v3.12/cmake-3.12.1-Darwin-x86_64.dmg)
-* open a Terminal window
-    * See `Finder` `Utilities` `Terminal`
-* clone the `cmake` branch of this repository
-   * e.g. `git clone -b cmake https://github.com/WonderMediaProductions/Maya2glTF ~/Documents/Maya2glTF`
-* enter the cloned directory
-   * e.g. `cd ~/Documents/Maya2glTF`
-* run the build script
-   * `sudo ./macos_build_plugin.sh` 
-      * *for some reason, the script needs be run as root*
-
-If all goes well, you should get the message `All done!`.
-
-Now open Maya, and execute the MEL command `maya2glTF_UI`
-
-If this doesn't work for you, please create an [issue](https://github.com/WonderMediaProductions/Maya2glTF/issues/new).
-
-Happy exporting!
-
-## Update
-
-V0.9.8-alpha is released! See the [releases](https://github.com/WonderMediaProductions/maya2glTF/releases) tab. 
+This fixes a crash that could randomly occur when saving.
 
 ![Maya Tiger screenshot](/img/tiger-wim@koetan.gif)
 
 ![Maya Helmet screenshot](/img/maya_screenshot.jpg)
 
+## Installation on Mac OS
+* *I assume you installed Maya 2018 already*
+* **install [XCode](https://www.apple.com/us/search/xcode)** from the app-store
+* **install [CMake](https://cmake.org/files/v3.12/cmake-3.12.1-Darwin-x86_64.dmg)**
+* open a **Terminal** window
+    * See `Finder` / `Utilities` / `Terminal`
+* **clone** the `cmake` branch of this repository
+   * e.g. `git clone -b cmake https://github.com/WonderMediaProductions/Maya2glTF ~/Documents/Maya2glTF`
+* **enter** the cloned directory
+   * e.g. `cd ~/Documents/Maya2glTF`
+* **delete** any previous version of the plugin
+   * `sudo ./macos_delete_plugin.sh` 
+       * <sub><sup>`sudo` is only needed if you previously installed the plugin with `sudo`, something that was needed in `V0.9.8-alpha`</sup></sub>
+* run the **build** script
+   * `./macos_build_plugin.sh` 
+
+If all goes well, you should get the message `All done!`.
+
+Now open Maya, and execute the MEL command **`maya2glTF_UI`**
+ <br><sub>Generally you should first close Maya, but if you don't want that, run the `rehash` MEL command after you installed or upgraded the plugin</sub>
+
+If this doesn't work for you, please **create an [issue](https://github.com/WonderMediaProductions/Maya2glTF/issues/new)**.
+
+Happy exporting!
+
 ## Usage
 
-* *Maya 2018 and 2017, tested on Windows 10 x64 only for now*
+* *Maya 2018 only <br><sub>tested on Mac OS High Sierra only</sub>
 
-* To **install**: 
-    * install the [Microsoft Visual C++ redistributables](https://go.microsoft.com/fwlink/?LinkId=746572).
-        * on many systems this is already installed, so you might want to skip this step.
-    * download the desired [Maya2glTF_xxx.zip release](https://github.com/WonderMediaProductions/maya2glTF/releases)
-    * extract the downloaded `zip` file to any location (e.g. your desktop)
-    * open the created `maya2glTF` folder
-    * double click on the `deploy.bat` file
-        * This will copy the plug-in and scripts to your `Documents` folder
-    * re-launch Maya 2017 or 2018
-
-* To **export**: 
-    * load a scene
-    * in the Maya script window, type `maya2glTF_UI` to launch the UI.
-        * You might want to select the `maya2glTF_UI` script text and drag it using the middle-mouse-button to the `Custom` shelf, or even better, make a `glTF` shelf...
-    * select the meshes you want export
-        * or click the `select all polygon meshes` button
-    * select the desired animation clips source using the dropdown box
-        * TRAX animation clips are also supported.
-            * *only enabled clips on the first track are exported*.
-            * if you have multiple characters, select the desired one.
-    * hit the `export selected meshes` button. 
-       * *currently the user interface is not automatically updated when you change or load a scene; just re-run the `maya2glTF_UI` script or hit the `refresh user interface` button*.
-    * good luck! ;-)
+* load a scene
+* in the Maya script window, type `maya2glTF_UI` to launch the UI.
+    * <sub>You might want to select the `maya2glTF_UI` script text and drag it using the middle-mouse-button to the `Custom` shelf, or even better, make a `glTF` shelf...</sub>
+* select the meshes you want export
+    * or click the `select all polygon meshes` button
+* select the desired animation clips source using the dropdown box
+    * TRAX animation clips are also supported.
+        * *only enabled clips on the first track are exported*.
+        * if you have multiple characters, select the desired one.
+* hit the `export selected meshes` button. 
+    * *currently the user interface is not automatically updated when you change or load a scene; just re-run the `maya2glTF_UI` script or hit the `refresh user interface` button*.
+* good luck! ;-)
 
 * To **help**:
     * let me know if this doesn't work for you, this is BETA stuff ;-)
@@ -121,10 +111,13 @@ Maya interally uses a dataflow architecture (called the *dependency graph*). Thi
 
 I consider this plugin to be in *beta* stage, use it at your own risk :) 
 
-* Supports **Maya 2016 EXT2, 2017, 2018** (64-bit only)
+* On Windows, it supports **Maya 2016 EXT2, 2017, 2018** (64-bit only)
     * Maya 2016 is a different product from Maya 2016 EXT2 and is ***not supported***, since I can't find a compatible devkit for it.
 
-* Windows only for now
+* On MacOS, it supports **Maya 2018**
+    * but since you have to build from source, it wouldn't be hard to support other versions.
+    
+* No support for Linux yet
     * although the code is written using C++ 17 and should be platform independent, so can be ported by people with this experience (PR welcome! :) 
 
 * Supports **static and animated, skinned and morphed meshes**
@@ -150,82 +143,15 @@ I consider this plugin to be in *beta* stage, use it at your own risk :)
 
 * No lights or cameras yet
     * unlikely to be added, we don't really need this, although not a lot of work
+
+## Tips
+* I use the [vscode](https://code.visualstudio.com/) [glTF viewer](https://github.com/AnalyticalGraphicsInc/gltf-vscode)
+    * Make sure to switch between BabylonJS, Cesium and ThreeJS, they all give different results...
+
+* If you want to contribute to the development, you might want to use the MEL script `maya2glTF\maya\scripts\test-iteration.mel`. This unloads and reloads the plugin everytime, unlocking the DLL.
+
+## Plugin command usage
   
-
-## Building
-
-* No out-of-the-box downloads are available yet, currently you have to build the plugin from sources.
-    * *If you want to try the exporter, but you can't build it, give me a sign*
-
-* Right now this project requires **Microsoft Windows x64 8.1 or higher**
-    * It should be easily ported to OSX and Linux, or older versions of Windows.
-    * Feel free to provide a patch request, e.g. one that uses CMake :)
-
-* I assume you already installed a [GIT client for Windows](https://git-scm.com/downloads)
-
-* Install **[Visual Studio 2017](https://www.visualstudio.com/downloads)**
-    * Select at least the **C++ desktop development** payload
-    * In the individual components tab, select:
-        * the **Windows 8.1 SDK**
-        * the **Windows Universal CRT SDK**
-    * This document was written for Visual Studio 2017 15.5.2, newer versions might not work. 
-
-* Install the Win64-x64 version of **[CMAKE](https://cmake.org)**
-    * Make sure to add CMake to the system path
-
-* Install the **[latest Maya devkit matching your Maya application version](https://www.autodesk.com/developer-network/platform-technologies/maya)**
-    
-* We need to tell the maya2glTF project where it can find the Maya devkit header and library files. Declare the following environment variables, or add `user macros` to the Visual Studio `Microsoft.Cpp.x64.user` property page
-    * For Maya 2018:
-        * `MAYA_2018_SDK` -> *the `devkitBase` sub-folder of the Maya devkit*, e.g. `C:\dev\Maya-2018-SDK\devkitBase`
-    * For Maya 2017:
-        * `MAYA_2017_INC` -> *the `include` folder of the devkit*, e.g `C:\dev\Maya-2017-SDK\devkitBase\include`
-        * `MAYA_2017_LIB` -> *the `lib` folder of **your Maya 2017 program installation***, e.g. `C:\Program Files\Autodesk\Maya2017\lib`
-    * For Maya 2016 EXT2:
-        * `MAYA_2016_EXT2` -> *the folder of **your Maya 2016.5 program installation***, e.g. `C:\Program Files\Autodesk\Maya2016.5`
-     
-
-* Run the `Developer Command Prompt for VS 2017`, and then clone this repository, including ***all dependencies***. *Oh, did I mention not to forget the dependencies? ;-)*
-    
-    ```
-    git clone https://github.com/WonderMediaProductions/maya2glTF --branch develop --recursive
-    ```
-
-* Enter the `maya2glTF` folder, and run 
-    ```
-    windows_build_dependencies
-    ```
-    * After a couple of minutes, your console should turn green if this succeeds, or red if this fails. In the latter case, make sure you cloned the GIT dependencies, see the previous step...
-
-* Next build the `maya2glTF` plugin itself, by running the following command inside the `maya2glTF` folder
-    ```
-    windows_build_plugin *MAYA_VERSION*
-    ```
-
-    Where  *MAYA_VERSION* is either 2016, 2017 or 2018.
-    
-    Obviously you can also use Visual Studio to build and debug the plugin.
-
-* Now export a 3D model:
-    * Start Maya
-    
-    * Load a scene
-		* **NOTE** to load scenes from this project, first set the Maya project to the `maya2glTF\maya` folder
-        * to see if the plugin was built correctly, it's best to use a scene from this repository, for example `maya2glTF\maya\scenes\damaged_helmet.ma`
-    
-    * select the nodes you want to export
-        * by default all descendants are also exported, unless you add the -selectedNodesOnly (sno) flag.
-    
-    * run the following MEL script
-    ```
-    maya2glTF -outputFolder "<your output folder>"
-    ```
-    
-    * I use the [vscode](https://code.visualstudio.com/) [glTF viewer](https://github.com/AnalyticalGraphicsInc/gltf-vscode)
-        * Make sure to switch between BabylonJS, Cesium and ThreeJS, they all give different results...
-
-    * If you want to contribute to the development, you might want to use the MEL script `maya2glTF\maya\scripts\test-iteration.mel`. This unloads and reloads the plugin everytime, unlocking the DLL.
-
 * The supported plugin arguments are
 	* `-outputFolder (-of) STRING` *(required)* 
         * the output folder  
