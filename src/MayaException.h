@@ -35,6 +35,12 @@ public:
 		MayaException::throwIt(__status__, "", __FILE__, __LINE__, __FUNCTION__); \
 }
 
+#define RETURN_ON_FAILURE(__expression__) { \
+	const MStatus __status__ = (__expression__); /* NOLINT */ \
+	if (MStatus::kSuccess != __status__) \
+        return __status__; \
+}
+
 #define THROW_ON_FAILURE_WITH(__expression__, __message__) { \
 	const MStatus __status__ = (__expression__); /* NOLINT */ \
 	DEBUG_ASSERT_SUCCESS(__status__); \
