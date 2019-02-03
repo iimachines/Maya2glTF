@@ -193,13 +193,15 @@ proc _forEachScene(string $filePaths[], int $isModifier, string $command) {
         }
 
         print ("Running command\n" + $command + "\n...\n");
-
+    
         if (catch (`eval $command`)) {
             warning ("Failed to execute command");
         } else if ($isModifier) {
             print ("Saving " + $filePath + "...\n");
             file -f -type "mayaAscii"  -prompt off -save;
         }
+
+        print ("-------------------------------------------------------------------\n");
     }
 }
 
@@ -231,6 +233,35 @@ global proc maya2glTF_renderFrames(string $exportImagePath, int $width, int $hei
     if (catch(`playblast -startTime 1 -endTime $duration -format image -filename $exportImagePath -sequenceTime 0 -clearCache 1 -viewer 0 -showOrnaments 0 -offScreen  -fp 4 -percent 100 -compression "png" -quality 100 -widthHeight $width $height`)) {
         warning "Some errors occurred while playblasting the scene";
     }
+}
+
+global proc maya2glTF_exportPlayblastScene() {
+
+    string $rootFolder = `workspace -q -active`;
+    string $scenePath = `file -q -sn`;
+    string $filename = `basenameEx $scenePath`;
+
+    int $exportAnim = match("anim",tolower($filename)) == "anim";
+
+    print ("Exporting " + $filename + ($exportAnim ? " with" : " without") + " animation...\n");
+
+    string $playblastFolder = maya2glTF_combinePaths($rootFolder, "playblast");
+    string $exportFolder = maya2glTF_combinePaths($playblastFolder, $filename);
+    string $outputFolder = maya2glTF_combinePaths($exportFolder, "gltf");
+
+    select -r `ls -v -type mesh -ap`;
+
+	$min = `playbackOptions -q -min`;
+	$max = `playbackOptions -q -max`;
+	$fps = `currentTimeUnitToFPS`;
+
+    if ($exportAnim 
+            ? catch(`maya2glTF -cam "camera1" -mts -acn "clip" -ast $min -aet $max -afr $fps -outputFolder $outputFolder`) 
+            : catch(`maya2glTF -cam "camera1" -mts -outputFolder $outputFolder`)) {
+        print ("*** Exporting "+$filename+" failed! :-( ***\n");
+    } else {
+        print ("Exporting "+$filename+" succeeded\n");
+    } 
 }
 
 global proc maya2glTF_createDefaultCamera() {

@@ -41,16 +41,6 @@ proc _deleteFolder( string $folderPath )
     } 
 }
 
-proc _renderFrame(string $outputFolder) {
-   // Render a frame for reference and future regression testing
-    workspace -fileRule "images" $outputFolder;
-    setAttr -type "string" "defaultRenderGlobals.imageFilePrefix" "../screenshot";
-    setAttr "defaultRenderGlobals.imageFormat" 32;
-    setAttr "hardwareRenderGlobals.enableAcceleratedMultiSampling" 0;
-    setAttr "hardwareRenderGlobals.enableHighQualityLighting" 0;
-    hwRender -w 640 -h 360 -f 0 -camera "persp" -eaa 0 1;
-}
-
 proc _exportTestScene(string $scenesDir, string $filename) {
     global string $maya2glTF_tempFolder;
 
@@ -71,7 +61,8 @@ proc _exportTestScene(string $scenesDir, string $filename) {
 	$max = `playbackOptions -q -max`;
 	$fps = `currentTimeUnitToFPS`;
 
-    string $outputFolder = _combinePaths($maya2glTF_tempFolder, $filename);
+    string $rootFolder = _combinePaths($maya2glTF_tempFolder, $filename);
+    string $outputFolder = _combinePaths($rootFolder, "gltf");
 
     if ($exportAnim 
             ? catch(`maya2glTF -acn "clip" -ast $min -aet $max -afr $fps -outputFolder $outputFolder`) 
@@ -80,10 +71,6 @@ proc _exportTestScene(string $scenesDir, string $filename) {
     } else {
         print ("Exporting "+$filename+" succeeded\n");
     } 
-
-    if (catch(`_renderFrame($outputFolder)`)) {
-        print ("*** Rendering "+$filename+" failed! :-( ***\n");
-    }
 
     print ("-------------------------------------------------------------------\n");
 }
