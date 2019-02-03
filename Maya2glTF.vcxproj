@@ -404,6 +404,7 @@ xcopy /y /s /i "$(ProjectDir)maya\renderData\*.*" "$(userprofile)\Documents\Maya
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\AccessorPacker.cpp" />
+    <ClCompile Include="src\OutputWindow.cpp" />
     <ClCompile Include="src\progress.cpp" />
     <ClCompile Include="src\ExportableFrames.cpp" />
     <ClCompile Include="src\MeshSkeleton.cpp" />
@@ -475,6 +476,7 @@ xcopy /y /s /i "$(ProjectDir)maya\renderData\*.*" "$(userprofile)\Documents\Maya
   <ItemGroup>
     <ClInclude Include="src\AccessorPacker.h" />
     <ClInclude Include="src\milo.h" />
+    <ClInclude Include="src\OutputWindow.h" />
     <ClInclude Include="src\picosha2.h" />
     <ClInclude Include="src\progress.h" />
     <ClInclude Include="src\accessors.h" />
