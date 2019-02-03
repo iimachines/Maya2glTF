@@ -81,6 +81,8 @@ namespace flag
     const auto reportSkewedInverseBindMatrices = "rsb";
 
     const auto clearOutputWindow = "cow";
+
+    const auto cameras = "cam";
 }
 
 inline const char* getArgTypeName(const MSyntax::MArgType argType)
@@ -181,6 +183,8 @@ SyntaxFactory::SyntaxFactory()
     registerFlag(ss, flag::convertUnsupportedImages, "convertUnsupportedImages", kNoArg);
     registerFlag(ss, flag::reportSkewedInverseBindMatrices, "reportSkewedInverseBindMatrices", kNoArg);
     registerFlag(ss, flag::clearOutputWindow, "clearOutputWindow", kNoArg);
+
+    registerFlag(ss, flag::cameras, "cameras", kSelectionItem);
 
     m_usage = ss.str();
 }
@@ -356,6 +360,15 @@ public:
         return true;
     }
 
+    bool optional(const char* shortName, MSelectionList& list) const
+    {
+        if (!adb.isFlagSet(shortName))
+            return false;
+
+        adb.getFlagArgument(shortName, 0, list);
+        return true;
+    }
+
     std::unique_ptr<IndentableStream> getOutputStream(const char* arg, const char *outputName, const path& outputFolder, std::ofstream& fileOutputStream) const
     {
         std::ostream* out = nullptr;
@@ -461,7 +474,7 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
             }
             else
             {
-                select(selection, dagPath, !selectedNodesOnly, !visibleNodesOnly);
+                select(meshShapes, dagPath, !selectedNodesOnly, !visibleNodesOnly);
             }
         }
         else
@@ -592,9 +605,65 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
         return left.startTime < right.endTime;
     });
 
+    // Get cameras to export
+    MSelectionList cameraList;
+    adb.optional(flag::cameras, cameraList);
+
+    for (unsigned i = 0; i < cameraList.length(); ++i)
+    {
+        MDagPath dagPath;
+        cameraList.getDagPath(i, dagPath);
+
+        if (!dagPath.hasFn(MFn::kTransform))
+        {
+            cerr << prefix << "Skipping " << dagPath.partialPathName() << ", it is not a camera transform" << endl;
+            continue;
+        }
+
+        unsigned shapeCount;
+        status = dagPath.numberOfShapesDirectlyBelow(shapeCount);
+        if (!status) 
+        {
+            cerr << prefix << "Skipping " << dagPath.partialPathName() << ", it has no shapes attached to it" << endl;
+            continue;
+        }
+
+        bool foundCameraShape = false;
+
+        for (auto shapeIndex = 0U; shapeIndex < shapeCount; ++shapeIndex)
+        {
+            MDagPath shapePath = dagPath;
+            status = shapePath.extendToShapeDirectlyBelow(shapeIndex);
+            if (!status)
+                continue;
+
+            MFnCamera camera(shapePath, &status);
+            if (!status)
+                continue;
+
+            cameraShapes.insert(shapePath);
+            foundCameraShape = true;
+        }
+
+        if (!foundCameraShape)
+        {
+            cerr << prefix << "Skipping " << dagPath.partialPathName() << ", it has no cameras attached to it" << endl;
+            continue;
+        }
+
+        cout << prefix << "Included camera " << dagPath.partialPathName() << endl;
+    }
+
+    //for (int i = 0; i < cameraCount; ++i)
+    //{
+    //    MObject camera;
+    //    adb.required(flag::cameras, camera, i);
+    //    cameras.add(camera);
+    //}
+
     cout << prefix << "Exporting";
 
-    for (auto& path : selection)
+    for (auto& path : meshShapes)
     {
         cout << " " << path.partialPathName();
     }

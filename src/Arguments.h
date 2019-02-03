@@ -80,7 +80,12 @@ public:
 
 	MString sceneName;
 	MString outputFolder;
-	Selection selection;
+
+    /** Mesh shapes to export */
+	Selection meshShapes;
+
+    /** Camera shapes to export */
+    Selection cameraShapes;
 
     /** Before exporting, delete the output folder, recursively? */
     bool cleanOutputFolder = false;

@@ -93,3 +93,6 @@
 #include <maya/MItDependencyNodes.h>
 #include <maya/MItMeshFaceVertex.h>
 #include <maya/MQuaternion.h>
+#include <maya/MFnCamera.h>
+#include <maya/MRenderSetup.h>
+

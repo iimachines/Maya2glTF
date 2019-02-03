@@ -27,7 +27,7 @@ public:
 
 	std::vector<float> currentWeights() const;
 
-	void setupNode(GLTF::Node& node);
+	void attachToNode(GLTF::Node& node);
 
 	void updateWeights();
 

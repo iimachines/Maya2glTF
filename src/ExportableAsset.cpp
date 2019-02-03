@@ -50,7 +50,7 @@ ExportableAsset::ExportableAsset(const Arguments& args)
 
     setCurrentTime(args.initialValuesTime, args.redrawViewport);
 
-    size_t progressStepCount = args.selection.size();
+    size_t progressStepCount = args.meshShapes.size();
 
     for (auto& clipArg : args.animationClips)
     {
@@ -59,10 +59,17 @@ ExportableAsset::ExportableAsset(const Arguments& args)
 
     uiSetupProgress(progressStepCount);
 
-    for (auto& dagPath : args.selection)
+    for (auto& dagPath : args.meshShapes)
     {
         uiAdvanceProgress(std::string("exporting mesh ") + dagPath.partialPathName().asChar());
-        cout << prefix << "Processing '" << dagPath.partialPathName().asChar() << "' ..." << endl;
+		cout << prefix << "Processing mesh '" << dagPath.partialPathName().asChar() << "' ..." << endl;
+        m_scene.getNode(dagPath);
+    }
+
+    for (auto& dagPath : args.cameraShapes)
+    {
+        uiAdvanceProgress(std::string("exporting camera") + dagPath.partialPathName().asChar());
+        cout << prefix << "Processing camera '" << dagPath.partialPathName().asChar() << "' ..." << endl;
         m_scene.getNode(dagPath);
     }
 

@@ -9,6 +9,7 @@
 #include "ExportableScene.h"
 #include "ExportableNode.h"
 #include "accessors.h"
+#include "DagHelper.h"
 
 ExportableMesh::ExportableMesh(
     ExportableScene& scene,
@@ -41,6 +42,24 @@ ExportableMesh::ExportableMesh(
         const auto& shadingMap = mainShape.indices().shadingPerInstance();
         const auto& shading = shadingMap.at(renderables.instanceNumber);
         const auto shaderCount = static_cast<int>(shading.shaderGroups.length());
+
+        /* TODO: Implement overrides
+        auto mainDagPath = mainShape.dagPath();
+        auto mainNode = mainDagPath.node(&status);
+        THROW_ON_FAILURE(status);
+
+        bool overrideShading = false;
+        status = DagHelper::getPlugValue(mainNode, "overrideShading", overrideShading);
+        THROW_ON_FAILURE(status);
+
+        bool overrideTexturing = false;
+        status = DagHelper::getPlugValue(mainNode, "overrideTexturing", overrideShading);
+        THROW_ON_FAILURE(status);
+
+        bool overrideVisibility = false;
+        status = DagHelper::getPlugValue(mainNode, "overrideVisibility", overrideShading);
+        THROW_ON_FAILURE(status);
+         */
 
         const auto& vertexBufferEntries = renderables.table();
         const size_t vertexBufferCount = vertexBufferEntries.size();
@@ -79,7 +98,6 @@ ExportableMesh::ExportableMesh(
                     const auto primitiveName = shapeName + "#" + std::to_string(vertexBufferIndex);
 
                     auto exportablePrimitive = std::make_unique<ExportablePrimitive>(primitiveName, vertexBuffer, resources, material);
-
                     glMesh.primitives.push_back(&exportablePrimitive->glPrimitive);
 
                     m_primitives.emplace_back(std::move(exportablePrimitive));
@@ -206,7 +224,7 @@ std::vector<float> ExportableMesh::currentWeights() const
     return weights;
 }
 
-void ExportableMesh::setupNode(GLTF::Node& node)
+void ExportableMesh::attachToNode(GLTF::Node& node)
 {
     node.mesh = &glMesh;
 
