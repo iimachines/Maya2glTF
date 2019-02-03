@@ -109,5 +109,5 @@ def zipScenes(scenesDir=''):
         zip.close()
         cmds.progressWindow(endProgress=1)
 
-zipScenes()
+#zipScenes()
 

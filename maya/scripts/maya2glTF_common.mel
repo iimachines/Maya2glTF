@@ -160,6 +160,67 @@ global proc string[] maya2glTF_getScenePaths(string $folder, int $recursive) {
     return $scenePaths;
 }
 
+proc _forEachScene(string $filePaths[], int $isModifier, string $command) {
+    print ("Processing:\n  " + stringArrayToString($filePaths, "\n  ") + "\n...\n");
+
+    int $sceneCount = size($filePaths);
+
+    progressWindow -endProgress;
+
+    progressWindow 
+        -title "Maya2glTF" 
+        -min 0 
+        -max $sceneCount 
+        -status "Processing..." 
+        -isInterruptable true 
+        -progress 0;
+
+    int $progress = 0;
+
+    for($filePath in $filePaths) {
+        ++$progress;
+
+        progressWindow -edit -progress $progress -status $filePath;
+        print ("Loading " + $filePath + "...\n");
+
+        if (catch (`file -f -ignoreVersion -prompt off -o $filePath`)) {
+            print ("Some errors occurred while loading the scene, this can happen if some Maya components (like Arnold) are not installed");
+        }
+
+        int $isCancelled = `progressWindow -query -isCancelled`;
+        if ($isCancelled) {
+            error ("Aborted!");
+        }
+
+        print ("Running command\n" + $command + "\n...\n");
+
+        if (catch (`eval $command`)) {
+            warning ("Failed to execute command");
+        } else if ($isModifier) {
+            print ("Saving " + $filePath + "...\n");
+            file -f -type "mayaAscii"  -prompt off -save;
+        }
+    }
+}
+
+// Loads each scene, calls the command, then optionally saves the scene
+// Shows progress, and supports aborting the process.
+global proc maya2glTF_forEachScene(string $filePaths[], int $isModifier, string $command) {
+    if (catch ( `_forEachScene $filePaths $isModifier $command`)) {
+    }
+
+    progressWindow -edit -ep;
+}
+
+// Loads each scene in a folder, optionally recursively,
+// calls the command, then optionally saves the scene
+// Shows progress, and supports aborting the process.
+global proc maya2glTF_forEachSceneIn(string $folder, int $recursive, int $isModifier, string $command) {
+     string $filePaths[] = maya2glTF_getScenePaths($folder,  $recursive);
+     maya2glTF_forEachScene($filePaths, $isModifier, $command);
+}
+
+
 // Render to PNG images
 global proc maya2glTF_renderFrames(string $exportImagePath, int $width, int $height, int $duration) {
     // optionVar -intValue playblastOverrideViewport true;
@@ -172,7 +233,33 @@ global proc maya2glTF_renderFrames(string $exportImagePath, int $width, int $hei
     }
 }
 
-// print(`maya2glTF_getScenePaths "c:/dev/glTF/Maya2glTF/maya" 1`);
-maya2glTF_renderFrames("c:/temp/playblast", 640, 480, 1);
+global proc maya2glTF_createDefaultCamera() {
+    if (`objExists camera1`) {
+        delete camera1;
+    }
 
+    string $camera[] = `camera -centerOfInterest 5 -focalLength 35 -lensSqueezeRatio 1 -cameraScale 1 -horizontalFilmAperture 1.4173 -horizontalFilmOffset 0 -verticalFilmAperture 0.9449 -verticalFilmOffset 0 -filmFit Fill -overscan 1 -motionBlur 0 -shutterAngle 144 -nearClipPlane 0.1 -farClipPlane 10000 -orthographic 0 -orthographicWidth 30 -panZoomEnabled 0 -horizontalPan 0 -verticalPan 0 -zoom 1`;
+    string $transform = $camera[0];
+    string $shape = $camera[1];
+    rename $transform "camera1";
+
+    setNamedPanelLayout "Single Perspective View";
+
+    lookThroughModelPanel camera1 modelPanel4;
+    updateModelPanelBar MainPane|viewPanes|modelPanel4|modelPanel4|modelPanel4;
+    dR_setModelEditorTypes;
+
+    setAttr defaultResolution.width 1280;
+    setAttr defaultResolution.height 720;
+    setAttr ($shape+".displayResolution") 1;
+
+    xform -rotation -35 25 0 -translation 3 9 10 $transform;
+}
+
+// print(`maya2glTF_getScenePaths "c:/dev/glTF/Maya2glTF/maya" 1`);
+// maya2glTF_renderFrames("c:/temp/playblast", 640, 480, 1);
+// maya2glTF_forEachSceneIn(`workspace -q -active`, true, true, "maya2glTF_createDefaultCamera();");
+//maya2glTF_forEachSceneIn("C:/dev/glTF/Maya2glTF/maya", true, false,"python(\"from maya2glTF_playblast import playblast\\nplayblast()\")");
+
+// maya2glTF_renderFrames("c:/temp/playblast", 640, 480, 1);
 

@@ -2,5 +2,7 @@
 build
 packages
 export
+playblast
 *.bck
 *.swatch
+*.pyc
