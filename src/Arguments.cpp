@@ -605,6 +605,15 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
         return left.startTime < right.endTime;
     });
 
+    // Print the animation clips
+    for (const auto& clip: animationClips)
+    {
+        cout << prefix << "Exporting clip " << clip.name <<
+            ", start:" << clip.startTime << ", end: " << clip.endTime <<
+            ", duration:" << clip.duration() << ", frames: " << clip.frameCount() <<
+            ", rate: " << clip.framesPerSecond << "fps" << endl;
+    }
+
     // Get cameras to export
     MSelectionList cameraList;
     adb.optional(flag::cameras, cameraList);
@@ -752,4 +761,3 @@ void Arguments::select(Selection& selection, const MDagPath& dagPath, const bool
         }
     }
 }
-

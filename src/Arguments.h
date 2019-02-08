@@ -53,12 +53,12 @@ struct AnimClipArg
 
 	MTime duration() const
 	{
-		return endTime - startTime;
+		return (endTime - startTime) + MTime(1.0/framesPerSecond, MTime::kSeconds);
 	}
 
 	int frameCount() const
 	{
-		return static_cast<int>(ceil(duration().as(MTime::kSeconds) * framesPerSecond));
+		return static_cast<int>(round(duration().as(MTime::kSeconds) * framesPerSecond));
 	}
 };
 
