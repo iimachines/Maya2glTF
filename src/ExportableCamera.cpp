@@ -18,29 +18,18 @@ ExportableCamera::ExportableCamera(
     // NOTE: We leave the aspect ratio undefined, so GLTF adapts to the viewport
     // https://github.com/KhronosGroup/glTF/issues/1292
 
-#if 0
-    auto aspectRatio = 1.0f;
-
-    // Determine aspect ratio from resolution.
+    // Get resolution to find correct field of view.
     MSelectionList sl;
     sl.add(":defaultResolution");
 
     MObject defaultResolutionNode;
     status = sl.getDependNode(0, defaultResolutionNode);
 
-    if (status)
-    {
-        float width;
-        float height;
-        const auto hasWidth = DagHelper::getPlugValue(defaultResolutionNode, "width", width);
-        const auto hasHeight = DagHelper::getPlugValue(defaultResolutionNode, "height", height);
+    int width;
+    int height;
 
-        if (hasWidth && hasHeight)
-        {
-            aspectRatio = width / height;
-        }
-    }
-#endif
+    const auto hasWidth = !defaultResolutionNode.isNull() && DagHelper::getPlugValue(defaultResolutionNode, "width", width);
+    const auto hasHeight = !defaultResolutionNode.isNull() && DagHelper::getPlugValue(defaultResolutionNode, "height", height);
 
     auto& resources = scene.resources();
     auto& args = resources.arguments();
@@ -50,8 +39,12 @@ ExportableCamera::ExportableCamera(
     MFnCamera camera(shapeDagPath, &status);
     THROW_ON_FAILURE(status);
 
+    double hFov;
+    double vFov;
+    THROW_ON_FAILURE(camera.getPortFieldOfView(hasWidth ? width : 1920, hasHeight ? height : 1080, hFov, vFov));
+
     auto perspectiveCamera = std::make_unique< GLTF::CameraPerspective>();
-    perspectiveCamera->yfov = float(camera.verticalFieldOfView(&status));
+    perspectiveCamera->yfov = float(vFov);
     THROW_ON_FAILURE(status);
 
     perspectiveCamera->aspectRatio = 0; // 0 = undefined, adapt to viewport at runtime
