@@ -464,9 +464,18 @@ xcopy /y /s /i "$(ProjectDir)maya\renderData\*.*" "$(userprofile)\Documents\Maya
     <None Include="LICENSE" />
     <None Include="maya\mel\test-iteration.mel" />
     <None Include="maya\renderData\shaders\glTF_PBR.ogsfx" />
+    <None Include="maya\scripts\maya2glTF_archiveAllScenes.py" />
     <None Include="maya\scripts\maya2glTF_assignPbrShader.mel" />
+    <None Include="maya\scripts\maya2glTF_capture.py" />
+    <None Include="maya\scripts\maya2glTF_clearOutputWin.py" />
+    <None Include="maya\scripts\maya2glTF_common.mel" />
     <None Include="maya\scripts\maya2glTF_createPbrSpheres.mel" />
     <None Include="maya\scripts\maya2glTF_exportAllScenes.mel" />
+    <None Include="maya\scripts\maya2glTF_exportClipScenes.bat" />
+    <None Include="maya\scripts\maya2glTF_exportClipScenes.mel" />
+    <None Include="maya\scripts\maya2glTF_pasteKeyInScenes.mel" />
+    <None Include="maya\scripts\maya2glTF_playblast.py" />
+    <None Include="maya\scripts\maya2glTF_playblastClipScenes.mel" />
     <None Include="maya\scripts\maya2glTF_UI.mel" />
     <None Include="maya\scripts\test-iteration.mel" />
     <None Include="packages.config" />
@@ -475,7 +484,7 @@ xcopy /y /s /i "$(ProjectDir)maya\renderData\*.*" "$(userprofile)\Documents\Maya
     <None Include="mel\test-iteration.mel" />
   </ItemGroup>
   <ItemGroup>
-   <ClInclude Include="src\ExportableCamera.h" />
+    <ClInclude Include="src\ExportableCamera.h" />
     <ClInclude Include="src\AccessorPacker.h" />
     <ClInclude Include="src\milo.h" />
     <ClInclude Include="src\OutputWindow.h" />

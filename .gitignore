@@ -2,7 +2,7 @@
 build
 packages
 export
-playblast
+playblast*
 *.bck
 *.swatch
 *.pyc

@@ -1,0 +1,341 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="src\mikktspace.c" />
+    <ClCompile Include="src\AccessorPacker.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Arguments.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\color.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DagHelper.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dump.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ExportableAsset.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ExportableCamera.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ExportableClip.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ExportableFrames.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ExportableItem.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ExportableMaterial.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ExportableMesh.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ExportableNode.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ExportableObject.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ExportablePrimitive.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ExportableResources.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ExportableScene.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ExportableTexture.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Exporter.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\externals.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\IndentableStream.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MayaException.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MayaUtils.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Mesh.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MeshBlendShapeWeights.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MeshIndices.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MeshRenderables.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MeshSemantics.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MeshShape.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MeshSkeleton.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\MeshVertices.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NodeAnimation.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\OutputWindow.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\plugin.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\progress.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\sceneTypes.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ShapeIndex.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SignalHandlers.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Transform.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\version.cpp">
+      <Filter>plugin</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\AccessorPacker.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\accessors.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Arguments.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\basicTypes.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\color.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DagHelper.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\dump.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ExportableAsset.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ExportableCamera.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ExportableClip.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ExportableFrames.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ExportableItem.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ExportableMaterial.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ExportableMesh.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ExportableNode.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ExportableObject.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ExportablePrimitive.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ExportableResources.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ExportableScene.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ExportableTexture.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Exporter.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\externals.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hashers.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\IndentableStream.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\macros.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MayaException.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MayaUtils.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Mesh.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MeshBlendShapeWeights.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MeshIndices.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MeshRenderables.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MeshSemantics.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MeshShape.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MeshSkeleton.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\MeshVertices.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mikktspace.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\milo.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NodeAnimation.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\OutputStreamsPatch.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\OutputWindow.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\picosha2.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\progress.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PropAnimation.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\sceneTypes.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ShapeIndex.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\SignalHandlers.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\spans.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\timeControl.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Transform.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\version.h">
+      <Filter>plugin</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".gitignore" />
+    <None Include="LICENSE" />
+    <None Include="maya\mel\test-iteration.mel" />
+    <None Include="maya\renderData\shaders\glTF_PBR.ogsfx" />
+    <None Include="packages.config" />
+    <None Include="Readme.md" />
+    <None Include="mel\test-iteration.mel" />
+    <None Include="mel\create-PBR-spheres.mel">
+      <Filter>scripts</Filter>
+    </None>
+    <None Include="maya\scripts\maya2glTF_assignPbrShader.mel">
+      <Filter>scripts</Filter>
+    </None>
+    <None Include="maya\scripts\maya2glTF_common.mel">
+      <Filter>scripts</Filter>
+    </None>
+    <None Include="maya\scripts\maya2glTF_createPbrSpheres.mel">
+      <Filter>scripts</Filter>
+    </None>
+    <None Include="maya\scripts\maya2glTF_exportAllScenes.mel">
+      <Filter>scripts</Filter>
+    </None>
+    <None Include="maya\scripts\maya2glTF_exportClipScenes.mel">
+      <Filter>scripts</Filter>
+    </None>
+    <None Include="maya\scripts\maya2glTF_pasteKeyInScenes.mel">
+      <Filter>scripts</Filter>
+    </None>
+    <None Include="maya\scripts\maya2glTF_playblastClipScenes.mel">
+      <Filter>scripts</Filter>
+    </None>
+    <None Include="maya\scripts\maya2glTF_UI.mel">
+      <Filter>scripts</Filter>
+    </None>
+    <None Include="maya\scripts\test-iteration.mel">
+      <Filter>scripts</Filter>
+    </None>
+    <None Include="maya\scripts\maya2glTF_archiveAllScenes.py">
+      <Filter>scripts</Filter>
+    </None>
+    <None Include="maya\scripts\maya2glTF_capture.py">
+      <Filter>scripts</Filter>
+    </None>
+    <None Include="maya\scripts\maya2glTF_clearOutputWin.py">
+      <Filter>scripts</Filter>
+    </None>
+    <None Include="maya\scripts\maya2glTF_exportClipScenes.bat">
+      <Filter>scripts</Filter>
+    </None>
+    <None Include="maya\scripts\maya2glTF_playblast.py">
+      <Filter>scripts</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="plugin">
+      <UniqueIdentifier>{3f56c35d-0959-4e6e-bb28-2b722f2bb2da}</UniqueIdentifier>
+      <Extensions>.h;.cpp;.inl</Extensions>
+    </Filter>
+    <Filter Include="scripts">
+      <UniqueIdentifier>{f0374df0-13d0-4944-aed7-7823a9bc3232}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
