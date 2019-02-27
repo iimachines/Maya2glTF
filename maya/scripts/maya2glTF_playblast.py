@@ -24,12 +24,13 @@ def playblast(
     height=720, 
     format='image',
     compression='png', 
-    overwrite=True):
+    overwrite=True,
+    frame=None):
 
     scenename = cmds.file(q=1, sceneName=True, shortName=True)
 
     filename = filename or defaultPlayblastFilename(scenename)
-    frame = None if "anim" in scenename.lower() else 1
+    # frame = None if "anim" in scenename.lower() else 1
 
     capture(
         camera=camera,

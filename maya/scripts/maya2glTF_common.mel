@@ -1,3 +1,5 @@
+global int $maya2glTF_setupKeyFrame = -1000;
+
 global proc maya2glTF_exportProgressUI(int $max) {
     // This is defined on maya startup
     global string $gMainProgressBar;  
@@ -11,6 +13,12 @@ global proc maya2glTF_exportProgressUI(int $max) {
         -minValue 0
         -maxValue $max
         $gMainProgressBar;
+}
+
+global proc maya2glTF_teardownProgressUI() {
+    // This is defined on maya startup
+    global string $gMainProgressBar;  
+    progressBar -edit -endProgress $gMainProgressBar;
 }
 
 // Returns -1 if abortion is requested
@@ -235,19 +243,61 @@ global proc maya2glTF_renderFrames(string $exportImagePath, int $width, int $hei
     }
 }
 
-global proc maya2glTF_exportPlayblastScene() {
+global proc maya2glTF_copyMasterKey() 
+{
+    global int $maya2glTF_setupKeyFrame;
+    int $setupKeyFrame = $maya2glTF_setupKeyFrame;
+
+    // Create a key for all controllers, and copy to the API clipboard
+    string $controllers[] = `listTransforms "-type nurbsCurve"`;
+
+    if (size($controllers) > 0) {
+        select -r $controllers;
+        setKeyframe -breakdown 0 -hierarchy none -controlPoints 0 -shape 0 -time $setupKeyFrame;
+        copyKey -clipboard "api" -shape 0 -time $setupKeyFrame;
+    } else {
+        error "Scene doesn't contain any controllers";
+    }
+}
+
+global proc maya2glTF_pasteMasterKey()
+{
+    global int $maya2glTF_setupKeyFrame;
+    int $setupKeyFrame = $maya2glTF_setupKeyFrame;
+
+    string $controllers[] =  `listTransforms "-type nurbsCurve"`;
+
+    if (size($controllers) > 0) {
+        select -r $controllers;
+        pasteKey -clipboard "api" -time $setupKeyFrame;
+    } else {
+        warning "Scene doesn't contain any controllers";
+    }
+}
+
+global proc maya2glTF_exportPlayblastScene() 
+{
+    global int $maya2glTF_setupKeyFrame;
+    int $setupKeyFrame = $maya2glTF_setupKeyFrame;
 
     string $rootFolder = `workspace -q -active`;
     string $scenePath = `file -q -sn`;
     string $filename = `basenameEx $scenePath`;
 
-    int $exportAnim = match("anim",tolower($filename)) == "anim";
+    //int $exportAnim = match("anim",tolower($filename)) == "anim";
+    int $exportAnim = 1;
+
+    if ($exportAnim) {
+        maya2glTF_pasteMasterKey();
+    }
 
     print ("Exporting " + $filename + ($exportAnim ? " with" : " without") + " animation...\n");
 
     string $playblastFolder = maya2glTF_combinePaths($rootFolder, "playblast");
-    string $exportFolder = maya2glTF_combinePaths($playblastFolder, $filename);
-    string $outputFolder = maya2glTF_combinePaths($exportFolder, "gltf");
+    //string $exportFolder = maya2glTF_combinePaths($playblastFolder, $filename);
+    //string $outputFolder = maya2glTF_combinePaths($exportFolder, "gltf");
+    string $exportFolder = maya2glTF_combinePaths($playblastFolder, "gltf3");
+    string $outputFolder = $exportFolder;
 
     select -r `ls -v -type mesh -ap`;
 
@@ -256,8 +306,8 @@ global proc maya2glTF_exportPlayblastScene() {
 	$fps = `currentTimeUnitToFPS`;
 
     if ($exportAnim 
-            ? catch(`maya2glTF -cam "camera1" -mts -acn "clip" -ast $min -aet $max -afr $fps -outputFolder $outputFolder`) 
-            : catch(`maya2glTF -cam "camera1" -mts -outputFolder $outputFolder`)) {
+            ? catch(`maya2glTF -cam "camera1" -ivt $setupKeyFrame -mts -sma -hbu -sbr -acn "clip" -ast $min -aet $max -afr $fps -outputFolder $outputFolder`) 
+            : catch(`maya2glTF -cam "camera1" -ivt $setupKeyFrame -mts -sma -hbu -sbr -outputFolder $outputFolder`)) {
         print ("*** Exporting "+$filename+" failed! :-( ***\n");
     } else {
         print ("Exporting "+$filename+" succeeded\n");
@@ -280,12 +330,42 @@ global proc maya2glTF_createDefaultCamera() {
     updateModelPanelBar MainPane|viewPanes|modelPanel4|modelPanel4|modelPanel4;
     dR_setModelEditorTypes;
 
+    modelEditor -e -displayTextures true modelPanel4;    
+
     setAttr defaultResolution.width 1280;
     setAttr defaultResolution.height 720;
     setAttr ($shape+".displayResolution") 1;
 
-    xform -rotation -35 25 0 -translation 3 9 10 $transform;
+    setAttr ($shape+".nearClipPlane") 100;
+    setAttr ($shape+".farClipPlane") 10000;
+
+    xform -rotation -15 10 0 -translation 130 300 700 $transform;
+    //xform -rotation -35 25 0 -translation 3 9 10 $transform;
+
+    //file -loadReferenceDepth "asPrefs" -loadReference "Nova_rigRN" "D:/Productions/024_WM_TheRecyclables/03_Production/08_shading/Nova/Nova_rig.ma";
+
+    //python("from maya2glTF_playblast import playblast\nplayblast(frame=None)");    
 }
+
+global proc maya2glTF_playblast() {
+
+    // Hide all templated objects
+    string $layers[] = `ls -type displayLayer`;
+    for ($layer in $layers)
+    {
+        if (getAttr($layer+".displayType") == 1 && getAttr($layer+".visibility"))
+        {
+            // gather the items that are connected to the layer
+            string $conns[] = `listConnections -d 1 -s 0 ($layer+".drawInfo")`;
+            string $shapes[] = `ls -dag -type mesh -visible $conns`;
+            hide $shapes;
+        }
+    }
+
+    // Playblast
+    python("from maya2glTF_playblast import playblast\nplayblast(frame=None,compression='tga',width=640,height=360)");    
+}
+
 
 // print(`maya2glTF_getScenePaths "c:/dev/glTF/Maya2glTF/maya" 1`);
 // maya2glTF_renderFrames("c:/temp/playblast", 640, 480, 1);

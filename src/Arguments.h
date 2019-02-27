@@ -202,7 +202,7 @@ public:
     bool forceAnimationChannels = false;
 
     /** Use a hash of the buffer for its URI? Useful when exporting the same mesh buffer per animation scene */
-    bool hashBufferUri = false;
+    bool hashBufferURIs = false;
 
 	/** 
 	 * The time where the 'initial values' of all nodes are to be found (aka neutral base pose) 

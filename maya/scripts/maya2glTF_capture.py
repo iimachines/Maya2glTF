@@ -294,19 +294,19 @@ ViewportOptions = {
     "wireframeOnShaded": False,
     "displayAppearance": 'smoothShaded',
     "selectionHiliteDisplay": False,
-    "headsUpDisplay": True,
+    "headsUpDisplay": False,
     # object display
-    "imagePlane": True,
+    "imagePlane": False,
     "nurbsCurves": False,
     "nurbsSurfaces": False,
     "polymeshes": True,
     "subdivSurfaces": False,
-    "planes": True,
+    "planes": False,
     "cameras": False,
-    "controlVertices": True,
+    "controlVertices": False,
     "lights": False,
     "grid": False,
-    "hulls": True,
+    "hulls": False,
     "joints": False,
     "ikHandles": False,
     "deformers": False,
@@ -355,7 +355,9 @@ Viewport2Options = {
     "transparencyAlgorithm": 1,
     "transparencyQuality": 0.33,
     "useMaximumHardwareLights": True,
-    "vertexAnimationCache": 0
+    "vertexAnimationCache": 0,
+    "multiSampleEnable": True,
+    "multiSampleCount": 16
 }
 
 

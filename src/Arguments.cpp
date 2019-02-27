@@ -70,7 +70,7 @@ namespace flag
 
     const auto forceAnimationChannels = "fac";
 
-    const auto hashBufferUri = "hbu";
+    const auto hashBufferURIs = "hbu";
 
     const auto dumpAccessorComponents = "dac";
 
@@ -177,7 +177,7 @@ SyntaxFactory::SyntaxFactory()
     registerFlag(ss, flag::bakeScalingFactor, "bakeScalingFactor", kNoArg);
     registerFlag(ss, flag::forceRootNode, "forceRootNode", kNoArg);
     registerFlag(ss, flag::forceAnimationChannels, "forceAnimationChannels", kNoArg);
-    registerFlag(ss, flag::hashBufferUri, "hashBufferUri", kNoArg);
+    registerFlag(ss, flag::hashBufferURIs, "hashBufferUri", kNoArg);
     registerFlag(ss, flag::niceBufferURIs, "niceBufferNames", kNoArg);
 
     registerFlag(ss, flag::convertUnsupportedImages, "convertUnsupportedImages", kNoArg);
@@ -523,7 +523,7 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
     bakeScalingFactor = adb.isFlagSet(flag::bakeScalingFactor);
     forceRootNode = adb.isFlagSet(flag::forceRootNode);
     forceAnimationChannels = adb.isFlagSet(flag::forceAnimationChannels);
-    hashBufferUri = adb.isFlagSet(flag::hashBufferUri);
+    hashBufferURIs = adb.isFlagSet(flag::hashBufferURIs);
     niceBufferURIs = adb.isFlagSet(flag::niceBufferURIs);
     convertUnsupportedImages = adb.isFlagSet(flag::convertUnsupportedImages);
     reportSkewedInverseBindMatrices = adb.isFlagSet(flag::reportSkewedInverseBindMatrices);

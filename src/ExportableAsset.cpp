@@ -136,7 +136,10 @@ ExportableAsset::ExportableAsset(const Arguments& args)
     }
 }
 
-ExportableAsset::~ExportableAsset() = default;
+ExportableAsset::~ExportableAsset()
+{
+    uiTeardownProgress();
+}
 
 ExportableAsset::Cleanup::Cleanup()
     :currentTime{ MAnimControl::currentTime() }
@@ -298,7 +301,7 @@ void ExportableAsset::save()
         }
     }
 
-    if (args.hashBufferUri)
+    if (args.hashBufferURIs)
     {
         // Generate hash buffer URIs 
         for (const auto& pair : packedBufferMap)

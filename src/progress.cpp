@@ -15,3 +15,8 @@ void uiAdvanceProgress(const std::string& stepName)
 		throw std::runtime_error("Aborted!");
 }
 
+void uiTeardownProgress()
+{
+    MGlobal::executeCommand("maya2glTF_teardownProgressUI();");
+}
+
