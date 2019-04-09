@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef OSMac_
+#ifndef _WIN32
 typedef void (*_crt_signal_t) (int);
 #endif
 
