@@ -191,9 +191,10 @@ struct VertexHashers
 	std::size_t operator()(const VertexElementData& elems) const
 	{
 		size_t seed = 0x26DFB62C;
+		std::hash<char> hash_fn;
 		for (auto& elem : elems)
 		{
-			seed ^= (seed << 6) + (seed >> 2) + 0x3C2E6B88 + std::hash_value(elem);
+			seed ^= (seed << 6) + (seed >> 2) + 0x3C2E6B88 + hash_fn(elem);
 		}
 		return seed;
 	}
