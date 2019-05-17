@@ -122,6 +122,7 @@
     <ClCompile Include="src\version.cpp">
       <Filter>plugin</Filter>
     </ClCompile>
+    <ClCompile Include="src\PolarDecomposition.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\AccessorPacker.h">
@@ -274,6 +275,7 @@
     <ClInclude Include="src\version.h">
       <Filter>plugin</Filter>
     </ClInclude>
+    <ClInclude Include="src\PolarDecomposition.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />

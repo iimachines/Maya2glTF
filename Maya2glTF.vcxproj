@@ -403,6 +403,14 @@ xcopy /y /s /i "$(ProjectDir)maya\renderData\*.*" "$(userprofile)\Documents\Maya
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\PolarDecomposition.c">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2017-Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2016_EXT2-Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2016_EXT2-Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2017-Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2018-Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2018-Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="src\AccessorPacker.cpp" />
     <ClCompile Include="src\OutputWindow.cpp" />
     <ClCompile Include="src\ExportableCamera.cpp" />
@@ -484,6 +492,7 @@ xcopy /y /s /i "$(ProjectDir)maya\renderData\*.*" "$(userprofile)\Documents\Maya
     <None Include="mel\test-iteration.mel" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\PolarDecomposition.h" />
     <ClInclude Include="src\ExportableCamera.h" />
     <ClInclude Include="src\AccessorPacker.h" />
     <ClInclude Include="src\milo.h" />
