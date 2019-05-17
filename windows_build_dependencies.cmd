@@ -1,5 +1,14 @@
 @echo off
 
+echo Synching all submodules...
+git submodule update --init --recursive
+if %errorlevel% GTR 0 goto fail
+
+echo Pulling all large files...
+git lfs pull
+git submodule foreach --recursive "git lfs pull"
+if %errorlevel% GTR 0 goto fail
+
 echo Creating GLTF build folder...
 cd /d %~dp0/dependencies\COLLADA2GLTF\GLTF
 if errorlevel 1 goto fail
