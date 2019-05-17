@@ -378,6 +378,8 @@ I consider this plugin to be production quality now, but use it at your own risk
     - blend-shape or skin-cluster deformers to be ignored
     - by default no deformers are ignored
     - use this if you have deformers that are used to generate different characters, but not for animation
+	- you can also add the custom attribute `Maya2glTF_ignored` (short name `MGi`) to the deformer to ignore it.
+		- to `maya2glTF_UI` has a button to add this attribute to the selected deformer(s)
 
   - `-skipSkinClusters (-ssc)` _(optional)_
 
