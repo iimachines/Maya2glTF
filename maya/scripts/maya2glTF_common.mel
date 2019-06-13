@@ -1,5 +1,23 @@
 global int $maya2glTF_setupKeyFrame = -1000;
 
+global proc float maya2glTF_timeUnitToSeconds() 
+{
+	float $fps = `currentTimeUnitToFPS`;
+
+	if ($fps != 0)
+		return 1.0/$fps;
+
+	string $unit = `currentUnit -q -time`;
+	switch ($unit) 
+	{
+		case "hour": return 60*60;
+		case "min": return 60;
+		case "sec": return 1;
+		case "millisec": return 1.0/1000;
+		default: error ("Maya2glTF: Unsupported time unit "+$unit);
+	}
+}
+
 global proc maya2glTF_exportProgressUI(int $max) {
     // This is defined on maya startup
     global string $gMainProgressBar;  

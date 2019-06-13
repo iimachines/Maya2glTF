@@ -1,3 +1,5 @@
+source "maya2glTF_animachine.mel";
+
 global string $maya2glTF_tempFolder = "C:/temp/maya2glTF_tests";
 
 proc string _ensureTrailingSlash( string $folderPath ) {
@@ -139,5 +141,20 @@ global proc maya2glTF_exportAllScenes() {
     loadPlugin -ac maya2glTF_exportAllScenes_callback  "maya2glTF";
 }
 
-//maya2glTF_exportAllScenes;
+global proc maya2glTF_defaultSceneAnimMetaDataToJSON(string $outputFolder) {
+    string $name = basenameEx(`file -q -sceneName -shortName`);
+    string $json = maya2glTF_sceneAnimMetaDataToJSON($name, "", false);
+
+    string $outputName = $name+".json";
+    string $outputPath = _combinePaths($outputFolder, $outputName);
+    int $fileId=`fopen $outputPath "w"`;
+    fprint $fileId $json;
+    fclose $fileId;   
+}
+
+{
+    // maya2glTF_exportAllScenes;
+    // maya2glTF_forEachSceneIn("D:/nova/scenes", false, false, "maya2glTF_defaultSceneAnimMetaDataToJSON(\"D:/nova/export/Meta\")");
+    // maya2glTF_defaultSceneAnimMetaDataToJSON("D:/nova/export/Meta");
+}
 

@@ -1,0 +1,232 @@
+source "maya2glTF_common.mel";
+
+proc string _quoted(string $text)
+{
+    string $quote = "\"";
+    return $quote+$text+$quote;
+}
+
+proc string _quotedOrNull(string $text)
+{
+    return size($text) ? _quoted($text): "null";
+}
+
+proc string[] _itosa(int $val)
+{
+	string $si = $val;
+	return {$si};
+}
+
+proc string _itos(int $val)
+{
+	string $si = $val;
+	return $si;
+}
+
+proc string _identString(int $level) {
+    int $t;
+    string $result = "";
+    for ($t = 0; $t < $level; $t++)
+    {
+        $result += "\t";
+    }    
+    return $result;
+}
+
+proc _replaceItem(string $oldName, string $newName, string $names[]) {
+	int $index = stringArrayFind($oldName, 0, $names);	
+	if ($index >= 0) {
+		$names[$index] = $newName;
+	}
+}
+
+// Returns { $name, $kind, $mood, $postPlaybackMood };
+proc string[] _parseClipName(string $clipName, int $removePrefixFromClipName)
+{
+    string $CLIP_KIND_IDLE = "Idle";
+    string $CLIP_KIND_PUPPETEER = "Puppeteer";
+    string $CLIP_KIND_VISEMES = "Visemes";
+    string $CLIP_KIND_PANHEAD = "PanHead";
+    string $CLIP_KIND_TILTHEAD = "TiltHead";
+    string $CLIP_KIND_SETUP  = "Setup";
+
+	// Build human friendly name
+	string $tokens[] = {};
+	tokenize(tolower($clipName),"_",$tokens);
+
+    if ($removePrefixFromClipName) {
+        stringArrayRemoveAtIndex(0, $tokens);
+    }
+
+	// To remain backwards compatible, rename the old idle moods
+	_replaceItem("z", "neutral", $tokens);
+	_replaceItem("p", "positive", $tokens);
+	_replaceItem("n", "negative", $tokens);
+
+	string $name = stringArrayToString($tokens, " ");
+
+	string $kind = $CLIP_KIND_PUPPETEER;
+
+	// By default a clip has no starting mood
+	string $mood = "";
+
+    // By default a clip has no ending mood.
+	string $postPlaybackMood = "";
+
+	if (stringArrayContains("setup", $tokens))
+	{
+		$kind = $CLIP_KIND_SETUP;
+	}
+	else if (stringArrayContains("visemes", $tokens))
+	{
+		$kind = $CLIP_KIND_VISEMES;
+	}
+	else if (stringArrayContains("head", $tokens) && stringArrayContains("up", $tokens) && stringArrayContains("down", $tokens))
+	{
+		$kind = $CLIP_KIND_TILTHEAD;
+	}
+	else if (stringArrayContains("head", $tokens) && stringArrayContains("right", $tokens) && stringArrayContains("left", $tokens))
+	{
+		$kind = $CLIP_KIND_PANHEAD;
+	}
+	else if (size($tokens) > 1 && startsWith($tokens[0], "idle"))
+	{
+		$kind = $CLIP_KIND_IDLE;
+		stringArrayRemoveAtIndex(0, $tokens);
+		$mood = stringArrayToString($tokens, " ");
+	}
+	else 
+	{
+		// Puppeteer clip
+		if (`attributeExists "wmanPostPlaybackMood" $clipName`) 
+		{
+			$postPlaybackMood = `getAttr ($clipName+".wmanPostPlaybackMood")`;
+		}
+	}
+	
+    string $result[] = { $name, $kind, $mood, $postPlaybackMood };
+    
+    return $result;
+}
+
+proc string _getAnimMetaData(string $animationName, string $attributes[], float $duration, string $indent) {
+    string $result = "";
+    $result += $indent + _quoted($animationName) + ": {\n";
+    $result += $indent + "\t\"version\": 1,\n";
+    $result += $indent + "\t\"name\": " + _quoted($attributes[0]) + ",\n";
+    $result += $indent + "\t\"kind\": " + _quoted($attributes[1]) + ",\n";
+    $result += $indent + "\t\"mood\": " + _quotedOrNull($attributes[2]) + ",\n";
+    $result += $indent + "\t\"postPlaybackMood\": " + _quotedOrNull($attributes[3]) + ",\n";
+    $result += $indent + "\t\"duration\": " + $duration + "\n";
+    $result += $indent + "}";
+
+    return $result;
+}
+
+/** 
+    Exports the animation metadata of the current scene. 
+    
+    For now, the $sceneName will be parsed like WonderMedia's AnimationNow software, to extract the clip mood, kind etc.
+    This should be replaced by custom attributes one day.
+
+    The $clipName is the human friendly name of the clip. 
+    If empty, it will be parsed from the scene name, removing the first word of the scene name (assuming naming like Nova_Yes)
+*/
+global proc string maya2glTF_sceneAnimMetaDataToJSON(string $sceneName, string $clipName, int $useRangeSlider)
+{
+	float $clipDurationToSeconds = maya2glTF_timeUnitToSeconds();
+
+    float $timeStart = $useRangeSlider ? `playbackOptions -q -min` : `playbackOptions -q -ast`;
+    float $timeEnd = $useRangeSlider ? `playbackOptions -q -max` : `playbackOptions -q -aet`;
+
+    float  $duration = ($timeEnd - $timeStart) * $clipDurationToSeconds;
+
+    int $hasClipName = size($clipName) > 0;
+
+    string $attributes[] = _parseClipName($sceneName, !$hasClipName);
+
+    if ($hasClipName) {
+        $attributes[0] = $clipName;
+    }
+
+    string $result = "{\n";
+    $result += _getAnimMetaData($sceneName, $attributes, $duration, "\t");
+    $result += "\n";
+    $result += "}\n";
+
+    return $result;
+}
+
+
+global proc string maya2glTF_traxAnimMetaDataToJSON(string $charName)
+{
+	float $clipDurationToSeconds = maya2glTF_timeUnitToSeconds();
+
+    // Get character's clip scheduler
+    string $scheduler = `character -q -sc $charName`;
+
+    // Get all clips in the scheduler
+    string $clips[] = `clipSchedule -q -ci $scheduler`;
+
+    // Generate JSON 
+    string $result = "{\n";
+    $result += "\t\"version\": 1,\n";
+    $result += "\t\"name\":" + $charName + ",\n";
+    $result += "\t\"clips\": {";
+
+    string $lineSeparator = "\n";
+
+    string $clip;
+    for($clip in $clips ) {
+        // (clipName,index,start,sourceStart,sourceEnd,scale,preCycle,postCycle) 
+        string $parts[] = stringToStringArray($clip,",");
+        string $clipName = $parts[0];
+        int $clipIndex = $parts[1];
+        float $timeStart = $parts[2];
+        float $sourceStart = $parts[3];
+        float $sourceEnd = $parts[4];
+        float $scale = $parts[5];
+        float $timeEnd = $timeStart + ($sourceEnd-$sourceStart)*$scale;
+        int $clipEnabled = `clipSchedule -clipIndex $clipIndex -q -enable $scheduler`;
+        int $trackIndex = `clipSchedule -clipIndex $clipIndex -q -track $scheduler`;
+        // HACK: We export enabled clips from the top track, to allow other tracks to contain adjusting clips 
+        if($clipEnabled && $trackIndex == 1) {
+            float $duration = ($timeEnd - $timeStart) * $clipDurationToSeconds;
+            string $attributes[] = _parseClipName($clipName, false);
+            $result += $lineSeparator;
+            $result += _getAnimMetaData($clipName,$attributes, $duration, "\t\t");
+            $lineSeparator = ",\n";
+        } 
+    }
+
+    $result += "\n\t}\n";
+    $result += "}\n";
+
+    return $result;
+}
+
+global proc int maya2glTF_canAddPostPlaybackMoodAttr() 
+{
+    string $sel[] = `ls -sl`;
+    string $clips[] = `ls -exactType "animClip" $sel`;
+	return size($clips) > 0;
+}
+
+global proc maya2glTF_addPostPlaybackMoodAttr()
+{
+    string $sel[] = `ls -sl`;
+    string $clips[] = `ls -exactType "animClip" $sel`;
+
+	for ($clip in $clips)
+	{
+		if (!`attributeExists "wmanPostPlaybackMood" $clip`) 
+		{
+			addAttr -ln "wmanPostPlaybackMood" -nn "Post playback mood" -dt "string" -storable 1 -keyable 0 $clip;
+		}
+	}
+}
+
+{
+    //print(maya2glTF_sceneAnimMetaDataToJSON("Nova_Yes2", "", true));
+    // print(maya2glTF_traxAnimMetaDataToJSON("Nova1"));
+}

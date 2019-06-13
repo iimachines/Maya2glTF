@@ -6,9 +6,15 @@ proc string _quoted(string $text)
     return $quote+$text+$quote;
 }
 
-proc string _terminateWithSlash(string $folder)
+proc string _ensureTrailingSlash(string $folder)
 {
     return $folder + (endsWith($folder,"/") ? "" : "/");
+}
+
+proc string _combinePaths(string $path1, string $path2) {
+    return size($path1) == 0
+     ? $path2
+     : _ensureTrailingSlash($path1)+$path2;
 }
 
 proc string _ensureScriptNode() {
@@ -153,7 +159,7 @@ global proc maya2glTF_onExport
 
     string $copyright = `textFieldGrp -q -fileName $copyrightFLD`; 
     string $folder = `textFieldGrp -q -fileName $folderFLD`;
-    $folder = _terminateWithSlash($folder);
+    $folder = _ensureTrailingSlash($folder);
     string $sceneName = `textFieldGrp -q -text $sceneNameFLD`;
     float $scale = `floatFieldGrp -q -value1 $scaleFLD`;
     string $flags = `textFieldGrp -q -text $flagsFLD`;
@@ -174,6 +180,21 @@ global proc maya2glTF_onExport
     _setStr("clip", $clip);
     _setInt("selOnly", $selOnly);
     _setInt("visOnly", $visOnly);
+
+    // Export animation metadata
+    // TODO: Make this optional!
+    if ($anim > 1)
+    {
+        string $outputName = $sceneName+".json";
+        string $outputPath = _combinePaths($folder, $outputName);
+        string $json = $anim == 4 
+            ? maya2glTF_traxAnimMetaDataToJSON($char, false)
+            : maya2glTF_sceneAnimMetaDataToJSON($sceneName, $anim == 2, false);
+
+        int $fileId=`fopen $outputPath "w"`;
+        fprint $fileId $json;
+        fclose $fileId;   
+    }
 
     switch ($anim) 
     {
@@ -239,7 +260,7 @@ proc string _getDefaultOutputFolder() {
     string $scenePath = `file -q -loc`;
     string $sceneDir = dirname($scenePath);
     string $actualDir = size($sceneDir) == 0 ? `getenv "MAYA_APP_DIR"` : $sceneDir;
-    return  _terminateWithSlash($actualDir)+"export/";
+    return  _ensureTrailingSlash($actualDir)+"export/";
 }
 
 proc string _getDefaultSceneName() {
@@ -258,7 +279,7 @@ global proc maya2glTF_UI()
     global string $gMainProgressBar;  
 
     // This is auto-updated by msbuild 
-    string $maya2glTF_version = "V0.9.10 c48bd3d";
+    string $maya2glTF_version = "V0.9.10 8740138";
 
     if (`window -exists maya2glTF_exporter_window`)
         deleteUI maya2glTF_exporter_window;
