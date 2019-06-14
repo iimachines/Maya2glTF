@@ -143,7 +143,7 @@ global proc maya2glTF_exportAllScenes() {
 
 global proc maya2glTF_defaultSceneAnimMetaDataToJSON(string $outputFolder) {
     string $name = basenameEx(`file -q -sceneName -shortName`);
-    string $json = maya2glTF_sceneAnimMetaDataToJSON($name, "", false);
+    string $json = maya2glTF_sceneAnimMetaDataToJSON($name, "", true);
 
     string $outputName = $name+".json";
     string $outputPath = _combinePaths($outputFolder, $outputName);

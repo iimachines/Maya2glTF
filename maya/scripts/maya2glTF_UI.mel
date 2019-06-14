@@ -1,4 +1,5 @@
 source "maya2glTF_common.mel";
+source "maya2glTF_animachine.mel";
 
 proc string _quoted(string $text)
 {
