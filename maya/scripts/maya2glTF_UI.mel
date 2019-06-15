@@ -189,7 +189,7 @@ global proc maya2glTF_onExport
         string $outputName = $sceneName+".json";
         string $outputPath = _combinePaths($folder, $outputName);
         string $json = $anim == 4 
-            ? maya2glTF_traxAnimMetaDataToJSON($char, false)
+            ? maya2glTF_traxAnimMetaDataToJSON($sceneName, $char)
             : maya2glTF_sceneAnimMetaDataToJSON($sceneName, $anim == 2, false);
 
         int $fileId=`fopen $outputPath "w"`;

@@ -154,7 +154,7 @@ global proc maya2glTF_defaultSceneAnimMetaDataToJSON(string $outputFolder) {
 
 {
     // maya2glTF_exportAllScenes;
-    // maya2glTF_forEachSceneIn("D:/nova/scenes", false, false, "maya2glTF_defaultSceneAnimMetaDataToJSON(\"D:/nova/export/Meta\")");
+    // maya2glTF_forEachSceneIn("D:/nova/scenes", false, false, "maya2glTF_defaultSceneAnimMetaDataToJSON(\"D:/nova/export/Anim\")");
     // maya2glTF_defaultSceneAnimMetaDataToJSON("D:/nova/export/Meta");
 }
 
