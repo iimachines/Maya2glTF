@@ -249,18 +249,6 @@ global proc maya2glTF_forEachSceneIn(string $folder, int $recursive, int $isModi
 }
 
 
-// Render to PNG images
-global proc maya2glTF_renderFrames(string $exportImagePath, int $width, int $height, int $duration) {
-    // optionVar -intValue playblastOverrideViewport true;
-    // showAllPlayblastObjects 0;
-    // optionVar -intValue playblastShowPolyMeshes true;
-
-    performPlayblast false;
-    if (catch(`playblast -startTime 1 -endTime $duration -format image -filename $exportImagePath -sequenceTime 0 -clearCache 1 -viewer 0 -showOrnaments 0 -offScreen  -fp 4 -percent 100 -compression "png" -quality 100 -widthHeight $width $height`)) {
-        warning "Some errors occurred while playblasting the scene";
-    }
-}
-
 global proc maya2glTF_copyMasterKey() 
 {
     global int $maya2glTF_setupKeyFrame;
@@ -332,40 +320,53 @@ global proc maya2glTF_exportPlayblastScene()
     } 
 }
 
-global proc maya2glTF_createDefaultCamera() {
-    if (`objExists camera1`) {
-        delete camera1;
+global proc string maya2glTF_createCamera(string $name, int $width, int $height) {
+    if (`objExists $name`) {
+        delete $name;
     }
 
+    // TODO: Figure out how to create a camera with a name
     string $camera[] = `camera -centerOfInterest 5 -focalLength 35 -lensSqueezeRatio 1 -cameraScale 1 -horizontalFilmAperture 1.4173 -horizontalFilmOffset 0 -verticalFilmAperture 0.9449 -verticalFilmOffset 0 -filmFit Fill -overscan 1 -motionBlur 0 -shutterAngle 144 -nearClipPlane 0.1 -farClipPlane 10000 -orthographic 0 -orthographicWidth 30 -panZoomEnabled 0 -horizontalPan 0 -verticalPan 0 -zoom 1`;
     string $transform = $camera[0];
     string $shape = $camera[1];
-    rename $transform "camera1";
 
     setNamedPanelLayout "Single Perspective View";
 
-    lookThroughModelPanel camera1 modelPanel4;
+    lookThroughModelPanel $transform modelPanel4;
     updateModelPanelBar MainPane|viewPanes|modelPanel4|modelPanel4|modelPanel4;
     dR_setModelEditorTypes;
 
     modelEditor -e -displayTextures true modelPanel4;    
 
-    setAttr defaultResolution.width 1280;
-    setAttr defaultResolution.height 720;
+    setAttr defaultResolution.width $width;
+    setAttr defaultResolution.height $height;
     setAttr ($shape+".displayResolution") 1;
 
     setAttr ($shape+".nearClipPlane") 1;
     setAttr ($shape+".farClipPlane") 10000;
 
+    rename $transform $name;
+
+    return $name;
+}
+
+global proc maya2glTF_createDefaultCamera() {
+    string $transform = maya2glTF_createCamera("camera1", 1280, 720);
     xform -rotation -8 0 0 -translation 0 270 1100 $transform;
     //xform -rotation -35 25 0 -translation 3 9 10 $transform;
 }
 
+global proc maya2glTF_createThumbnailCamera() {
+    string $transform = maya2glTF_createCamera("thumbcam", 256, 256);
+    print $transform;
+    xform -rotation -10 0 0 -translation 0 70 200 $transform;
+    //xform -rotation -35 25 0 -translation 3 9 10 $transform;
+}
+
+// maya2glTF_createThumbnailCamera();
+
+// python("from maya2glTF_playblast import playblast\nplayblast(camera='thumbcam')");
 
 // print(`maya2glTF_getScenePaths "c:/dev/glTF/Maya2glTF/maya" 1`);
-// maya2glTF_renderFrames("c:/temp/playblast", 640, 480, 1);
 // maya2glTF_forEachSceneIn(`workspace -q -active`, true, true, "maya2glTF_createDefaultCamera();");
 //maya2glTF_forEachSceneIn("C:/dev/glTF/Maya2glTF/maya", true, false,"python(\"from maya2glTF_playblast import playblast\\nplayblast()\")");
-
-// maya2glTF_renderFrames("c:/temp/playblast", 640, 480, 1);
-
