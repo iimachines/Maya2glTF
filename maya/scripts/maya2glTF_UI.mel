@@ -76,34 +76,17 @@ proc string _getStr(string $key, string $defaultValue) {
 }
 
 proc string _getTraxClips(string $char) {
+    float $startTimes[];
+    float $stopTimes[];
+    string $clipNames[];
+    int $clipCount = maya2glTF_addTraxClips($char, $startTimes, $stopTimes, $clipNames);
+
     string $fps = `currentTimeUnitToFPS`;
     string $flags = `format -s($fps) " -afr ^1s"`;
-    
-    // Get character's clip scheduler
-    string $scheduler = `character -q -sc $char`;
 
-    // Get all clips in the scheduler
-    string $clips[] = `clipSchedule -q -ci $scheduler`;
-
-    // Get enabled clips
-    string $clip;
-    for($clip in $clips )
-    {
-        // (clipName,index,start,sourceStart,sourceEnd,scale,preCycle,postCycle) 
-        string $parts[] = stringToStringArray($clip,",");
-        string $clipName = $parts[0];
-        int $clipIndex = $parts[1];
-        float $timeStart = $parts[2];
-        float $sourceStart = $parts[3];
-        float $sourceEnd = $parts[4];
-        float $scale = $parts[5];
-        float $timeEnd = $timeStart + ($sourceEnd-$sourceStart)*$scale;
-        int $clipEnabled = `clipSchedule -clipIndex $clipIndex -q -enable $scheduler`;
-        int $trackIndex = `clipSchedule -clipIndex $clipIndex -q -track $scheduler`;
-        // HACK: We export enabled clips from the top track, to allow other tracks to contain adjusting clips 
-        if($clipEnabled && $trackIndex == 1) {
-            $flags += `format -s(_quoted($clipName)) -s($timeStart) -s($timeEnd)" -acn ^1s -ast ^2s -aet ^3s"`;
-        } 
+    int $i;
+    for ($i=0; $i<$clipCount; ++$i) {
+        $flags += `format -s(_quoted($clipNames[$i])) -s($startTimes[$i]) -s($stopTimes[$i])" -acn ^1s -ast ^2s -aet ^3s"`;
     }
 
     print ($flags+"\n");

@@ -25,7 +25,8 @@ def playblast(
     format='image',
     compression='png', 
     overwrite=True,
-    frame=None):
+    start_frame=None,
+    end_frame=None):
 
     scenename = cmds.file(q=1, sceneName=True, shortName=True)
 
@@ -41,7 +42,9 @@ def playblast(
         filename=filename, 
         overwrite=overwrite,
         viewer=False,
-        frame=frame,
+        off_screen=True,
+        start_frame=start_frame,
+        end_frame=end_frame,
         maintain_aspect_ratio=False,
         viewport_options={
             "grid": False,

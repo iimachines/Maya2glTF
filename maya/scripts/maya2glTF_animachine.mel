@@ -161,13 +161,12 @@ global proc string maya2glTF_sceneAnimMetaDataToJSON(string $sceneName, string $
 
 global proc string maya2glTF_traxAnimMetaDataToJSON(string $modelId, string $charName)
 {
+    float $startTimes[];
+    float $stopTimes[];
+    string $clipNames[];
+    int $clipCount = maya2glTF_addTraxClips($charName, $startTimes, $stopTimes, $clipNames);
+
 	float $clipDurationToSeconds = maya2glTF_timeUnitToSeconds();
-
-    // Get character's clip scheduler
-    string $scheduler = `character -q -sc $charName`;
-
-    // Get all clips in the scheduler
-    string $clips[] = `clipSchedule -q -ci $scheduler`;
 
     // Generate JSON 
     string $result = "{\n";
@@ -178,27 +177,13 @@ global proc string maya2glTF_traxAnimMetaDataToJSON(string $modelId, string $cha
 
     string $lineSeparator = "\n";
 
-    string $clip;
-    for($clip in $clips ) {
-        // (clipName,index,start,sourceStart,sourceEnd,scale,preCycle,postCycle) 
-        string $parts[] = stringToStringArray($clip,",");
-        string $clipName = $parts[0];
-        int $clipIndex = $parts[1];
-        float $timeStart = $parts[2];
-        float $sourceStart = $parts[3];
-        float $sourceEnd = $parts[4];
-        float $scale = $parts[5];
-        float $timeEnd = $timeStart + ($sourceEnd-$sourceStart)*$scale;
-        int $clipEnabled = `clipSchedule -clipIndex $clipIndex -q -enable $scheduler`;
-        int $trackIndex = `clipSchedule -clipIndex $clipIndex -q -track $scheduler`;
-        // HACK: We export enabled clips from the top track, to allow other tracks to contain adjusting clips 
-        if($clipEnabled && $trackIndex == 1) {
-            float $duration = ($timeEnd - $timeStart) * $clipDurationToSeconds;
-            string $attributes[] = _parseClipName($clipName, false);
-            $result += $lineSeparator;
-            $result += _getAnimMetaData($clipName,$attributes, $duration, "\t\t");
-            $lineSeparator = ",\n";
-        } 
+    int $i;
+    for ($i=0; $i<$clipCount; ++$i) {
+        float $duration = ($stopTimes[$i] - $startTimes[$i]) * $clipDurationToSeconds;
+        string $attributes[] = _parseClipName($clipNames[$i], false);
+        $result += $lineSeparator;
+        $result += _getAnimMetaData($clipNames[$i],$attributes, $duration, "\t\t");
+        $lineSeparator = ",\n";
     }
 
     $result += "\n\t}\n";
@@ -228,7 +213,74 @@ global proc maya2glTF_addPostPlaybackMoodAttr()
 	}
 }
 
+global proc maya2glTF_playblastTraxClips(string $charName, string $outputFolder, int $width, int $height, string $camera, string $ffmpegPath)
 {
-    //print(maya2glTF_sceneAnimMetaDataToJSON("Nova_Yes2", "", true));
-    // print(maya2glTF_traxAnimMetaDataToJSON("Nova1"));
+    float $startTimes[];
+    float $stopTimes[];
+    string $clipNames[];
+    int $clipCount = maya2glTF_addTraxClips($charName, $startTimes, $stopTimes, $clipNames);
+
+	float $fps = `currentTimeUnitToFPS`;
+
+    progressWindow -endProgress;
+
+    progressWindow 
+        -title "Maya2glTF" 
+        -min 0 
+        -max ($clipCount * 2)
+        -status "Playblasting..." 
+        -isInterruptable true 
+        -progress 0;
+
+    python("import maya2glTF_playblast");
+
+    int $progress = 0;
+
+    int $i;
+
+    string $imageOutputRoot = maya2glTF_combinePaths($outputFolder, "png");
+   
+    for ($i=0; $i<$clipCount; ++$i) {
+        string $clipName = $clipNames[$i];
+        string $imageOutputFolder = maya2glTF_combinePaths($imageOutputRoot, $clipName);
+        string $imageOutputPath = maya2glTF_combinePaths($imageOutputFolder, "frame");
+        string $gifOutputFolder = maya2glTF_combinePaths($outputFolder, "anims");
+        string $gifOutputPath = maya2glTF_combinePaths($gifOutputFolder, $clipName+".gif");
+
+        sysFile -makeDir $gifOutputFolder;
+
+        string $cmd = `format -s($width) -s($height) -s($imageOutputPath) -s($startTimes[$i]) -s($stopTimes[$i]) -s($camera) "maya2glTF_playblast.playblast(width=^1s, height=^2s, filename='^3s', start_frame=^4s, end_frame=^5s, camera='^6s')\n"`;
+
+        print ("Playblasting " + $clipName + "...\n");
+
+        progressWindow -edit -progress ($progress++) -status ("play:"+$clipName);
+
+        python($cmd);
+
+        if (`progressWindow -query -isCancelled`) {
+            print ("Aborted!");
+            break;
+        }
+
+        print ("Creating GIF for " + $clipName + "...\n");
+
+        progressWindow -edit -progress ($progress++) -status ("gif:"+$clipName);
+
+        $cmd = `format -s($ffmpegPath) -s($fps) -s ($imageOutputPath) -s($gifOutputPath) "start \"^1s\" -r ^2s -i \"^3s.%04d.png\" -filter_complex \"split=2[bg][fg];[bg]drawbox=c=white@1:replace=1:t=fill[bg];[bg][fg]overlay=format=auto[gfx];[gfx]split=2[a][b]; [a] palettegen [pal]; [b] fifo [b]; [b] [pal] paletteuse\" -r 10 \"^4s\""`;
+
+        print(system($cmd)+"\n");
+
+        if (`progressWindow -query -isCancelled`) {
+            print ("Aborted!");
+            break;
+        }
+    }
+
+    progressWindow -endProgress;
 }
+
+
+//maya2glTF_playblastTraxClips("Beanie", "c:/temp/playblast", 256, 256, "thumbcam", "D:/Nova/Playblast/ffmpeg.exe");
+//print(maya2glTF_sceneAnimMetaDataToJSON("Nova_Yes2", "", true));
+// print(maya2glTF_traxAnimMetaDataToJSON("Nova1"));
+

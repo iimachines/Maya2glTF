@@ -363,6 +363,52 @@ global proc maya2glTF_createThumbnailCamera() {
     //xform -rotation -35 25 0 -translation 3 9 10 $transform;
 }
 
+global proc int maya2glTF_addTraxClips(string $char, float $startTimes[], float $stopTimes[], string $clipNames[]) {
+    // Get character's clip scheduler
+    string $scheduler = `character -q -sc $char`;
+
+    // Get all clips in the scheduler
+    string $clips[] = `clipSchedule -q -ci $scheduler`;
+
+    int $count = 0;
+
+    // Get enabled clips
+    string $clip;
+    for($clip in $clips )
+    {
+        // (clipName,index,start,sourceStart,sourceEnd,scale,preCycle,postCycle) 
+        string $parts[] = stringToStringArray($clip,",");
+        string $clipName = $parts[0];
+        int $clipIndex = $parts[1];
+        float $timeStart = $parts[2];
+        float $sourceStart = $parts[3];
+        float $sourceEnd = $parts[4];
+        float $scale = $parts[5];
+        float $timeEnd = $timeStart + ($sourceEnd-$sourceStart)*$scale;
+        int $clipEnabled = `clipSchedule -clipIndex $clipIndex -q -enable $scheduler`;
+        int $trackIndex = `clipSchedule -clipIndex $clipIndex -q -track $scheduler`;
+        // HACK: We export enabled clips from the top track, to allow other tracks to contain adjusting clips 
+        if($clipEnabled && $trackIndex == 1) {
+            $startTimes[$count] = $timeStart;
+            $stopTimes[$count] = $timeEnd;
+            $clipNames[$count] = $clipName;
+            $count += 1;
+        } 
+    }
+
+    return $count;
+}
+
+// {
+//     float $startTimes[];
+//     float $stopTimes[];
+//     string $clipNames[];
+//     maya2glTF_addTraxClips("Beanie", $startTimes, $stopTimes, $clipNames);
+//     print($startTimes);
+//     print($stopTimes);
+//     print($clipNames);
+// }
+
 // maya2glTF_createThumbnailCamera();
 
 // python("from maya2glTF_playblast import playblast\nplayblast(camera='thumbcam')");
