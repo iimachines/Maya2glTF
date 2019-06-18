@@ -42,6 +42,7 @@ def playblast(
         overwrite=overwrite,
         viewer=False,
         frame=frame,
+        maintain_aspect_ratio=False,
         viewport_options={
             "grid": False,
             "headsUpDisplay": False, 
