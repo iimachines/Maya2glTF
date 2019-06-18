@@ -48,7 +48,8 @@ def capture(camera=None,
             display_options=None,
             viewport_options=None,
             viewport2_options=None,
-            complete_filename=None):
+            complete_filename=None,
+            index_from_zero=True):
     """Playblast in an independent panel
 
     Arguments:
@@ -192,6 +193,7 @@ def capture(camera=None,
                     filename=filename,
                     widthHeight=[width, height],
                     rawFrameNumbers=raw_frame_numbers,
+                    indexFromZero=index_from_zero,
                     framePadding=frame_padding,
                     **playblast_kwargs)
 
