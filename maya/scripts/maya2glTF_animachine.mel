@@ -172,7 +172,7 @@ global proc string maya2glTF_traxAnimMetaDataToJSON(string $modelId, string $cha
     // Generate JSON 
     string $result = "{\n";
     $result += "\t\"version\": 1,\n";
-    $result += "\t\"id\":" + _quoted(string $modelId) + ",\n";
+    $result += "\t\"id\":" + _quoted($modelId) + ",\n";
     $result += "\t\"name\":" + _quoted($charName) + ",\n";
     $result += "\t\"animations\": {";
 
