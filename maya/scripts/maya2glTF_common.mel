@@ -399,6 +399,19 @@ global proc int maya2glTF_addTraxClips(string $char, float $startTimes[], float 
     return $count;
 }
 
+global proc string maya2glTF_intToStringWithZeroPadding(int $value, int $padding){ 
+  // Tip from the blog post: http://ldunham.blogspot.ca/2012/01/melpython-adding-number-padding.html
+  int $lengthNum=size(string($value));
+  string $padString; 
+
+  if($lengthNum<$padding) {
+    for($i=0;$i<($padding-$lengthNum);$i++) {
+      $padString=$padString+"0"; 
+    }
+  }
+  return $padString+string($value);
+}
+
 // {
 //     float $startTimes[];
 //     float $stopTimes[];
