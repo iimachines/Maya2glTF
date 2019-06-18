@@ -1,6 +1,6 @@
 import sys
 
-sys.path.append('C:/dev/glTF/Maya2glTF/maya/scripts/')
+sys.path.append(cmds.workspace( expandName = 'scripts'))
 
 def remove_module(module_name):
     print('info', 'Removing {} module'.format(module_name))
