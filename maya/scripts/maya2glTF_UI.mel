@@ -182,21 +182,6 @@ global proc maya2glTF_onExport
     _setInt("selOnly", $selOnly);
     _setInt("visOnly", $visOnly);
 
-    // Export animation metadata
-    // TODO: Make this optional!
-    if ($anim > 1)
-    {
-        string $outputName = $sceneName+".json";
-        string $outputPath = _combinePaths($folder, $outputName);
-        string $json = $anim == 4 
-            ? maya2glTF_traxAnimMetaDataToJSON($sceneName, $char)
-            : maya2glTF_sceneAnimMetaDataToJSON($sceneName, $anim == 2, false);
-
-        int $fileId=`fopen $outputPath "w"`;
-        fprint $fileId $json;
-        fclose $fileId;   
-    }
-
     switch ($anim) 
     {
         case 2:
@@ -246,6 +231,23 @@ global proc maya2glTF_onExport
 
     int $aborted = `progressBar -query -isCancelled $gMainProgressBar`;
 
+    if (!$failed && !$aborted) {
+        // Export animation metadata
+        // TODO: Make this optional!
+        if ($anim > 1)
+        {
+            string $outputName = $sceneName+".json";
+            string $outputPath = _combinePaths($folder, $outputName);
+            string $json = $anim == 4 
+                ? maya2glTF_traxAnimMetaDataToJSON($sceneName, $char)
+                : maya2glTF_sceneAnimMetaDataToJSON($sceneName, $anim == 2, false);
+
+            int $fileId=`fopen $outputPath "w"`;
+            fprint $fileId $json;
+            fclose $fileId;   
+        }
+    }
+
     if ($aborted) {
         print ("*** maya2glTF: aborted at "+`date -time`+" ***\n");
     } else if ($failed) {
@@ -280,7 +282,7 @@ global proc maya2glTF_UI()
     global string $gMainProgressBar;  
 
     // This is auto-updated by msbuild 
-    string $maya2glTF_version = "V0.9.10 8740138";
+    string $maya2glTF_version = "V0.9.10 1f6a8bb";
 
     if (`window -exists maya2glTF_exporter_window`)
         deleteUI maya2glTF_exporter_window;
