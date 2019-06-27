@@ -261,6 +261,7 @@ global proc maya2glTF_playblastTraxClips(string $charName, string $outputFolder,
         string $thumbAnimOutputFolder = maya2glTF_combinePaths($outputFolder, "anims");
         string $pngOutputPath = maya2glTF_combinePaths($thumbAnimOutputFolder, $clipName+".png");
         string $gifOutputPath = maya2glTF_combinePaths($thumbAnimOutputFolder, $clipName+".gif");
+        string $vp9OutputPath = maya2glTF_combinePaths($thumbAnimOutputFolder, $clipName+".webm");
 
         sysFile -makeDir $thumbAnimOutputFolder;
 
@@ -273,7 +274,7 @@ global proc maya2glTF_playblastTraxClips(string $charName, string $outputFolder,
 
         progressWindow -edit -progress ($progress++) -status ("play:"+$clipName);
 
-        // python($cmd);
+        python($cmd);
 
         if (`progressWindow -query -isCancelled`) {
             print ("Aborted!");
@@ -297,9 +298,15 @@ global proc maya2glTF_playblastTraxClips(string $charName, string $outputFolder,
         print ("Creating GIF for " + $clipName + "...\n");
         progressWindow -edit -progress ($progress++) -status ("gif:"+$clipName);
 
-        $cmd = `format -s($ffmpegPath) -s($fps) -s ($blastOutputPath) -s($gifOutputPath) "start \"^1s\" -r ^2s -i \"^3s.%04d.png\" -filter_complex \"split=2[bg][fg];[bg]drawbox=c=white@1:replace=1:t=fill[bg];[bg][fg]overlay=format=auto[gfx];[gfx]split=2[a][b]; [a] palettegen [pal]; [b] fifo [b]; [b] [pal] paletteuse\" -r 10 \"^4s\""`;
+        string $backgroundColor = "#121212";
 
-        // print(system($cmd)+"\n");
+        $cmd = `format -s($ffmpegPath) -s($fps) -s ($blastOutputPath) -s($gifOutputPath) -s($backgroundColor ) "start \"^1s\" -y -r ^2s -i \"^3s.%04d.png\" -filter_complex \"split=2[bg][fg];[bg]drawbox=c=^5s@1:replace=1:t=fill[bg];[bg][fg]overlay=format=auto[gfx];[gfx]split=2[a][b]; [a] palettegen [pal]; [b] fifo [b]; [b] [pal] paletteuse\" -r 10 \"^4s\""`;
+
+        print(system($cmd)+"\n");
+
+        $cmd = `format -s($ffmpegPath) -s($fps) -s ($blastOutputPath) -s($vp9OutputPath) "start \"^1s\" -y -r ^2s -i \"^3s.%04d.png\"  -pix_fmt yuva420p -c:v libvpx-vp9 -crf 25 -b:v -r 12 0 \"^4s\""`;
+
+        print(system($cmd)+"\n");
 
         if (`progressWindow -query -isCancelled`) {
             print ("Aborted!");
