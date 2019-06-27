@@ -310,7 +310,7 @@ global proc maya2glTF_playblastTraxClips(string $charName, string $outputFolder,
     progressWindow -endProgress;
 }
 
-maya2glTF_playblastTraxClips("Beanie", "c:/temp/playblast", 256, 256, "thumbcam", "D:/Nova/Playblast/ffmpeg.exe");
+//maya2glTF_playblastTraxClips("Beanie", "c:/temp/playblast", 256, 256, "thumbcam", "D:/Nova/Playblast/ffmpeg.exe");
 //print(maya2glTF_sceneAnimMetaDataToJSON("Nova_Yes2", "", true));
 // print(maya2glTF_traxAnimMetaDataToJSON("Nova1"));
 
