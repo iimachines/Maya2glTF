@@ -302,10 +302,12 @@ global proc maya2glTF_playblastTraxClips(string $charName, string $outputFolder,
 
         $cmd = `format -s($ffmpegPath) -s($fps) -s ($blastOutputPath) -s($gifOutputPath) -s($backgroundColor ) "start \"^1s\" -y -r ^2s -i \"^3s.%04d.png\" -filter_complex \"split=2[bg][fg];[bg]drawbox=c=^5s@1:replace=1:t=fill[bg];[bg][fg]overlay=format=auto[gfx];[gfx]split=2[a][b]; [a] palettegen [pal]; [b] fifo [b]; [b] [pal] paletteuse\" -r 10 \"^4s\""`;
 
+        print ($cmd+"\n");
         print(system($cmd)+"\n");
 
-        $cmd = `format -s($ffmpegPath) -s($fps) -s ($blastOutputPath) -s($vp9OutputPath) "start \"^1s\" -y -r ^2s -i \"^3s.%04d.png\"  -pix_fmt yuva420p -c:v libvpx-vp9 -crf 25 -b:v -r 12 0 \"^4s\""`;
+        $cmd = `format -s($ffmpegPath) -s($fps) -s ($blastOutputPath) -s($vp9OutputPath) "start \"^1s\" -y -r ^2s -i \"^3s.%04d.png\"  -pix_fmt yuva420p -c:v libvpx-vp9 -crf 25 -preset ultrafast -threads 4 -row-mt 1 -r ^2s \"^4s\""`;
 
+        print ($cmd+"\n");
         print(system($cmd)+"\n");
 
         if (`progressWindow -query -isCancelled`) {
