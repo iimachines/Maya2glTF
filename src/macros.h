@@ -10,9 +10,9 @@
 
 #define DEFAULT_COPY_MOVE_ASSIGN(TypeName) \
 	TypeName(const TypeName& other) = default; \
-	TypeName(TypeName&& other) noexcept = default; \
+	TypeName(TypeName&& other) = default; \
 	TypeName& operator=(const TypeName& other) = default; \
-	TypeName& operator=(TypeName&& other) noexcept = default; \
+	TypeName& operator=(TypeName&& other) = default; \
 
 #define DEFAULT_COPY_MOVE_ASSIGN_DTOR(TypeName) \
 	~TypeName() = default; \

@@ -3,6 +3,7 @@
 #include "Arguments.h"
 #include "OutputStreamsPatch.h"
 #include "version.h"
+#include <maya/MFnPlugin.h>
 
 #if _DEBUG
 static OutputStreamsPatch<char> patch;

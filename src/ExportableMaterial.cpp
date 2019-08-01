@@ -5,6 +5,7 @@
 #include "MayaException.h"
 #include "ExportableResources.h"
 #include "Arguments.h"
+#include "filesystem.h"
 
 ExportableMaterial::ExportableMaterial() = default;
 ExportableMaterial::~ExportableMaterial() = default;

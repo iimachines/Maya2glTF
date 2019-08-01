@@ -3,8 +3,7 @@
 #include "MayaException.h"
 #include "IndentableStream.h"
 #include "MeshSemantics.h"
-
-using namespace std::experimental;
+#include "filesystem.h"
 
 namespace flag
 {

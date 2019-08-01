@@ -4,6 +4,7 @@
 #include "progress.h"
 #include "timeControl.h"
 #include "version.h"
+#include "filesystem.h"
 
 ExportableAsset::ExportableAsset(const Arguments& args)
 	: m_resources{ args }
