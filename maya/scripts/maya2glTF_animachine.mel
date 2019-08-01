@@ -164,7 +164,7 @@ global proc string maya2glTF_traxAnimMetaDataToJSON(string $modelId, string $cha
     float $startTimes[];
     float $stopTimes[];
     string $clipNames[];
-    int $clipCount = maya2glTF_addTraxClips($charName, $startTimes, $stopTimes, $clipNames);
+    int $clipCount = maya2glTF_getTraxClips($charName, $startTimes, $stopTimes, $clipNames);
 
     float $clipDurationToSeconds = maya2glTF_timeUnitToSeconds();
 
@@ -192,16 +192,21 @@ global proc string maya2glTF_traxAnimMetaDataToJSON(string $modelId, string $cha
     return $result;
 }
 
-global proc int maya2glTF_canAddPostPlaybackMoodAttr() 
+global proc string[] maya2glTF_getSelectedAnimClips() 
 {
     string $sel[] = `ls -sl`;
     string $clips[] = `ls -exactType "animClip" $sel`;
+    return $clips;
+}
+
+global proc int maya2glTF_canAddPostPlaybackMoodAttr() 
+{
+    string $clips[] = maya2glTF_getSelectedAnimClips();
     return size($clips) > 0;
 }
 
-global proc maya2glTF_addCustomClipAttr(string $name, string $description, string $type)
+global proc maya2glTF_addCustomClipAttr(string $sel[], string $name, string $description, string $type)
 {
-    string $sel[] = `ls -sl`;
     string $clips[] = `ls -exactType "animClip" $sel`;
 
     for ($clip in $clips)
@@ -217,14 +222,53 @@ global proc maya2glTF_addCustomClipAttr(string $name, string $description, strin
     }
 }
 
+global proc maya2glTF_addPostPlaybackMoodAttrTo(string $sel[])
+{
+    maya2glTF_addCustomClipAttr($sel, "wmanPostPlaybackMood", "Post playback mood", "string");
+}
+
+global proc maya2glTF_addThumbnailFrameAttrTo(string $sel[])
+{
+    maya2glTF_addCustomClipAttr($sel, "wmanThumbnailFrame", "Thumbnail frame", "long");
+}
+
 global proc maya2glTF_addPostPlaybackMoodAttr()
 {
-    maya2glTF_addCustomClipAttr("wmanPostPlaybackMood", "Post playback mood", "string");
+    maya2glTF_addPostPlaybackMoodAttrTo(`ls -sl`);
 }
 
 global proc maya2glTF_addThumbnailFrameAttr()
 {
-    maya2glTF_addCustomClipAttr("wmanThumbnailFrame", "Thumbnail frame", "long");
+    maya2glTF_addThumbnailFrameAttrTo(`ls -sl`);
+}
+
+global proc maya2glTF_setThumbnailFrame()
+{
+    string $sel[] = maya2glTF_getSelectedAnimClips();
+    if (size($sel) == 0) {
+        error("maya2glTF_setThumbnailFrame: must select some TRAX clip(s)");
+    }
+
+    string $charNames[] = `clip -q -ch $sel[0]`;
+
+    float $startTimes[];
+    float $stopTimes[];
+    string $clipNames[];
+    int $clipCount = maya2glTF_getTraxClips($charNames[0], $startTimes, $stopTimes, $clipNames);
+
+    float $time = `currentTime -q`;
+
+    int $i;
+    for ($i=0; $i<$clipCount; ++$i) {
+        if ($time >= $startTimes[$i] && $time <$stopTimes[$i]) {
+            float $relativeTime = $time - $startTimes[$i];
+            string $clip[] = {$clipNames[$i]};
+            maya2glTF_addThumbnailFrameAttrTo($clip);
+            setAttr ($clip[0]+".wmanThumbnailFrame") $relativeTime;
+            select $clip[0];
+            break;
+        }
+    }
 }
 
 global proc maya2glTF_playblastTraxClips(string $charName, string $outputFolder, int $width, int $height, string $camera, string $ffmpegPath)
@@ -232,7 +276,7 @@ global proc maya2glTF_playblastTraxClips(string $charName, string $outputFolder,
     float $startTimes[];
     float $stopTimes[];
     string $clipNames[];
-    int $clipCount = maya2glTF_addTraxClips($charName, $startTimes, $stopTimes, $clipNames);
+    int $clipCount = maya2glTF_getTraxClips($charName, $startTimes, $stopTimes, $clipNames);
 
     float $fps = `currentTimeUnitToFPS`;
 
@@ -246,7 +290,7 @@ global proc maya2glTF_playblastTraxClips(string $charName, string $outputFolder,
         -isInterruptable true 
         -progress 0;
 
-    python("import maya2glTF_playblast");
+    python("import sys\nsys.path.append(cmds.workspace( expandName = 'scripts'))\nimport maya2glTF_playblast");
 
     int $progress = 0;
 

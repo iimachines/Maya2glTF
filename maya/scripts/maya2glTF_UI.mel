@@ -79,7 +79,7 @@ proc string _getTraxClips(string $char) {
     float $startTimes[];
     float $stopTimes[];
     string $clipNames[];
-    int $clipCount = maya2glTF_addTraxClips($char, $startTimes, $stopTimes, $clipNames);
+    int $clipCount = maya2glTF_getTraxClips($char, $startTimes, $stopTimes, $clipNames);
 
     string $fps = `currentTimeUnitToFPS`;
     string $flags = `format -s($fps) " -afr ^1s"`;
@@ -103,8 +103,17 @@ global proc maya2glTF_ignoreSelectedDeformers()
     if (size($deformers) == 0)
         error "No blendShape or skinCluster was selected";
 
+    string $attrName = "MGi";
+    string $niceName = "Ignored by Maya2glTF";
+
     for ($deformer in $deformers) {
-        addAttr -at bool -nn "Maya2glTF_ignored" -sn "MGi" -dv on $deformer;
+        if (attributeExists($attrName, $deformer)) {
+            print ("Deleting existing attribute on "+$deformer+"\n");
+            deleteAttr -at $attrName -n $deformer;
+        }
+
+        print ("Adding attribute " + $attrName + " on " + $deformer + "\n");
+        addAttr -at bool -nn $niceName -sn $attrName -dv on -ct "Maya2glTF" $deformer;
     }
 }
 
@@ -304,7 +313,7 @@ global proc maya2glTF_UI()
     string $copyrightFLD = `textFieldGrp -text $copyright -label "copyright:" -adjustableColumn 2`;
     string $sceneNameFLD = `textFieldGrp -text $sceneName -label "scene name:" -adjustableColumn 2`;
     string $scaleFLD = `floatFieldGrp -value1 $scale -label "scale factor:"`;
-    string $selOnlyFLD = `checkBoxGrp -value1 $selOnly -label "selected only?" -annotation "fdgfdg"`;
+    string $selOnlyFLD = `checkBoxGrp -value1 $selOnly -label "selected only?" -annotation "Export just the selected nodes, or also include the hierarchy underneath them?"`;
     string $visOnlyFLD = `checkBoxGrp -value1 $visOnly -label "visible only?"`;
 
     string $flagsFLD = `textFieldGrp -text $flags -label "extra flags:" -adjustableColumn 2 `;

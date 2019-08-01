@@ -363,7 +363,7 @@ global proc maya2glTF_createThumbnailCamera() {
     //xform -rotation -35 25 0 -translation 3 9 10 $transform;
 }
 
-global proc int maya2glTF_addTraxClips(string $char, float $startTimes[], float $stopTimes[], string $clipNames[]) {
+global proc int maya2glTF_getTraxClips(string $char, float $startTimes[], float $stopTimes[], string $clipNames[]) {
     // Get character's clip scheduler
     string $scheduler = `character -q -sc $char`;
 
@@ -416,7 +416,7 @@ global proc string maya2glTF_intToStringWithZeroPadding(int $value, int $padding
 //     float $startTimes[];
 //     float $stopTimes[];
 //     string $clipNames[];
-//     maya2glTF_addTraxClips("Beanie", $startTimes, $stopTimes, $clipNames);
+//     maya2glTF_getTraxClips("Beanie", $startTimes, $stopTimes, $clipNames);
 //     print($startTimes);
 //     print($stopTimes);
 //     print($clipNames);
