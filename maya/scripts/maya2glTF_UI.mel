@@ -296,7 +296,9 @@ global proc maya2glTF_UI()
 
     window -title ("maya2glTF") maya2glTF_exporter_window;
 
-    frameLayout -mw 30 -mh 30 ("Copyright (C)" + $year + " wondermedia.tv         version " + $maya2glTF_version);
+    string $header = "Copyright (C)" + $year + " wondermedia.tv         version " + $maya2glTF_version;
+
+    string $frame = `frameLayout -mw 30 -mh 30 ($header)`;
 
     columnLayout -adjustableColumn true -rowSpacing 10; 
 
@@ -305,7 +307,7 @@ global proc maya2glTF_UI()
 
     separator;
 
-    button -label "select all polygon meshes" -command "maya2glTF_polySelectAndFrame();";
+    button -label "select all polygon meshes" -command "maya2glTF_polySelectAndFrame();" -bgc (60/255.0) (80/255.0) (120/255.0);
 
     separator;
 
@@ -366,7 +368,7 @@ global proc maya2glTF_UI()
         -s(_quoted($visOnlyFLD))
          "maya2glTF_onExport(^1s, ^2s, ^3s, ^4s, ^5s, ^6s, ^7s, ^8s, ^9s, ^10s);"`;
 
-    button -label "export selected meshes" -command $exportCMD;
+    button -label "export selected meshes" -command $exportCMD -bgc  (50/255.0) (120/255.0) (70/255.0);
 
     separator;
 
