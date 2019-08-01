@@ -23,6 +23,9 @@ void ExportableNode::load(
     auto& resources = scene.resources();
     auto& args = resources.arguments();
 
+    m_disableNameAssignment = args.disableNameAssignment;
+    m_forceAnimationChannels = args.forceAnimationChannels;
+
     // Is this a joint with segment scale compensation? (the default in Maya)
     bool maybeSegmentScaleCompensation = false;
     DagHelper::getPlugValue(obj, "segmentScaleCompensate", maybeSegmentScaleCompensation);
@@ -125,7 +128,7 @@ void ExportableNode::load(
 
     // Create mesh, if any
     // Get mesh, but only if the node was selected.
-    if (args.selection.find(dagPath) != args.selection.end())
+    if (args.meshShapes.find(dagPath) != args.meshShapes.end())
     {
         MDagPath shapeDagPath = dagPath;
         status = shapeDagPath.extendToShape();
@@ -134,7 +137,21 @@ void ExportableNode::load(
         {
             // The shape is a mesh
             m_mesh = std::make_unique<ExportableMesh>(scene, *this, shapeDagPath);
-            m_mesh->setupNode(pNode);
+            m_mesh->attachToNode(pNode);
+        }
+    }
+
+    // Set camera, but only if the node was selected.
+    if (args.cameraShapes.count(dagPath))
+    {
+        MDagPath shapeDagPath = dagPath;
+        status = shapeDagPath.extendToShape();
+
+        if (status && shapeDagPath.hasFn(MFn::kCamera))
+        {
+            // The shape is a camera
+            m_camera = std::make_unique<ExportableCamera>(scene, *this, shapeDagPath);
+            m_camera->attachToNode(pNode);
         }
     }
 }
@@ -143,7 +160,7 @@ ExportableNode::~ExportableNode() = default;
 
 std::unique_ptr<NodeAnimation> ExportableNode::createAnimation(const ExportableFrames& frameTimes, const double scaleFactor)
 {
-    return std::make_unique<NodeAnimation>(*this, frameTimes, scaleFactor);
+    return std::make_unique<NodeAnimation>(*this, frameTimes, scaleFactor, m_disableNameAssignment, m_forceAnimationChannels);
 }
 
 void ExportableNode::updateNodeTransforms(NodeTransformCache& transformCache)
@@ -157,14 +174,14 @@ void ExportableNode::updateNodeTransforms(NodeTransformCache& transformCache)
         // TODO: Use SVG to decompose the 3x3 matrix into a product of rotation and scale matrices.
         const auto currentFrameTime = MAnimControl::currentTime();
 
-        cerr << prefix << "WARNING: node '" << name() << "' has transforms at the current frame " << currentFrameTime << " that are not representable by glTF! Skewing is not supported, use 3 nodes to simulate this. Deviation = " 
+        cerr << prefix << "WARNING: node '" << name() << "' has transforms at the current frame " << currentFrameTime << " that are not representable by glTF! Skewing is not supported, use 3 nodes to simulate this. Deviation = "
             << std::fixed << std::setprecision(2) << currentTransformState.maxNonOrthogonality * 100 << "%" << endl;
     }
 }
 
 bool ExportableNode::tryMergeRedundantShapeNode()
 {
-    if (this->mesh() == nullptr)
+    if (!this->hasAttachedShape())
         return false;
 
     if (transformKind != TransformKind::Simple)
@@ -173,7 +190,7 @@ bool ExportableNode::tryMergeRedundantShapeNode()
     if (parentNode == nullptr)
         return false;
 
-    if (parentNode->mesh() != nullptr)
+    if (parentNode->hasAttachedShape())
         return false;
 
     auto& glParentNode = parentNode->glPrimaryNode();
@@ -197,14 +214,33 @@ bool ExportableNode::tryMergeRedundantShapeNode()
     if (trs->scale[0] != 1 || trs->scale[1] != 1 || trs->scale[2] != 1)
         return false;
 
-    cout << prefix << "Shape node '" << name() << "' is redundant, moving its mesh to parent node '" << parentNode->name() << "'" << endl;
+    cout << prefix << "Shape-only node '" << name() << "' is redundant, moving its shapes to parent node '" << parentNode->name() << "'" << endl;
 
     glParentNode.children.clear();
     glNode.mesh = nullptr;
     glNode.skin = nullptr;
+    glNode.camera = nullptr;
 
-    m_mesh->setupNode(glParentNode);
-    m_mesh.swap(parentNode->m_mesh);
+    if (m_mesh)
+    {
+        m_mesh->attachToNode(glParentNode);
+        m_mesh.swap(parentNode->m_mesh);
+    }
+
+    if (m_camera)
+    {
+        m_camera->attachToNode(glParentNode);
+        m_camera.swap(parentNode->m_camera);
+    }
 
     return true;
 }
+
+void ExportableNode::getAllAccessors(std::vector<GLTF::Accessor*>& accessors) const
+{
+    if (m_mesh)
+    {
+        m_mesh->getAllAccessors(accessors);
+    }
+}
+

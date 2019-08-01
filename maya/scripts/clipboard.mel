@@ -1,0 +1,25 @@
+source "maya2glTF_UI";
+source "maya2glTF_assignPbrShader.mel";
+rehash;
+
+maya2glTF_UI();
+
+source "maya2glTF_common.mel";
+rehash;
+//maya2glTF_forEachSceneIn("D:/Nova/scenes", true, true, "maya2glTF_createDefaultCamera();");
+maya2glTF_forEachSceneIn("D:/Nova/scenes", true, true, "maya2glTF_playblast();");
+
+maya2glTF_forEachSceneIn("D:/Nova/scenes", true, false,"python(\"from maya2glTF_playblast import playblast\\nplayblast(frame=1)\")");
+
+
+loadPlugin "maya2glTF";
+maya2glTF_forEachSceneIn("D:/Nova/scenes", true, false, "maya2glTF_exportPlayblastScene();");
+unloadPlugin  "maya2glTF";
+
+maya2glTF_forEachSceneIn("D:/Nova/scenes", true, true, "maya2glTF_createDefaultCamera();");
+
+file -loadReferenceDepth "asPrefs" -loadReference "Nova_rigRN" "P:/024_WM_TheRecyclables/03_Production/02_rig/Nova/Nova_rig.ma";
+
+maya2glTF_createDefaultCamera()
+
+python("from maya2glTF_playblast import playblast\nplayblast(frame=1)")

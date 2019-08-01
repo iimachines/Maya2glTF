@@ -9,7 +9,7 @@ ExportableClip::ExportableClip(
 	const AnimClipArg& clipArg,
 	const ExportableScene& scene)
 	: m_frames(
-		args.disableNameAssignment ? "" : clipArg.name + "_inputs",
+		args.makeName(clipArg.name + "/anim/frames"),
 		clipArg.frameCount(),
 		clipArg.framesPerSecond)
 {
@@ -57,3 +57,13 @@ ExportableClip::ExportableClip(
 }
 
 ExportableClip::~ExportableClip() = default;
+
+void ExportableClip::getAllAccessors(std::vector<GLTF::Accessor*>& accessors) const
+{
+    m_frames.getAllAccessors(accessors);
+
+    for (auto&& animation : m_nodeAnimations)
+    {
+        animation->getAllAccessors(accessors);
+    }
+}

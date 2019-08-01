@@ -21,6 +21,6 @@ public:
 
 private:
 	DISALLOW_COPY_MOVE_ASSIGN(Exporter);
-	MStatus run(const MArgList& args);
+	MStatus run(const MArgList& args) const;
 	static void printFatalError();
 };

@@ -290,12 +290,12 @@ void ExportableMaterialPBR::loadPBR(ExportableResources& resources, const MFnDep
 				}
 
 				// TODO: Add argument for output image file mime-type
-				const path roughnessPath{ roughnessTexture.imageFilePath.asChar() };
-				const path metallicPath{ metallicTexture.imageFilePath.asChar() };
-				const path imageExtension { roughnessPath.extension() };
-				path imageFilename{ roughnessPath.stem().string() + "-" + metallicPath.stem().string() };
+				const fs::path roughnessPath{ roughnessTexture.imageFilePath.asChar() };
+				const fs::path metallicPath{ metallicTexture.imageFilePath.asChar() };
+				const fs::path imageExtension { roughnessPath.extension() };
+        fs::path imageFilename{ roughnessPath.stem().string() + "-" + metallicPath.stem().string() };
 				imageFilename.replace_extension(imageExtension);
-				MString mergedImagePath{ (temp_directory_path() / imageFilename).c_str() };
+				MString mergedImagePath{ (fs::temp_directory_path() / imageFilename).c_str() };
 
 				cout << prefix << "Saving merged roughness-metallic texture to " << mergedImagePath << endl;
 				status = roughnessImage.writeToFile(mergedImagePath, imageExtension.c_str());
@@ -329,7 +329,7 @@ void ExportableMaterialPBR::loadPBR(ExportableResources& resources, const MFnDep
 	}
 
 	// Ambient occlusion
-	getScalar(shaderObject, "u_OcclusionStrength", m_glOcclusionTexture.scale);
+	getScalar(shaderObject, "u_OcclusionStrength", m_glOcclusionTexture.strength);
 
 	const ExportableTexture occlusionTexture(resources, shaderObject, "u_OcclusionTexture");
 	if (occlusionTexture)

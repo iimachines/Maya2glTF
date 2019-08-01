@@ -1,3 +1,5 @@
+source "maya2glTF_animachine.mel";
+
 global string $maya2glTF_tempFolder = "C:/temp/maya2glTF_tests";
 
 proc string _ensureTrailingSlash( string $folderPath ) {
@@ -41,16 +43,6 @@ proc _deleteFolder( string $folderPath )
     } 
 }
 
-proc _renderFrame(string $outputFolder) {
-   // Render a frame for reference and future regression testing
-    workspace -fileRule "images" $outputFolder;
-    setAttr -type "string" "defaultRenderGlobals.imageFilePrefix" "../screenshot";
-    setAttr "defaultRenderGlobals.imageFormat" 32;
-    setAttr "hardwareRenderGlobals.enableAcceleratedMultiSampling" 0;
-    setAttr "hardwareRenderGlobals.enableHighQualityLighting" 0;
-    hwRender -w 640 -h 360 -f 0 -camera "persp" -eaa 0 1;
-}
-
 proc _exportTestScene(string $scenesDir, string $filename) {
     global string $maya2glTF_tempFolder;
 
@@ -71,7 +63,8 @@ proc _exportTestScene(string $scenesDir, string $filename) {
 	$max = `playbackOptions -q -max`;
 	$fps = `currentTimeUnitToFPS`;
 
-    string $outputFolder = _combinePaths($maya2glTF_tempFolder, $filename);
+    string $rootFolder = _combinePaths($maya2glTF_tempFolder, $filename);
+    string $outputFolder = _combinePaths($rootFolder, "gltf");
 
     if ($exportAnim 
             ? catch(`maya2glTF -acn "clip" -ast $min -aet $max -afr $fps -outputFolder $outputFolder`) 
@@ -80,10 +73,6 @@ proc _exportTestScene(string $scenesDir, string $filename) {
     } else {
         print ("Exporting "+$filename+" succeeded\n");
     } 
-
-    if (catch(`_renderFrame($outputFolder)`)) {
-        print ("*** Rendering "+$filename+" failed! :-( ***\n");
-    }
 
     print ("-------------------------------------------------------------------\n");
 }
@@ -152,5 +141,20 @@ global proc maya2glTF_exportAllScenes() {
     loadPlugin -ac maya2glTF_exportAllScenes_callback  "maya2glTF";
 }
 
-//maya2glTF_exportAllScenes;
+global proc maya2glTF_defaultSceneAnimMetaDataToJSON(string $outputFolder) {
+    string $name = basenameEx(`file -q -sceneName -shortName`);
+    string $json = maya2glTF_sceneAnimMetaDataToJSON($name, "", true);
+
+    string $outputName = $name+".json";
+    string $outputPath = _combinePaths($outputFolder, $outputName);
+    int $fileId=`fopen $outputPath "w"`;
+    fprint $fileId $json;
+    fclose $fileId;   
+}
+
+{
+    // maya2glTF_exportAllScenes;
+    // maya2glTF_forEachSceneIn("D:/nova/scenes", false, false, "maya2glTF_defaultSceneAnimMetaDataToJSON(\"D:/nova/export/Anim\")");
+    // maya2glTF_defaultSceneAnimMetaDataToJSON("D:/nova/export/Meta");
+}
 

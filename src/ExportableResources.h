@@ -1,6 +1,7 @@
 #pragma once
 #include "ExportableItem.h"
 #include "ExportableMaterial.h"
+#include "filesystem.h"
 
 class Arguments;
 typedef std::string MayaFilename;
@@ -37,7 +38,7 @@ public:
 	ExportableMaterial* getDebugMaterial(const Float3& hue);
 	ExportableMaterial* getMaterial(const MObject& shaderGroup);
 
-	GLTF::Image* getImage(const char* path);
+	GLTF::Image* getImage(fs::path path);
 
 	GLTF::Sampler* getSampler(const ImageFilterKind filter, const ImageTilingFlags uTiling, const ImageTilingFlags vTiling);
 
@@ -46,6 +47,8 @@ public:
 	//std::map<MayaFilename, std::unique_ptr<GLTF::Image>> imageMap;
 	//std::map<MayaNodeName, std::unique_ptr<GLTF::Texture>> textureMap;
 	//std::map<MayaNodeName, std::unique_ptr<GLTF::Sampler>> samplerMap;
+
+    void getAllAccessors(std::vector<GLTF::Accessor*>& accessors);
 
 private:
 	std::map<MayaNodeName, std::unique_ptr<ExportableMaterial>> m_materialMap;

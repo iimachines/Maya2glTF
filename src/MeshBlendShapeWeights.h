@@ -1,5 +1,19 @@
 #pragma once
 #include "macros.h"
+#include "ShapeIndex.h"
+
+struct WeightPlugEntry
+{
+    int shapeIndex;
+    int plugIndex;
+    double originalWeight;
+    bool isLocked;
+    MPlugArray srcConnections;
+    MPlugArray dstConnections;
+};
+
+// The weights are sorted by the plug names, to get a stable ordering even when the plugs are re-ordered between scenes.
+typedef std::map<std::string, WeightPlugEntry> WeightPlugEntries;
 
 /* 
  * Helper class to sample a blend shape weight plugs 
@@ -11,28 +25,20 @@ public:
 	MeshBlendShapeWeights(const MPlug& weightArrayPlug);
 	~MeshBlendShapeWeights();
 
-	auto numWeights() const { return m_originalWeightPlugStates.size(); }
-	MPlug getWeightPlug(const int index) const { return m_weightArrayPlug[index]; }
+    const WeightPlugEntries& entries() const { return m_weightPlugEntries; }
 
-	double getOriginalWeight(const int index) const { return m_originalWeightPlugStates.at(index).weight; }
+	MPlug getWeightPlug(const WeightPlugEntry& entry) const
+	{
+	    return m_weightArrayPlug[entry.plugIndex];
+	}
 
-	void clearWeightsExceptFor(const size_t index) const;
+	void clearWeightsExceptFor(const WeightPlugEntry* fullWeightEntry) const;
 	void breakConnections();
 
 private:
 	DISALLOW_COPY_MOVE_ASSIGN(MeshBlendShapeWeights);
 
-	struct OriginalWeightPlugState
-	{
-		double weight;
-		bool locked;
-		MPlugArray srcConnections;
-		MPlugArray dstConnections;
-	};
-
-	typedef std::vector<OriginalWeightPlugState> OriginalWeightPlugStates;
-
 	MPlug m_weightArrayPlug;
-	OriginalWeightPlugStates m_originalWeightPlugStates;
+	WeightPlugEntries m_weightPlugEntries;
 };
 

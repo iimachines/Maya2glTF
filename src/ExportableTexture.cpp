@@ -9,6 +9,9 @@ ExportableTexture::ExportableTexture(ExportableResources& resources, const MObje
 	: glTexture(nullptr)
 	, glSampler(nullptr)
 {
+    if (resources.arguments().skipMaterialTextures)
+        return;
+
 	connectedObject = DagHelper::findNodeConnectedTo(obj, attributeName);
 	if (connectedObject.isNull())
 		return;

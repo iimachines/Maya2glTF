@@ -27,9 +27,11 @@ public:
 
 	std::vector<float> currentWeights() const;
 
-	void setupNode(GLTF::Node& node);
+	void attachToNode(GLTF::Node& node);
 
 	void updateWeights();
+
+    void getAllAccessors(std::vector<GLTF::Accessor*>& accessors) const;
 
 private:
 	DISALLOW_COPY_MOVE_ASSIGN(ExportableMesh);

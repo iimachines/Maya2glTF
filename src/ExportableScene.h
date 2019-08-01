@@ -1,15 +1,18 @@
 #pragma once
 #include "ExportableResources.h"
 #include "Transform.h"
+#include "Arguments.h"
 
 class ExportableNode;
 
 typedef std::map<std::string, std::unique_ptr<ExportableNode>> NodeTable;
 typedef std::set<ExportableNode*> OrphanNodes;
 
+typedef std::map<MDagPath, std::vector<GLTF::Accessor*>, MDagPathComparer> AccessorsPerDagPath;
+
 // Maps each DAG path to the corresponding node
 // Owns and creates each node on the fly.
-class ExportableScene
+class ExportableScene 
 {
 public:
 	explicit ExportableScene(ExportableResources& resources);
@@ -33,6 +36,8 @@ public:
 	// Gets or creates the parent of the node.
 	// Returns null if the node has no logical parent.
 	ExportableNode* getParent(ExportableNode* node);
+
+    void getAllAccessors(AccessorsPerDagPath& accessors);
 
 	// Register a node without parent
 	void registerOrphanNode(ExportableNode* node)

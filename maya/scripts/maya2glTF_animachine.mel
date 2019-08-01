@@ -1,0 +1,369 @@
+source "maya2glTF_common.mel";
+
+proc string _quoted(string $text)
+{
+    string $quote = "\"";
+    return $quote+$text+$quote;
+}
+
+proc string _quotedOrNull(string $text)
+{
+    return size($text) ? _quoted($text): "null";
+}
+
+proc string[] _itosa(int $val)
+{
+    string $si = $val;
+    return {$si};
+}
+
+proc string _itos(int $val)
+{
+    string $si = $val;
+    return $si;
+}
+
+proc string _identString(int $level) {
+    int $t;
+    string $result = "";
+    for ($t = 0; $t < $level; $t++)
+    {
+        $result += "\t";
+    }    
+    return $result;
+}
+
+proc _replaceItem(string $oldName, string $newName, string $names[]) {
+    int $index = stringArrayFind($oldName, 0, $names);	
+    if ($index >= 0) {
+        $names[$index] = $newName;
+    }
+}
+
+// Returns { $name, $kind, $mood, $postPlaybackMood };
+proc string[] _parseClipName(string $clipName, int $removePrefixFromClipName)
+{
+    string $CLIP_KIND_IDLE = "Idle";
+    string $CLIP_KIND_PUPPETEER = "Puppeteer";
+    string $CLIP_KIND_VISEMES = "Visemes";
+    string $CLIP_KIND_PANHEAD = "PanHead";
+    string $CLIP_KIND_TILTHEAD = "TiltHead";
+    string $CLIP_KIND_SETUP  = "Setup";
+
+    // Build human friendly name
+    string $tokens[] = {};
+    tokenize(tolower($clipName),"_",$tokens);
+
+    if ($removePrefixFromClipName) {
+        stringArrayRemoveAtIndex(0, $tokens);
+    }
+
+    // To remain backwards compatible, rename the old idle moods
+    _replaceItem("z", "neutral", $tokens);
+    _replaceItem("p", "positive", $tokens);
+    _replaceItem("n", "negative", $tokens);
+
+    string $name = stringArrayToString($tokens, " ");
+
+    string $kind = $CLIP_KIND_PUPPETEER;
+
+    // By default a clip has no starting mood
+    string $mood = "";
+
+    // By default a clip has no ending mood.
+    string $postPlaybackMood = "";
+
+    if (stringArrayContains("setup", $tokens))
+    {
+        $kind = $CLIP_KIND_SETUP;
+    }
+    else if (stringArrayContains("visemes", $tokens))
+    {
+        $kind = $CLIP_KIND_VISEMES;
+    }
+    else if (stringArrayContains("head", $tokens) && stringArrayContains("up", $tokens) && stringArrayContains("down", $tokens))
+    {
+        $kind = $CLIP_KIND_TILTHEAD;
+    }
+    else if (stringArrayContains("head", $tokens) && stringArrayContains("right", $tokens) && stringArrayContains("left", $tokens))
+    {
+        $kind = $CLIP_KIND_PANHEAD;
+    }
+    else if (size($tokens) > 1 && startsWith($tokens[0], "idle"))
+    {
+        $kind = $CLIP_KIND_IDLE;
+        stringArrayRemoveAtIndex(0, $tokens);
+        $mood = stringArrayToString($tokens, " ");
+    }
+    else 
+    {
+        // Puppeteer clip
+        if (`attributeExists "wmanPostPlaybackMood" $clipName`) 
+        {
+            $postPlaybackMood = `getAttr ($clipName+".wmanPostPlaybackMood")`;
+        }
+    }
+    
+    string $result[] = { $name, $kind, $mood, $postPlaybackMood };
+    
+    return $result;
+}
+
+proc string _getAnimMetaData(string $animationName, string $attributes[], float $duration, string $indent) {
+    string $result = "";
+    $result += $indent + _quoted($animationName) + ": {\n";
+    $result += $indent + "\t\"version\": 1,\n";
+    $result += $indent + "\t\"id\": " + _quoted($animationName) + ",\n";
+    $result += $indent + "\t\"name\": " + _quoted($attributes[0]) + ",\n";
+    $result += $indent + "\t\"kind\": " + _quoted($attributes[1]) + ",\n";
+    $result += $indent + "\t\"mood\": " + _quotedOrNull($attributes[2]) + ",\n";
+    $result += $indent + "\t\"postPlaybackMood\": " + _quotedOrNull($attributes[3]) + ",\n";
+    $result += $indent + "\t\"duration\": " + $duration + "\n";
+    $result += $indent + "}";
+
+    return $result;
+}
+
+/** 
+    Exports the animation metadata of the current scene. 
+    
+    For now, the $sceneName will be parsed like WonderMedia's AnimationNow software, to extract the clip mood, kind etc.
+    This should be replaced by custom attributes one day.
+
+    The $clipName is the human friendly name of the clip. 
+    If empty, it will be parsed from the scene name, removing the first word of the scene name (assuming naming like Nova_Yes)
+*/
+global proc string maya2glTF_sceneAnimMetaDataToJSON(string $sceneName, string $clipName, int $useRangeSlider)
+{
+    float $clipDurationToSeconds = maya2glTF_timeUnitToSeconds();
+
+    float $timeStart = $useRangeSlider ? `playbackOptions -q -min` : `playbackOptions -q -ast`;
+    float $timeEnd = $useRangeSlider ? `playbackOptions -q -max` : `playbackOptions -q -aet`;
+
+    float  $duration = ($timeEnd - $timeStart) * $clipDurationToSeconds;
+
+    int $hasClipName = size($clipName) > 0;
+
+    string $attributes[] = _parseClipName($sceneName, !$hasClipName);
+
+    if ($hasClipName) {
+        $attributes[0] = $clipName;
+    }
+
+    string $result = "{\n";
+    $result += _getAnimMetaData($sceneName, $attributes, $duration, "\t");
+    $result += "\n";
+    $result += "}\n";
+
+    return $result;
+}
+
+
+global proc string maya2glTF_traxAnimMetaDataToJSON(string $modelId, string $charName)
+{
+    float $startTimes[];
+    float $stopTimes[];
+    string $clipNames[];
+    int $clipCount = maya2glTF_getTraxClips($charName, $startTimes, $stopTimes, $clipNames);
+
+    float $clipDurationToSeconds = maya2glTF_timeUnitToSeconds();
+
+    // Generate JSON 
+    string $result = "{\n";
+    $result += "\t\"version\": 1,\n";
+    $result += "\t\"id\":" + _quoted($modelId) + ",\n";
+    $result += "\t\"name\":" + _quoted($charName) + ",\n";
+    $result += "\t\"animations\": {";
+
+    string $lineSeparator = "\n";
+
+    int $i;
+    for ($i=0; $i<$clipCount; ++$i) {
+        float $duration = ($stopTimes[$i] - $startTimes[$i]) * $clipDurationToSeconds;
+        string $attributes[] = _parseClipName($clipNames[$i], false);
+        $result += $lineSeparator;
+        $result += _getAnimMetaData($clipNames[$i],$attributes, $duration, "\t\t");
+        $lineSeparator = ",\n";
+    }
+
+    $result += "\n\t}\n";
+    $result += "}\n";
+
+    return $result;
+}
+
+global proc string[] maya2glTF_getSelectedAnimClips() 
+{
+    string $sel[] = `ls -sl`;
+    string $clips[] = `ls -exactType "animClip" $sel`;
+    return $clips;
+}
+
+global proc int maya2glTF_canAddPostPlaybackMoodAttr() 
+{
+    string $clips[] = maya2glTF_getSelectedAnimClips();
+    return size($clips) > 0;
+}
+
+global proc maya2glTF_addCustomClipAttr(string $sel[], string $name, string $description, string $type)
+{
+    string $clips[] = `ls -exactType "animClip" $sel`;
+
+    for ($clip in $clips)
+    {
+        if (!`attributeExists $name $clip`) 
+        {
+            if ($type == "string") {
+                addAttr -dt "string" -ln $name -nn $description -storable 1 -keyable 0 $clip;
+            } else {
+                addAttr -at $type -ln $name -nn $description -storable 1 -keyable 0 $clip;
+            }
+        }
+    }
+}
+
+global proc maya2glTF_addPostPlaybackMoodAttrTo(string $sel[])
+{
+    maya2glTF_addCustomClipAttr($sel, "wmanPostPlaybackMood", "Post playback mood", "string");
+}
+
+global proc maya2glTF_addThumbnailFrameAttrTo(string $sel[])
+{
+    maya2glTF_addCustomClipAttr($sel, "wmanThumbnailFrame", "Thumbnail frame", "long");
+}
+
+global proc maya2glTF_addPostPlaybackMoodAttr()
+{
+    maya2glTF_addPostPlaybackMoodAttrTo(`ls -sl`);
+}
+
+global proc maya2glTF_addThumbnailFrameAttr()
+{
+    maya2glTF_addThumbnailFrameAttrTo(`ls -sl`);
+}
+
+global proc maya2glTF_setThumbnailFrame()
+{
+    string $sel[] = maya2glTF_getSelectedAnimClips();
+    if (size($sel) == 0) {
+        error("maya2glTF_setThumbnailFrame: must select some TRAX clip(s)");
+    }
+
+    string $charNames[] = `clip -q -ch $sel[0]`;
+
+    float $startTimes[];
+    float $stopTimes[];
+    string $clipNames[];
+    int $clipCount = maya2glTF_getTraxClips($charNames[0], $startTimes, $stopTimes, $clipNames);
+
+    float $time = `currentTime -q`;
+
+    int $i;
+    for ($i=0; $i<$clipCount; ++$i) {
+        if ($time >= $startTimes[$i] && $time <$stopTimes[$i]) {
+            float $relativeTime = $time - $startTimes[$i];
+            string $clip[] = {$clipNames[$i]};
+            maya2glTF_addThumbnailFrameAttrTo($clip);
+            setAttr ($clip[0]+".wmanThumbnailFrame") $relativeTime;
+            select $clip[0];
+            break;
+        }
+    }
+}
+
+global proc maya2glTF_playblastTraxClips(string $charName, string $outputFolder, int $width, int $height, string $camera, string $ffmpegPath)
+{
+    float $startTimes[];
+    float $stopTimes[];
+    string $clipNames[];
+    int $clipCount = maya2glTF_getTraxClips($charName, $startTimes, $stopTimes, $clipNames);
+
+    float $fps = `currentTimeUnitToFPS`;
+
+    progressWindow -endProgress;
+
+    progressWindow 
+        -title "Maya2glTF" 
+        -min 0 
+        -max ($clipCount * 2)
+        -status "Playblasting..." 
+        -isInterruptable true 
+        -progress 0;
+
+    python("import sys\nsys.path.append(cmds.workspace( expandName = 'scripts'))\nimport maya2glTF_playblast");
+
+    int $progress = 0;
+
+    int $i;
+
+    string $imageOutputRoot = maya2glTF_combinePaths($outputFolder, "png");
+   
+    for ($i=0; $i<$clipCount; ++$i) {
+        string $clipName = $clipNames[$i];
+        string $blastOutputFolder = maya2glTF_combinePaths($imageOutputRoot, $clipName);
+        string $blastOutputPath = maya2glTF_combinePaths($blastOutputFolder, "frame");
+        string $thumbAnimOutputFolder = maya2glTF_combinePaths($outputFolder, "anims");
+        string $pngOutputPath = maya2glTF_combinePaths($thumbAnimOutputFolder, $clipName+".png");
+        string $gifOutputPath = maya2glTF_combinePaths($thumbAnimOutputFolder, $clipName+".gif");
+        string $vp9OutputPath = maya2glTF_combinePaths($thumbAnimOutputFolder, $clipName+".webm");
+
+        sysFile -makeDir $thumbAnimOutputFolder;
+
+        float $startTime = $startTimes[$i];
+        float $stopTime = $stopTimes[$i];
+
+        string $cmd = `format -s($width) -s($height) -s($blastOutputPath) -s($startTime) -s($stopTime) -s($camera) "maya2glTF_playblast.playblast(width=^1s, height=^2s, filename='^3s', start_frame=^4s, end_frame=^5s, camera='^6s')\n"`;
+
+        print ("Playblasting " + $clipName + "...\n");
+
+        progressWindow -edit -progress ($progress++) -status ("play:"+$clipName);
+
+        python($cmd);
+
+        if (`progressWindow -query -isCancelled`) {
+            print ("Aborted!");
+            break;
+        }
+
+        print ("Creating GIF for " + $clipName + "...\n");
+
+        // Copy PNG thumbnail
+        int $hasThumbFrame = `attributeExists "wmanThumbnailFrame" $clipName`;
+        print ($clipName+":"+$hasThumbFrame+"\n");
+        int $thumbFrame = $hasThumbFrame
+            ? `getAttr ($clipName+".wmanThumbnailFrame")` 
+            : floor(($stopTime - $startTime) / 2);
+
+        string $sourceFilePath = $blastOutputPath + "." + maya2glTF_intToStringWithZeroPadding($thumbFrame, 4) + ".png";
+
+        print ("Using " + $sourceFilePath + " as thumbnail PNG\n");
+        sysFile -copy $pngOutputPath $sourceFilePath;
+
+        print ("Creating GIF for " + $clipName + "...\n");
+        progressWindow -edit -progress ($progress++) -status ("gif:"+$clipName);
+
+        string $backgroundColor = "#121212";
+
+        $cmd = `format -s($ffmpegPath) -s($fps) -s ($blastOutputPath) -s($gifOutputPath) -s($backgroundColor ) "start \"^1s\" -y -r ^2s -i \"^3s.%04d.png\" -filter_complex \"split=2[bg][fg];[bg]drawbox=c=^5s@1:replace=1:t=fill[bg];[bg][fg]overlay=format=auto[gfx];[gfx]split=2[a][b]; [a] palettegen [pal]; [b] fifo [b]; [b] [pal] paletteuse\" -r 10 \"^4s\""`;
+
+        print ($cmd+"\n");
+        print(system($cmd)+"\n");
+
+        $cmd = `format -s($ffmpegPath) -s($fps) -s ($blastOutputPath) -s($vp9OutputPath) "start \"^1s\" -y -r ^2s -i \"^3s.%04d.png\"  -pix_fmt yuva420p -c:v libvpx-vp9 -crf 25 -preset ultrafast -threads 4 -row-mt 1 -r ^2s \"^4s\""`;
+
+        print ($cmd+"\n");
+        print(system($cmd)+"\n");
+
+        if (`progressWindow -query -isCancelled`) {
+            print ("Aborted!");
+            break;
+        }
+    }
+
+    progressWindow -endProgress;
+}
+
+//maya2glTF_playblastTraxClips("Beanie", "c:/temp/playblast", 256, 256, "thumbcam", "D:/Nova/Playblast/ffmpeg.exe");
+//print(maya2glTF_sceneAnimMetaDataToJSON("Nova_Yes2", "", true));
+// print(maya2glTF_traxAnimMetaDataToJSON("Nova1"));
+

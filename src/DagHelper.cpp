@@ -11,7 +11,6 @@ Copyright (C) 2004-2005 Alias Systems Corp.
 MIT License: http://www.opensource.org/licenses/mit-license.php
 */
 
-
 MObject DagHelper::getObjectByName(const MString& name)
 {
 	MSelectionList selection;
@@ -47,10 +46,12 @@ MObject DagHelper::findNodeConnectedTo(const MObject& node, const MString& attri
 		: MObject::kNullObj;
 }
 
-bool DagHelper::getPlugConnectedTo(const MObject& node, const MString& attribute, MPlug& connectedPlug)
+MStatus DagHelper::getPlugConnectedTo(const MObject& node, const MString& attribute, MPlug& connectedPlug)
 {
 	MStatus status;
-	MFnDependencyNode dgFn(node);
+	MFnDependencyNode dgFn(node, &status);
+    RETURN_ON_FAILURE(status);
+
 	auto plug = dgFn.findPlug(attribute, &status);
 	
 	if (status && plug.isConnected())
@@ -58,16 +59,16 @@ bool DagHelper::getPlugConnectedTo(const MObject& node, const MString& attribute
 		// Get the connection - there can be at most one input to a plug
 		MPlugArray connections;
 		plug.connectedTo(connections, true, true, &status);
-		THROW_ON_FAILURE(status);
+        RETURN_ON_FAILURE(status);
 
 		assert(connections.length() <= 1);
 		if (connections.length() > 0)
 		{
 			connectedPlug = connections[0];
-			return true;
+            return MStatus::kSuccess;
 		}
 	}
-	return false;
+    return MStatus::kFailure;
 }
 
 MObject	DagHelper::findSourceNodeConnectedTo(const MObject& node, const MString& attribute)
@@ -106,202 +107,172 @@ MObject DagHelper::findSourceNodeConnectedTo(const MPlug& inPlug)
 }
 
 
-bool DagHelper::getPlugValue(const MObject& node, const char* attributeName, double& value)
-{
-	MStatus status;
-	auto plug = MFnDependencyNode(node).findPlug(attributeName, &status);
-	return status && plug.getValue(value);
-}
-
-bool DagHelper::getPlugValue(const MObject& node, const char* attributeName, float& value)
-{
-	MStatus status;
-	auto plug = MFnDependencyNode(node).findPlug(attributeName, &status);
-	return status && plug.getValue(value);
-}
-
-bool DagHelper::getPlugValue(const MPlug& plug, float& x)
-{
-	return plug.getValue(x);
-}
-
-bool DagHelper::getPlugValue(const MPlug& plug, int& value)
-{
-	return plug.getValue(value);
-}
-
-bool DagHelper::getPlugValue(const MPlug& plug, uint32_t& value)
+MStatus DagHelper::getPlugValue(const MPlug& plug, uint32_t& value)
 {
 	int temp;
 	const auto status = plug.getValue(temp);
 	value = static_cast<uint32_t>(temp);
-	return status == MStatus::kSuccess;
+    return status;
 }
 
-bool DagHelper::getPlugValue(const MPlug& plug, short& value)
-{
-	return plug.getValue(value);
-}
-
-bool DagHelper::getPlugValue(const MPlug& plug, uint16_t& value)
+MStatus DagHelper::getPlugValue(const MPlug& plug, uint16_t& value)
 {
 	short temp;
 	const auto status = plug.getValue(temp);
 	value = static_cast<uint16_t>(temp);
-	return status == MStatus::kSuccess;
+    return status;
 }
 
-bool DagHelper::getPlugValue(const MPlug& plug, char& value)
-{
-	return plug.getValue(value);
-}
-
-bool DagHelper::getPlugValue(const MPlug& plug, uint8_t& value)
+MStatus DagHelper::getPlugValue(const MPlug& plug, uint8_t& value)
 {
 	char temp;
 	const auto status = plug.getValue(temp);
 	value = static_cast<uint8_t>(temp);
-	return status == MStatus::kSuccess;
+    return status;
 }
 
-bool DagHelper::getPlugValue(const MObject& node, const char* attributeName, bool& value)
+MStatus DagHelper::getPlugValue(const MObject& node, const char* attributeName, double& value)
 {
-	MStatus status;
-	auto plug = MFnDependencyNode(node).findPlug(attributeName, &status);
-	return status && plug.getValue(value);
+    return getPlugValueImpl(node, attributeName, value);
 }
 
-bool DagHelper::getPlugValue(const MPlug& plug, bool& value)
+MStatus DagHelper::getPlugValue(const MObject& node, const char* attributeName, float& value)
 {
-	return plug.getValue(value);
+    return getPlugValueImpl(node, attributeName, value);
 }
 
-bool DagHelper::getPlugValue(const MObject& node, const char* attributeName, int& value)
+MStatus DagHelper::getPlugValue(const MObject& node, const char* attributeName, bool& value)
 {
-	MStatus status;
-	auto plug = MFnDependencyNode(node).findPlug(attributeName, &status);
-	return status && plug.getValue(value);
+    return getPlugValueImpl(node, attributeName, value);
 }
 
-bool DagHelper::getPlugValue(const MObject& node, const char* attributeName, MColor& value)
+MStatus DagHelper::getPlugValue(const MObject& node, const char* attributeName, int& value)
 {
-	MStatus status;
-	const auto plug = MFnDependencyNode(node).findPlug(attributeName, &status);
-	return status && getPlugValue(plug, value);
+    return getPlugValueImpl(node, attributeName, value);
 }
 
-bool DagHelper::getPlugValue(const MPlug& plug, MColor& value)
+MStatus DagHelper::getPlugValue(const MObject& node, const char* attributeName, MColor& value)
 {
-	const auto isCompound = plug.isCompound();
-	const auto numChildren = plug.numChildren();
+    return getPlugValueImpl(node, attributeName, value);
+}
+
+MStatus DagHelper::getPlugValue(const MPlug& plug, MColor& value)
+{
+    MStatus status;
+
+    const auto isCompound = plug.isCompound(&status);
+    RETURN_ON_FAILURE(status);
+
+	const auto numChildren = plug.numChildren(&status);
+    RETURN_ON_FAILURE(status);
 
 	if (isCompound && numChildren >= 3)
 	{
-		auto status = plug.child(0).getValue(value.r);
-		if (status != MStatus::kSuccess)
-			return false;
+		status = plug.child(0).getValue(value.r);
+        RETURN_ON_FAILURE(status);
 
 		status = plug.child(1).getValue(value.g);
-		if (status != MStatus::kSuccess)
-			return false;
+        RETURN_ON_FAILURE(status);
 
 		status = plug.child(2).getValue(value.b);
-		if (status != MStatus::kSuccess)
-			return false;
+        RETURN_ON_FAILURE(status);
 
 		if (numChildren >= 4)
 		{
 			status = plug.child(3).getValue(value.a);
-			if (status != MStatus::kSuccess)
-				return false;
-		}
-		else value.a = 1.0f;
+            RETURN_ON_FAILURE(status);
+        }
+        else 
+        {
+            value.a = 1.0f;
+        }
 
-		return true;
+        return status;
 	}
 
-	return false;
+	return MStatus::kInvalidParameter;
 }
 
-bool DagHelper::getPlugValue(const MObject& node, const char* attributeName, MString& value)
+MStatus DagHelper::getPlugValue(const MObject& node, const char* attributeName, MString& value)
 {
-	MStatus status;
-	auto plug = MFnDependencyNode(node).findPlug(attributeName, &status);
-	return status && plug.getValue(value);
+    return getPlugValueImpl(node, attributeName, value);
 }
 
-void DagHelper::getPlugValue(const MObject& node, const char* attributeName, MStringArray& output, MStatus* status)
+MStatus DagHelper::getPlugValue(const MObject& node, const char* attributeName, MStringArray& value)
 {
-	const auto plug = MFnDependencyNode(node).findPlug(attributeName, status);
-	getPlugValue(plug, output, status);
+    return getPlugValueImpl(node, attributeName, value);
 }
 
-void DagHelper::getPlugValue(const MPlug& plug, MStringArray& output, MStatus* status)
+MStatus DagHelper::getPlugValue(const MPlug& plug, MStringArray& output)
 {
-	MObject str_obj;
-	plug.getValue(str_obj);
-	MFnStringArrayData f_astr(str_obj, status);
+    MStatus status;
+    
+    MObject str_obj;
+    status = plug.getValue(str_obj);
+    RETURN_ON_FAILURE(status);
 
-	const auto len = f_astr.length();
+	MFnStringArrayData f_astr(str_obj, &status);
+    RETURN_ON_FAILURE(status);
+
+	const auto len = f_astr.length(&status);
+    RETURN_ON_FAILURE(status);
+
 	for (unsigned int i = 0; i < len; ++i)
 	{
 		const MString& val = f_astr[i];
-		output.append(val);
-	}
+		status = output.append(val);
+        RETURN_ON_FAILURE(status);
+    }
+
+    return MStatus::kSuccess;
 }
 
-bool DagHelper::getPlugValue(const MPlug& plug, float& x, float& y)
+MStatus DagHelper::getPlugValue(const MPlug& plug, float& x, float& y)
 {
 	MObject obj;
 	MStatus status = plug.getValue(obj);
-	if (!status)
-		return false;
+    RETURN_ON_FAILURE(status);
 
 	MFnNumericData fcolor(obj, &status);
-	return status && fcolor.getData(x, y);
+    RETURN_ON_FAILURE(status);
+    
+    return fcolor.getData(x, y);
 }
 
-bool DagHelper::getPlugValue(const MPlug& plug, float& x, float& y, float& z)
+MStatus DagHelper::getPlugValue(const MPlug& plug, float& x, float& y, float& z)
 {
 	MObject obj;
 	MStatus status = plug.getValue(obj);
-	if (!status)
-		return false;
+    RETURN_ON_FAILURE(status);
 
 	MFnNumericData fcolor(obj, &status);
-	return status && fcolor.getData(x, y, z);
+    RETURN_ON_FAILURE(status);
+
+	return fcolor.getData(x, y, z);
 }
 
-//static 
-bool DagHelper::getPlugValue(const MObject& node, const char* attributeName, MVector& value)
+MStatus DagHelper::getPlugValue(const MObject& node, const char* attributeName, MVector& value)
 {
-	MStatus status;
-	const MPlug plug = MFnDependencyNode(node).findPlug(attributeName, &status);
-	return status && getPlugValue(plug, value);
+    return getPlugValueImpl(node, attributeName, value);
 }
 
-//static 
-bool DagHelper::getPlugValue(const MPlug& plug, MVector& value)
+MStatus DagHelper::getPlugValue(const MPlug& plug, MVector& value)
 {
 	MObject obj;
 	auto status = plug.getValue(obj);
-	if (!status)
-		return false;
+    RETURN_ON_FAILURE(status);
 
 	status = plug.getValue(obj);
-	if (!status)
-		return false;
+    RETURN_ON_FAILURE(status);
 
 	MFnNumericData data(obj);
 
 	double x, y, z;
 	status = data.getData(x, y, z);
-	if (!status)
-		return false;
+    RETURN_ON_FAILURE(status);
 
 	value = MVector(x, y, z);
-
-	return true;
+    return MStatus::kSuccess;
 }
 
 MPlug DagHelper::getChildPlug(const MPlug& parent, const MString& name)

@@ -4,7 +4,6 @@
 #include "ExportableResources.h"
 #include "accessors.h"
 #include "Arguments.h"
-#include "MayaException.h"
 
 using namespace GLTF::Constants;
 using namespace coveo::linq;
@@ -30,7 +29,8 @@ namespace Semantic
 }
 
 ExportablePrimitive::ExportablePrimitive(
-	const VertexBuffer& vertexBuffer,
+    const std::string& name,
+    const VertexBuffer& vertexBuffer,
 	ExportableResources& resources, 
 	ExportableMaterial* material)
 {
@@ -41,11 +41,13 @@ ExportablePrimitive::ExportablePrimitive(
 
 	auto& vertexIndices = vertexBuffer.indices;
 
+    const auto indicesName = args.makeName(name + "/indices");
+
 	if (args.force32bitIndices ||
 		vertexBuffer.maxIndex() > std::numeric_limits<uint16_t>::max())
 	{
 		// Use 32-bit indices
-		glIndices = contiguousAccessor("indices", GLTF::Accessor::Type::SCALAR, WebGL::UNSIGNED_INT, WebGL::ELEMENT_ARRAY_BUFFER, span(vertexIndices), 1);
+		glIndices = contiguousAccessor(indicesName, GLTF::Accessor::Type::SCALAR, WebGL::UNSIGNED_INT, WebGL::ELEMENT_ARRAY_BUFFER, span(vertexIndices), 1);
 		glPrimitive.indices = glIndices.get();
 	}
 	else
@@ -53,7 +55,7 @@ ExportablePrimitive::ExportablePrimitive(
 		// Use 16-bit indices
 		std::vector<uint16_t> shortIndices(vertexIndices.size());
 		std::copy(vertexIndices.begin(), vertexIndices.end(), shortIndices.begin());
-		glIndices = contiguousAccessor("indices", GLTF::Accessor::Type::SCALAR, WebGL::UNSIGNED_SHORT, WebGL::ELEMENT_ARRAY_BUFFER, span(shortIndices), 1);
+		glIndices = contiguousAccessor(indicesName, GLTF::Accessor::Type::SCALAR, WebGL::UNSIGNED_SHORT, WebGL::ELEMENT_ARRAY_BUFFER, span(shortIndices), 1);
 		glPrimitive.indices = glIndices.get();
 	}
 
@@ -95,8 +97,27 @@ ExportablePrimitive::ExportablePrimitive(
 			auto& slot = pair.first;
 			if (semanticSet.test(slot.semantic))
 			{
-				auto accessor = contiguousElementAccessor(slot.semantic, slot.shapeIndex, pair.second);
-				glAttributes[Semantic::glTFattributeName(slot.semantic, slot.setIndex)] = accessor.get();
+                auto attributeSlot = glTFattributeName(slot.semantic, slot.setIndex);
+
+                std::string accessorName;
+
+                if (!args.disableNameAssignment)
+                {
+                    std::stringstream ss;
+                    ss << name;
+
+                    if (slot.shapeIndex.isBlendShapeIndex())
+                    {
+                        ss << "/target#" + std::to_string(slot.shapeIndex.targetIndex());
+                    }
+
+                    ss << "/vertices/" << attributeSlot;
+
+                    accessorName = ss.str();
+                }
+
+				auto accessor = contiguousElementAccessor(accessorName, slot.semantic, slot.shapeIndex, pair.second);
+				glAttributes[attributeSlot] = accessor.get();
 				glAccessors.emplace_back(std::move(accessor));
 			}
 		}
@@ -104,6 +125,7 @@ ExportablePrimitive::ExportablePrimitive(
 }
 
 ExportablePrimitive::ExportablePrimitive(
+    const std::string& name,
 	const VertexBuffer& vertexBuffer, 
 	ExportableResources& resources,
 	const Semantic::Kind debugSemantic,
@@ -111,7 +133,9 @@ ExportablePrimitive::ExportablePrimitive(
 	const double debugLineLength,
 	const Color debugLineColor)
 {
-	glPrimitive.mode = GLTF::Primitive::LINES;
+    auto& args = resources.arguments();
+    
+    glPrimitive.mode = GLTF::Primitive::LINES;
 
 	const auto positionSlot = VertexSlot(ShapeIndex::main(), Semantic::POSITION, 0);
 	const auto vectorSlot = VertexSlot(ShapeIndex::main(), debugSemantic, 0);
@@ -147,17 +171,27 @@ ExportablePrimitive::ExportablePrimitive(
 		linePoints[offset + 1] = point;
 	}
 
-	glIndices = contiguousAccessor("indices", GLTF::Accessor::Type::SCALAR, WebGL::UNSIGNED_SHORT, WebGL::ELEMENT_ARRAY_BUFFER, span(lineIndices), 1);
+	glIndices = contiguousAccessor(args.makeName(name+"/debug/indices"), GLTF::Accessor::Type::SCALAR, WebGL::UNSIGNED_SHORT, WebGL::ELEMENT_ARRAY_BUFFER, span(lineIndices), 1);
 	glPrimitive.indices = glIndices.get();
 
-	auto pointAccessor = contiguousElementAccessor(Semantic::Kind::POSITION, ShapeIndex::main(), reinterpret_span<byte>(linePoints));
+	auto pointAccessor = contiguousElementAccessor(args.makeName(name + "/debug/points"), Semantic::Kind::POSITION, ShapeIndex::main(), reinterpret_span<byte>(linePoints));
 	glPrimitive.attributes[glTFattributeName(Semantic::Kind::POSITION, 0)] = pointAccessor.get();
 	glAccessors.emplace_back(move(pointAccessor));
 
-	auto colorAccessor = contiguousElementAccessor(Semantic::Kind::COLOR, ShapeIndex::main(), reinterpret_span<byte>(lineColors));
+	auto colorAccessor = contiguousElementAccessor(args.makeName(name + "/debug/colors"), Semantic::Kind::COLOR, ShapeIndex::main(), reinterpret_span<byte>(lineColors));
 	glPrimitive.attributes[glTFattributeName(Semantic::Kind::COLOR, 0)] = colorAccessor.get();
 	glAccessors.emplace_back(move(colorAccessor));
 }
 
 ExportablePrimitive::~ExportablePrimitive() = default;
+
+void ExportablePrimitive::getAllAccessors(std::vector<GLTF::Accessor*>& accessors) const
+{
+    accessors.emplace_back(glIndices.get());
+
+    for (auto&& accessor : glAccessors)
+    {
+        accessors.emplace_back(accessor.get());
+    }
+}
 

@@ -1,4 +1,5 @@
 #include "externals.h"
+#include "Arguments.h"
 #include "NodeAnimation.h"
 #include "ExportableNode.h"
 #include "ExportableMesh.h"
@@ -8,10 +9,15 @@
 NodeAnimation::NodeAnimation(
     const ExportableNode& node,
     const ExportableFrames& frames,
-    const double scaleFactor)
+    const double scaleFactor,
+    const bool disableNameAssignment,
+    const bool forceConstantKey)
     : node(node)
     , mesh(node.mesh())
     , m_scaleFactor(scaleFactor)
+    , m_disableNameAssignment(disableNameAssignment)
+    , m_forceChannels(forceConstantKey)
+    , m_blendShapeCount(mesh ? mesh->blendShapeCount() : 0)
 {
     auto& sNode = node.glSecondaryNode();
     auto& pNode = node.glPrimaryNode();
@@ -44,9 +50,9 @@ NodeAnimation::NodeAnimation(
         break;
     }
 
-    if (mesh)
+    if (m_blendShapeCount > 0)
     {
-        m_weights = std::make_unique<PropAnimation>(frames, pNode, GLTF::Animation::Path::WEIGHTS, mesh->blendShapeCount(), true);
+        m_weights = std::make_unique<PropAnimation>(frames, pNode, GLTF::Animation::Path::WEIGHTS, m_blendShapeCount, true);
     }
 }
 
@@ -88,15 +94,11 @@ void NodeAnimation::sampleAt(const MTime& absoluteTime, const int frameIndex, No
         break;
     }
 
-    if (mesh)
+    if (m_blendShapeCount)
     {
-        const auto weightCount = mesh->blendShapeCount();
-        if (weightCount)
-        {
-            auto weights = mesh->currentWeights();
-            assert(weights.size() == weightCount);
-            m_weights->append(span(weights));
-        }
+        auto weights = mesh->currentWeights();
+        assert(weights.size() == m_blendShapeCount);
+        m_weights->append(span(weights));
     }
 }
 
@@ -121,22 +123,22 @@ void NodeAnimation::exportTo(GLTF::Animation& glAnimation)
     switch (node.transformKind)
     {
     case TransformKind::Simple:
-        finish(glAnimation, m_positions, pTRS.translation);
-        finish(glAnimation, m_rotations, pTRS.rotation);
-        finish(glAnimation, m_scales, pTRS.scale);
+        finish(glAnimation, "T", m_positions, pTRS.translation);
+        finish(glAnimation, "R", m_rotations, pTRS.rotation);
+        finish(glAnimation, "S", m_scales, pTRS.scale);
         break;
     case TransformKind::ComplexJoint:
-        finish(glAnimation, m_positions, sTRS.translation);
-        finish(glAnimation, m_rotations, pTRS.rotation);
-        finish(glAnimation, m_scales, pTRS.scale);
-        finish(glAnimation, m_correctors, sTRS.scale);
+        finish(glAnimation, "T", m_positions, sTRS.translation);
+        finish(glAnimation, "R", m_rotations, pTRS.rotation);
+        finish(glAnimation, "S", m_scales, pTRS.scale);
+        finish(glAnimation, "C", m_correctors, sTRS.scale);
         break;
 
     case TransformKind::ComplexTransform:
-        finish(glAnimation, m_positions, sTRS.translation);
-        finish(glAnimation, m_rotations, sTRS.rotation);
-        finish(glAnimation, m_scales, sTRS.scale);
-        finish(glAnimation, m_correctors, pTRS.translation);
+        finish(glAnimation, "T", m_positions, sTRS.translation);
+        finish(glAnimation, "R", m_rotations, sTRS.rotation);
+        finish(glAnimation, "S", m_scales, sTRS.scale);
+        finish(glAnimation, "C", m_correctors, pTRS.translation);
         break;
 
     default:
@@ -144,41 +146,66 @@ void NodeAnimation::exportTo(GLTF::Animation& glAnimation)
         break;
     }
 
-    if (mesh)
+    if (m_blendShapeCount)
     {
         const auto initialWeights = mesh->initialWeights();
-        finish(glAnimation, m_weights, initialWeights);
+        assert(initialWeights.size() == m_blendShapeCount);
+        finish(glAnimation, "W", m_weights, initialWeights);
     }
+}
+
+void NodeAnimation::getAllAccessors(std::vector<GLTF::Accessor*>& accessors) const
+{
+    getAllAccessors(m_positions, accessors);
+    getAllAccessors(m_rotations, accessors);
+    getAllAccessors(m_scales, accessors);
+    getAllAccessors(m_correctors, accessors);
+    getAllAccessors(m_weights, accessors);
 }
 
 void NodeAnimation::finish(
     GLTF::Animation& glAnimation,
+    const char* propName,
     std::unique_ptr<PropAnimation>& animatedProp,
     const gsl::span<const float>& baseValues) const
 {
     const auto dimension = animatedProp->dimension;
-    assert(dimension == baseValues.size());
 
-    auto& componentValues = animatedProp->componentValuesPerFrame;
-
-    bool isFrozen = true;
-
-    for (size_t offset = 0; offset < componentValues.size() && isFrozen; offset += dimension)
+    if (dimension)
     {
-        for (size_t index = 0; index < dimension && isFrozen; ++index)
+        assert(dimension == baseValues.size());
+
+        auto& componentValues = animatedProp->componentValuesPerFrame;
+
+        bool isConstant = true;
+
+        for (size_t offset = 0; offset < componentValues.size() && isConstant; offset += dimension)
         {
-            isFrozen = std::abs(baseValues[index] - componentValues[offset + index]) < 1e-9;
+            for (size_t index = 0; index < dimension && isConstant; ++index)
+            {
+                isConstant = std::abs(baseValues[index] - componentValues[offset + index]) < 1e-9;
+            }
+        }
+
+        if (isConstant && !m_forceChannels)
+        {
+            // All animation frames are the same as the scene, to need to animate the prop.
+            animatedProp.release();
+        }
+        else
+        {
+            // TODO: Apply a curve simplifier.
+            animatedProp->finish(m_disableNameAssignment ? "" : node.name() + "/anim/" + glAnimation.name + "/" + propName, isConstant);
+            glAnimation.channels.push_back(&animatedProp->glChannel);
         }
     }
+}
 
-    if (isFrozen)
+void NodeAnimation::getAllAccessors(const std::unique_ptr<PropAnimation>& animatedProp, std::vector<GLTF::Accessor*>& accessors)
+{
+    if (animatedProp)
     {
-        animatedProp.release();
-    }
-    else
-    {
-        animatedProp->finish(glAnimation.name + "_outputs");
-        glAnimation.channels.push_back(&animatedProp->glChannel);
+        animatedProp->getAllAccessors(accessors);
     }
 }
 

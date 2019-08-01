@@ -1,0 +1,111 @@
+source "maya2glTF_common.mel";
+
+proc string _quoted(string $text)
+{
+    string $quote = "\"";
+    return $quote+$text+$quote;
+}
+
+proc string _ensureTrailingSlash( string $folderPath ) {
+    if (size($folderPath) == 0)
+        error ("Invalid folder path!");
+
+    if (substring($folderPath, size($folderPath), size($folderPath)) != "/")
+        $folderPath += "/";
+
+    return $folderPath;
+}
+
+proc string _combinePaths(string $path1, string $path2) {
+    return size($path1) == 0
+     ? $path2
+     : _ensureTrailingSlash($path1)+$path2;
+}
+
+proc _exportClipScene(string $scenesDir, string $exportDir, string $filename, string $modelName) {
+    string $path = _combinePaths($scenesDir, $filename);
+
+    print ("Loading " + $path + "...\n");
+
+    if (catch (`file -f -ignoreVersion -prompt off -o $path`)) {
+        print ("Some errors occurred while loading the scene, this can happen if some Maya components (like Arnold) are not installed");
+    }
+
+    int $isCancelled = `progressWindow -query -isCancelled`;
+    if ($isCancelled) {
+        error ("Aborted!");
+    }
+
+    maya2glTF_polySelectAndFrame();
+
+    string $name = basenameEx($filename);
+
+    $min = `playbackOptions -q -min`;
+    $max = `playbackOptions -q -max`;
+    $fps = `currentTimeUnitToFPS`;
+
+    print (`format -s($name) -s($min) -s($max) -s($fps) "Exporting ^1s, time range: ^2s - ^3s, FPS: ^4s...\n"`);
+
+    currentTime -edit 0;
+    dgdirty -allPlugs;
+
+    currentTime -edit -1000;
+    dgdirty -allPlugs;
+
+    //maya2glTF -mts -ivt -1000 -sma -sbr -hbu -acn $name -ast $min -aet $max -afr $fps -cof -of $outputFolder;
+    maya2glTF -mts -ivt -1000 -fac -acn $name -ast $min -aet $max -afr $fps -of $exportDir;
+}
+
+global proc _exportClipScenes(string $scenesDir, string $exportDir, string $modelName) {
+
+    string $filenames[] = `getFileList -folder $scenesDir`;
+
+    print ("Exporting " + stringArrayToString($filenames, ", ") + "...\n");
+
+    int $sceneCount = size($filenames);
+
+    progressWindow -endProgress;
+
+    progressWindow 
+        -title "Maya2glTF" 
+        -min 0 
+        -max $sceneCount 
+        -status "Exporting..." 
+        -isInterruptable true 
+        -progress 0;
+
+    int $progress = 0;
+
+    for($filename in $filenames) {
+        string $filePath = _combinePaths($scenesDir, $filename);
+
+        if (`filetest -f $filePath`) {
+            ++$progress;
+
+            progressWindow -edit -progress $progress -status $filePath;
+
+            if (tolower(fileExtension($filePath)) == "ma") {
+                if (catch (_exportClipScene($scenesDir, $exportDir, $filename, $modelName))) {
+                    warning ("Failed to export " + $filename);
+                }
+            }
+
+            int $isCancelled = `progressWindow -query -isCancelled`;
+            if ($isCancelled) {
+                error ("Aborted!");
+            }
+        }
+    }
+}
+
+global proc maya2glTF_exportClipScenes(string $scenesDir, string $exportDir, string $modelName) {
+    progressWindow -endProgress;
+    loadPlugin "maya2glTF";
+
+    if (catch (_exportClipScenes($scenesDir, $exportDir, $modelName))) {
+        print ("Failed to export clip scenes!");
+    }
+
+    progressWindow -endProgress;
+    unloadPlugin  "maya2glTF";
+}

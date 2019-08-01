@@ -4,6 +4,7 @@
 #include "ExportableMesh.h"
 #include "ExportableScene.h"
 #include "Transform.h"
+#include "ExportableCamera.h"
 
 enum class TransformKind
 {
@@ -22,7 +23,13 @@ class ExportableNode : public ExportableObject
 public:
 	~ExportableNode();
 	
+    // Mesh attached to node, or null    
 	ExportableMesh* mesh() const { return m_mesh.get(); }
+
+    // Camera attached to node, or null
+    ExportableCamera* camera() const { return m_camera.get(); }
+
+    bool hasAttachedShape() const { return m_mesh || m_camera; }
 
 	const MDagPath dagPath;
 
@@ -59,6 +66,8 @@ public:
 	// If this node is a redundant shape node, move the mesh to the parent node, and return true. 
 	bool tryMergeRedundantShapeNode();
 
+    void getAllAccessors(std::vector<GLTF::Accessor*>& accessors) const;
+
 private:
 	friend class ExportableScene;
 
@@ -68,6 +77,10 @@ private:
 
 	std::array<GLTF::Node, 2> m_glNodes;
 	std::unique_ptr<ExportableMesh> m_mesh;
+	std::unique_ptr<ExportableCamera> m_camera;
+
+    bool m_disableNameAssignment = false;
+    bool m_forceAnimationChannels = false;
 
 	DISALLOW_COPY_MOVE_ASSIGN(ExportableNode);
 };

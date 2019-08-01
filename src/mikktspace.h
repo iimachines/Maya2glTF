@@ -101,6 +101,9 @@ extern "C" {
 		// DO NOT! use an already existing index list.
 		void(*m_setTSpace)(const SMikkTSpaceContext * pContext, const float fvTangent[], const float fvBiTangent[], const float fMagS, const float fMagT,
 			const tbool bIsOrientationPreserving, const int iFace, const int iVert);
+
+        void(*m_reportDegenerateTriangle)(SMikkTSpaceContext * pContext, int triangleIndex);
+
 	} SMikkTSpaceInterface;
 
 	struct SMikkTSpaceContext

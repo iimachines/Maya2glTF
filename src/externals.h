@@ -16,6 +16,7 @@
 #include <bitset>
 #include <numeric>
 #include <cmath>
+#include <thread>
 #include <string>
 #include <vector>
 #include <stdexcept>
@@ -40,6 +41,7 @@
 #include <GLTFAccessor.h>
 #include <GLTFMesh.h>
 #include <GLTFPrimitive.h>
+#include "Base64.h"
 
 #ifdef _MSC_VER
 #	pragma warning(push)  
@@ -103,4 +105,7 @@
 #include <maya/MItGeometry.h>
 #include <maya/MItDependencyNodes.h>
 #include <maya/MItMeshFaceVertex.h>
+#include <maya/MQuaternion.h>
+#include <maya/MFnCamera.h>
+#include <maya/MRenderSetup.h>
 

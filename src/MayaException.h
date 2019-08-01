@@ -14,7 +14,10 @@ public:
 	static void throwIt(const MStatus status, const std::string& message, const char* file, int line, const char* function);
 
 	/** Prints an error to the standard error and the Maya script window */
-	static MStatus printError(const std::string& message, const MStatus& error = MStatus::kFailure);
+	static MStatus printError(const std::string& message, const MStatus& error);
+
+    /** Prints an error to the standard error and the Maya script window */
+    static void printError(const std::string& message);
 };
 
 
@@ -32,6 +35,12 @@ public:
 		MayaException::throwIt(__status__, "", __FILE__, __LINE__, __FUNCTION__); \
 }
 
+#define RETURN_ON_FAILURE(__expression__) { \
+	const MStatus __status__ = (__expression__); /* NOLINT */ \
+	if (MStatus::kSuccess != __status__) \
+        return __status__; \
+}
+
 #define THROW_ON_FAILURE_WITH(__expression__, __message__) { \
 	const MStatus __status__ = (__expression__); /* NOLINT */ \
 	DEBUG_ASSERT_SUCCESS(__status__); \
@@ -45,6 +54,6 @@ bool checkAndReportStatus(const MStatus& status, const char* format, Args ... ar
 	if (status == MStatus::kSuccess)
 		return true;
 
-	cerr << formatted(format, args...);
+	cerr << prefix << "WARNING: " << formatted(format, args...) << endl;
 	return false;
 }

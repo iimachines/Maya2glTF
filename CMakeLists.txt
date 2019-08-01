@@ -48,27 +48,12 @@ ExternalProject_Add(GSL
 	-DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
 )
 
-# filesystem
-ExternalProject_Add(filesystem
-  GIT_REPOSITORY https://github.com/WonderMediaProductions/filesystem
-  GIT_TAG maya2glTF
-  PREFIX filesystem
-  INSTALL_DIR
-  CMAKE_ARGS
-	-DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
-  CONFIGURE_COMMAND ""
-  BUILD_COMMAND ""
-  INSTALL_COMMAND ""
-)
-
-
 set(GLTF_INCLUDE_DIR          "${CMAKE_BINARY_DIR}/COLLADA2GLTF/src/COLLADA2GLTF/GLTF/include")
 set(DRACO_INCLUDE_DIR         "${CMAKE_BINARY_DIR}/COLLADA2GLTF/src/COLLADA2GLTF/GLTF/dependencies/draco/src")
 set(RAPIDJSON_INCLUDE_DIR     "${CMAKE_BINARY_DIR}/COLLADA2GLTF/src/COLLADA2GLTF/GLTF/dependencies/rapidjson/include")
 #set(COLLADA2GLTF_INCLUDE_DIR  "${CMAKE_BINARY_DIR}/COLLADA2GLTF/include")
 set(GSL_INCLUDE_DIR           "${CMAKE_BINARY_DIR}/GSL/include")
 set(LINQ_INCLUDE_DIR          "${CMAKE_BINARY_DIR}/linq/src/linq/lib")
-set(FS_INCLUDE_DIR            "${CMAKE_BINARY_DIR}/filesystem/src/filesystem")
 
 # TODO: It seems the gltf.lib is not installed by COLLADA2GLTF, although draco.lib is? Figure out why
 ExternalProject_Get_Property(COLLADA2GLTF binary_dir)
@@ -82,6 +67,7 @@ if (MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Yuexternals.h")
   set_source_files_properties(src/externals.cpp PROPERTIES COMPILE_FLAGS "/Ycexternals.h")
   set_source_files_properties(src/mikktspace.c  PROPERTIES COMPILE_FLAGS "/Y-")
+  set_source_files_properties(src/PolarDecomposition.c  PROPERTIES COMPILE_FLAGS "/Y-")
 endif()
 
 include_directories(
@@ -106,7 +92,6 @@ add_dependencies(${PROJECT_NAME}
   GSL
   COLLADA2GLTF
   linq
-  filesystem
 )
 
 target_link_libraries(${PROJECT_NAME} ${MAYA_LIBRARIES} glTF draco)
@@ -114,9 +99,10 @@ target_link_libraries(${PROJECT_NAME} ${MAYA_LIBRARIES} glTF draco)
 if(MSVC)
   
   add_custom_command(TARGET Maya2glTF POST_BUILD 
-    COMMAND XCOPY /Y "$<SHELL_PATH:$<TARGET_FILE:Maya2glTF>>" "$<SHELL_PATH:$ENV{USERPROFILE}/Documents/maya/${MAYA_VERSION}/plug-ins/>"
+    COMMAND xcopy /y "$<SHELL_PATH:$<TARGET_FILE:Maya2glTF>>" "$<SHELL_PATH:$ENV{USERPROFILE}/Documents/maya/${MAYA_VERSION}/plug-ins/>"
     COMMAND xcopy /y "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/scripts/maya2glTF*.mel>" "$<SHELL_PATH:$ENV{USERPROFILE}/Documents/maya/${MAYA_VERSION}/scripts/>"
     COMMAND xcopy /y /s /i "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/renderData/*.*>" "$<SHELL_PATH:$ENV{USERPROFILE}/Documents/maya/Maya2glTF/PBR/>"
+    COMMAND xcopy /y /c "$<SHELL_PATH:$<TARGET_PDB_FILE:Maya2glTF>>" "$<SHELL_PATH:$ENV{USERPROFILE}/Documents/maya/${MAYA_VERSION}/plug-ins/>"
   )
 
 endif()

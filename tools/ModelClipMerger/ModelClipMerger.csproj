@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <AssemblyName>WonderMedia.glTF.ModelClipMerger</AssemblyName>
+    <RootNamespace>WonderMedia.glTF.ModelClipMerger</RootNamespace>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Fastenshtein" Version="1.0.0.5" />
+    <PackageReference Include="glTF2Loader" Version="1.1.1-alpha" />
+    <PackageReference Include="JetBrains.Annotations" Version="10.2.1" />
+  </ItemGroup>
+
+</Project>

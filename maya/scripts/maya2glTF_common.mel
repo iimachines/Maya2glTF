@@ -1,0 +1,431 @@
+global int $maya2glTF_setupKeyFrame = -1000;
+
+global proc float maya2glTF_timeUnitToSeconds() 
+{
+	float $fps = `currentTimeUnitToFPS`;
+
+	if ($fps != 0)
+		return 1.0/$fps;
+
+	string $unit = `currentUnit -q -time`;
+	switch ($unit) 
+	{
+		case "hour": return 60*60;
+		case "min": return 60;
+		case "sec": return 1;
+		case "millisec": return 1.0/1000;
+		default: error ("Maya2glTF: Unsupported time unit "+$unit);
+	}
+}
+
+global proc maya2glTF_exportProgressUI(int $max) {
+    // This is defined on maya startup
+    global string $gMainProgressBar;  
+
+    $max = max(1, $max);
+
+    progressBar -edit
+        -beginProgress
+        -isInterruptable true
+        -status "maya2glTF: exporting..."
+        -minValue 0
+        -maxValue $max
+        $gMainProgressBar;
+}
+
+global proc maya2glTF_teardownProgressUI() {
+    // This is defined on maya startup
+    global string $gMainProgressBar;  
+    progressBar -edit -endProgress $gMainProgressBar;
+}
+
+// Returns -1 if abortion is requested
+global proc int maya2glTF_advanceExportProgressUI(string $stepName) 
+{
+    global string $gMainProgressBar;  // This is defined on maya startup
+
+    progressBar -edit -step 1 -status ("maya2glTF: " + $stepName + "...") $gMainProgressBar;
+
+    if(`progressBar -query -isCancelled $gMainProgressBar`) {
+        print ("maya2glTF: aborting at "+`date -time`+"\n");
+        return -1;
+    }
+
+    return 0;
+}
+
+global proc maya2glTF_polySelectAndFrame() 
+{
+    // clear the selection    
+    select -cl;
+
+    // gather the display layers
+    string $layers[] = `ls -type displayLayer`;
+
+    string $objects[] = {};
+
+    // if we don't find any layers, select by visibility
+    if (size($layers) == 0) 
+    {
+        print "Maya2glTF: No display layers found, just selecting visible objects\n";
+        $objects = `ls -v -type mesh -ap`; 
+    } 
+    else 
+    {
+        print "Maya2glTF: Using display layers to select visible untemplated objects\n";
+
+        for ($layer in $layers)
+        {
+            // if the display layer is visible, continue
+            if (getAttr($layer+".displayType") != 1 && getAttr($layer+".visibility"))
+            {
+                // gather the items that are connected to the layer
+                string $conns[] = `listConnections -d 1 -s 0 ($layer+".drawInfo")`;
+
+                // as this gives us transform nodes, 
+                // do a selection on the result of that running through the dag, 
+                // selecting all the meshes that are set to visible
+                string $shapes[] = `ls -dag -type mesh -visible $conns`;
+                
+                if (size($shapes) > 0) 
+                {
+                    appendStringArray($objects, $shapes, size($shapes));
+                }
+            }
+        }
+    }
+
+    // Sort the objects for consistency
+    $objects = sort($objects);
+
+    // print ("Selecting:\n" + stringArrayToString($objects, "\n") + "\n");
+
+    select -r $objects;
+
+    if (catch (`viewFit -an 1`)) {
+        warning "Failed to fit viewport to selection";
+    }
+}
+
+global proc string maya2glTF_quoted(string $text)
+{
+    string $quote = "\"";
+    return $quote + $text + $quote;
+}
+
+global proc string maya2glTF_ensureTrailingSlash( string $folderPath ) {
+    if (size($folderPath) == 0)
+        error ("Invalid folder path!");
+
+    if (substring($folderPath, size($folderPath), size($folderPath)) != "/")
+        $folderPath += "/";
+
+    return $folderPath;
+}
+
+global proc string maya2glTF_combinePaths(string $path1, string $path2) {
+    return size($path1) == 0
+     ? $path2
+     : maya2glTF_ensureTrailingSlash($path1)+$path2;
+}
+
+global proc maya2glTF_deleteFolder( string $folderPath )
+{
+    if (`filetest -d ($folderPath)`) {
+        print ("Deleting files in "+$folderPath+"...\n");
+
+        string $subFiles[] = `getFileList -folder $folderPath`;
+
+        for( $filename in $subFiles )
+        {
+            string $filePath = maya2glTF_combinePaths($folderPath, $filename);
+
+            if( `filetest -d $filePath` )
+            { 
+                maya2glTF_deleteFolder($filePath);
+            }
+            else
+            {
+                sysFile -delete $filePath;
+            }
+        }
+
+		sysFile -removeEmptyDir $folderPath;
+    } 
+}
+
+global proc maya2glTF_checkProgressWindowCancellation() {
+    int $isCancelled = `progressWindow -query -isCancelled`;
+    if ($isCancelled) {
+        error ("Aborted!");
+    }
+}
+
+proc _getScenePaths(string $folder, int $recursive, string $scenePaths[]) {
+	string $filenames[] = `getFileList -folder $folder`;
+
+    for($filename in $filenames)
+    {
+        string $filePath = maya2glTF_combinePaths($folder, $filename);
+        if( `filetest -d $filePath` && $recursive )
+        { 
+            maya2glTF_checkProgressWindowCancellation();
+            _getScenePaths($filePath, $recursive, $scenePaths);
+        }
+        else if (tolower(fileExtension($filePath)) == "ma")
+        {
+            $scenePaths[size($scenePaths)] = $filePath;
+        }
+    }
+}
+
+global proc string[] maya2glTF_getScenePaths(string $folder, int $recursive) {
+    print ("Scanning "+$folder+"...\n");
+    string $scenePaths[] = {};
+    _getScenePaths($folder, $recursive, $scenePaths);
+    return $scenePaths;
+}
+
+proc _forEachScene(string $filePaths[], int $isModifier, string $command) {
+    print ("Processing:\n  " + stringArrayToString($filePaths, "\n  ") + "\n...\n");
+
+    int $sceneCount = size($filePaths);
+
+    progressWindow -endProgress;
+
+    progressWindow 
+        -title "Maya2glTF" 
+        -min 0 
+        -max $sceneCount 
+        -status "Processing..." 
+        -isInterruptable true 
+        -progress 0;
+
+    int $progress = 0;
+
+    for($filePath in $filePaths) {
+        ++$progress;
+
+        progressWindow -edit -progress $progress -status $filePath;
+        print ("Loading " + $filePath + "...\n");
+
+        if (catch (`file -f -ignoreVersion -prompt off -o $filePath`)) {
+            print ("Some errors occurred while loading the scene, this can happen if some Maya components (like Arnold) are not installed");
+        }
+
+        int $isCancelled = `progressWindow -query -isCancelled`;
+        if ($isCancelled) {
+            error ("Aborted!");
+        }
+
+        print ("Running command\n" + $command + "\n...\n");
+    
+        if (catch (`eval $command`)) {
+            warning ("Failed to execute command");
+        } else if ($isModifier) {
+            print ("Saving " + $filePath + "...\n");
+            file -f -type "mayaAscii"  -prompt off -save;
+        }
+
+        print ("-------------------------------------------------------------------\n");
+    }
+}
+
+// Loads each scene, calls the command, then optionally saves the scene
+// Shows progress, and supports aborting the process.
+global proc maya2glTF_forEachScene(string $filePaths[], int $isModifier, string $command) {
+    if (catch ( `_forEachScene $filePaths $isModifier $command`)) {
+    }
+
+    progressWindow -edit -ep;
+}
+
+// Loads each scene in a folder, optionally recursively,
+// calls the command, then optionally saves the scene
+// Shows progress, and supports aborting the process.
+global proc maya2glTF_forEachSceneIn(string $folder, int $recursive, int $isModifier, string $command) {
+     string $filePaths[] = maya2glTF_getScenePaths($folder,  $recursive);
+     maya2glTF_forEachScene($filePaths, $isModifier, $command);
+}
+
+
+global proc maya2glTF_copyMasterKey() 
+{
+    global int $maya2glTF_setupKeyFrame;
+    int $setupKeyFrame = $maya2glTF_setupKeyFrame;
+
+    // Create a key for all controllers, and copy to the API clipboard
+    string $controllers[] = `listTransforms "-type nurbsCurve"`;
+
+    if (size($controllers) > 0) {
+        select -r $controllers;
+        setKeyframe -breakdown 0 -hierarchy none -controlPoints 0 -shape 0 -time $setupKeyFrame;
+        copyKey -clipboard "api" -shape 0 -time $setupKeyFrame;
+    } else {
+        error "Scene doesn't contain any controllers";
+    }
+}
+
+global proc maya2glTF_pasteMasterKey()
+{
+    global int $maya2glTF_setupKeyFrame;
+    int $setupKeyFrame = $maya2glTF_setupKeyFrame;
+
+    string $controllers[] =  `listTransforms "-type nurbsCurve"`;
+
+    if (size($controllers) > 0) {
+        select -r $controllers;
+        pasteKey -clipboard "api" -time $setupKeyFrame;
+    } else {
+        warning "Scene doesn't contain any controllers";
+    }
+}
+
+global proc maya2glTF_exportPlayblastScene() 
+{
+    global int $maya2glTF_setupKeyFrame;
+    int $setupKeyFrame = $maya2glTF_setupKeyFrame;
+
+    string $rootFolder = `workspace -q -active`;
+    string $scenePath = `file -q -sn`;
+    string $filename = `basenameEx $scenePath`;
+
+    //int $exportAnim = match("anim",tolower($filename)) == "anim";
+    int $exportAnim = 1;
+
+    if ($exportAnim) {
+        maya2glTF_pasteMasterKey();
+    }
+
+    print ("Exporting " + $filename + ($exportAnim ? " with" : " without") + " animation...\n");
+
+    string $playblastFolder = maya2glTF_combinePaths($rootFolder, "playblast");
+    //string $exportFolder = maya2glTF_combinePaths($playblastFolder, $filename);
+    //string $outputFolder = maya2glTF_combinePaths($exportFolder, "gltf");
+    string $exportFolder = maya2glTF_combinePaths($playblastFolder, "gltf3");
+    string $outputFolder = $exportFolder;
+
+    select -r `ls -v -type mesh -ap`;
+
+	$min = `playbackOptions -q -min`;
+	$max = `playbackOptions -q -max`;
+	$fps = `currentTimeUnitToFPS`;
+
+    if ($exportAnim 
+            ? catch(`maya2glTF -cam "camera1" -ivt $setupKeyFrame -mts -sma -hbu -sbr -acn "clip" -ast $min -aet $max -afr $fps -outputFolder $outputFolder`) 
+            : catch(`maya2glTF -cam "camera1" -ivt $setupKeyFrame -mts -sma -hbu -sbr -outputFolder $outputFolder`)) {
+        print ("*** Exporting "+$filename+" failed! :-( ***\n");
+    } else {
+        print ("Exporting "+$filename+" succeeded\n");
+    } 
+}
+
+global proc string maya2glTF_createCamera(string $name, int $width, int $height) {
+    if (`objExists $name`) {
+        delete $name;
+    }
+
+    // TODO: Figure out how to create a camera with a name
+    string $camera[] = `camera -centerOfInterest 5 -focalLength 35 -lensSqueezeRatio 1 -cameraScale 1 -horizontalFilmAperture 1.4173 -horizontalFilmOffset 0 -verticalFilmAperture 0.9449 -verticalFilmOffset 0 -filmFit Fill -overscan 1 -motionBlur 0 -shutterAngle 144 -nearClipPlane 0.1 -farClipPlane 10000 -orthographic 0 -orthographicWidth 30 -panZoomEnabled 0 -horizontalPan 0 -verticalPan 0 -zoom 1`;
+    string $transform = $camera[0];
+    string $shape = $camera[1];
+
+    setNamedPanelLayout "Single Perspective View";
+
+    lookThroughModelPanel $transform modelPanel4;
+    updateModelPanelBar MainPane|viewPanes|modelPanel4|modelPanel4|modelPanel4;
+    dR_setModelEditorTypes;
+
+    modelEditor -e -displayTextures true modelPanel4;    
+
+    setAttr defaultResolution.width $width;
+    setAttr defaultResolution.height $height;
+    setAttr ($shape+".displayResolution") 1;
+
+    setAttr ($shape+".nearClipPlane") 1;
+    setAttr ($shape+".farClipPlane") 10000;
+
+    rename $transform $name;
+
+    return $name;
+}
+
+global proc maya2glTF_createDefaultCamera() {
+    string $transform = maya2glTF_createCamera("camera1", 1280, 720);
+    xform -rotation -8 0 0 -translation 0 270 1100 $transform;
+    //xform -rotation -35 25 0 -translation 3 9 10 $transform;
+}
+
+global proc maya2glTF_createThumbnailCamera() {
+    string $transform = maya2glTF_createCamera("thumbcam", 256, 256);
+    print $transform;
+    xform -rotation -10 0 0 -translation 0 70 200 $transform;
+    //xform -rotation -35 25 0 -translation 3 9 10 $transform;
+}
+
+global proc int maya2glTF_getTraxClips(string $char, float $startTimes[], float $stopTimes[], string $clipNames[]) {
+    // Get character's clip scheduler
+    string $scheduler = `character -q -sc $char`;
+
+    // Get all clips in the scheduler
+    string $clips[] = `clipSchedule -q -ci $scheduler`;
+
+    int $count = 0;
+
+    // Get enabled clips
+    string $clip;
+    for($clip in $clips )
+    {
+        // (clipName,index,start,sourceStart,sourceEnd,scale,preCycle,postCycle) 
+        string $parts[] = stringToStringArray($clip,",");
+        string $clipName = $parts[0];
+        int $clipIndex = $parts[1];
+        float $timeStart = $parts[2];
+        float $sourceStart = $parts[3];
+        float $sourceEnd = $parts[4];
+        float $scale = $parts[5];
+        float $timeEnd = $timeStart + ($sourceEnd-$sourceStart)*$scale;
+        int $clipEnabled = `clipSchedule -clipIndex $clipIndex -q -enable $scheduler`;
+        int $trackIndex = `clipSchedule -clipIndex $clipIndex -q -track $scheduler`;
+        // HACK: We export enabled clips from the top track, to allow other tracks to contain adjusting clips 
+        if($clipEnabled && $trackIndex == 1) {
+            $startTimes[$count] = $timeStart;
+            $stopTimes[$count] = $timeEnd;
+            $clipNames[$count] = $clipName;
+            $count += 1;
+        } 
+    }
+
+    return $count;
+}
+
+global proc string maya2glTF_intToStringWithZeroPadding(int $value, int $padding){ 
+  // Tip from the blog post: http://ldunham.blogspot.ca/2012/01/melpython-adding-number-padding.html
+  int $lengthNum=size(string($value));
+  string $padString; 
+
+  if($lengthNum<$padding) {
+    for($i=0;$i<($padding-$lengthNum);$i++) {
+      $padString=$padString+"0"; 
+    }
+  }
+  return $padString+string($value);
+}
+
+// {
+//     float $startTimes[];
+//     float $stopTimes[];
+//     string $clipNames[];
+//     maya2glTF_getTraxClips("Beanie", $startTimes, $stopTimes, $clipNames);
+//     print($startTimes);
+//     print($stopTimes);
+//     print($clipNames);
+// }
+
+// maya2glTF_createThumbnailCamera();
+
+// python("from maya2glTF_playblast import playblast\nplayblast(camera='thumbcam')");
+
+// print(`maya2glTF_getScenePaths "c:/dev/glTF/Maya2glTF/maya" 1`);
+// maya2glTF_forEachSceneIn(`workspace -q -active`, true, true, "maya2glTF_createDefaultCamera();");
+//maya2glTF_forEachSceneIn("C:/dev/glTF/Maya2glTF/maya", true, false,"python(\"from maya2glTF_playblast import playblast\\nplayblast()\")");

@@ -4,7 +4,6 @@
 #include "Mesh.h"
 #include "MeshRenderables.h"
 #include "IndentableStream.h"
-#include "dump.h"
 #include "Arguments.h"
 
 using namespace coveo::linq;
