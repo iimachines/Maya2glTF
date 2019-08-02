@@ -5,7 +5,7 @@
     Only creates a key for the "rig controllers" in a scene, and currently assumes that NURBS curves 
     are used to model all rig controllers (will be made more flexible in a future revision)
 
-    When exporting each clip with Maya2glTF, when the T-pose keyframe is pasted at frame -1000, use the following arguments:
+    When exporting each clip with maya2glTF, when the T-pose keyframe is pasted at frame -1000, use the following arguments:
     
     -initialValuesTime -1000 -splitMeshAnimation -hashBufferUri -mikkelsenTangentSpace
 
@@ -104,7 +104,7 @@ global proc maya2glTF_pasteKeyInScenes(string $setupScenePath, int $setupKeyFram
     progressWindow -endProgress;
 
     progressWindow 
-        -title "Maya2glTF" 
+        -title "maya2glTF" 
         -min 0 
         -max ($sceneCount+1) 
         -status "Setup..." 

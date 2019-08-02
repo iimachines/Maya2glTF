@@ -27,7 +27,7 @@ ExportableAsset::ExportableAsset(const Arguments& args)
     m_glAsset.scene = 0;
 
     m_glAsset.metadata = &m_glMetadata;
-    m_glMetadata.generator = std::string("Maya2glTF ") + version;
+    m_glMetadata.generator = std::string("maya2glTF ") + version;
     m_glMetadata.version = "2.0";
     m_glMetadata.copyright = args.copyright.asChar();
 

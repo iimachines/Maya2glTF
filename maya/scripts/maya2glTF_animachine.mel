@@ -283,7 +283,7 @@ global proc maya2glTF_playblastTraxClips(string $charName, string $outputFolder,
     progressWindow -endProgress;
 
     progressWindow 
-        -title "Maya2glTF" 
+        -title "maya2glTF" 
         -min 0 
         -max ($clipCount * 2)
         -status "Playblasting..." 

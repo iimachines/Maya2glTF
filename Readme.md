@@ -14,7 +14,7 @@
 
 * Exports small animation metadata JSON file.
 
-See the [releases](https://github.com/WonderMediaProductions/Maya2glTF/releases) tab.
+See the [releases](https://github.com/WonderMediaProductions/maya2glTF/releases) tab.
 
 ![Maya Tiger screenshot](/img/tiger-wim@koetan.gif)
 
@@ -27,9 +27,9 @@ See the [releases](https://github.com/WonderMediaProductions/Maya2glTF/releases)
 - *Windows 10 x64*
   - install the [Microsoft Visual C++ redistributables](https://go.microsoft.com/fwlink/?LinkId=746572).
     - on many systems this is already installed, so you might want to skip this step.
-  - download the desired [Maya2glTF_xxx.zip release](https://github.com/WonderMediaProductions/Maya2glTF/releases)
+  - download the desired [Maya2glTF_xxx.zip release](https://github.com/WonderMediaProductions/maya2glTF/releases)
   - extract the downloaded `zip` file to any location (e.g. your desktop)
-  - open the created `Maya2glTF` folder
+  - open the created `maya2glTF` folder
   - double click on the `deploy.bat` file
     - This will copy the plug-in and scripts to your `Documents` folder
   - re-launch Maya 2017 or 2018
@@ -55,14 +55,14 @@ See the [releases](https://github.com/WonderMediaProductions/Maya2glTF/releases)
 
 - let me know if this doesn't work for you
   - ideally make an issue, providing the OS, Maya and plug-in version, and a test-scene.
-- if it _does_ work, please give Maya2glTF a :star: on GitHUB, and spread the word :sunglasses:
+- if it _does_ work, please give maya2glTF a :star: on GitHUB, and spread the word :sunglasses:
 
 ## Shading
 - _I assume you already used something like Substance Painter to create glTF-PBR textures_
 - select the polygons you want to shade
 - click the `assign PBR shader to selection` button
 - the first time, you need to select our PBR OpenGL shader at:
-  - `Documents\maya\Maya2glTF\PBR\shaders\glTF_PBR.ogsfx`
+  - `Documents\maya\maya2glTF\PBR\shaders\glTF_PBR.ogsfx`
 - next, select all the PBR textures you want to apply in one go:
   - for example, for the [damaged helmet model](https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0/DamagedHelmet/glTF), multi-select the following textures:
     - `Default_normal.jpg`
@@ -288,11 +288,11 @@ I consider this plugin to be production quality now, but use it at your own risk
 
 - Comes with GLSL code with a friendly UI ported from the official Khronos PBR WebGL code.
 
-  - See `Maya2glTF\maya\renderData\shaders\glTF_PBR.ogsfx`
+  - See `maya2glTF\maya\renderData\shaders\glTF_PBR.ogsfx`
   - To use this hardware shader
     - make sure the GLSL shader plugin is loaded
     - use the _OpenGL/Core Profile_ in Preferences/Display
-  - You can use the `Maya2glTF\maya\scripts\assign_glTF_PBR_material_and_textures.mel` script to assign multiple textures at once, based on filename patterns
+  - You can use the `maya2glTF\maya\scripts\assign_glTF_PBR_material_and_textures.mel` script to assign multiple textures at once, based on filename patterns
 
 - Supports exporting cameras
 
@@ -319,7 +319,7 @@ I consider this plugin to be production quality now, but use it at your own risk
   - Open a command prompt (aka terminal), and run
 
   ```
-  git clone https://github.com/WonderMediaProductions/Maya2glTF --branch master
+  git clone https://github.com/WonderMediaProductions/maya2glTF --branch master
   ```
 
 ### Building for **Windows**
@@ -335,7 +335,7 @@ I consider this plugin to be production quality now, but use it at your own risk
 
   - Make sure to add CMake to the system path
 
-* Enter the `Maya2glTF` folder, and run
+* Enter the `maya2glTF` folder, and run
 
   ```
   windows_create_vs_project -D MAYA_VERSION=2018
@@ -343,11 +343,11 @@ I consider this plugin to be production quality now, but use it at your own risk
 
   - After a couple of seconds, a Visual Studio solution should be generated in the `build` folder.
 
-* Next build the `Maya2glTF` plugin itself
+* Next build the `maya2glTF` plugin itself
 
   - Launch Visual Studio 2017
 
-  - Open the solution `Maya2glTF\build\Maya2glTF.sln`
+  - Open the solution `maya2glTF\build\maya2glTF.sln`
 
   - Select the desired configuration target (e.g. `release`)
 
@@ -361,9 +361,9 @@ I consider this plugin to be production quality now, but use it at your own risk
 
   - Load a scene 
   
-    - **NOTE** to load scenes from this project, first set the Maya project to the `Maya2glTF\maya` folder
+    - **NOTE** to load scenes from this project, first set the Maya project to the `maya2glTF\maya` folder
 
-    - to see if the plugin was built correctly, it's best to use a scene from this repository, for example `Maya2glTF\maya\scenes\damaged_helmet.ma`
+    - to see if the plugin was built correctly, it's best to use a scene from this repository, for example `maya2glTF\maya\scenes\damaged_helmet.ma`
 
   - select the meshes and cameras you want to export
 
@@ -379,5 +379,5 @@ I consider this plugin to be production quality now, but use it at your own risk
 
     - Make sure to switch between BabylonJS, Cesium and ThreeJS, they all give different results... For our own assets, it seems ThreeJS gives the best results.
 
-  - If you want to contribute to the development, you might want to use the MEL script `Maya2glTF\maya\scripts\test-iteration.mel`. This unloads and reloads the plugin everytime, unlocking the DLL.
+  - If you want to contribute to the development, you might want to use the MEL script `maya2glTF\maya\scripts\test-iteration.mel`. This unloads and reloads the plugin everytime, unlocking the DLL.
 

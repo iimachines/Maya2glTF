@@ -3,7 +3,7 @@
 ## To run these python scripts in Maya
 
     import sys
-    sys.path.append('C:/dev/glTF/Maya2glTF/maya/scripts/')
+    sys.path.append('C:/dev/glTF/maya2glTF/maya/scripts/')
     from maya2glTF_capture import capture
     from maya2glTF_playblast import playblast
 

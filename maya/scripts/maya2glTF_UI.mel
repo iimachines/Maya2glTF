@@ -104,7 +104,7 @@ global proc maya2glTF_ignoreSelectedDeformers()
         error "No blendShape or skinCluster was selected";
 
     string $attrName = "MGi";
-    string $niceName = "Ignored by Maya2glTF";
+    string $niceName = "Ignored by maya2glTF";
 
     for ($deformer in $deformers) {
         if (attributeExists($attrName, $deformer)) {
@@ -113,7 +113,7 @@ global proc maya2glTF_ignoreSelectedDeformers()
         }
 
         print ("Adding attribute " + $attrName + " on " + $deformer + "\n");
-        addAttr -at bool -nn $niceName -sn $attrName -dv on -ct "Maya2glTF" $deformer;
+        addAttr -at bool -nn $niceName -sn $attrName -dv on -ct "maya2glTF" $deformer;
     }
 }
 

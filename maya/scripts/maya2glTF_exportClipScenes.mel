@@ -67,7 +67,7 @@ global proc _exportClipScenes(string $scenesDir, string $exportDir, string $mode
     progressWindow -endProgress;
 
     progressWindow 
-        -title "Maya2glTF" 
+        -title "maya2glTF" 
         -min 0 
         -max $sceneCount 
         -status "Exporting..." 

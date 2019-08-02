@@ -96,7 +96,7 @@ global proc _playblastClipScenes(string $modelScenePath, string $scenesDir, stri
     progressWindow -endProgress;
 
     progressWindow 
-        -title "Maya2glTF" 
+        -title "maya2glTF" 
         -min 0 
         -max $sceneCount 
         -status "Playblasting..." 

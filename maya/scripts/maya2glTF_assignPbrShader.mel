@@ -194,7 +194,7 @@ global proc maya2glTF_assignPbrShader()
 	else 
 	{
 		// Shader does not exist in workspace, use the installed one.
-		$shaderPath = $home + "maya/Maya2glTF/PBR/shaders/glTF_PBR.ogsfx";
+		$shaderPath = $home + "maya/maya2glTF/PBR/shaders/glTF_PBR.ogsfx";
 		print ("Using glTF PBR shader from your home directory:\n");
 	}
 

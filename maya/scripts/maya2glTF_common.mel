@@ -14,7 +14,7 @@ global proc float maya2glTF_timeUnitToSeconds()
 		case "min": return 60;
 		case "sec": return 1;
 		case "millisec": return 1.0/1000;
-		default: error ("Maya2glTF: Unsupported time unit "+$unit);
+		default: error ("maya2glTF: Unsupported time unit "+$unit);
 	}
 }
 
@@ -67,12 +67,12 @@ global proc maya2glTF_polySelectAndFrame()
     // if we don't find any layers, select by visibility
     if (size($layers) == 0) 
     {
-        print "Maya2glTF: No display layers found, just selecting visible objects\n";
+        print "maya2glTF: No display layers found, just selecting visible objects\n";
         $objects = `ls -v -type mesh -ap`; 
     } 
     else 
     {
-        print "Maya2glTF: Using display layers to select visible untemplated objects\n";
+        print "maya2glTF: Using display layers to select visible untemplated objects\n";
 
         for ($layer in $layers)
         {
@@ -194,7 +194,7 @@ proc _forEachScene(string $filePaths[], int $isModifier, string $command) {
     progressWindow -endProgress;
 
     progressWindow 
-        -title "Maya2glTF" 
+        -title "maya2glTF" 
         -min 0 
         -max $sceneCount 
         -status "Processing..." 
@@ -426,6 +426,6 @@ global proc string maya2glTF_intToStringWithZeroPadding(int $value, int $padding
 
 // python("from maya2glTF_playblast import playblast\nplayblast(camera='thumbcam')");
 
-// print(`maya2glTF_getScenePaths "c:/dev/glTF/Maya2glTF/maya" 1`);
+// print(`maya2glTF_getScenePaths "c:/dev/glTF/maya2glTF/maya" 1`);
 // maya2glTF_forEachSceneIn(`workspace -q -active`, true, true, "maya2glTF_createDefaultCamera();");
-//maya2glTF_forEachSceneIn("C:/dev/glTF/Maya2glTF/maya", true, false,"python(\"from maya2glTF_playblast import playblast\\nplayblast()\")");
+//maya2glTF_forEachSceneIn("C:/dev/glTF/maya2glTF/maya", true, false,"python(\"from maya2glTF_playblast import playblast\\nplayblast()\")");
