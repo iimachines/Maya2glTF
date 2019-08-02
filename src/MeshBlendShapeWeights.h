@@ -35,10 +35,13 @@ public:
 	void clearWeightsExceptFor(const WeightPlugEntry* fullWeightEntry) const;
 	void breakConnections();
 
+    int animatedPlugCount() const;
+
 private:
 	DISALLOW_COPY_MOVE_ASSIGN(MeshBlendShapeWeights);
 
 	MPlug m_weightArrayPlug;
 	WeightPlugEntries m_weightPlugEntries;
+    mutable bool m_isDeformerModified = false;
 };
 

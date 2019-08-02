@@ -47,7 +47,7 @@ Mesh::Mesh(ExportableScene& scene, MDagPath dagPath, const ExportableNode& node)
 
         auto& weightEntries = weightPlugs.entries();
 
-        for (auto && pair: weightEntries)
+        for (auto && pair : weightEntries)
         {
             cout << prefix << "target#" << pair.second.shapeIndex << ": " << std::quoted(pair.first, '\'') << endl;
             cout.flush();
@@ -82,6 +82,7 @@ Mesh::~Mesh() = default;
 MObject Mesh::tryExtractBlendShapeDeformer(const MFnMesh& fnMesh, const MSelectionList& ignoredDeformers)
 {
     MObject deformer;
+    int animatedPlugCount = 0;
 
     // Iterate upstream to find all the nodes that affect the mesh.
     MStatus status;
@@ -108,7 +109,7 @@ MObject Mesh::tryExtractBlendShapeDeformer(const MFnMesh& fnMesh, const MSelecti
             if (thisNode.hasFn(MFn::kBlendShape))
             {
                 MFnBlendShapeDeformer fnDeformer(thisNode, &status);
-                
+
                 MFnDependencyNode dpNode(thisNode);
 
                 const auto thisName = dpNode.name();
@@ -128,7 +129,29 @@ MObject Mesh::tryExtractBlendShapeDeformer(const MFnMesh& fnMesh, const MSelecti
                     }
                     else
                     {
-                        cerr << prefix << "WARNING: only a single blend shape deformer is supported, skipping " << thisName << endl;
+                        // If we find more than one blend shape deformer, pick the one with most animated weights.
+                        const MPlug weightArrayPlug = fnDeformer.findPlug("weight", &status);
+                        THROW_ON_FAILURE(status);
+
+                        MeshBlendShapeWeights weightPlugs(weightArrayPlug);
+
+                        const auto newAnimatedPlugCount = weightPlugs.animatedPlugCount();
+
+                        auto skippedName = thisName;
+                        auto skippedAnimatedPlugCount = newAnimatedPlugCount;
+
+                        if (newAnimatedPlugCount > animatedPlugCount)
+                        {
+                            skippedAnimatedPlugCount = animatedPlugCount;
+
+                            MFnDependencyNode skippedNode(deformer);
+                            skippedName = skippedNode.name();
+
+                            deformer = thisNode;
+                            animatedPlugCount = newAnimatedPlugCount;
+                        }
+
+                        cerr << prefix << "WARNING: only a single blend shape deformer is supported, skipping " << skippedName << ", it has less animated weight plugs " << skippedAnimatedPlugCount << " vs " << animatedPlugCount <<  endl;
                     }
                 }
                 else

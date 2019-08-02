@@ -108,4 +108,4 @@
 #include <maya/MQuaternion.h>
 #include <maya/MFnCamera.h>
 #include <maya/MRenderSetup.h>
-
+#include <maya/MAnimUtil.h>
