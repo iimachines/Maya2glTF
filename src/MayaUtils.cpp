@@ -17,7 +17,7 @@ namespace utils
 	MMatrix getMatrix(const MFnDependencyNode& node, const char* plugName)
 	{
 		MStatus status;
-		MPlug plug = node.findPlug(plugName, &status);
+		MPlug plug = node.findPlug(plugName, true, &status);
 		THROW_ON_FAILURE(status);
 		return getMatrix(plug);
 	}
@@ -27,7 +27,7 @@ namespace utils
 		MStatus status;
 
 		MFnDagNode transFn(path);
-		MPlug matrixPlugArray = transFn.findPlug("worldMatrix", &status);
+		MPlug matrixPlugArray = transFn.findPlug("worldMatrix", true, &status);
 		THROW_ON_FAILURE(status);
 
 		matrixPlugArray.evaluateNumElements(&status);

@@ -126,7 +126,7 @@ const NodeTransformState& NodeTransformCache::getTransform(const ExportableNode*
             auto& trs = state.localTransforms[0];
 
             // Get translation
-            const MVector t = mayaLocalMatrix.translation(MSpace::kPostTransform);
+            const MVector t = mayaLocalMatrix.getTranslation(MSpace::kPostTransform);
             trs.translation[0] = cleanupScalar(t.x * scaleFactor);
             trs.translation[1] = cleanupScalar(t.y * scaleFactor);
             trs.translation[2] = cleanupScalar(t.z*  scaleFactor);
@@ -234,7 +234,7 @@ const NodeTransformState& NodeTransformCache::getTransform(const ExportableNode*
             // trs1: scale, rotation and translation + pivot-offset combined
 
             // Get translation
-            const MVector t = mayaMatrix.translation(MSpace::kPostTransform);
+            const MVector t = mayaMatrix.getTranslation(MSpace::kPostTransform);
             trs1.translation[0] = cleanupScalar(t.x * scaleFactor);
             trs1.translation[1] = cleanupScalar(t.y * scaleFactor);
             trs1.translation[2] = cleanupScalar(t.z*  scaleFactor);

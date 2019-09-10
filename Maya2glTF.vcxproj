@@ -25,6 +25,14 @@
       <Configuration>Maya2018-Release</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
+    <ProjectConfiguration Include="Maya2019-Debug|x64">
+      <Configuration>Maya2019-Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Maya2019-Release|x64">
+      <Configuration>Maya2019-Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3D3A5B08-1250-4371-8B2F-8F0D011DF39C}</ProjectGuid>
@@ -34,6 +42,13 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Maya2018-Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+    <MayaVersion>2018</MayaVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Maya2019-Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
@@ -55,6 +70,14 @@
     <MayaVersion>2016</MayaVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Maya2018-Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+    <MayaVersion>2018</MayaVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Maya2019-Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
@@ -86,6 +109,9 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Maya2018-Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Maya2019-Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Maya2017-Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
@@ -93,6 +119,9 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Maya2018-Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Maya2019-Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Maya2017-Release|x64'" Label="PropertySheets">
@@ -103,6 +132,11 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Maya2018-Debug|x64'">
+    <TargetExt>.mll</TargetExt>
+    <OutDir>$(ProjectDir)build\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)build\obj\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Maya2019-Debug|x64'">
     <TargetExt>.mll</TargetExt>
     <OutDir>$(ProjectDir)build\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(ProjectDir)build\obj\$(Platform)\$(Configuration)\</IntDir>
@@ -118,6 +152,11 @@
     <IntDir>$(ProjectDir)build\obj\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Maya2018-Release|x64'">
+    <TargetExt>.mll</TargetExt>
+    <OutDir>$(ProjectDir)build\bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)build\obj\$(Platform)\$(Configuration)\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Maya2019-Release|x64'">
     <TargetExt>.mll</TargetExt>
     <OutDir>$(ProjectDir)build\bin\$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(ProjectDir)build\obj\$(Platform)\$(Configuration)\</IntDir>
@@ -149,6 +188,47 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(MAYA_2018_SDK)\lib;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\build\Debug;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\build\dependencies\draco\Debug</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Foundation.lib;OpenMaya.lib;OpenMayaAnim.lib;OpenMayaUI.lib;glTF.lib;draco.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>/export:initializePlugin /export:uninitializePlugin %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
+    <PreBuildEvent>
+      <Message>
+      </Message>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
+xcopy /y "$(ProjectDir)maya\scripts\maya2glTF_UI.mel" "$(userprofile)\Documents\Maya\$(MayaVersion)\scripts\"
+xcopy /y "$(ProjectDir)maya\scripts\maya2glTF_assignPbrShader.mel" "$(userprofile)\Documents\Maya\$(MayaVersion)\scripts\"
+xcopy /y /s /i "$(ProjectDir)maya\renderData\*.*" "$(userprofile)\Documents\Maya\Maya2glTF\PBR"
+
+
+</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copying plugin to "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Maya2019-Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <AdditionalIncludeDirectories>$(MAYA_2019_SDK)\include;$(ProjectDir)dependencies\GSL\include;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\include;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\dependencies\draco\src;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\dependencies\rapidjson\include;$(ProjectDir)dependencies\cpp-linq\lib</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WIN64;_WINDOWS;_USRDLL;NT_PLUGIN;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;REQUIRE_IOSTREAM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>externals.h</PrecompiledHeaderFile>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <EnableModules>false</EnableModules>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(MAYA_2019_SDK)\lib;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\build\Debug;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\build\dependencies\draco\Debug</AdditionalLibraryDirectories>
       <AdditionalDependencies>Foundation.lib;OpenMaya.lib;OpenMayaAnim.lib;OpenMayaUI.lib;glTF.lib;draco.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/export:initializePlugin /export:uninitializePlugin %(AdditionalOptions)</AdditionalOptions>
     </Link>
@@ -300,6 +380,51 @@ xcopy /y /s /i "$(ProjectDir)maya\renderData\*.*" "$(userprofile)\Documents\Maya
       <Message>Copying plugin to "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Maya2019-Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <AdditionalIncludeDirectories>$(MAYA_2019_SDK)\include;$(ProjectDir)dependencies\GSL\include;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\include;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\dependencies\draco\src;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\dependencies\rapidjson\include;$(ProjectDir)dependencies\cpp-linq\lib</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_WIN64;_WINDOWS;_USRDLL;NT_PLUGIN;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;REQUIRE_IOSTREAM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>externals.h</PrecompiledHeaderFile>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <EnableModules>false</EnableModules>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>$(MAYA_2019_SDK)\lib;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\build\Release;$(ProjectDir)dependencies\COLLADA2GLTF\GLTF\build\dependencies\draco\Release</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Foundation.lib;OpenMaya.lib;OpenMayaAnim.lib;OpenMayaUI.lib;glTF.lib;draco.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions>/export:initializePlugin /export:uninitializePlugin %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
+    <PreBuildEvent>
+      <Message>
+      </Message>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>xcopy /y "$(OutputPath)$(TargetName).mll" "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"
+xcopy /y "$(ProjectDir)maya\scripts\maya2glTF_UI.mel" "$(userprofile)\Documents\Maya\$(MayaVersion)\scripts\"
+xcopy /y "$(ProjectDir)maya\scripts\maya2glTF_assignPbrShader.mel" "$(userprofile)\Documents\Maya\$(MayaVersion)\scripts\"
+xcopy /y /s /i "$(ProjectDir)maya\renderData\*.*" "$(userprofile)\Documents\Maya\Maya2glTF\PBR"
+
+
+</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copying plugin to "$(userprofile)\Documents\Maya\$(MayaVersion)\plug-ins\"</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Maya2017-Release|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -404,7 +529,9 @@ xcopy /y /s /i "$(ProjectDir)maya\renderData\*.*" "$(userprofile)\Documents\Maya
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2016_EXT2-Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2017-Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2018-Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2019-Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2018-Release|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2019-Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\color.cpp" />
     <ClCompile Include="src\ExportableObject.cpp" />
@@ -435,9 +562,11 @@ xcopy /y /s /i "$(ProjectDir)maya\renderData\*.*" "$(userprofile)\Documents\Maya
     <ClCompile Include="src\plugin.cpp" />
     <ClCompile Include="src\externals.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2018-Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2019-Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2017-Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2016_EXT2-Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2018-Release|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2019-Release|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2017-Release|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Maya2016_EXT2-Release|x64'">Create</PrecompiledHeader>
     </ClCompile>

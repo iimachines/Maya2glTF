@@ -51,7 +51,7 @@ bool DagHelper::getPlugConnectedTo(const MObject& node, const MString& attribute
 {
 	MStatus status;
 	MFnDependencyNode dgFn(node);
-	auto plug = dgFn.findPlug(attribute, &status);
+	auto plug = dgFn.findPlug(attribute, true, &status);
 	
 	if (status && plug.isConnected())
 	{
@@ -76,7 +76,7 @@ MObject	DagHelper::findSourceNodeConnectedTo(const MObject& node, const MString&
 	MFnDependencyNode dgFn(node, &status);
 	THROW_ON_FAILURE(status);
 
-	auto plug = dgFn.findPlug(attribute, &status);
+	auto plug = dgFn.findPlug(attribute, true, &status);
 
 	if (status && plug.isConnected())
 	{
@@ -109,14 +109,14 @@ MObject DagHelper::findSourceNodeConnectedTo(const MPlug& inPlug)
 bool DagHelper::getPlugValue(const MObject& node, const char* attributeName, double& value)
 {
 	MStatus status;
-	auto plug = MFnDependencyNode(node).findPlug(attributeName, &status);
+	auto plug = MFnDependencyNode(node).findPlug(attributeName, true, &status);
 	return status && plug.getValue(value);
 }
 
 bool DagHelper::getPlugValue(const MObject& node, const char* attributeName, float& value)
 {
 	MStatus status;
-	auto plug = MFnDependencyNode(node).findPlug(attributeName, &status);
+	auto plug = MFnDependencyNode(node).findPlug(attributeName, true, &status);
 	return status && plug.getValue(value);
 }
 
@@ -167,7 +167,7 @@ bool DagHelper::getPlugValue(const MPlug& plug, uint8_t& value)
 bool DagHelper::getPlugValue(const MObject& node, const char* attributeName, bool& value)
 {
 	MStatus status;
-	auto plug = MFnDependencyNode(node).findPlug(attributeName, &status);
+	auto plug = MFnDependencyNode(node).findPlug(attributeName, true, &status);
 	return status && plug.getValue(value);
 }
 
@@ -179,14 +179,14 @@ bool DagHelper::getPlugValue(const MPlug& plug, bool& value)
 bool DagHelper::getPlugValue(const MObject& node, const char* attributeName, int& value)
 {
 	MStatus status;
-	auto plug = MFnDependencyNode(node).findPlug(attributeName, &status);
+	auto plug = MFnDependencyNode(node).findPlug(attributeName, true, &status);
 	return status && plug.getValue(value);
 }
 
 bool DagHelper::getPlugValue(const MObject& node, const char* attributeName, MColor& value)
 {
 	MStatus status;
-	const auto plug = MFnDependencyNode(node).findPlug(attributeName, &status);
+	const auto plug = MFnDependencyNode(node).findPlug(attributeName, true, &status);
 	return status && getPlugValue(plug, value);
 }
 
@@ -226,13 +226,13 @@ bool DagHelper::getPlugValue(const MPlug& plug, MColor& value)
 bool DagHelper::getPlugValue(const MObject& node, const char* attributeName, MString& value)
 {
 	MStatus status;
-	auto plug = MFnDependencyNode(node).findPlug(attributeName, &status);
+	auto plug = MFnDependencyNode(node).findPlug(attributeName, true, &status);
 	return status && plug.getValue(value);
 }
 
 void DagHelper::getPlugValue(const MObject& node, const char* attributeName, MStringArray& output, MStatus* status)
 {
-	const auto plug = MFnDependencyNode(node).findPlug(attributeName, status);
+	const auto plug = MFnDependencyNode(node).findPlug(attributeName, true, status);
 	getPlugValue(plug, output, status);
 }
 
@@ -276,7 +276,7 @@ bool DagHelper::getPlugValue(const MPlug& plug, float& x, float& y, float& z)
 bool DagHelper::getPlugValue(const MObject& node, const char* attributeName, MVector& value)
 {
 	MStatus status;
-	const MPlug plug = MFnDependencyNode(node).findPlug(attributeName, &status);
+	const MPlug plug = MFnDependencyNode(node).findPlug(attributeName, true, &status);
 	return status && getPlugValue(plug, value);
 }
 
@@ -417,7 +417,7 @@ bool DagHelper::GetPlugArrayConnectedTo(const MObject& node, const MString& attr
 {
 	MStatus status;
 	MFnDependencyNode dgFn(node);
-	MPlug plug = dgFn.findPlug(attribute, &status);
+	MPlug plug = dgFn.findPlug(attribute, true, &status);
 	if (status != MS::kSuccess)
 	{
 		MGlobal::displayWarning(MString("couldn't find plug on attribute ") +
@@ -455,10 +455,10 @@ bool DagHelper::Connect(const MObject& source, const MString& sourceAttribute, c
 	MFnDependencyNode srcFn(source);
 	MFnDependencyNode destFn(destination);
 
-	MPlug src = srcFn.findPlug(sourceAttribute, &status);
+	MPlug src = srcFn.findPlug(sourceAttribute, true, &status);
 	if (status != MStatus::kSuccess) return false;
 
-	MPlug dest = destFn.findPlug(destinationAttribute, &status);
+	MPlug dest = destFn.findPlug(destinationAttribute, true, &status);
 	if (status != MStatus::kSuccess) return false;
 
 	MDGModifier modifier;
@@ -473,7 +473,7 @@ bool DagHelper::Connect(const MObject& source, const MString& sourceAttribute, c
 	MStatus status;
 	MFnDependencyNode srcFn(source);
 
-	MPlug src = srcFn.findPlug(sourceAttribute, &status);
+	MPlug src = srcFn.findPlug(sourceAttribute, true, &status);
 	if (status != MStatus::kSuccess) return false;
 
 	MDGModifier modifier;
@@ -488,7 +488,7 @@ bool DagHelper::Connect(const MPlug& source, const MObject& destination, const M
 	MStatus status;
 	MFnDependencyNode destFn(destination);
 
-	MPlug dst = destFn.findPlug(destinationAttribute, &status);
+	MPlug dst = destFn.findPlug(destinationAttribute, true, &status);
 	if (status != MStatus::kSuccess) return false;
 
 	MDGModifier modifier;
@@ -513,7 +513,7 @@ bool DagHelper::ConnectToList(const MObject& source, const MString& sourceAttrib
 	MStatus status;
 	MFnDependencyNode srcFn(source);
 
-	MPlug src = srcFn.findPlug(sourceAttribute, &status);
+	MPlug src = srcFn.findPlug(sourceAttribute, true, &status);
 	if (status != MStatus::kSuccess) return false;
 
 	return ConnectToList(src, destination, destinationAttribute, index);
@@ -523,7 +523,7 @@ bool DagHelper::ConnectToList(const MPlug& source, const MObject& destination, c
 {
 	MStatus status;
 	MFnDependencyNode destFn(destination);
-	MPlug dest = destFn.findPlug(destinationAttribute, &status);
+	MPlug dest = destFn.findPlug(destinationAttribute, true, &status);
 	if (status != MStatus::kSuccess) return false;
 	if (!dest.isArray()) return false;
 
@@ -543,7 +543,7 @@ bool DagHelper::ConnectToList(const MPlug& source, const MObject& destination, c
 
 int DagHelper::GetNextAvailableIndex(const MObject& object, const MString& attribute, int startIndex)
 {
-	MPlug p = MFnDependencyNode(object).findPlug(attribute);
+	MPlug p = MFnDependencyNode(object).findPlug(attribute, true);
 	if (p.node().isNull()) return -1;
 	return GetNextAvailableIndex(p, startIndex);
 }
@@ -578,7 +578,7 @@ MFnSkinCluster controllerFn(controller);
 uint index = controllerFn.indexForInfluenceObject(MDagPath::getAPathTo(influence), &status);
 if (status != MStatus::kSuccess) return MMatrix::identity;
 
-MPlug preBindMatrixPlug = controllerFn.findPlug("bindPreMatrix", &status);
+MPlug preBindMatrixPlug = controllerFn.findPlug("bindPreMatrix", true, &status);
 preBindMatrixPlug = preBindMatrixPlug.elementByLogicalIndex(index, &status);
 if (status != MStatus::kSuccess) return MMatrix::identity;
 
@@ -602,7 +602,7 @@ MStatus DagHelper::SetBindPoseInverse(const MObject& node, const MMatrix& bindPo
 {
 MStatus status;
 MFnDependencyNode dgFn(node);
-MPlug bindPosePlug = dgFn.findPlug("bindPose", &status);
+MPlug bindPosePlug = dgFn.findPlug("bindPose", true, &status);
 if (status != MS::kSuccess)
 {
 MGlobal::displayWarning(MString("No bindPose found on node ") + dgFn.name());
@@ -637,7 +637,7 @@ while (!it.isDone())
 MPlug plug = it.thisPlug();
 unsigned int idx = plug.logicalIndex();
 MFnDependencyNode skinFn(plug.node());
-MPlug skinBindPosePlug = skinFn.findPlug("bindPreMatrix", &status);
+MPlug skinBindPosePlug = skinFn.findPlug("bindPreMatrix", true, &status);
 if (status == MS::kSuccess)
 {
 // The skinCluster stores inverse inclusive matrix
@@ -795,7 +795,7 @@ MObject DagHelper::CreateAttribute(const MObject& node, const char* attributeNam
 	MStatus status;
 	MObject attribute;
 	MFnDependencyNode nodeFn(node);
-	MPlug plug = nodeFn.findPlug(attributeShortName, status);
+	MPlug plug = nodeFn.findPlug(attributeShortName, true, status);
 	if (status != MStatus::kSuccess)
 	{
 		MFnNumericAttribute attr;
@@ -810,7 +810,7 @@ MObject DagHelper::CreateAttribute(const MObject& node, const char* attributeNam
 
 		status = nodeFn.addAttribute(attribute, MFnDependencyNode::kLocalDynamicAttr);
 		if (status != MStatus::kSuccess) return MObject::kNullObj;
-		plug = nodeFn.findPlug(attribute, &status);
+		plug = nodeFn.findPlug(attribute, true, &status);
 		if (status != MStatus::kSuccess) return MObject::kNullObj;
 	}
 	else
@@ -829,7 +829,7 @@ MObject DagHelper::CreateAttribute(const MObject& node, const char* attributeNam
 	MStatus status;
 	MObject attribute;
 	MFnDependencyNode nodeFn(node);
-	MPlug plug = nodeFn.findPlug(attributeShortName, status);
+	MPlug plug = nodeFn.findPlug(attributeShortName, true, status);
 	if (status != MStatus::kSuccess)
 	{
 		MFnTypedAttribute attr;
@@ -844,7 +844,7 @@ MObject DagHelper::CreateAttribute(const MObject& node, const char* attributeNam
 
 		status = nodeFn.addAttribute(attribute, MFnDependencyNode::kLocalDynamicAttr);
 		if (status != MStatus::kSuccess) return MObject::kNullObj;
-		plug = nodeFn.findPlug(attribute, &status);
+		plug = nodeFn.findPlug(attribute, true, &status);
 		if (status != MStatus::kSuccess) return MObject::kNullObj;
 	}
 	else
@@ -865,7 +865,7 @@ MPlug DagHelper::AddAttribute(const MObject& node, const MObject& attribute)
 	MStatus status = depFn.addAttribute(attribute, MFnDependencyNode::kLocalDynamicAttr);
 	if (status == MStatus::kSuccess)
 	{
-		plug = depFn.findPlug(attribute);
+		plug = depFn.findPlug(attribute, true);
 	}
 	return plug;
 }
@@ -921,11 +921,11 @@ void DagHelper::GroupConnect(MPlug& source, const MObject& destination, const MO
 	MFnComponentListData componentListData;
 	MObject componentList = componentListData.create();
 	componentListData.add(allVerticesObject);
-	MPlug inputComponentsPartsPlug = groupParts.findPlug("inputComponents");
+	MPlug inputComponentsPartsPlug = groupParts.findPlug("inputComponents", true);
 	inputComponentsPartsPlug.setValue(componentList);
 
 	// Tell the ouput node to expect the groupId
-	MPlug instanceObjectGroupsPlug = finalMeshFn.findPlug("instObjGroups");
+	MPlug instanceObjectGroupsPlug = finalMeshFn.findPlug("instObjGroups", true);
 	instanceObjectGroupsPlug = instanceObjectGroupsPlug.elementByLogicalIndex(0);
 	MPlug objectGroupsPlug = DagHelper::getChildPlug(instanceObjectGroupsPlug, "og"); // "objectGroups"
 	MPlug objectGroupPlug = objectGroupsPlug.elementByLogicalIndex(objectGroupsPlug.numElements());
@@ -941,7 +941,7 @@ void DagHelper::GroupConnect(MPlug& source, const MObject& destination, const MO
 	DagHelper::ConnectToList(objectGroupPlug, objectSet, "dagSetMembers");
 
 	// Connect the output with the groupParts
-	MPlug inputGlobalPlug = destinationFn.findPlug("input");
+	MPlug inputGlobalPlug = destinationFn.findPlug("input", true);
 	inputGlobalPlug = inputGlobalPlug.elementByLogicalIndex(inputGlobalPlug.numElements());
 	MPlug inputGeometryPlug = DagHelper::getChildPlug(inputGlobalPlug, "ig"); // "inputGeometry"
 	DagHelper::Connect(groupParts.object(), "og", inputGeometryPlug);
@@ -1006,7 +1006,7 @@ bool DagHelper::Disconnect(const MPlug& plug, bool sources, bool destinations)
 // Create an animation curve for the given plug
 MObject DagHelper::CreateAnimationCurve(const MObject& node, const char* attributeName, const char* curveType)
 {
-	MFnDependencyNode fn(node); return CreateAnimationCurve(fn.findPlug(attributeName), curveType);
+	MFnDependencyNode fn(node); return CreateAnimationCurve(fn.findPlug(attributeName, true), curveType);
 }
 MObject DagHelper::CreateAnimationCurve(const MPlug& plug, const char* curveType)
 {
@@ -1026,7 +1026,7 @@ MObject DagHelper::CreateExpression(const MPlug& plug, const MString& expression
 	MObject expressionObj = expressionFn.create("expression");
 	DagHelper::SetPlugValue(expressionObj, "expression", expression);
 
-	MPlug output = expressionFn.findPlug("output");
+	MPlug output = expressionFn.findPlug("output", true);
 	MPlug firstOutput = output.elementByLogicalIndex(0);
 	DagHelper::Connect(firstOutput, plug);
 	return expressionObj;
@@ -1073,7 +1073,7 @@ MPlug DagHelper::AddOrCreateMessagePlug(const MObject& node,
 	created = false;
 	MStatus status;
 	MFnDependencyNode nodeFn(node);
-	MPlug plug = nodeFn.findPlug(attributeShortName, &status);
+	MPlug plug = nodeFn.findPlug(attributeShortName, true, &status);
 	if (status != MStatus::kSuccess)
 	{
 		MFnMessageAttribute fnMessageAttribute;
@@ -1089,7 +1089,7 @@ MPlug DagHelper::AddOrCreateMessagePlug(const MObject& node,
 		status = nodeFn.addAttribute(attribute, MFnDependencyNode::kLocalDynamicAttr);
 		THROW_ON_FAILURE(status);
 
-		plug = nodeFn.findPlug(attribute, &status);
+		plug = nodeFn.findPlug(attribute, true, &status);
 		THROW_ON_FAILURE(status);
 
 		created = true;

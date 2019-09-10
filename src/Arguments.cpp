@@ -461,10 +461,10 @@ Arguments::Arguments(const MArgList& args, const MSyntax& syntax)
 		const auto currentFilePath = MFileIO::currentFile();
 
 		MFileObject fileObj;
-		fileObj.setFullName(currentFilePath);
+		fileObj.setRawFullName(currentFilePath);
 
 		// Remove extension from filename. I really miss C#!
-		std::string fileName(fileObj.name().asChar());
+		std::string fileName(fileObj.resolvedName().asChar());
 
 		const auto lastindex = fileName.find_last_of('.');
 		sceneName = fileName.substr(0, lastindex).c_str();

@@ -136,7 +136,7 @@ void ExportableMaterialPBR::convert(ExportableResources& resources, const MObjec
 	}
 
 	// TODO: Currently we expect the alpha channel of the color texture to hold the transparency.
-	const bool hasTransparencyTexture = shader.findPlug("transparency").isConnected();
+	const bool hasTransparencyTexture = shader.findPlug("transparency", true).isConnected();
 
 	const auto color = colorTexture ? MColor(1, 1, 1) : shader.color(&status);
 

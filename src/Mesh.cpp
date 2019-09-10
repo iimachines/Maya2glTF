@@ -36,7 +36,7 @@ Mesh::Mesh(ExportableScene& scene, MDagPath dagPath, const ExportableNode& node)
 		const auto deformerName = fnBlendShapeDeformer.name().asChar();
 		cout << prefix << "Processing blend shapes of " << deformerName << "..." << endl;
 
-		const MPlug weightArrayPlug = fnBlendShapeDeformer.findPlug("weight", &status);
+		const MPlug weightArrayPlug = fnBlendShapeDeformer.findPlug("weight", true, &status);
 		THROW_ON_FAILURE(status);
 
 		// We use the MeshBlendShapeWeights helper class to manipulate the weights 
@@ -85,7 +85,7 @@ MObject Mesh::tryExtractBlendShapeDeformer(const MFnMesh& fnMesh, const MSelecti
 
 	// Iterate upstream to find all the nodes that affect the mesh.
 	MStatus status;
-	MPlug plug = fnMesh.findPlug("inMesh", status);
+	MPlug plug = fnMesh.findPlug("inMesh", true, &status);
 	THROW_ON_FAILURE(status);
 
 	// TODO: Also look into inverted blend shapes through skinning, pose space deformations, etc..
@@ -104,7 +104,7 @@ MObject Mesh::tryExtractBlendShapeDeformer(const MFnMesh& fnMesh, const MSelecti
 
 		for (; !dgIt.isDone(); dgIt.next())
 		{
-			MObject thisNode = dgIt.thisNode();
+			MObject thisNode = dgIt.currentItem();
 			if (thisNode.hasFn(MFn::kBlendShape))
 			{
 				MFnBlendShapeDeformer fnDeformer(thisNode, &status);
@@ -195,7 +195,8 @@ MObject Mesh::getOrCreateOutputShape(MPlug& outputGeometryPlug, MObject& created
 		THROW_ON_FAILURE(dagMod.doIt());
 
 		// Make sure we select the shape node, not the transform node.
-		MDagPath meshDagPath = MDagPath::getAPathTo(createdMesh, &status);
+		MDagPath meshDagPath;
+		status = MDagPath::getAPathTo(createdMesh, meshDagPath);
 		THROW_ON_FAILURE(status);
 		THROW_ON_FAILURE(meshDagPath.extendToShape());
 
@@ -207,19 +208,19 @@ MObject Mesh::getOrCreateOutputShape(MPlug& outputGeometryPlug, MObject& created
 		const MString newSuggestedName = "maya2glTW_" + utils::simpleName(outputGeometryPlug.name(&status));
 		THROW_ON_FAILURE(status);
 
-		const MString newName = dagFn.setName(newSuggestedName, &status);
+		const MString newName = dagFn.setName(newSuggestedName, false, &status);
 		THROW_ON_FAILURE(status);
 
 		cout << prefix << "Created temporary output mesh '" << newName << "'. This will be deleted after exporting, but Maya will think your scene is modified, and warn you." << endl;
 
 		// Make the mesh invisible
-		MPlug intermediateObjectPlug = dagFn.findPlug("intermediateObject", &status);
+		MPlug intermediateObjectPlug = dagFn.findPlug("intermediateObject", true, &status);
 		THROW_ON_FAILURE(status);
 		THROW_ON_FAILURE(intermediateObjectPlug.setBool(true));
 
 		MDGModifier dgMod;
 
-		MPlug inMeshPlug = dagFn.findPlug("inMesh", &status);
+		MPlug inMeshPlug = dagFn.findPlug("inMesh", true, &status);
 		THROW_ON_FAILURE(status);
 
 		THROW_ON_FAILURE(dgMod.connect(outputGeometryPlug, inMeshPlug));
