@@ -139,4 +139,4 @@ global proc maya2glTF_playblastClipScenes(string $modelScenePath, string $scenes
     unloadPlugin  "maya2glTF";
 }
 
-maya2glTF_playblastClipScenes("P:/024_WM_TheRecyclables/03_Production/08_shading/Nova/Nova_PBR.ma", "P:/024_WM_TheRecyclables/03_Production/03_anim/Nova", "D:/Nova/Playblast");
+// maya2glTF_playblastClipScenes("P:/024_WM_TheRecyclables/03_Production/08_shading/Nova/Nova_PBR.ma", "P:/024_WM_TheRecyclables/03_Production/03_anim/Nova", "D:/Nova/Playblast");

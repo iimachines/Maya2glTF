@@ -118,7 +118,4 @@ global proc maya2glTF_pasteKeyInScenes(string $setupScenePath, int $setupKeyFram
     progressWindow -endProgress;
 }
 
-// HACK: Remove this when stable
-if (`getenv "USERNAME"` == "bugfa") {
-    maya2glTF_pasteKeyInScenes("D:/Nova/024_WM_TheRecyclables/03_Production/03_anim/Nova/Nova_SetUp.ma", -1000, "D:/Nova/024_WM_TheRecyclables/03_Production/03_anim/Nova", "d:/nova/keyed");
-}
+//maya2glTF_pasteKeyInScenes("D:/Nova/024_WM_TheRecyclables/03_Production/03_anim/Nova/Nova_SetUp.ma", -1000, "D:/Nova/024_WM_TheRecyclables/03_Production/03_anim/Nova", "d:/nova/keyed");
