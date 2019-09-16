@@ -54,6 +54,16 @@ global proc int maya2glTF_advanceExportProgressUI(string $stepName)
     return 0;
 }
 
+proc int _hasSelectionLayers(string $layers[]) {
+    for ($layer in $layers)
+    {
+        string $conns[] = `listConnections -d 1 -s 0 ($layer+".drawInfo")`;
+        if (size($conns) > 0) 
+            return true;
+    }
+    return false;
+}
+
 global proc maya2glTF_polySelectAndFrame() 
 {
     // clear the selection    
@@ -65,12 +75,7 @@ global proc maya2glTF_polySelectAndFrame()
     string $objects[] = {};
 
     // if we don't find any layers, select by visibility
-    if (size($layers) == 0) 
-    {
-        print "maya2glTF: No display layers found, just selecting visible objects\n";
-        $objects = `ls -v -type mesh -ap`; 
-    } 
-    else 
+    if (_hasSelectionLayers($layers)) 
     {
         print "maya2glTF: Using display layers to select visible untemplated objects\n";
 
@@ -93,6 +98,11 @@ global proc maya2glTF_polySelectAndFrame()
                 }
             }
         }
+    } 
+    else 
+    {
+        print "maya2glTF: No selection display layers found, just selecting visible objects\n";
+        $objects = `ls -v -type mesh -ap`; 
     }
 
     // Sort the objects for consistency
