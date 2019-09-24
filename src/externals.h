@@ -1,57 +1,55 @@
 #pragma once
 
-#include <csignal>
-#include <iostream>
-#include <sstream>
-#include <cassert>
-#include <vector>
 #include <algorithm>
 #include <array>
-#include <memory>
-#include <iomanip>
-#include <fstream>
-#include <cstdarg>
-#include <unordered_set>
-#include <unordered_map>
 #include <bitset>
-#include <numeric>
-#include <cmath>
-#include <thread>
-#include <string>
-#include <vector>
-#include <stdexcept>
-#include <sstream>
+#include <cassert>
 #include <cctype>
-#include <cstdlib>
 #include <cerrno>
-#include <cstring>
-#include <utility>
-#include <climits>
-#include <cstdio>
 #include <chrono>
+#include <climits>
+#include <cmath>
+#include <csignal>
+#include <cstdarg>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <memory>
+#include <numeric>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+#include <thread>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
 
 #ifdef _MSC_VER
-#	pragma  warning(disable:4267)
+#pragma warning(disable : 4267)
 #endif
 
-#include <GLTFTargetNames.h>
+#include "Base64.h"
+#include <GLTFAccessor.h>
 #include <GLTFAsset.h>
-#include <GLTFScene.h>
 #include <GLTFBuffer.h>
 #include <GLTFBufferView.h>
-#include <GLTFAccessor.h>
 #include <GLTFMesh.h>
 #include <GLTFPrimitive.h>
-#include "Base64.h"
+#include <GLTFScene.h>
+#include <GLTFTargetNames.h>
 
 #ifdef _MSC_VER
-#	pragma warning(push)  
-#	pragma warning(disable:4996)  
-#	pragma warning(default:4267)
+#pragma warning(push)
+#pragma warning(disable : 4996)
+#pragma warning(default : 4267)
 #endif
 #include "rapidjson/document.h"
 #ifdef _MSC_VER
-#	pragma warning(pop)  
+#pragma warning(pop)
 #endif
 #include "rapidjson/prettywriter.h"
 #include "rapidjson/stringbuffer.h"
@@ -59,54 +57,54 @@
 
 #include <gsl/span>
 
-#include <coveo/linq.h>
 #include <coveo/enumerable.h>
+#include <coveo/linq.h>
 
-#include <maya/MPxCommand.h>
-#include <maya/MIOStream.h>
-#include <maya/MGlobal.h>
-#include <maya/MArgList.h>
+#include <maya/M3dView.h>
+#include <maya/MAnimControl.h>
+#include <maya/MAnimUtil.h>
 #include <maya/MArgDatabase.h>
-#include <maya/MSyntax.h>
-#include <maya/MStreamUtils.h>
-#include <maya/MFileObject.h>
+#include <maya/MArgList.h>
+#include <maya/MDagModifier.h>
+#include <maya/MDagPath.h>
+#include <maya/MDagPathArray.h>
 #include <maya/MFileIO.h>
-#include <maya/MSelectionList.h>
-#include <maya/MFnMesh.h>
-#include <maya/MItMeshPolygon.h>
+#include <maya/MFileObject.h>
+#include <maya/MFloatMatrix.h>
 #include <maya/MFloatPointArray.h>
 #include <maya/MFloatVectorArray.h>
-#include <maya/MDagPath.h>
-#include <maya/MPointArray.h>
 #include <maya/MFnAttribute.h>
-#include <maya/MFnStringArrayData.h>
+#include <maya/MFnBlendShapeDeformer.h>
+#include <maya/MFnBlinnShader.h>
+#include <maya/MFnCamera.h>
+#include <maya/MFnComponentListData.h>
+#include <maya/MFnLambertShader.h>
+#include <maya/MFnMatrixData.h>
+#include <maya/MFnMesh.h>
 #include <maya/MFnMessageAttribute.h>
 #include <maya/MFnNumericAttribute.h>
-#include <maya/MFnTypedAttribute.h>
-#include <maya/MDagPathArray.h>
+#include <maya/MFnPhongShader.h>
 #include <maya/MFnSet.h>
 #include <maya/MFnSingleIndexedComponent.h>
-#include <maya/MFnComponentListData.h>
-#include <maya/MDagModifier.h>
-#include <maya/MMatrix.h>
-#include <maya/MFnMatrixData.h>
-#include <maya/MFnTransform.h>
-#include <maya/MItDependencyGraph.h>
-#include <maya/MFnBlendShapeDeformer.h>
-#include <maya/MFnPhongShader.h>
-#include <maya/MFnLambertShader.h>
-#include <maya/MFnBlinnShader.h>
-#include <maya/MUuid.h>
-#include <maya/MImage.h>
-#include <maya/MFloatMatrix.h>
-#include <maya/MTime.h>
-#include <maya/MAnimControl.h>
-#include <maya/M3dView.h>
 #include <maya/MFnSkinCluster.h>
-#include <maya/MItGeometry.h>
+#include <maya/MFnStringArrayData.h>
+#include <maya/MFnTransform.h>
+#include <maya/MFnTypedAttribute.h>
+#include <maya/MGlobal.h>
+#include <maya/MIOStream.h>
+#include <maya/MImage.h>
+#include <maya/MItDependencyGraph.h>
 #include <maya/MItDependencyNodes.h>
+#include <maya/MItGeometry.h>
 #include <maya/MItMeshFaceVertex.h>
+#include <maya/MItMeshPolygon.h>
+#include <maya/MMatrix.h>
+#include <maya/MPointArray.h>
+#include <maya/MPxCommand.h>
 #include <maya/MQuaternion.h>
-#include <maya/MFnCamera.h>
 #include <maya/MRenderSetup.h>
-#include <maya/MAnimUtil.h>
+#include <maya/MSelectionList.h>
+#include <maya/MStreamUtils.h>
+#include <maya/MSyntax.h>
+#include <maya/MTime.h>
+#include <maya/MUuid.h>
