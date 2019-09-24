@@ -10,6 +10,7 @@
 #include "ExportableNode.h"
 #include "accessors.h"
 #include "DagHelper.h"
+#include "GLTFTargetNames.h"
 
 ExportableMesh::ExportableMesh(
     ExportableScene& scene,
@@ -65,7 +66,7 @@ ExportableMesh::ExportableMesh(
         const size_t vertexBufferCount = vertexBufferEntries.size();
         {
             size_t vertexBufferIndex = 0;
-            for (auto && pair : vertexBufferEntries)
+            for (auto&& pair : vertexBufferEntries)
             {
                 const auto& vertexSignature = pair.first;
                 const auto& vertexBuffer = pair.second;
@@ -121,7 +122,6 @@ ExportableMesh::ExportableMesh(
 
                 ++vertexBufferIndex;
             }
-
             for (auto&& shape : mayaMesh->allShapes())
             {
                 if (shape->shapeIndex.isBlendShapeIndex())
@@ -129,7 +129,17 @@ ExportableMesh::ExportableMesh(
                     m_weightPlugs.emplace_back(shape->weightPlug);
                     m_initialWeights.emplace_back(shape->initialWeight);
                     glMesh.weights.emplace_back(shape->initialWeight);
+                    MStringArray weightArrays;
+                    MString weight = shape->weightPlug.name();
+                    weight.split('.', weightArrays);
+
+                    m_morphTargetNames->addName(weightArrays.length() <= 1
+                        ? std::string("morph_") + std::to_string(m_morphTargetNames->size())
+                        : std::string(weightArrays[1].asChar()));
                 }
+            }
+            if (!mayaMesh->allShapes().empty()) {
+                glMesh.extras.insert({ "targetNames", static_cast<GLTF::Object*>(m_morphTargetNames.get()) });
             }
         }
 
