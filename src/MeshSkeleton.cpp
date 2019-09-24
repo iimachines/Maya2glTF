@@ -1,50 +1,42 @@
-#include "externals.h"
 #include "MeshSkeleton.h"
-#include "MayaException.h"
-#include "IndentableStream.h"
 #include "Arguments.h"
-#include "spans.h"
-#include "ExportableScene.h"
 #include "ExportableNode.h"
+#include "ExportableScene.h"
+#include "IndentableStream.h"
+#include "MayaException.h"
+#include "externals.h"
+#include "spans.h"
 
-struct VertexJointAssignmentSlice
-{
+struct VertexJointAssignmentSlice {
     size_t offset;
     size_t length;
 
-    VertexJointAssignmentSlice(const size_t assignmentOffset, const size_t assignmentLength)
-        : offset(assignmentOffset)
-        , length(assignmentLength)
-    {
-    }
+    VertexJointAssignmentSlice(const size_t assignmentOffset,
+                               const size_t assignmentLength)
+        : offset(assignmentOffset), length(assignmentLength) {}
 
     DEFAULT_COPY_MOVE_ASSIGN_CTOR_DTOR(VertexJointAssignmentSlice);
 };
 
-void scaleTranslation(MMatrix& m, double s)
-{
-    double* t = m[3];
+void scaleTranslation(MMatrix &m, double s) {
+    double *t = m[3];
     t[0] *= s;
     t[1] *= s;
     t[2] *= s;
 }
 
-MeshSkeleton::MeshSkeleton(
-    ExportableScene& scene,
-    const ExportableNode& node,
-    const MFnMesh& mesh)
-    : m_maxVertexJointAssignmentCount(0)
-{
+MeshSkeleton::MeshSkeleton(ExportableScene &scene, const ExportableNode &node,
+                           const MFnMesh &mesh)
+    : m_maxVertexJointAssignmentCount(0) {
     MStatus status;
 
-    auto& args = scene.arguments();
+    auto &args = scene.arguments();
 
     MObject skin = args.skipSkinClusters
-        ? MObject::kNullObj
-        : tryExtractSkinCluster(mesh, args.ignoreMeshDeformers);
+                       ? MObject::kNullObj
+                       : tryExtractSkinCluster(mesh, args.ignoreMeshDeformers);
 
-    if (!skin.isNull())
-    {
+    if (!skin.isNull()) {
         MFnSkinCluster fnSkin(skin, &status);
         THROW_ON_FAILURE(status);
 
@@ -63,10 +55,10 @@ MeshSkeleton::MeshSkeleton(
         THROW_ON_FAILURE(status);
         scaleTranslation(meshMatrix, bakeScaleFactor);
 
-        for (size_t index = 0; index < jointCount; ++index)
-        {
-            auto& jointDagPath = jointDagPaths[static_cast<unsigned int>(index)];
-            auto* jointNode = scene.getNode(jointDagPath);
+        for (size_t index = 0; index < jointCount; ++index) {
+            auto &jointDagPath =
+                jointDagPaths[static_cast<unsigned int>(index)];
+            auto *jointNode = scene.getNode(jointDagPath);
             auto jointMatrix = jointDagPath.inclusiveMatrix(&status);
             THROW_ON_FAILURE(status);
             scaleTranslation(jointMatrix, bakeScaleFactor);
@@ -75,24 +67,24 @@ MeshSkeleton::MeshSkeleton(
 
             MMatrix inverseBindMatrix = meshMatrix * inverseJointMatrix;
 
-            if (inverseBindMatrix.isSingular())
-            {
-                cerr << prefix << "WARNING: Inverse bind matrix of joint '" << jointNode->name() << "' is singular!" << endl;
-            }
-            else if (args.reportSkewedInverseBindMatrices)
-            {
+            if (inverseBindMatrix.isSingular()) {
+                cerr << prefix << "WARNING: Inverse bind matrix of joint '"
+                     << jointNode->name() << "' is singular!" << endl;
+            } else if (args.reportSkewedInverseBindMatrices) {
                 const auto e = getAxesNonOrthogonality(inverseBindMatrix);
-                if (e > MAX_NON_ORTHOGONALITY)
-                {
-                    cerr << prefix << "WARNING: Inverse bind matrix of joint '" << jointNode->name() << "' is skewed, deviation = " << 
-                        std::fixed << std::setprecision(2) << e * 100 << "%" << endl;
+                if (e > MAX_NON_ORTHOGONALITY) {
+                    cerr << prefix << "WARNING: Inverse bind matrix of joint '"
+                         << jointNode->name()
+                         << "' is skewed, deviation = " << std::fixed
+                         << std::setprecision(2) << e * 100 << "%" << endl;
                 }
             }
 
             m_joints.emplace_back(jointNode, inverseBindMatrix);
         }
 
-        // Gather all joint index/weights per vertex, sorted ascendingly by weight
+        // Gather all joint index/weights per vertex, sorted ascendingly by
+        // weight
         const auto meshDagPath = mesh.dagPath(&status);
         THROW_ON_FAILURE(status);
 
@@ -105,7 +97,8 @@ MeshSkeleton::MeshSkeleton(
         unsigned int numWeights;
 
         // Build joint (index,weight) assignments
-        // To avoid many memory allocations, we put all assignments in a flat vector.
+        // To avoid many memory allocations, we put all assignments in a flat
+        // vector.
         m_vertexJointAssignmentsVector.reserve(numPoints * 8);
 
         std::vector<VertexJointAssignmentSlice> slices(numPoints);
@@ -113,76 +106,81 @@ MeshSkeleton::MeshSkeleton(
         std::vector<VertexJointAssignment> assignments;
         assignments.reserve(jointCount);
 
-        for (; !iterGeom.isDone(); iterGeom.next())
-        {
+        for (; !iterGeom.isDone(); iterGeom.next()) {
             const auto pointIndex = iterGeom.index(&status);
             THROW_ON_FAILURE(status);
 
             const MObject component = iterGeom.component(&status);
             THROW_ON_FAILURE(status);
 
-            status = fnSkin.getWeights(meshDagPath, component, vertexWeights, numWeights);
+            status = fnSkin.getWeights(meshDagPath, component, vertexWeights,
+                                       numWeights);
             THROW_ON_FAILURE(status);
 
             assignments.resize(0);
 
-            for (int jointIndex = 0; jointIndex < int(numWeights); ++jointIndex)
-            {
+            for (int jointIndex = 0; jointIndex < int(numWeights);
+                 ++jointIndex) {
                 const float jointWeight = vertexWeights[jointIndex];
-                if (std::abs(jointWeight) > 1e-6f)
-                {
+                if (std::abs(jointWeight) > 1e-6f) {
                     assignments.emplace_back(jointIndex, jointWeight);
                 }
             }
 
             // Sort weights from large to small.
             // TODO: Use insertion sort when adding the weights?
-            std::sort(assignments.begin(), assignments.end(), [](auto &left, auto &right) {
-                return left.jointWeight > right.jointWeight;
-            });
+            std::sort(assignments.begin(), assignments.end(),
+                      [](auto &left, auto &right) {
+                          return left.jointWeight > right.jointWeight;
+                      });
 
             const auto assignmentsLength = assignments.size();
-            const auto assignmentsOffset = m_vertexJointAssignmentsVector.size();
-            std::copy(assignments.begin(), assignments.end(), std::back_inserter(m_vertexJointAssignmentsVector));
+            const auto assignmentsOffset =
+                m_vertexJointAssignmentsVector.size();
+            std::copy(assignments.begin(), assignments.end(),
+                      std::back_inserter(m_vertexJointAssignmentsVector));
 
-            slices[pointIndex] = VertexJointAssignmentSlice(assignmentsOffset, assignmentsLength);
+            slices[pointIndex] = VertexJointAssignmentSlice(assignmentsOffset,
+                                                            assignmentsLength);
 
-            m_maxVertexJointAssignmentCount = std::max(assignmentsLength, m_maxVertexJointAssignmentCount);
+            m_maxVertexJointAssignmentCount =
+                std::max(assignmentsLength, m_maxVertexJointAssignmentCount);
         }
 
-        std::cout << prefix << "Skin for mesh " << meshDagPath.partialPathName().asChar() << " will use " << m_maxVertexJointAssignmentCount << " weights per vertex" << endl;
+        std::cout << prefix << "Skin for mesh "
+                  << meshDagPath.partialPathName().asChar() << " will use "
+                  << m_maxVertexJointAssignmentCount << " weights per vertex"
+                  << endl;
 
-        // The vector now contains all the assignments, and cannot be relocated anymore; lets construct the table of spans
+        // The vector now contains all the assignments, and cannot be relocated
+        // anymore; lets construct the table of spans
         m_vertexJointAssignmentsTable.resize(numPoints);
 
         auto spans = span(m_vertexJointAssignmentsVector);
 
-        for (int vertexIndex = 0; vertexIndex < numPoints; ++vertexIndex)
-        {
-            const auto& slice = slices.at(vertexIndex);
-            m_vertexJointAssignmentsTable[vertexIndex] = spans.subspan(slice.offset, slice.length);
+        for (int vertexIndex = 0; vertexIndex < numPoints; ++vertexIndex) {
+            const auto &slice = slices.at(vertexIndex);
+            m_vertexJointAssignmentsTable[vertexIndex] =
+                spans.subspan(slice.offset, slice.length);
         }
     }
 }
 
 MeshSkeleton::~MeshSkeleton() = default;
 
-void MeshSkeleton::dump(IndentableStream& out, const std::string& name) const
-{
+void MeshSkeleton::dump(IndentableStream &out, const std::string &name) const {
     out << quoted(name) << ": [" << endl << indent;
 
     JsonSeparator sepLine(",\n");
 
     out << std::fixed;
 
-    for (auto& assignments : m_vertexJointAssignmentsTable)
-    {
+    for (auto &assignments : m_vertexJointAssignmentsTable) {
         JsonSeparator sepElem(", ");
 
         out << "[ ";
 
-        for (auto& assignment : assignments)
-        {
+        for (auto &assignment : assignments) {
             out << sepElem << assignment;
         }
 
@@ -194,16 +192,21 @@ void MeshSkeleton::dump(IndentableStream& out, const std::string& name) const
     out << endl << undent << "]";
 }
 
-size_t MeshSkeleton::vertexJointAssignmentSetCount() const
-{
-    const auto vertexJointAssignmentComponentCount = maxVertexJointAssignmentCount();
-    const auto vertexJointAssignmentElementSize = array_size<JointIndices>::size;
-    const auto vertexJointAssignmentSetCount = (vertexJointAssignmentComponentCount + vertexJointAssignmentElementSize - 1) / vertexJointAssignmentElementSize;
+size_t MeshSkeleton::vertexJointAssignmentSetCount() const {
+    const auto vertexJointAssignmentComponentCount =
+        maxVertexJointAssignmentCount();
+    const auto vertexJointAssignmentElementSize =
+        array_size<JointIndices>::size;
+    const auto vertexJointAssignmentSetCount =
+        (vertexJointAssignmentComponentCount +
+         vertexJointAssignmentElementSize - 1) /
+        vertexJointAssignmentElementSize;
     return vertexJointAssignmentSetCount;
 }
 
-MObject MeshSkeleton::tryExtractSkinCluster(const MFnMesh& fnMesh, const MSelectionList& ignoredDeformers)
-{
+MObject
+MeshSkeleton::tryExtractSkinCluster(const MFnMesh &fnMesh,
+                                    const MSelectionList &ignoredDeformers) {
     MStatus status;
     MObject cluster;
 
@@ -214,9 +217,7 @@ MObject MeshSkeleton::tryExtractSkinCluster(const MFnMesh& fnMesh, const MSelect
     THROW_ON_FAILURE(status);
 
     for (MItDependencyNodes depNodeIt(MFn::kSkinClusterFilter);
-        !depNodeIt.isDone();
-        depNodeIt.next())
-    {
+         !depNodeIt.isDone(); depNodeIt.next()) {
         MObject thisNode = depNodeIt.item(&status);
         THROW_ON_FAILURE(status);
 
@@ -226,41 +227,40 @@ MObject MeshSkeleton::tryExtractSkinCluster(const MFnMesh& fnMesh, const MSelect
         const auto thisName = MFnDependencyNode(thisNode).name(&status);
         THROW_ON_FAILURE(status);
 
-        if (ignoredDeformers.hasItem(thisNode))
-        {
+        if (ignoredDeformers.hasItem(thisNode)) {
             cout << prefix << "Ignoring skin cluster" << thisName << endl;
-        }
-        else
-        {
-            const auto geometryCount = fnSkinCluster.numOutputConnections(&status);
+        } else {
+            const auto geometryCount =
+                fnSkinCluster.numOutputConnections(&status);
             THROW_ON_FAILURE(status);
 
-            for (auto geometryIndex = 0U; geometryIndex < geometryCount; ++geometryIndex)
-            {
-                const auto shapeIndex = fnSkinCluster.indexForOutputConnection(geometryIndex, &status);
+            for (auto geometryIndex = 0U; geometryIndex < geometryCount;
+                 ++geometryIndex) {
+                const auto shapeIndex = fnSkinCluster.indexForOutputConnection(
+                    geometryIndex, &status);
                 THROW_ON_FAILURE(status);
 
-                const auto shapeObject = fnSkinCluster.outputShapeAtIndex(shapeIndex, &status);
+                const auto shapeObject =
+                    fnSkinCluster.outputShapeAtIndex(shapeIndex, &status);
                 THROW_ON_FAILURE(status);
 
-                if (shapeObject == meshObject)
-                {
-                    if (cluster.isNull())
-                    {
-                        cerr << prefix << "Found skin cluster " << thisName << " for mesh " << meshName << endl;
+                if (shapeObject == meshObject) {
+                    if (cluster.isNull()) {
+                        cerr << prefix << "Found skin cluster " << thisName
+                             << " for mesh " << meshName << endl;
                         cluster = thisNode;
-                    }
-                    else
-                    {
-                        cerr << prefix << "Only a single skin cluster is supported, skipping " << thisName << " for mesh " << meshName << endl;
+                    } else {
+                        cerr << prefix
+                             << "Only a single skin cluster is supported, "
+                                "skipping "
+                             << thisName << " for mesh " << meshName << endl;
                     }
                 }
             }
         }
     }
 
-    if (cluster.isNull())
-    {
+    if (cluster.isNull()) {
         cerr << prefix << meshName << " is not skinned" << endl;
     }
 
