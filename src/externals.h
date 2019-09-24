@@ -34,6 +34,7 @@
 #	pragma  warning(disable:4267)
 #endif
 
+#include <GLTFTargetNames.h>
 #include <GLTFAsset.h>
 #include <GLTFScene.h>
 #include <GLTFBuffer.h>

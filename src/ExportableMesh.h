@@ -38,9 +38,10 @@ private:
 
 	std::vector<float> m_initialWeights;
 	std::vector<MPlug> m_weightPlugs;
-	std::vector<std::unique_ptr<ExportablePrimitive>> m_primitives;
+    std::vector<std::unique_ptr<ExportablePrimitive>> m_primitives;
 
-	std::vector<Float4x4> m_inverseBindMatrices;
-	std::unique_ptr<GLTF::Accessor> m_inverseBindMatricesAccessor;
+    std::vector<Float4x4> m_inverseBindMatrices;
+    std::unique_ptr<GLTF::Accessor> m_inverseBindMatricesAccessor;
+    std::unique_ptr<GLTF::MorphTargetNames> m_morphTargetNames = std::make_unique<GLTF::MorphTargetNames>();
 };
 
