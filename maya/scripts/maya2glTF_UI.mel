@@ -314,7 +314,7 @@ global proc maya2glTF_UI()
     string $folderFLD = `textFieldGrp -fileName $exportDir -label "output folder:" -adjustableColumn 2`;
     string $copyrightFLD = `textFieldGrp -text $copyright -label "copyright:" -adjustableColumn 2`;
     string $sceneNameFLD = `textFieldGrp -text $sceneName -label "scene name:" -adjustableColumn 2`;
-    string $scaleFLD = `floatFieldGrp -value1 $scale -label "scale factor:"`;
+    string $scaleFLD = `floatFieldGrp -precision 6 -value1 $scale -label "scale factor:"`;
     string $selOnlyFLD = `checkBoxGrp -value1 $selOnly -label "selected only?" -annotation "Export just the selected nodes, or also include the hierarchy underneath them?"`;
     string $visOnlyFLD = `checkBoxGrp -value1 $visOnly -label "visible only?"`;
 
