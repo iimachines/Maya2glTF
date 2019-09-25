@@ -1,18 +1,16 @@
 #include "externals.h"
-#include "ExportableCamera.h"
-#include "ExportableResources.h"
+
 #include "Arguments.h"
-#include "ExportableScene.h"
-#include "ExportableNode.h"
 #include "DagHelper.h"
+#include "ExportableCamera.h"
+#include "ExportableNode.h"
+#include "ExportableResources.h"
+#include "ExportableScene.h"
 #include "MayaException.h"
 
-ExportableCamera::ExportableCamera(
-    ExportableScene& scene,
-    ExportableNode& node,
-    const MDagPath& shapeDagPath)
-    : ExportableObject(shapeDagPath.node())
-{
+ExportableCamera::ExportableCamera(ExportableScene &scene, ExportableNode &node,
+                                   const MDagPath &shapeDagPath)
+    : ExportableObject(shapeDagPath.node()) {
     MStatus status;
 
     // NOTE: We leave the aspect ratio undefined, so GLTF adapts to the viewport
@@ -28,11 +26,15 @@ ExportableCamera::ExportableCamera(
     int width;
     int height;
 
-    const auto hasWidth = !defaultResolutionNode.isNull() && DagHelper::getPlugValue(defaultResolutionNode, "width", width);
-    const auto hasHeight = !defaultResolutionNode.isNull() && DagHelper::getPlugValue(defaultResolutionNode, "height", height);
+    const auto hasWidth =
+        !defaultResolutionNode.isNull() &&
+        DagHelper::getPlugValue(defaultResolutionNode, "width", width);
+    const auto hasHeight =
+        !defaultResolutionNode.isNull() &&
+        DagHelper::getPlugValue(defaultResolutionNode, "height", height);
 
-    auto& resources = scene.resources();
-    auto& args = resources.arguments();
+    auto &resources = scene.resources();
+    auto &args = resources.arguments();
 
     const auto cameraNode = shapeDagPath.node();
 
@@ -41,19 +43,23 @@ ExportableCamera::ExportableCamera(
 
     double hFov;
     double vFov;
-    THROW_ON_FAILURE(camera.getPortFieldOfView(hasWidth ? width : 1920, hasHeight ? height : 1080, hFov, vFov));
+    THROW_ON_FAILURE(camera.getPortFieldOfView(
+        hasWidth ? width : 1920, hasHeight ? height : 1080, hFov, vFov));
 
-    auto perspectiveCamera = std::make_unique< GLTF::CameraPerspective>();
+    auto perspectiveCamera = std::make_unique<GLTF::CameraPerspective>();
     perspectiveCamera->yfov = float(vFov);
     THROW_ON_FAILURE(status);
 
-    perspectiveCamera->aspectRatio = 0; // 0 = undefined, adapt to viewport at runtime
+    perspectiveCamera->aspectRatio =
+        0; // 0 = undefined, adapt to viewport at runtime
     THROW_ON_FAILURE(status);
 
-    perspectiveCamera->znear = float(camera.nearClippingPlane(&status)) * args.globalScaleFactor;
+    perspectiveCamera->znear =
+        float(camera.nearClippingPlane(&status)) * args.globalScaleFactor;
     THROW_ON_FAILURE(status);
 
-    perspectiveCamera->zfar = float(camera.farClippingPlane(&status)) * args.globalScaleFactor;
+    perspectiveCamera->zfar =
+        float(camera.farClippingPlane(&status)) * args.globalScaleFactor;
     THROW_ON_FAILURE(status);
 
 #if 0
@@ -90,8 +96,6 @@ ExportableCamera::ExportableCamera(
 
 ExportableCamera::~ExportableCamera() = default;
 
-void ExportableCamera::attachToNode(GLTF::Node& node) const
-{
+void ExportableCamera::attachToNode(GLTF::Node &node) const {
     node.camera = glCamera.get();
 }
-
