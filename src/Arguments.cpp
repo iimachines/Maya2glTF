@@ -82,6 +82,9 @@ const auto reportSkewedInverseBindMatrices = "rsb";
 const auto clearOutputWindow = "cow";
 
 const auto cameras = "cam";
+
+const auto excludeZeroJoints = "ezj";
+
 } // namespace flag
 
 inline const char *getArgTypeName(const MSyntax::MArgType argType) {
@@ -200,6 +203,8 @@ SyntaxFactory::SyntaxFactory() {
     registerFlag(ss, flag::clearOutputWindow, "clearOutputWindow", kNoArg);
 
     registerFlag(ss, flag::cameras, "cameras", kSelectionItem);
+
+    registerFlag(ss, flag::excludeZeroJoints, "excludeZeroJoints", kNoArg);
 
     m_usage = ss.str();
 }
@@ -578,6 +583,8 @@ Arguments::Arguments(const MArgList &args, const MSyntax &syntax) {
 
     adb.optional(flag::debugVectorLength, debugVectorLength);
     adb.optional(flag::copyright, copyright);
+
+    excludeZeroJoints = adb.isFlagSet(flag::excludeZeroJoints);
 
     adb.optional(flag::gltfFileExtension, gltfFileExtension);
     adb.optional(flag::glbFileExtension, glbFileExtension);

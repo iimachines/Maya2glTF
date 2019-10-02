@@ -123,7 +123,7 @@ MeshSkeleton::MeshSkeleton(ExportableScene &scene, const ExportableNode &node,
             for (int jointIndex = 0; jointIndex < int(numWeights);
                  ++jointIndex) {
                 const float jointWeight = vertexWeights[jointIndex];
-                if (std::abs(jointWeight) > 1e-6f) {
+                if (!args.excludeZeroJoints || std::abs(jointWeight) > 1e-6f) {
                     assignments.emplace_back(jointIndex, jointWeight);
                 }
             }

@@ -249,6 +249,9 @@ class Arguments {
     /** Copyright text of the exported file */
     MString copyright;
 
+    /** Exclude zero joints from the mesh */
+    bool excludeZeroJoints = false;
+
     void assignName(GLTF::Object &glObj, const std::string &name) const {
         if (!disableNameAssignment) {
             glObj.name = name;
