@@ -114,13 +114,52 @@ add_dependencies(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME} ${MAYA_LIBRARIES} GLTF draco)
 
+execute_process(
+COMMAND
+    git rev-parse --short HEAD
+RESULT_VARIABLE
+    GIT_SHORT_HASH_RESULT
+OUTPUT_VARIABLE
+    GIT_SHORT_HASH)
+
+execute_process(
+COMMAND
+    git tag -l --points-at HEAD
+RESULT_VARIABLE
+    GIT_TAG_RESULT
+OUTPUT_VARIABLE
+    GIT_TAG)
+set(ARCHIVE_VERSION "master_${GIT_SHORT_HASH}")
+if(GIT_TAG)
+  set(ARCHIVE_VERSION "${GIT_TAG}_${GIT_SHORT_HASH}")
+endif()
+string(REGEX REPLACE "\n$" "" ARCHIVE_VERSION "${ARCHIVE_VERSION}")
+message(${ARCHIVE_VERSION})
+
 if(MSVC)
-  
+  set(MAYA_OUTPUT_DIR "$<SHELL_PATH:$ENV{USERPROFILE}/Documents/maya")
   add_custom_command(TARGET maya2glTF POST_BUILD 
-    COMMAND xcopy /y "$<SHELL_PATH:$<TARGET_FILE:maya2glTF>>" "$<SHELL_PATH:$ENV{USERPROFILE}/Documents/maya/${MAYA_VERSION}/plug-ins/>"
-    COMMAND xcopy /y "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/scripts/maya2glTF*.mel>" "$<SHELL_PATH:$ENV{USERPROFILE}/Documents/maya/${MAYA_VERSION}/scripts/>"
-    COMMAND xcopy /y /s /i "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/renderData/*.*>" "$<SHELL_PATH:$ENV{USERPROFILE}/Documents/maya/maya2glTF/PBR/>"
-    COMMAND if exist "$<SHELL_PATH:$<TARGET_PDB_FILE:maya2glTF>>" (xcopy /y /c "$<SHELL_PATH:$<TARGET_PDB_FILE:maya2glTF>>" "$<SHELL_PATH:$ENV{USERPROFILE}/Documents/maya/${MAYA_VERSION}/plug-ins/>")
+    COMMAND xcopy /y "$<SHELL_PATH:$<TARGET_FILE:maya2glTF>>" "${MAYA_OUTPUT_DIR}/${MAYA_VERSION}/plug-ins/>"
+    COMMAND xcopy /y "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/scripts/maya2glTF*.mel>" "${MAYA_OUTPUT_DIR}/${MAYA_VERSION}/scripts/>"
+    COMMAND xcopy /y /s /i "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/renderData/*.*>" "${MAYA_OUTPUT_DIR}/maya2glTF/PBR/>"
+    COMMAND if exist "$<SHELL_PATH:$<TARGET_PDB_FILE:maya2glTF>>" (xcopy /y /c "$<SHELL_PATH:$<TARGET_PDB_FILE:maya2glTF>>" "${MAYA_OUTPUT_DIR}/${MAYA_VERSION}/plug-ins/>")
+  )
+  
+  set(MAYA_OUTPUT_DIR "${PROJECT_BINARY_DIR}/maya2gltf_package")
+  file(REMOVE_RECURSE ${MAYA_OUTPUT_DIR}/)
+  set(MAYA_OUTPUT_LIST "${MAYA_OUTPUT_DIR}/"
+    "${MAYA_OUTPUT_DIR}/${MAYA_VERSION}/plug-ins/"
+    "${MAYA_OUTPUT_DIR}/${MAYA_VERSION}/scripts/"    
+    "${MAYA_OUTPUT_DIR}/maya2glTF/PBR/"
+  )
+  file(MAKE_DIRECTORY ${MAYA_OUTPUT_LIST})
+  add_custom_command(TARGET maya2glTF POST_BUILD 
+    COMMAND xcopy /y "$<SHELL_PATH:$<TARGET_FILE:maya2glTF>>" "$<SHELL_PATH:${MAYA_OUTPUT_DIR}/${MAYA_VERSION}/plug-ins/>"
+    COMMAND xcopy /y "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/scripts/maya2glTF*.mel>" "$<SHELL_PATH:${MAYA_OUTPUT_DIR}/${MAYA_VERSION}/scripts/>"
+    COMMAND xcopy /y /s /i "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/renderData/*.*>" "$<SHELL_PATH:${MAYA_OUTPUT_DIR}/maya2glTF/PBR/>"
+    COMMAND if exist "$<SHELL_PATH:$<TARGET_PDB_FILE:maya2glTF>>" (xcopy /y /c "$<SHELL_PATH:$<TARGET_PDB_FILE:maya2glTF>>" "$<SHELL_PATH:${MAYA_OUTPUT_DIR}/${MAYA_VERSION}/plug-ins/>")
+    COMMAND xcopy /y "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/maya2glTFDeploy.bat>" "$<SHELL_PATH:${MAYA_OUTPUT_DIR}/>"
+    COMMAND ${CMAKE_COMMAND} -E tar cfv ${CMAKE_BINARY_DIR}/maya2gltf_${ARCHIVE_VERSION}_maya_${MAYA_VERSION}.zip --format=zip "${MAYA_OUTPUT_DIR}"
   )
 elseif(APPLE)
   install (
