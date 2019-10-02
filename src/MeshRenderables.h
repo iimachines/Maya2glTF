@@ -167,7 +167,7 @@ struct VertexHashers {
         size_t seed = 0x26DFB62C;
         for (auto &elem : elems) {
             seed ^=
-                (seed << 6) + (seed >> 2) + 0x3C2E6B88 + std::hash_value(elem);
+                (seed << 6) + (seed >> 2) + 0x3C2E6B88 + static_cast<size_t>(elem);
         }
         return seed;
     }
