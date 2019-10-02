@@ -96,9 +96,12 @@ namespace WonderMedia.glTF.ModelClipMerger
 
             Log.WriteLine($"Copying images...");
 
-            using (Log.Indented())
+            if (modelData.Images != null)
             {
-                CopyImages(modelData, modelPath, outputModelFolder);
+                using (Log.Indented())
+                {
+                    CopyImages(modelData, modelPath, outputModelFolder);
+                }
             }
 
             Log.WriteLine($"Fetching model buffers...");
