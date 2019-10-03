@@ -422,72 +422,6 @@ void ExportableAsset::save() {
     }
 }
 
-void ExportableAsset::dumpAccessorComponents(
-    const std::vector<GLTF::Accessor *> &accessors) const {
-    // NOTE: Because formatting with std::ostream is so slow,
-    // we use the milo.h implementation for fast floating point printing.
-    const auto &args = m_resources.arguments();
-    const auto outputFolder = fs::path(args.outputFolder.asChar());
-
-    int fileIndex = 0;
-
-    for (auto &&accessor : accessors) {
-        // TODO: Add support for integers
-        if (accessor->componentType != WebGL::FLOAT)
-            continue;
-
-        std::ofstream ofs;
-        std::string filename = accessor->name;
-        if (filename.empty()) {
-            filename = std::string(args.sceneName.asChar()) + "_" +
-                       std::to_string(fileIndex);
-        }
-
-        makeValidFilename(filename);
-
-        ofs.open((outputFolder / (filename + ".txt")).c_str(),
-                 std::ofstream::out | std::ofstream::binary);
-
-        ++fileIndex;
-
-        const float *data =
-            reinterpret_cast<float *>(accessor->bufferView->buffer->data);
-
-        const int dimension =
-            GLTF::Accessor::getNumberOfComponents(accessor->type);
-
-        const int rowBufferSize =
-            dimension * fmt::BUFFER_SIZE + 2 * (dimension + 1);
-        const auto rowBuffer = static_cast<char *>(alloca(rowBufferSize));
-
-        const auto colWidth = 16;
-
-        for (int row = 0; row < accessor->count; ++row) {
-            char *str = rowBuffer;
-            char *end = str;
-
-            int step = 0;
-
-            for (int col = 0; col < dimension; ++col) {
-                while (str < end)
-                    *str++ = ' ';
-                end = str + colWidth;
-                str = fmt::format_double(str, data[col], 8);
-            }
-
-            *str++ = '\n';
-
-            assert((str - rowBuffer) <= rowBufferSize);
-
-            ofs.write(rowBuffer, str - rowBuffer);
-
-            data += dimension;
-        }
-
-        ofs.close();
-    }
-}
-
 void ExportableAsset::packMeshAccessors(
     AccessorsPerDagPath &accessorsPerDagPath, AccessorPacker &packer,
     PackedBufferMap &packedBufferMap, std::string nameSuffix) const {
@@ -569,5 +503,90 @@ void ExportableAsset::create(std::ofstream &file, const std::string &path,
         std::ostringstream ss;
         ss << "Couldn't write to '" << path << "'";
         throw std::runtime_error(ss.str().c_str());
+    }
+}
+
+template <typename T>
+void ExportableAsset::dumpAccessorComponentValues(
+    const GLTF::Accessor *accessor, int fileIndex, bool isInteger) const {
+    // NOTE: Because formatting with std::ostream is so slow,
+    // we use the milo.h implementation for fast floating point printing.
+    const auto &args = m_resources.arguments();
+    const auto outputFolder = fs::path(args.outputFolder.asChar());
+
+    std::ofstream ofs;
+    std::string filename = accessor->name;
+    if (filename.empty()) {
+        filename = std::string(args.sceneName.asChar()) + "_" +
+                   std::to_string(fileIndex);
+    }
+
+    makeValidFilename(filename);
+
+    ofs.open((outputFolder / (filename + ".txt")).c_str(),
+             std::ofstream::out | std::ofstream::binary);
+
+    const T *data = reinterpret_cast<T *>(accessor->bufferView->buffer->data);
+
+    const int dimension = GLTF::Accessor::getNumberOfComponents(accessor->type);
+
+    const int rowBufferSize =
+        dimension * fmt::BUFFER_SIZE + 2 * (dimension + 1);
+    const auto rowBuffer = static_cast<char *>(alloca(rowBufferSize));
+
+    const auto colWidth = 16;
+
+    for (int row = 0; row < accessor->count; ++row) {
+        char *str = rowBuffer;
+        char *end = str;
+
+        int step = 0;
+
+        for (int col = 0; col < dimension; ++col) {
+            while (str < end)
+                *str++ = ' ';
+            end = str + colWidth;
+            str = isInteger ? rapidjson::internal::i64toa(
+                                  static_cast<int64_t>(data[col]), str)
+                            : fmt::format_double(str, data[col], 8);
+        }
+
+        *str++ = '\n';
+
+        assert((str - rowBuffer) <= rowBufferSize);
+
+        ofs.write(rowBuffer, str - rowBuffer);
+
+        data += dimension;
+    }
+
+    ofs.close();
+}
+
+void ExportableAsset::dumpAccessorComponents(
+    const std::vector<GLTF::Accessor *> &accessors) const {
+    int fileIndex = 0;
+
+    for (auto &&accessor : accessors) {
+        switch (accessor->componentType) {
+        case WebGL::FLOAT:
+            dumpAccessorComponentValues<float>(accessor, fileIndex, false);
+            break;
+        case WebGL::UNSIGNED_INT:
+            dumpAccessorComponentValues<uint32_t>(accessor, fileIndex, true);
+            break;
+        case WebGL::UNSIGNED_SHORT:
+            dumpAccessorComponentValues<uint16_t>(accessor, fileIndex, true);
+            break;
+        default:
+            // TODO: Add support for other accessor component types.
+            MayaException::printError(
+                "Unsupported accessor component " +
+                    std::to_string(static_cast<int>(accessor->componentType)),
+                MStatus::kNotImplemented);
+            break;
+        }
+
+        ++fileIndex;
     }
 }

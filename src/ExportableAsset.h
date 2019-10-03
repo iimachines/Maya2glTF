@@ -55,4 +55,8 @@ class ExportableAsset {
 
     static void create(std::ofstream &file, const std::string &path,
                        const std::ios_base::openmode mode);
+
+    template <typename T>
+    void dumpAccessorComponentValues(const GLTF::Accessor *accessor,
+                                     int fileIndex, bool isInteger) const;
 };
