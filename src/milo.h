@@ -128,10 +128,6 @@ struct DiyFp {
         unsigned long index;
         _BitScanReverse64(&index, f);
         return DiyFp(f << (63 - index), e - (63 - index));
-#elif defined(__GNUC__) ||                                                     \
-    (__clang__ && defined __has_builtin && __has_builtin(__builtin_clzll))
-        int s = __builtin_clzll(f);
-        return DiyFp(f << s, e - s);
 #else
         DiyFp res = *this;
         while (!(res.f & (static_cast<std::uint64_t>(1) << 63))) {

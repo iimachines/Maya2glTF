@@ -1,7 +1,8 @@
 #pragma once
-#include <windows.h>
 
 #ifdef WIN32
+#include <windows.h>
+
 class WindowFinder {
   public:
     WindowFinder(const char *windowStyleName, HWND parentWindowHandle);

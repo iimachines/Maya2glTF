@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ShapeIndex.h"
-#include "basicTypes.h"
+#include "BasicTypes.h"
 
 // <0 means an invalid index
 typedef int Index;

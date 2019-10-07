@@ -50,6 +50,6 @@ void OutputWindow::clear() const {
 
 OutputWindow::OutputWindow() {}
 
-void OutputWindow::Clear() {}
+void OutputWindow::clear() const {}
 
 #endif

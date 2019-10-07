@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.8)
 
 project(maya2glTF)
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -21,7 +22,9 @@ ExternalProject_Add(COLLADA2GLTF
   INSTALL_DIR
   CMAKE_ARGS
   -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
-  #CONFIGURE_COMMAND ${CMAKE_COMMAND} -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> <SOURCE_DIR>/GLTF  
+  #CONFIGURE_COMMAND ${CMAKE_COMMAND} -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> <SOURCE_DIR>/GLTF
+  CMAKE_CACHE_ARGS
+  "-DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=true"
 )
 
 
@@ -41,7 +44,7 @@ ExternalProject_Add(linq
 # GSL
 ExternalProject_Add(GSL
   GIT_REPOSITORY https://github.com/Microsoft/GSL.git
-  GIT_TAG v1.0.0
+  GIT_TAG v2.0.0
   PREFIX GSL
   INSTALL_DIR
   CMAKE_ARGS
@@ -94,7 +97,7 @@ add_dependencies(${PROJECT_NAME}
   linq
 )
 
-target_link_libraries(${PROJECT_NAME} ${MAYA_LIBRARIES} glTF draco)
+target_link_libraries(${PROJECT_NAME} ${MAYA_LIBRARIES} GLTF draco)
 
 if(MSVC)
   
@@ -104,7 +107,15 @@ if(MSVC)
     COMMAND xcopy /y /s /i "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/renderData/*.*>" "$<SHELL_PATH:$ENV{USERPROFILE}/Documents/maya/maya2glTF/PBR/>"
     COMMAND if exist "$<SHELL_PATH:$<TARGET_PDB_FILE:maya2glTF>>" (xcopy /y /c "$<SHELL_PATH:$<TARGET_PDB_FILE:maya2glTF>>" "$<SHELL_PATH:$ENV{USERPROFILE}/Documents/maya/${MAYA_VERSION}/plug-ins/>")
   )
-
+else(LINUX)
+  add_custom_command(TARGET maya2glTF POST_BUILD
+    COMMAND mkdir -p "$<SHELL_PATH:$ENV{HOME}/maya/${MAYA_VERSION}/plug-ins/>"
+    COMMAND mkdir -p "$<SHELL_PATH:$ENV{HOME}/maya/${MAYA_VERSION}/scripts/>"
+    COMMAND mkdir -p "$<SHELL_PATH:$ENV{HOME}/maya/maya2glTF/PBR/>"
+    COMMAND cp -f "$<SHELL_PATH:$<TARGET_FILE:maya2glTF>>" "$<SHELL_PATH:$ENV{HOME}/maya/${MAYA_VERSION}/plug-ins/>"
+    COMMAND cp -f "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/scripts/maya2glTF*.mel>" "$<SHELL_PATH:$ENV{HOME}/maya/${MAYA_VERSION}/scripts/>"
+    COMMAND cp -rf "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/renderData/>" "$<SHELL_PATH:$ENV{HOME}/maya/maya2glTF/PBR/>"
+  )
 endif()
 
 MAYA_PLUGIN(${PROJECT_NAME})
