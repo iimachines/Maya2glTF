@@ -51,12 +51,26 @@ ExternalProject_Add(GSL
 	-DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
 )
 
+# filesystem
+ExternalProject_Add(filesystem
+  GIT_REPOSITORY https://github.com/gulrak/filesystem
+  GIT_TAG v1.2.6
+  PREFIX filesystem
+  INSTALL_DIR
+  CMAKE_ARGS
+	-DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+  CONFIGURE_COMMAND ""
+  BUILD_COMMAND ""
+  INSTALL_COMMAND ""
+)
+
 set(GLTF_INCLUDE_DIR          "${CMAKE_BINARY_DIR}/COLLADA2GLTF/src/COLLADA2GLTF/GLTF/include")
 set(DRACO_INCLUDE_DIR         "${CMAKE_BINARY_DIR}/COLLADA2GLTF/src/COLLADA2GLTF/GLTF/dependencies/draco/src")
 set(RAPIDJSON_INCLUDE_DIR     "${CMAKE_BINARY_DIR}/COLLADA2GLTF/src/COLLADA2GLTF/GLTF/dependencies/rapidjson/include")
 #set(COLLADA2GLTF_INCLUDE_DIR  "${CMAKE_BINARY_DIR}/COLLADA2GLTF/include")
 set(GSL_INCLUDE_DIR           "${CMAKE_BINARY_DIR}/GSL/include")
 set(LINQ_INCLUDE_DIR          "${CMAKE_BINARY_DIR}/linq/src/linq/lib")
+set(FS_INCLUDE_DIR            "${CMAKE_BINARY_DIR}/filesystem/src/filesystem/include")
 
 # TODO: It seems the gltf.lib is not installed by COLLADA2GLTF, although draco.lib is? Figure out why
 ExternalProject_Get_Property(COLLADA2GLTF binary_dir)
@@ -95,6 +109,7 @@ add_dependencies(${PROJECT_NAME}
   GSL
   COLLADA2GLTF
   linq
+  filesystem
 )
 
 target_link_libraries(${PROJECT_NAME} ${MAYA_LIBRARIES} GLTF draco)
@@ -106,6 +121,28 @@ if(MSVC)
     COMMAND xcopy /y "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/scripts/maya2glTF*.mel>" "$<SHELL_PATH:$ENV{USERPROFILE}/Documents/maya/${MAYA_VERSION}/scripts/>"
     COMMAND xcopy /y /s /i "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/renderData/*.*>" "$<SHELL_PATH:$ENV{USERPROFILE}/Documents/maya/maya2glTF/PBR/>"
     COMMAND if exist "$<SHELL_PATH:$<TARGET_PDB_FILE:maya2glTF>>" (xcopy /y /c "$<SHELL_PATH:$<TARGET_PDB_FILE:maya2glTF>>" "$<SHELL_PATH:$ENV{USERPROFILE}/Documents/maya/${MAYA_VERSION}/plug-ins/>")
+  )
+elseif(APPLE)
+  install (
+    TARGETS maya2glTF 
+    DESTINATION "/Users/Shared/Autodesk/maya/${MAYA_VERSION}/plug-ins/"
+  )
+  
+  install (
+    DIRECTORY "${PROJECT_SOURCE_DIR}/maya/scripts/" 
+    DESTINATION "/Users/Shared/Autodesk/maya/scripts"
+    FILES_MATCHING PATTERN "maya2glTF*.mel"
+  )
+
+  install (
+    DIRECTORY "${CMAKE_BINARY_DIR}/generated/" 
+    DESTINATION "/Users/Shared/Autodesk/maya/scripts"
+    FILES_MATCHING PATTERN "maya2glTF*.mel"
+  )
+
+  install (
+    DIRECTORY "${PROJECT_SOURCE_DIR}/maya/renderData/"
+    DESTINATION "/Users/Shared/Autodesk/maya/maya2glTF/PBR"
   )
 else(LINUX)
   add_custom_command(TARGET maya2glTF POST_BUILD
