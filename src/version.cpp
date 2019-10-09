@@ -1,3 +1,3 @@
 ﻿#include "externals.h"
 
-const char *version = "V0.9.10 c48bd3d";
+const char *version = "V1.0.0 b56abcf";
