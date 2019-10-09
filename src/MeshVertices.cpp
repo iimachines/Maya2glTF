@@ -187,7 +187,7 @@ struct MikkTSpaceContext : SMikkTSpaceContext {
         }
     }
 
-    static void reportDegenerateTriangle(SMikkTSpaceContext *pContext,
+    static void reportDegenerateTriangle(const SMikkTSpaceContext *pContext,
                                          int triangleIndex) {
         const auto context =
             reinterpret_cast<const MikkTSpaceContext *>(pContext);

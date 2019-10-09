@@ -115,7 +115,7 @@ typedef struct {
                         const tbool bIsOrientationPreserving, const int iFace,
                         const int iVert);
 
-    void (*m_reportDegenerateTriangle)(SMikkTSpaceContext *pContext,
+    void (*m_reportDegenerateTriangle)(const SMikkTSpaceContext *pContext,
                                        int triangleIndex);
 
 } SMikkTSpaceInterface;

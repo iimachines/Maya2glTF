@@ -50,7 +50,7 @@ MStatus DagHelper::getPlugConnectedTo(const MObject &node,
     MFnDependencyNode dgFn(node, &status);
     RETURN_ON_FAILURE(status);
 
-    auto plug = dgFn.findPlug(attribute, &status);
+    auto plug = dgFn.findPlug(attribute, true, &status);
 
     if (status && plug.isConnected()) {
         // Get the connection - there can be at most one input to a plug
@@ -73,7 +73,7 @@ MObject DagHelper::findSourceNodeConnectedTo(const MObject &node,
     MFnDependencyNode dgFn(node, &status);
     THROW_ON_FAILURE(status);
 
-    auto plug = dgFn.findPlug(attribute, &status);
+    auto plug = dgFn.findPlug(attribute, true, &status);
 
     if (status && plug.isConnected()) {
         // Get the connection - there can be at most one input to a plug
@@ -360,7 +360,7 @@ bool DagHelper::GetPlugArrayConnectedTo(const MObject& node, const MString& attr
 {
 	MStatus status;
 	MFnDependencyNode dgFn(node);
-	MPlug plug = dgFn.findPlug(attribute, &status);
+	MPlug plug = dgFn.findPlug(attribute, true, &status);
 	if (status != MS::kSuccess)
 	{
 		MGlobal::displayWarning(MString("couldn't find plug on attribute ") +
@@ -398,10 +398,10 @@ bool DagHelper::Connect(const MObject& source, const MString& sourceAttribute, c
 	MFnDependencyNode srcFn(source);
 	MFnDependencyNode destFn(destination);
 
-	MPlug src = srcFn.findPlug(sourceAttribute, &status);
+	MPlug src = srcFn.findPlug(sourceAttribute, true, &status);
 	if (status != MStatus::kSuccess) return false;
 
-	MPlug dest = destFn.findPlug(destinationAttribute, &status);
+	MPlug dest = destFn.findPlug(destinationAttribute, true, &status);
 	if (status != MStatus::kSuccess) return false;
 
 	MDGModifier modifier;
@@ -416,7 +416,7 @@ bool DagHelper::Connect(const MObject& source, const MString& sourceAttribute, c
 	MStatus status;
 	MFnDependencyNode srcFn(source);
 
-	MPlug src = srcFn.findPlug(sourceAttribute, &status);
+	MPlug src = srcFn.findPlug(sourceAttribute, true, &status);
 	if (status != MStatus::kSuccess) return false;
 
 	MDGModifier modifier;
@@ -431,7 +431,7 @@ bool DagHelper::Connect(const MPlug& source, const MObject& destination, const M
 	MStatus status;
 	MFnDependencyNode destFn(destination);
 
-	MPlug dst = destFn.findPlug(destinationAttribute, &status);
+	MPlug dst = destFn.findPlug(destinationAttribute, true, &status);
 	if (status != MStatus::kSuccess) return false;
 
 	MDGModifier modifier;
@@ -456,7 +456,7 @@ bool DagHelper::ConnectToList(const MObject& source, const MString& sourceAttrib
 	MStatus status;
 	MFnDependencyNode srcFn(source);
 
-	MPlug src = srcFn.findPlug(sourceAttribute, &status);
+	MPlug src = srcFn.findPlug(sourceAttribute, true, &status);
 	if (status != MStatus::kSuccess) return false;
 
 	return ConnectToList(src, destination, destinationAttribute, index);
@@ -466,7 +466,7 @@ bool DagHelper::ConnectToList(const MPlug& source, const MObject& destination, c
 {
 	MStatus status;
 	MFnDependencyNode destFn(destination);
-	MPlug dest = destFn.findPlug(destinationAttribute, &status);
+	MPlug dest = destFn.findPlug(destinationAttribute, true, &status);
 	if (status != MStatus::kSuccess) return false;
 	if (!dest.isArray()) return false;
 
@@ -521,7 +521,7 @@ MFnSkinCluster controllerFn(controller);
 uint index = controllerFn.indexForInfluenceObject(MDagPath::getAPathTo(influence), &status);
 if (status != MStatus::kSuccess) return MMatrix::identity;
 
-MPlug preBindMatrixPlug = controllerFn.findPlug("bindPreMatrix", &status);
+MPlug preBindMatrixPlug = controllerFn.findPlug("bindPreMatrix", true, &status);
 preBindMatrixPlug = preBindMatrixPlug.elementByLogicalIndex(index, &status);
 if (status != MStatus::kSuccess) return MMatrix::identity;
 
@@ -545,7 +545,7 @@ MStatus DagHelper::SetBindPoseInverse(const MObject& node, const MMatrix& bindPo
 {
 MStatus status;
 MFnDependencyNode dgFn(node);
-MPlug bindPosePlug = dgFn.findPlug("bindPose", &status);
+MPlug bindPosePlug = dgFn.findPlug("bindPose", true, &status);
 if (status != MS::kSuccess)
 {
 MGlobal::displayWarning(MString("No bindPose found on node ") + dgFn.name());
@@ -580,7 +580,7 @@ while (!it.isDone())
 MPlug plug = it.thisPlug();
 unsigned int idx = plug.logicalIndex();
 MFnDependencyNode skinFn(plug.node());
-MPlug skinBindPosePlug = skinFn.findPlug("bindPreMatrix", &status);
+MPlug skinBindPosePlug = skinFn.findPlug("bindPreMatrix", true, &status);
 if (status == MS::kSuccess)
 {
 // The skinCluster stores inverse inclusive matrix
@@ -738,7 +738,7 @@ MObject DagHelper::CreateAttribute(const MObject& node, const char* attributeNam
 	MStatus status;
 	MObject attribute;
 	MFnDependencyNode nodeFn(node);
-	MPlug plug = nodeFn.findPlug(attributeShortName, status);
+	MPlug plug = nodeFn.findPlug(attributeShortName, true, status);
 	if (status != MStatus::kSuccess)
 	{
 		MFnNumericAttribute attr;
@@ -753,7 +753,7 @@ MObject DagHelper::CreateAttribute(const MObject& node, const char* attributeNam
 
 		status = nodeFn.addAttribute(attribute, MFnDependencyNode::kLocalDynamicAttr);
 		if (status != MStatus::kSuccess) return MObject::kNullObj;
-		plug = nodeFn.findPlug(attribute, &status);
+		plug = nodeFn.findPlug(attribute, true, &status);
 		if (status != MStatus::kSuccess) return MObject::kNullObj;
 	}
 	else
@@ -772,7 +772,7 @@ MObject DagHelper::CreateAttribute(const MObject& node, const char* attributeNam
 	MStatus status;
 	MObject attribute;
 	MFnDependencyNode nodeFn(node);
-	MPlug plug = nodeFn.findPlug(attributeShortName, status);
+	MPlug plug = nodeFn.findPlug(attributeShortName, true, status);
 	if (status != MStatus::kSuccess)
 	{
 		MFnTypedAttribute attr;
@@ -787,7 +787,7 @@ MObject DagHelper::CreateAttribute(const MObject& node, const char* attributeNam
 
 		status = nodeFn.addAttribute(attribute, MFnDependencyNode::kLocalDynamicAttr);
 		if (status != MStatus::kSuccess) return MObject::kNullObj;
-		plug = nodeFn.findPlug(attribute, &status);
+		plug = nodeFn.findPlug(attribute, true, &status);
 		if (status != MStatus::kSuccess) return MObject::kNullObj;
 	}
 	else
@@ -949,7 +949,7 @@ bool DagHelper::Disconnect(const MPlug& plug, bool sources, bool destinations)
 // Create an animation curve for the given plug
 MObject DagHelper::CreateAnimationCurve(const MObject& node, const char* attributeName, const char* curveType)
 {
-	MFnDependencyNode fn(node); return CreateAnimationCurve(fn.findPlug(attributeName), curveType);
+	MFnDependencyNode fn(node); return CreateAnimationCurve(fn.findPlug(attributeName), true, curveType);
 }
 MObject DagHelper::CreateAnimationCurve(const MPlug& plug, const char* curveType)
 {
@@ -1016,7 +1016,7 @@ MPlug DagHelper::AddOrCreateMessagePlug(const MObject& node,
 	created = false;
 	MStatus status;
 	MFnDependencyNode nodeFn(node);
-	MPlug plug = nodeFn.findPlug(attributeShortName, &status);
+	MPlug plug = nodeFn.findPlug(attributeShortName, true, &status);
 	if (status != MStatus::kSuccess)
 	{
 		MFnMessageAttribute fnMessageAttribute;
@@ -1032,7 +1032,7 @@ MPlug DagHelper::AddOrCreateMessagePlug(const MObject& node,
 		status = nodeFn.addAttribute(attribute, MFnDependencyNode::kLocalDynamicAttr);
 		THROW_ON_FAILURE(status);
 
-		plug = nodeFn.findPlug(attribute, &status);
+		plug = nodeFn.findPlug(attribute, true, &status);
 		THROW_ON_FAILURE(status);
 
 		created = true;

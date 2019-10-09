@@ -108,3 +108,7 @@
 #include <maya/MSyntax.h>
 #include <maya/MTime.h>
 #include <maya/MUuid.h>
+
+#ifdef isnan
+#   undef isnan
+#endif

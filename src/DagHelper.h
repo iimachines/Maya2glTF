@@ -213,7 +213,7 @@ struct DagHelper {
         MFnDependencyNode dpn(node, &status);
         RETURN_ON_FAILURE(status);
 
-        auto plug = dpn.findPlug(attributeName, &status);
+        auto plug = dpn.findPlug(attributeName, true, &status);
         RETURN_ON_FAILURE(status);
 
         return getPlugValue(plug, value);

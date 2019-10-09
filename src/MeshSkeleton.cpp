@@ -111,7 +111,7 @@ MeshSkeleton::MeshSkeleton(ExportableScene &scene, const ExportableNode &node,
             const auto pointIndex = iterGeom.index(&status);
             THROW_ON_FAILURE(status);
 
-            const MObject component = iterGeom.component(&status);
+            const MObject component = iterGeom.currentItem(&status);
             THROW_ON_FAILURE(status);
 
             status = fnSkin.getWeights(meshDagPath, component, vertexWeights,
@@ -219,7 +219,7 @@ MeshSkeleton::tryExtractSkinCluster(const MFnMesh &fnMesh,
 
     for (MItDependencyNodes depNodeIt(MFn::kSkinClusterFilter);
          !depNodeIt.isDone(); depNodeIt.next()) {
-        MObject thisNode = depNodeIt.item(&status);
+        MObject thisNode = depNodeIt.thisNode(&status);
         THROW_ON_FAILURE(status);
 
         MFnSkinCluster fnSkinCluster(thisNode, &status);

@@ -40,7 +40,7 @@ MeshBlendShapeWeights::MeshBlendShapeWeights(const MPlug &weightArrayPlug)
         WeightPlugEntry &entry = m_weightPlugEntries[plugName];
         entry.plugIndex = weightIndex;
 
-        entry.originalWeight = weightPlug.asDouble(&status);
+        status = weightPlug.getValue(entry.originalWeight);
         THROW_ON_FAILURE(status);
 
         entry.isLocked = weightPlug.isLocked(&status);

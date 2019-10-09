@@ -27,7 +27,7 @@ double getAxesNonOrthogonality(const MMatrix &m) {
 
 void getTranslation(const MTransformationMatrix &m, float *result,
                     double scaleFactor) {
-    const MVector t = m.translation(MSpace::kPostTransform);
+    const MVector t = m.getTranslation(MSpace::kPostTransform);
     result[0] = roundToFloat(t.x * scaleFactor, posPrecision);
     result[1] = roundToFloat(t.y * scaleFactor, posPrecision);
     result[2] = roundToFloat(t.z * scaleFactor, posPrecision);

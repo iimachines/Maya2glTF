@@ -38,7 +38,7 @@ Mesh::Mesh(ExportableScene &scene, MDagPath dagPath,
              << endl;
 
         const MPlug weightArrayPlug =
-            fnBlendShapeDeformer.findPlug("weight", &status);
+            fnBlendShapeDeformer.findPlug("weight", true, &status);
         THROW_ON_FAILURE(status);
 
         // We use the MeshBlendShapeWeights helper class to manipulate the
@@ -105,7 +105,7 @@ Mesh::tryExtractBlendShapeDeformer(const MFnMesh &fnMesh,
         dgIt.disablePruningOnFilter();
 
         for (; !dgIt.isDone(); dgIt.next()) {
-            MObject thisNode = dgIt.thisNode();
+            MObject thisNode = dgIt.currentItem();
             if (thisNode.hasFn(MFn::kBlendShape)) {
                 MFnBlendShapeDeformer fnDeformer(thisNode, &status);
 
@@ -127,7 +127,7 @@ Mesh::tryExtractBlendShapeDeformer(const MFnMesh &fnMesh,
                         // If we find more than one blend shape deformer, pick
                         // the one with most animated weights.
                         const MPlug weightArrayPlug =
-                            fnDeformer.findPlug("weight", &status);
+                            fnDeformer.findPlug("weight", true, &status);
                         THROW_ON_FAILURE(status);
 
                         MeshBlendShapeWeights weightPlugs(weightArrayPlug);
@@ -219,7 +219,8 @@ MObject Mesh::getOrCreateOutputShape(MPlug &outputGeometryPlug,
         THROW_ON_FAILURE(dagMod.doIt());
 
         // Make sure we select the shape node, not the transform node.
-        MDagPath meshDagPath = MDagPath::getAPathTo(createdMesh, &status);
+        MDagPath meshDagPath;
+        status = MDagPath::getAPathTo(createdMesh, meshDagPath);
         THROW_ON_FAILURE(status);
         THROW_ON_FAILURE(meshDagPath.extendToShape());
 
@@ -233,7 +234,7 @@ MObject Mesh::getOrCreateOutputShape(MPlug &outputGeometryPlug,
             "maya2glTW_" + utils::simpleName(outputGeometryPlug.name(&status));
         THROW_ON_FAILURE(status);
 
-        const MString newName = dagFn.setName(newSuggestedName, &status);
+        const MString newName = dagFn.setName(newSuggestedName, false, &status);
         THROW_ON_FAILURE(status);
 
         cout << prefix << "Created temporary output mesh '" << newName
@@ -243,13 +244,13 @@ MObject Mesh::getOrCreateOutputShape(MPlug &outputGeometryPlug,
 
         // Make the mesh invisible
         MPlug intermediateObjectPlug =
-            dagFn.findPlug("intermediateObject", &status);
+            dagFn.findPlug("intermediateObject", true, &status);
         THROW_ON_FAILURE(status);
         THROW_ON_FAILURE(intermediateObjectPlug.setBool(true));
 
         MDGModifier dgMod;
 
-        MPlug inMeshPlug = dagFn.findPlug("inMesh", &status);
+        MPlug inMeshPlug = dagFn.findPlug("inMesh", true, &status);
         THROW_ON_FAILURE(status);
 
         THROW_ON_FAILURE(dgMod.connect(outputGeometryPlug, inMeshPlug));
