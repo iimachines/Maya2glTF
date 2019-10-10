@@ -444,15 +444,29 @@ void ExportableMaterialPBR::loadAiStandard(
         m_glMaterial.metallicRoughness = &m_glMetallicRoughness;
     }
 
-    if (customBaseColor[3] != 1.0f) {
-        m_glMaterial.alphaMode = "BLEND";
-    }
-
+    bool hasTransparency = false;
     const auto baseColorTexture =
         ExportableTexture::tryLoad(resources, shaderObject, "baseColor");
     if (baseColorTexture) {
         m_glBaseColorTexture.texture = baseColorTexture;
         m_glMetallicRoughness.baseColorTexture = &m_glBaseColorTexture;
+
+        unsigned baseColorWidth = baseColorTexture->source->getDimensions().first;
+        unsigned baseColorHeight = baseColorTexture->source->getDimensions().second;
+        uint32_t *baseColorPixels =
+            reinterpret_cast<uint32_t *>(baseColorTexture->source->data);
+        int64_t pixelCount = baseColorWidth * baseColorHeight;
+        if (pixelCount) {
+                while (--pixelCount >= 0) {
+                    // Check if the alpha is opaque
+                    uint8_t *pixel = reinterpret_cast<uint8_t *>(baseColorPixels);
+                    hasTransparency = hasTransparency || pixel[3] != 255;
+                }
+        }
+    }
+
+    if (customBaseColor[3] != 1.0f || hasTransparency) {
+        m_glMaterial.alphaMode = "BLEND";
     }
 
     // Roughness and metallic
@@ -473,8 +487,8 @@ void ExportableMaterialPBR::loadAiStandard(
     const auto metallicTexture = ExportableTexture::tryCreate(
         resources, shaderObject, "u_MetallicTexture");
     if (roughnessTexture || metallicTexture) {
-        status = tryCreateRoughnessMetalnessTexture(resources, metallicTexture.get(),
-                                                    roughnessTexture.get(), status);
+        status = tryCreateRoughnessMetalnessTexture(
+            resources, metallicTexture.get(), roughnessTexture.get(), status);
 
         m_glMetallicRoughness.metallicRoughnessTexture =
             &m_glMetallicRoughnessTexture;
