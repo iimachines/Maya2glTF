@@ -285,7 +285,7 @@ void ExportableMaterialPBR::loadPBR(ExportableResources &resources,
                     reinterpret_cast<uint32_t *>(metallicImage.pixels());
                 auto roughnessPixels =
                     reinterpret_cast<uint32_t *>(roughnessImage.pixels());
-                __int64 pixelCount = width * height;
+                int64_t pixelCount = width * height;
                 while (--pixelCount >= 0) {
                     *roughnessPixels++ = (*roughnessPixels & 0xff00) |
                                          (*metallicPixels++ & 0xff0000) |

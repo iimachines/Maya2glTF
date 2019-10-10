@@ -15,7 +15,7 @@ MIT License: http://www.opensource.org/licenses/mit-license.php
 #define __DAG_HELPER_INCLUDED__
 
 #include "MayaException.h"
-#include "basicTypes.h"
+#include "BasicTypes.h"
 
 struct DagHelper {
     static MObject getObjectByName(const MString &name);

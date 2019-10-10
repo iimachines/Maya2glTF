@@ -28,6 +28,10 @@
 #include <utility>
 #include <vector>
 
+#ifdef __linux__
+#define LINUX
+#endif
+
 #ifdef _MSC_VER
 #pragma warning(disable : 4267)
 #endif

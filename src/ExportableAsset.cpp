@@ -376,7 +376,7 @@ void ExportableAsset::save() {
 
         std::ofstream file;
         create(file, outputPath.string(),
-               ios::out | (args.glb ? ios::binary : 0));
+               ios::out | (args.glb ? ios::binary : std::_Ios_Openmode(0)));
 
         if (args.glb) {
             assert(packedBufferMap.size() <= 1);

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ExportableObject.h"
-#include "basicTypes.h"
+#include "BasicTypes.h"
 
 class ExportableResources;
 class ExportablePrimitive;

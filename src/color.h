@@ -1,6 +1,6 @@
 #pragma once
 
-#include "basicTypes.h"
+#include "BasicTypes.h"
 
 // Convert HSV in the range [0..1, 0..1, 0..1] to RGB in the same range.
 Float3 hsvToRgb(const Float3 &hsv);

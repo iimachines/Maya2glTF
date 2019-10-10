@@ -22,7 +22,6 @@ elseif(APPLE)
 else()
   # Linux
   set(MAYA_INSTALL_BASE_DEFAULT "/usr/autodesk")
-  set(MAYA_INSTALL_BASE_SUFFIX -x64)
   set(MAYA_PLUGIN_EXTENSION ".so")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 endif()
