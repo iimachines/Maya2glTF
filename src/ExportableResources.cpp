@@ -46,7 +46,7 @@ ExportableResources::getMaterial(const MObject &shaderGroup) {
 GLTF::Image *ExportableResources::getImage(fs::path path) {
     if (!exists(path)) {
         MayaException::printError(
-            formatted("Image with path '%s' does not exist!", path));
+            formatted("Image with path '%s' does not exist!", path.generic_string().c_str()));
         MayaException::printError(
             "(it is advised to use a Maya project and relative paths)");
         return nullptr;
