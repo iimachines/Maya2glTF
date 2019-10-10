@@ -402,6 +402,7 @@ MStatus ExportableMaterialPBR::tryCreateRoughnessMetalnessTexture(
             m_glMetallicRoughnessTexture.texture = texturePtr;
         }
     }
+    return status;
 }
 
 void ExportableMaterialPBR::loadAiStandard(
@@ -429,18 +430,12 @@ void ExportableMaterialPBR::loadAiStandard(
 
     Float4 customBaseColor = m_glBaseColorFactor;
     bool isDoubleSided = false;
-
+  
     const auto hasCustomColor =
         getColor(shaderObject, "baseColor", customBaseColor);
-
     float customColorWeight = 1.0f;
     if (hasCustomColor) {
         m_glBaseColorFactor = customBaseColor;
-        const auto hasWeight =
-            getScalar(shaderObject, "baseWeight", customColorWeight);
-        if (hasWeight) {
-            m_glMetallicRoughness.baseColorFactor = &customColorWeight;
-        }
         m_glMaterial.metallicRoughness = &m_glMetallicRoughness;
     }
 
@@ -473,7 +468,7 @@ void ExportableMaterialPBR::loadAiStandard(
     m_glMetallicRoughness.roughnessFactor = 0.5f;
     m_glMetallicRoughness.metallicFactor = 0.5f;
     const auto hasRoughnessStrength =
-        getScalar(shaderObject, "diffuseRoughness",
+        getScalar(shaderObject, "specularRoughness",
                   m_glMetallicRoughness.roughnessFactor);
     const auto hasMetallicStrength = getScalar(
         shaderObject, "metalness", m_glMetallicRoughness.metallicFactor);
@@ -483,9 +478,9 @@ void ExportableMaterialPBR::loadAiStandard(
     }
 
     const auto roughnessTexture = ExportableTexture::tryCreate(
-        resources, shaderObject, "u_RoughnessTexture");
+        resources, shaderObject, "specularRoughness");
     const auto metallicTexture = ExportableTexture::tryCreate(
-        resources, shaderObject, "u_MetallicTexture");
+        resources, shaderObject, "metalness");
     if (roughnessTexture || metallicTexture) {
         status = tryCreateRoughnessMetalnessTexture(
             resources, metallicTexture.get(), roughnessTexture.get(), status);
@@ -513,12 +508,13 @@ void ExportableMaterialPBR::loadAiStandard(
     // Not supported
 
     // Normal
-    float normalScale = 1.f;
-    GLTF::Texture *normalTexture = nullptr;
-    tryCreateNormalTexture(resources, shaderObject, normalScale, normalTexture);
-    m_glNormalTexture.scale = normalScale;
-    if (normalTexture) {
+    float normalScale;
+    GLTF::Texture *normalTexture;
+    if (tryCreateNormalTexture(resources, shaderObject, normalScale,
+                               normalTexture)) {
         m_glNormalTexture.texture = normalTexture;
+        m_glNormalTexture.scale = normalScale;
+        // TODO: m_glNormalTexture.texCoord = ...
         m_glMaterial.normalTexture = &m_glNormalTexture;
     }
 }
