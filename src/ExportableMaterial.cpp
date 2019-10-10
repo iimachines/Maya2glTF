@@ -15,6 +15,7 @@ std::unique_ptr<ExportableMaterial>
 ExportableMaterial::from(ExportableResources &resources,
                          const MFnDependencyNode &shaderNode) {
     if (shaderNode.typeName() == "GLSLShader" ||
+        shaderNode.typeName() == "aiStandardSurface" ||
         !resources.arguments().skipStandardMaterials)
         return std::make_unique<ExportableMaterialPBR>(resources, shaderNode);
 
@@ -87,6 +88,11 @@ ExportableMaterialPBR::ExportableMaterialPBR(
 
     const auto shaderObject = shaderNode.object(&status);
     THROW_ON_FAILURE(status);
+
+    if (shaderNode.typeName() == "aiStandardSurface") {
+        loadAiStandard(resources, shaderObject);
+        return;
+    }
 
     const auto shaderType = shaderObject.apiType();
 
