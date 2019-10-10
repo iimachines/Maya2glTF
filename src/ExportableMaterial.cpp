@@ -37,12 +37,12 @@ bool ExportableMaterial::tryCreateNormalTexture(ExportableResources &resources,
     if (!getScalar(normalCamera, "bumpDepth", normalScale))
         return false;
 
-    const ExportableTexture bumpTexture(resources, normalCamera, "bumpValue");
     if (!outputTexture)
         return false;
 
-    outputTexture = bumpTexture;
-    return true;
+    outputTexture =
+        ExportableTexture::tryLoad(resources, normalCamera, "bumpValue");
+    return outputTexture != nullptr;
 }
 
 bool ExportableMaterial::getScalar(const MObject &obj,
@@ -125,7 +125,8 @@ void ExportableMaterialPBR::convert(ExportableResources &resources,
     m_glMetallicRoughness.metallicFactor = 0;
     m_glMaterial.metallicRoughness = &m_glMetallicRoughness;
 
-    const ExportableTexture colorTexture(resources, shaderObject, "color");
+    const auto colorTexture =
+        ExportableTexture::tryLoad(resources, shaderObject, "color");
     if (colorTexture) {
         m_glBaseColorTexture.texture = colorTexture;
         m_glMetallicRoughness.baseColorTexture = &m_glBaseColorTexture;
@@ -213,8 +214,8 @@ void ExportableMaterialPBR::loadPBR(ExportableResources &resources,
         m_glMaterial.alphaMode = "BLEND";
     }
 
-    const ExportableTexture baseColorTexture(resources, shaderObject,
-                                             "u_BaseColorTexture");
+    const auto baseColorTexture = ExportableTexture::tryLoad(
+        resources, shaderObject, "u_BaseColorTexture");
     if (baseColorTexture) {
         m_glBaseColorTexture.texture = baseColorTexture;
         m_glMetallicRoughness.baseColorTexture = &m_glBaseColorTexture;
@@ -234,16 +235,17 @@ void ExportableMaterialPBR::loadPBR(ExportableResources &resources,
         m_glMaterial.metallicRoughness = &m_glMetallicRoughness;
     }
 
-    const ExportableTexture roughnessTexture(resources, shaderObject,
-                                             "u_RoughnessTexture");
-    const ExportableTexture metallicTexture(resources, shaderObject,
-                                            "u_MetallicTexture");
+    const auto roughnessTexture = ExportableTexture::tryCreate(
+        resources, shaderObject, "u_RoughnessTexture");
+    const auto metallicTexture = ExportableTexture::tryCreate(
+        resources, shaderObject, "u_MetallicTexture");
     if (roughnessTexture || metallicTexture) {
         // TODO: Test this code!
-        if (!metallicTexture || roughnessTexture == metallicTexture) {
-            m_glMetallicRoughnessTexture.texture = roughnessTexture;
+        if (!metallicTexture ||
+            roughnessTexture->glTexture == metallicTexture->glTexture) {
+            m_glMetallicRoughnessTexture.texture = roughnessTexture->glTexture;
         } else if (!roughnessTexture) {
-            m_glMetallicRoughnessTexture.texture = metallicTexture;
+            m_glMetallicRoughnessTexture.texture = metallicTexture->glTexture;
         } else {
             cerr << prefix
                  << "WARNING: Merging roughness and metallic into one texture"
@@ -254,15 +256,15 @@ void ExportableMaterialPBR::loadPBR(ExportableResources &resources,
 
             THROW_ON_FAILURE_WITH(
                 metallicImage.readFromTextureNode(
-                    metallicTexture.connectedObject),
+                    metallicTexture->connectedObject),
                 formatted("Failed to read metallic texture '%s'",
-                          metallicTexture.imageFilePath.asChar()));
+                          metallicTexture->imageFilePath.asChar()));
 
             THROW_ON_FAILURE_WITH(
                 roughnessImage.readFromTextureNode(
-                    roughnessTexture.connectedObject),
+                    roughnessTexture->connectedObject),
                 formatted("Failed to read roughness texture '%s'",
-                          roughnessTexture.imageFilePath.asChar()));
+                          roughnessTexture->imageFilePath.asChar()));
 
             unsigned width;
             unsigned height;
@@ -275,8 +277,8 @@ void ExportableMaterialPBR::loadPBR(ExportableResources &resources,
             if (width != width2 || height != height2) {
                 MayaException::printError(formatted(
                     "Images '%s' and '%s' have different size, not merging",
-                    metallicTexture.imageFilePath.asChar(),
-                    roughnessTexture.imageFilePath.asChar()));
+                    metallicTexture->imageFilePath.asChar(),
+                    roughnessTexture->imageFilePath.asChar()));
             } else {
                 // Merge metallic into roughness
                 auto metallicPixels =
@@ -292,9 +294,9 @@ void ExportableMaterialPBR::loadPBR(ExportableResources &resources,
 
                 // TODO: Add argument for output image file mime-type
                 const fs::path roughnessPath{
-                    roughnessTexture.imageFilePath.asChar()};
+                    roughnessTexture->imageFilePath.asChar()};
                 const fs::path metallicPath{
-                    metallicTexture.imageFilePath.asChar()};
+                    metallicTexture->imageFilePath.asChar()};
                 const fs::path imageExtension{roughnessPath.extension()};
                 fs::path imageFilename{roughnessPath.stem().string() + "-" +
                                        metallicPath.stem().string()};
@@ -316,7 +318,7 @@ void ExportableMaterialPBR::loadPBR(ExportableResources &resources,
                 assert(imagePtr);
 
                 const auto texturePtr =
-                    resources.getTexture(imagePtr, roughnessTexture.glSampler);
+                    resources.getTexture(imagePtr, roughnessTexture->glSampler);
                 assert(texturePtr);
 
                 m_glMetallicRoughnessTexture.texture = texturePtr;
@@ -332,8 +334,8 @@ void ExportableMaterialPBR::loadPBR(ExportableResources &resources,
         m_glMaterial.emissiveFactor = &m_glEmissiveFactor[0];
     }
 
-    const ExportableTexture emissiveTexture(resources, shaderObject,
-                                            "u_EmissiveTexture");
+    const auto emissiveTexture = ExportableTexture::tryLoad(
+        resources, shaderObject, "u_EmissiveTexture");
     if (emissiveTexture) {
         m_glEmissiveTexture.texture = emissiveTexture;
         m_glMaterial.emissiveTexture = &m_glEmissiveTexture;
@@ -343,8 +345,8 @@ void ExportableMaterialPBR::loadPBR(ExportableResources &resources,
     getScalar(shaderObject, "u_OcclusionStrength",
               m_glOcclusionTexture.strength);
 
-    const ExportableTexture occlusionTexture(resources, shaderObject,
-                                             "u_OcclusionTexture");
+    const auto occlusionTexture = ExportableTexture::tryLoad(
+        resources, shaderObject, "u_OcclusionTexture");
     if (occlusionTexture) {
         m_glOcclusionTexture.texture = occlusionTexture;
         m_glMaterial.occlusionTexture = &m_glOcclusionTexture;
@@ -353,8 +355,8 @@ void ExportableMaterialPBR::loadPBR(ExportableResources &resources,
     // Normal
     getScalar(shaderObject, "u_NormalScale", m_glNormalTexture.scale);
 
-    const ExportableTexture normalTexture(resources, shaderObject,
-                                          "u_NormalTexture");
+    const auto normalTexture =
+        ExportableTexture::tryLoad(resources, shaderObject, "u_NormalTexture");
     if (normalTexture) {
         m_glNormalTexture.texture = normalTexture;
         m_glMaterial.normalTexture = &m_glNormalTexture;

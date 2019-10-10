@@ -6,10 +6,9 @@
 #include "ExportableTexture.h"
 #include "MayaException.h"
 
-ExportableTexture::ExportableTexture(ExportableResources &resources,
+ExportableTexture::ExportableTexture(Private, ExportableResources &resources,
                                      const MObject &obj,
-                                     const char *attributeName)
-    : glTexture(nullptr), glSampler(nullptr) {
+                                     const char *attributeName) {
     if (resources.arguments().skipMaterialTextures)
         return;
 
@@ -63,11 +62,26 @@ ExportableTexture::ExportableTexture(ExportableResources &resources,
     assert(glSampler);
 
     const auto imagePtr = resources.getImage(imageFilePath.asChar());
-    if (!imagePtr)
-        return;
+    if (imagePtr) {
+        glTexture = resources.getTexture(imagePtr, glSampler);
+        assert(glTexture);
+    }
+}
 
-    glTexture = resources.getTexture(imagePtr, glSampler);
-    assert(glTexture);
+std::unique_ptr<ExportableTexture>
+ExportableTexture::tryCreate(ExportableResources &resources, const MObject &obj,
+                             const char *attributeName) {
+
+    auto instance = std::make_unique<ExportableTexture>(Private(), resources,
+                                                        obj, attributeName);
+    return instance->glTexture ? std::move(instance) : nullptr;
+}
+
+GLTF::Texture *ExportableTexture::tryLoad(ExportableResources &resources,
+                                          const MObject &obj,
+                                          const char *attributeName) {
+    const auto instance = tryCreate(resources, obj, attributeName);
+    return instance ? instance->glTexture : nullptr;
 }
 
 ExportableTexture::~ExportableTexture() = default;
