@@ -246,8 +246,8 @@ void ExportableMaterialPBR::loadPBR(ExportableResources &resources,
     const auto metallicTexture = ExportableTexture::tryCreate(
         resources, shaderObject, "u_MetallicTexture");
     if (roughnessTexture || metallicTexture) {
-        status = tryCreateRoughnessMetalnessTexture(resources, metallicTexture.get(),
-                                                   roughnessTexture.get(), status);
+        status = tryCreateRoughnessMetalnessTexture(
+            resources, metallicTexture.get(), roughnessTexture.get(), status);
         m_glMetallicRoughness.metallicRoughnessTexture =
             &m_glMetallicRoughnessTexture;
     }
@@ -401,5 +401,110 @@ MStatus ExportableMaterialPBR::tryCreateRoughnessMetalnessTexture(
 
             m_glMetallicRoughnessTexture.texture = texturePtr;
         }
+    }
+}
+
+void ExportableMaterialPBR::loadAiStandard(
+    ExportableResources &resources,
+    const MFnDependencyNode &
+        shaderNode) { // References
+                      // https://docs.substance3d.com/integrations/arnold-5-for-maya-157352171.html
+
+    MStatus status;
+    const auto shaderObject = shaderNode.object(&status);
+    THROW_ON_FAILURE(status);
+
+    auto &args = resources.arguments();
+    args.assignName(m_glMaterial, shaderNode.name().asChar());
+
+    float opacityFactor = 1.f;
+
+    auto hasOpacity =
+        getScalar(shaderObject, "TransmissionWeight", opacityFactor);
+    if (hasOpacity) {
+        m_glBaseColorFactor = {1.f, 1.f, 1.f, opacityFactor};
+    } else {
+        m_glBaseColorFactor = {1.f, 1.f, 1.f, 1.f};
+    }
+
+    Float4 customBaseColor = m_glBaseColorFactor;
+    bool isDoubleSided = false;
+
+    const auto hasCustomColor =
+        getColor(shaderObject, "baseColor", customBaseColor);
+
+    float customColorWeight = 1.0f;
+    if (hasCustomColor) {
+        m_glBaseColorFactor = customBaseColor;
+        const auto hasWeight =
+            getScalar(shaderObject, "baseWeight", customColorWeight);
+        if (hasWeight) {
+            m_glMetallicRoughness.baseColorFactor = &customColorWeight;
+        }
+        m_glMaterial.metallicRoughness = &m_glMetallicRoughness;
+    }
+
+    if (customBaseColor[3] != 1.0f) {
+        m_glMaterial.alphaMode = "BLEND";
+    }
+
+    const auto baseColorTexture =
+        ExportableTexture::tryLoad(resources, shaderObject, "baseColor");
+    if (baseColorTexture) {
+        m_glBaseColorTexture.texture = baseColorTexture;
+        m_glMetallicRoughness.baseColorTexture = &m_glBaseColorTexture;
+    }
+
+    // Roughness and metallic
+    m_glMetallicRoughness.roughnessFactor = 0.5f;
+    m_glMetallicRoughness.metallicFactor = 0.5f;
+    const auto hasRoughnessStrength =
+        getScalar(shaderObject, "diffuseRoughness",
+                  m_glMetallicRoughness.roughnessFactor);
+    const auto hasMetallicStrength = getScalar(
+        shaderObject, "metalness", m_glMetallicRoughness.metallicFactor);
+
+    if (hasRoughnessStrength || hasMetallicStrength) {
+        m_glMaterial.metallicRoughness = &m_glMetallicRoughness;
+    }
+
+    const auto roughnessTexture = ExportableTexture::tryCreate(
+        resources, shaderObject, "u_RoughnessTexture");
+    const auto metallicTexture = ExportableTexture::tryCreate(
+        resources, shaderObject, "u_MetallicTexture");
+    if (roughnessTexture || metallicTexture) {
+        status = tryCreateRoughnessMetalnessTexture(resources, metallicTexture.get(),
+                                                    roughnessTexture.get(), status);
+
+        m_glMetallicRoughness.metallicRoughnessTexture =
+            &m_glMetallicRoughnessTexture;
+    }
+
+    // Emissive color
+    m_glEmissiveFactor = {0, 0, 0, 0};
+    if (getColor(shaderObject, "emission", m_glEmissiveFactor)) {
+        m_glMaterial.emissiveFactor = &m_glEmissiveFactor[0];
+    }
+
+    const auto emissiveTexture =
+        ExportableTexture::tryLoad(resources, shaderObject, "emissionColor");
+    if (emissiveTexture) {
+        m_glEmissiveTexture.texture = emissiveTexture;
+        m_glMaterial.emissiveTexture = &m_glEmissiveTexture;
+    }
+
+    // Ambient occlusion
+    // https://academy.substance3d.com/courses/Substance-guide-to-Rendering-in-Arnold
+    // Use the aiMultiply node to multiply the AO with the base color
+    // Not supported
+
+    // Normal
+    float normalScale = 1.f;
+    GLTF::Texture *normalTexture = nullptr;
+    tryCreateNormalTexture(resources, shaderObject, normalScale, normalTexture);
+    m_glNormalTexture.scale = normalScale;
+    if (normalTexture) {
+        m_glNormalTexture.texture = normalTexture;
+        m_glMaterial.normalTexture = &m_glNormalTexture;
     }
 }
