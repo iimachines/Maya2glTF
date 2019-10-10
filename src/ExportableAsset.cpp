@@ -195,7 +195,7 @@ void ExportableAsset::save() {
 
     PackedBufferMap packedBufferMap;
 
-    // NOTE: when exporting glb, we always merge everything into a single
+    // NOTE: when exporting glb, we always merge everything into a single/
     // buffer.
     if (!args.glb && !args.separateAccessorBuffers && args.splitMeshAnimation) {
         // Combine mesh and clip accessors into two separate buffers
@@ -246,9 +246,29 @@ void ExportableAsset::save() {
     } else {
         // Pack everything into a single buffer (default and glb case)
         const auto bufferName = sceneName + "/data";
-        const auto buffer =
-            bufferPacker.packAccessors(allAccessors, bufferName);
+
+        // Allocate extra space for images.
+        const auto images = m_glAsset.getAllImages();
+        size_t imageBufferLength = 0;
+        for (GLTF::Image *image : images) {
+            imageBufferLength += image->byteLength;
+        }
+
+        const auto buffer = bufferPacker.packAccessors(allAccessors, bufferName,
+                                                       imageBufferLength);
+
         if (buffer) {
+            // Copy images to buffer, and create image buffer-views
+            size_t byteOffset = buffer->byteLength - imageBufferLength;
+            for (GLTF::Image *image : images) {
+                const auto bufferView =
+                    new GLTF::BufferView(byteOffset, image->byteLength, buffer);
+                image->bufferView = bufferView;
+                std::memcpy(buffer->data + byteOffset, image->data,
+                            image->byteLength);
+                byteOffset += image->byteLength;
+            }
+
             packedBufferMap[buffer] = bufferName;
         }
     }

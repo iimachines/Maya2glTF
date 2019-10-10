@@ -40,8 +40,6 @@ class ExportableAsset {
     // std::vector<std::unique_ptr<ExportableItem>> m_items;
     std::vector<std::unique_ptr<ExportableClip>> m_clips;
 
-    std::map<std::string, GLTF::Buffer> m_bufferByRefName;
-
     std::string m_rawJsonString;
     mutable std::string m_prettyJsonString;
 

@@ -51,7 +51,8 @@ GLTF::BufferView *AccessorPacker::packAccessorsForTargetByteStride(
 
 GLTF::Buffer *
 AccessorPacker::packAccessors(const std::vector<GLTF::Accessor *> &accessors,
-                              const std::string &bufferName) {
+                              const std::string &bufferName,
+                              size_t additionalBufferSize) {
     std::map<WebGL, std::map<int, std::vector<GLTF::Accessor *>>>
         accessorGroups;
     accessorGroups[WebGL::ARRAY_BUFFER] =
@@ -125,6 +126,8 @@ AccessorPacker::packAccessors(const std::vector<GLTF::Accessor *> &accessors,
         }
     }
     std::sort(byteStrides.begin(), byteStrides.end(), std::greater<>());
+
+    byteLength += additionalBufferSize;
 
     GLTF::Buffer *buffer = nullptr;
 
