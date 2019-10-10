@@ -1,8 +1,8 @@
 #pragma once
 
+#include "ExportableTexture.h"
 #include "color.h"
 #include "macros.h"
-#include "ExportableTexture.h"
 
 class ExportableResources;
 
@@ -92,9 +92,11 @@ class ExportableMaterialPBR : public ExportableMaterialBasePBR {
     void loadAiStandard(ExportableResources &resources,
                         const MFnDependencyNode &shaderNode) {}
 
-    MStatus tryCreateRoughessMetalnessTexture(ExportableResources &resources, const ExportableTexture &metallicTexture,
-                                      const ExportableTexture &roughnessTexture,
-                                      MStatus status) {}
+    MStatus
+    tryCreateRoughnessMetalnessTexture(ExportableResources &resources,
+                                      const ExportableTexture* metallicTexture,
+                                      const ExportableTexture* roughnessTexture,
+                                      MStatus status);
 };
 
 class ExportableDebugMaterial : public ExportableMaterialBasePBR {

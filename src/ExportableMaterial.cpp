@@ -246,90 +246,8 @@ void ExportableMaterialPBR::loadPBR(ExportableResources &resources,
     const auto metallicTexture = ExportableTexture::tryCreate(
         resources, shaderObject, "u_MetallicTexture");
     if (roughnessTexture || metallicTexture) {
-        // TODO: Test this code!
-        if (!metallicTexture ||
-            roughnessTexture->glTexture == metallicTexture->glTexture) {
-            m_glMetallicRoughnessTexture.texture = roughnessTexture->glTexture;
-        } else if (!roughnessTexture) {
-            m_glMetallicRoughnessTexture.texture = metallicTexture->glTexture;
-        } else {
-            cerr << prefix
-                 << "WARNING: Merging roughness and metallic into one texture"
-                 << endl;
-
-            MImage metallicImage;
-            MImage roughnessImage;
-
-            THROW_ON_FAILURE_WITH(
-                metallicImage.readFromTextureNode(
-                    metallicTexture->connectedObject),
-                formatted("Failed to read metallic texture '%s'",
-                          metallicTexture->imageFilePath.asChar()));
-
-            THROW_ON_FAILURE_WITH(
-                roughnessImage.readFromTextureNode(
-                    roughnessTexture->connectedObject),
-                formatted("Failed to read roughness texture '%s'",
-                          roughnessTexture->imageFilePath.asChar()));
-
-            unsigned width;
-            unsigned height;
-            THROW_ON_FAILURE(metallicImage.getSize(width, height));
-
-            unsigned width2;
-            unsigned height2;
-            THROW_ON_FAILURE(roughnessImage.getSize(width2, height2));
-
-            if (width != width2 || height != height2) {
-                MayaException::printError(formatted(
-                    "Images '%s' and '%s' have different size, not merging",
-                    metallicTexture->imageFilePath.asChar(),
-                    roughnessTexture->imageFilePath.asChar()));
-            } else {
-                // Merge metallic into roughness
-                auto metallicPixels =
-                    reinterpret_cast<uint32_t *>(metallicImage.pixels());
-                auto roughnessPixels =
-                    reinterpret_cast<uint32_t *>(roughnessImage.pixels());
-                int64_t pixelCount = width * height;
-                while (--pixelCount >= 0) {
-                    *roughnessPixels++ = (*roughnessPixels & 0xff00) |
-                                         (*metallicPixels++ & 0xff0000) |
-                                         0xff000000;
-                }
-
-                // TODO: Add argument for output image file mime-type
-                const fs::path roughnessPath{
-                    roughnessTexture->imageFilePath.asChar()};
-                const fs::path metallicPath{
-                    metallicTexture->imageFilePath.asChar()};
-                const fs::path imageExtension{roughnessPath.extension()};
-                fs::path imageFilename{roughnessPath.stem().string() + "-" +
-                                       metallicPath.stem().string()};
-                imageFilename.replace_extension(imageExtension);
-                MString mergedImagePath{
-                    (fs::temp_directory_path() / imageFilename).c_str()};
-
-                cout << prefix << "Saving merged roughness-metallic texture to "
-                     << mergedImagePath << endl;
-                status = roughnessImage.writeToFile(mergedImagePath,
-                                                    imageExtension.c_str());
-                THROW_ON_FAILURE_WITH(
-                    status, formatted("Failed to write merged "
-                                      "metallic-roughness texture to '%s'",
-                                      mergedImagePath.asChar()));
-
-                const auto imagePtr =
-                    resources.getImage(mergedImagePath.asChar());
-                assert(imagePtr);
-
-                const auto texturePtr =
-                    resources.getTexture(imagePtr, roughnessTexture->glSampler);
-                assert(texturePtr);
-
-                m_glMetallicRoughnessTexture.texture = texturePtr;
-            }
-        }
+        status = tryCreateRoughnessMetalnessTexture(resources, metallicTexture.get(),
+                                                   roughnessTexture.get(), status);
         m_glMetallicRoughness.metallicRoughnessTexture =
             &m_glMetallicRoughnessTexture;
     }
@@ -398,3 +316,90 @@ ExportableDebugMaterial::ExportableDebugMaterial(const Float3 &hsv) {
 }
 
 ExportableDebugMaterial::~ExportableDebugMaterial() = default;
+
+MStatus ExportableMaterialPBR::tryCreateRoughnessMetalnessTexture(
+    ExportableResources &resources, const ExportableTexture *metallicTexture,
+    const ExportableTexture *roughnessTexture, MStatus status) {
+    // TODO: Test this code!
+    if (!metallicTexture ||
+        roughnessTexture->glTexture == metallicTexture->glTexture) {
+        m_glMetallicRoughnessTexture.texture = roughnessTexture->glTexture;
+    } else if (!roughnessTexture) {
+        m_glMetallicRoughnessTexture.texture = metallicTexture->glTexture;
+    } else {
+        cerr << prefix
+             << "WARNING: Merging roughness and metallic into one texture"
+             << endl;
+
+        MImage metallicImage;
+        MImage roughnessImage;
+
+        THROW_ON_FAILURE_WITH(
+            metallicImage.readFromTextureNode(metallicTexture->connectedObject),
+            formatted("Failed to read metallic texture '%s'",
+                      metallicTexture->imageFilePath.asChar()));
+
+        THROW_ON_FAILURE_WITH(
+            roughnessImage.readFromTextureNode(
+                roughnessTexture->connectedObject),
+            formatted("Failed to read roughness texture '%s'",
+                      roughnessTexture->imageFilePath.asChar()));
+
+        unsigned width;
+        unsigned height;
+        THROW_ON_FAILURE(metallicImage.getSize(width, height));
+
+        unsigned width2;
+        unsigned height2;
+        THROW_ON_FAILURE(roughnessImage.getSize(width2, height2));
+
+        if (width != width2 || height != height2) {
+            MayaException::printError(formatted(
+                "Images '%s' and '%s' have different size, not merging",
+                metallicTexture->imageFilePath.asChar(),
+                roughnessTexture->imageFilePath.asChar()));
+        } else {
+            // Merge metallic into roughness
+            auto metallicPixels =
+                reinterpret_cast<uint32_t *>(metallicImage.pixels());
+            auto roughnessPixels =
+                reinterpret_cast<uint32_t *>(roughnessImage.pixels());
+            int64_t pixelCount = width * height;
+            while (--pixelCount >= 0) {
+                *roughnessPixels++ = (*roughnessPixels & 0xff00) |
+                                     (*metallicPixels++ & 0xff0000) |
+                                     0xff000000;
+            }
+
+            // TODO: Add argument for output image file mime-type
+            const fs::path roughnessPath{
+                roughnessTexture->imageFilePath.asChar()};
+            const fs::path metallicPath{
+                metallicTexture->imageFilePath.asChar()};
+            const fs::path imageExtension{roughnessPath.extension()};
+            fs::path imageFilename{roughnessPath.stem().string() + "-" +
+                                   metallicPath.stem().string()};
+            imageFilename.replace_extension(imageExtension);
+            MString mergedImagePath{
+                (fs::temp_directory_path() / imageFilename).c_str()};
+
+            cout << prefix << "Saving merged roughness-metallic texture to "
+                 << mergedImagePath << endl;
+            status = roughnessImage.writeToFile(mergedImagePath,
+                                                imageExtension.c_str());
+            THROW_ON_FAILURE_WITH(
+                status, formatted("Failed to write merged "
+                                  "metallic-roughness texture to '%s'",
+                                  mergedImagePath.asChar()));
+
+            const auto imagePtr = resources.getImage(mergedImagePath.asChar());
+            assert(imagePtr);
+
+            const auto texturePtr =
+                resources.getTexture(imagePtr, roughnessTexture->glSampler);
+            assert(texturePtr);
+
+            m_glMetallicRoughnessTexture.texture = texturePtr;
+        }
+    }
+}
