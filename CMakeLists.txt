@@ -78,6 +78,35 @@ ExternalProject_Get_Property(COLLADA2GLTF binary_dir)
 set(GLTF_LIBRARY_DIR "${binary_dir}/${CMAKE_BUILD_TYPE}") 
 set(DRACO_LIBRARY_DIR "${binary_dir}/dependencies/draco/${CMAKE_BUILD_TYPE}") 
 
+execute_process(
+COMMAND
+    git rev-parse --short HEAD
+RESULT_VARIABLE
+    GIT_SHORT_HASH_RESULT
+OUTPUT_VARIABLE
+    GIT_SHORT_HASH)
+string(REGEX REPLACE "\n$" "" GIT_SHORT_HASH "${GIT_SHORT_HASH}")
+
+execute_process(
+COMMAND
+    git tag -l --points-at HEAD
+RESULT_VARIABLE
+    GIT_TAG_RESULT
+OUTPUT_VARIABLE
+    GIT_TAG)
+string(REGEX REPLACE "\n$" "" GIT_TAG "${GIT_TAG}")
+
+if(NOT GIT_TAG)
+  set(GIT_TAG "master")
+endif()
+
+set(ARCHIVE_VERSION "${GIT_TAG}_${GIT_SHORT_HASH}")
+
+CONFIGURE_FILE(
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in
+  ${CMAKE_CURRENT_BINARY_DIR}/version.h
+)
+
 file(GLOB SOURCES "src/*.cpp" "src/*.h" "src/*.c")
 
 if (MSVC)
@@ -95,6 +124,7 @@ include_directories(
   ${MAYA_INCLUDE_DIR}
   ${LINQ_INCLUDE_DIR}
   ${FS_INCLUDE_DIR}
+  ${CMAKE_CURRENT_BINARY_DIR}
 )
 
 link_directories(
@@ -113,28 +143,6 @@ add_dependencies(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME} ${MAYA_LIBRARIES} GLTF draco)
-
-execute_process(
-COMMAND
-    git rev-parse --short HEAD
-RESULT_VARIABLE
-    GIT_SHORT_HASH_RESULT
-OUTPUT_VARIABLE
-    GIT_SHORT_HASH)
-
-execute_process(
-COMMAND
-    git tag -l --points-at HEAD
-RESULT_VARIABLE
-    GIT_TAG_RESULT
-OUTPUT_VARIABLE
-    GIT_TAG)
-set(ARCHIVE_VERSION "master_${GIT_SHORT_HASH}")
-if(GIT_TAG)
-  set(ARCHIVE_VERSION "${GIT_TAG}_${GIT_SHORT_HASH}")
-endif()
-string(REGEX REPLACE "\n$" "" ARCHIVE_VERSION "${ARCHIVE_VERSION}")
-message(${ARCHIVE_VERSION})
 
 if(MSVC)
   set(MAYA_OUTPUT_DIR "$<SHELL_PATH:$ENV{USERPROFILE}/Documents/maya")
