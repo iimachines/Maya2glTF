@@ -15,6 +15,7 @@ std::unique_ptr<ExportableMaterial>
 ExportableMaterial::from(ExportableResources &resources,
                          const MFnDependencyNode &shaderNode) {
     if (shaderNode.typeName() == "GLSLShader" ||
+        shaderNode.typeName() == "aiStandardSurface" ||
         !resources.arguments().skipStandardMaterials)
         return std::make_unique<ExportableMaterialPBR>(resources, shaderNode);
 
@@ -87,6 +88,11 @@ ExportableMaterialPBR::ExportableMaterialPBR(
 
     const auto shaderObject = shaderNode.object(&status);
     THROW_ON_FAILURE(status);
+
+    if (shaderNode.typeName() == "aiStandardSurface") {
+        loadAiStandard(resources, shaderObject);
+        return;
+    }
 
     const auto shaderType = shaderObject.apiType();
 
@@ -240,90 +246,8 @@ void ExportableMaterialPBR::loadPBR(ExportableResources &resources,
     const auto metallicTexture = ExportableTexture::tryCreate(
         resources, shaderObject, "u_MetallicTexture");
     if (roughnessTexture || metallicTexture) {
-        // TODO: Test this code!
-        if (!metallicTexture ||
-            roughnessTexture->glTexture == metallicTexture->glTexture) {
-            m_glMetallicRoughnessTexture.texture = roughnessTexture->glTexture;
-        } else if (!roughnessTexture) {
-            m_glMetallicRoughnessTexture.texture = metallicTexture->glTexture;
-        } else {
-            cerr << prefix
-                 << "WARNING: Merging roughness and metallic into one texture"
-                 << endl;
-
-            MImage metallicImage;
-            MImage roughnessImage;
-
-            THROW_ON_FAILURE_WITH(
-                metallicImage.readFromTextureNode(
-                    metallicTexture->connectedObject),
-                formatted("Failed to read metallic texture '%s'",
-                          metallicTexture->imageFilePath.asChar()));
-
-            THROW_ON_FAILURE_WITH(
-                roughnessImage.readFromTextureNode(
-                    roughnessTexture->connectedObject),
-                formatted("Failed to read roughness texture '%s'",
-                          roughnessTexture->imageFilePath.asChar()));
-
-            unsigned width;
-            unsigned height;
-            THROW_ON_FAILURE(metallicImage.getSize(width, height));
-
-            unsigned width2;
-            unsigned height2;
-            THROW_ON_FAILURE(roughnessImage.getSize(width2, height2));
-
-            if (width != width2 || height != height2) {
-                MayaException::printError(formatted(
-                    "Images '%s' and '%s' have different size, not merging",
-                    metallicTexture->imageFilePath.asChar(),
-                    roughnessTexture->imageFilePath.asChar()));
-            } else {
-                // Merge metallic into roughness
-                auto metallicPixels =
-                    reinterpret_cast<uint32_t *>(metallicImage.pixels());
-                auto roughnessPixels =
-                    reinterpret_cast<uint32_t *>(roughnessImage.pixels());
-                int64_t pixelCount = width * height;
-                while (--pixelCount >= 0) {
-                    *roughnessPixels++ = (*roughnessPixels & 0xff00) |
-                                         (*metallicPixels++ & 0xff0000) |
-                                         0xff000000;
-                }
-
-                // TODO: Add argument for output image file mime-type
-                const fs::path roughnessPath{
-                    roughnessTexture->imageFilePath.asChar()};
-                const fs::path metallicPath{
-                    metallicTexture->imageFilePath.asChar()};
-                const fs::path imageExtension{roughnessPath.extension()};
-                fs::path imageFilename{roughnessPath.stem().string() + "-" +
-                                       metallicPath.stem().string()};
-                imageFilename.replace_extension(imageExtension);
-                MString mergedImagePath{
-                    (fs::temp_directory_path() / imageFilename).c_str()};
-
-                cout << prefix << "Saving merged roughness-metallic texture to "
-                     << mergedImagePath << endl;
-                status = roughnessImage.writeToFile(mergedImagePath,
-                                                    imageExtension.c_str());
-                THROW_ON_FAILURE_WITH(
-                    status, formatted("Failed to write merged "
-                                      "metallic-roughness texture to '%s'",
-                                      mergedImagePath.asChar()));
-
-                const auto imagePtr =
-                    resources.getImage(mergedImagePath.asChar());
-                assert(imagePtr);
-
-                const auto texturePtr =
-                    resources.getTexture(imagePtr, roughnessTexture->glSampler);
-                assert(texturePtr);
-
-                m_glMetallicRoughnessTexture.texture = texturePtr;
-            }
-        }
+        status = tryCreateRoughnessMetalnessTexture(
+            resources, metallicTexture.get(), roughnessTexture.get(), status);
         m_glMetallicRoughness.metallicRoughnessTexture =
             &m_glMetallicRoughnessTexture;
     }
@@ -392,3 +316,205 @@ ExportableDebugMaterial::ExportableDebugMaterial(const Float3 &hsv) {
 }
 
 ExportableDebugMaterial::~ExportableDebugMaterial() = default;
+
+MStatus ExportableMaterialPBR::tryCreateRoughnessMetalnessTexture(
+    ExportableResources &resources, const ExportableTexture *metallicTexture,
+    const ExportableTexture *roughnessTexture, MStatus status) {
+    // TODO: Test this code!
+    if (!metallicTexture ||
+        roughnessTexture->glTexture == metallicTexture->glTexture) {
+        m_glMetallicRoughnessTexture.texture = roughnessTexture->glTexture;
+    } else if (!roughnessTexture) {
+        m_glMetallicRoughnessTexture.texture = metallicTexture->glTexture;
+    } else {
+        cerr << prefix
+             << "WARNING: Merging roughness and metallic into one texture"
+             << endl;
+
+        MImage metallicImage;
+        MImage roughnessImage;
+
+        THROW_ON_FAILURE_WITH(
+            metallicImage.readFromTextureNode(metallicTexture->connectedObject),
+            formatted("Failed to read metallic texture '%s'",
+                      metallicTexture->imageFilePath.asChar()));
+
+        THROW_ON_FAILURE_WITH(
+            roughnessImage.readFromTextureNode(
+                roughnessTexture->connectedObject),
+            formatted("Failed to read roughness texture '%s'",
+                      roughnessTexture->imageFilePath.asChar()));
+
+        unsigned width;
+        unsigned height;
+        THROW_ON_FAILURE(metallicImage.getSize(width, height));
+
+        unsigned width2;
+        unsigned height2;
+        THROW_ON_FAILURE(roughnessImage.getSize(width2, height2));
+
+        if (width != width2 || height != height2) {
+            MayaException::printError(formatted(
+                "Images '%s' and '%s' have different size, not merging",
+                metallicTexture->imageFilePath.asChar(),
+                roughnessTexture->imageFilePath.asChar()));
+        } else {
+            // Merge metallic into roughness
+            auto metallicPixels =
+                reinterpret_cast<uint32_t *>(metallicImage.pixels());
+            auto roughnessPixels =
+                reinterpret_cast<uint32_t *>(roughnessImage.pixels());
+            int64_t pixelCount = width * height;
+            while (--pixelCount >= 0) {
+                *roughnessPixels++ = (*roughnessPixels & 0xff00) |
+                                     (*metallicPixels++ & 0xff0000) |
+                                     0xff000000;
+            }
+
+            // TODO: Add argument for output image file mime-type
+            const fs::path roughnessPath{
+                roughnessTexture->imageFilePath.asChar()};
+            const fs::path metallicPath{
+                metallicTexture->imageFilePath.asChar()};
+            const fs::path imageExtension{roughnessPath.extension()};
+            fs::path imageFilename{roughnessPath.stem().string() + "-" +
+                                   metallicPath.stem().string()};
+            imageFilename.replace_extension(imageExtension);
+            MString mergedImagePath{
+                (fs::temp_directory_path() / imageFilename).c_str()};
+
+            cout << prefix << "Saving merged roughness-metallic texture to "
+                 << mergedImagePath << endl;
+            status = roughnessImage.writeToFile(mergedImagePath,
+                                                imageExtension.c_str());
+            THROW_ON_FAILURE_WITH(
+                status, formatted("Failed to write merged "
+                                  "metallic-roughness texture to '%s'",
+                                  mergedImagePath.asChar()));
+
+            const auto imagePtr = resources.getImage(mergedImagePath.asChar());
+            assert(imagePtr);
+
+            const auto texturePtr =
+                resources.getTexture(imagePtr, roughnessTexture->glSampler);
+            assert(texturePtr);
+
+            m_glMetallicRoughnessTexture.texture = texturePtr;
+        }
+    }
+    return status;
+}
+
+void ExportableMaterialPBR::loadAiStandard(
+    ExportableResources &resources,
+    const MFnDependencyNode &
+        shaderNode) { // References
+                      // https://docs.substance3d.com/integrations/arnold-5-for-maya-157352171.html
+
+    MStatus status;
+    const auto shaderObject = shaderNode.object(&status);
+    THROW_ON_FAILURE(status);
+
+    auto &args = resources.arguments();
+    args.assignName(m_glMaterial, shaderNode.name().asChar());
+
+    float opacityFactor = 1.f;
+
+    auto hasOpacity =
+        getScalar(shaderObject, "TransmissionWeight", opacityFactor);
+    if (hasOpacity) {
+        m_glBaseColorFactor = {1.f, 1.f, 1.f, opacityFactor};
+    } else {
+        m_glBaseColorFactor = {1.f, 1.f, 1.f, 1.f};
+    }
+
+    Float4 customBaseColor = m_glBaseColorFactor;
+    bool isDoubleSided = false;
+  
+    const auto hasCustomColor =
+        getColor(shaderObject, "baseColor", customBaseColor);
+    float customColorWeight = 1.0f;
+    if (hasCustomColor) {
+        m_glBaseColorFactor = customBaseColor;
+        m_glMaterial.metallicRoughness = &m_glMetallicRoughness;
+    }
+
+    bool hasTransparency = false;
+    const auto baseColorTexture =
+        ExportableTexture::tryLoad(resources, shaderObject, "baseColor");
+    if (baseColorTexture) {
+        m_glBaseColorTexture.texture = baseColorTexture;
+        m_glMetallicRoughness.baseColorTexture = &m_glBaseColorTexture;
+
+        unsigned baseColorWidth = baseColorTexture->source->getDimensions().first;
+        unsigned baseColorHeight = baseColorTexture->source->getDimensions().second;
+        uint32_t *baseColorPixels =
+            reinterpret_cast<uint32_t *>(baseColorTexture->source->data);
+        int64_t pixelCount = baseColorWidth * baseColorHeight;
+        if (pixelCount) {
+                while (--pixelCount >= 0) {
+                    // Check if the alpha is opaque
+                    uint8_t *pixel = reinterpret_cast<uint8_t *>(baseColorPixels);
+                    hasTransparency = hasTransparency || pixel[3] != 255;
+                }
+        }
+    }
+
+    if (customBaseColor[3] != 1.0f || hasTransparency) {
+        m_glMaterial.alphaMode = "BLEND";
+    }
+
+    // Roughness and metallic
+    m_glMetallicRoughness.roughnessFactor = 0.5f;
+    m_glMetallicRoughness.metallicFactor = 0.5f;
+    const auto hasRoughnessStrength =
+        getScalar(shaderObject, "specularRoughness",
+                  m_glMetallicRoughness.roughnessFactor);
+    const auto hasMetallicStrength = getScalar(
+        shaderObject, "metalness", m_glMetallicRoughness.metallicFactor);
+
+    if (hasRoughnessStrength || hasMetallicStrength) {
+        m_glMaterial.metallicRoughness = &m_glMetallicRoughness;
+    }
+
+    const auto roughnessTexture = ExportableTexture::tryCreate(
+        resources, shaderObject, "specularRoughness");
+    const auto metallicTexture = ExportableTexture::tryCreate(
+        resources, shaderObject, "metalness");
+    if (roughnessTexture || metallicTexture) {
+        status = tryCreateRoughnessMetalnessTexture(
+            resources, metallicTexture.get(), roughnessTexture.get(), status);
+
+        m_glMetallicRoughness.metallicRoughnessTexture =
+            &m_glMetallicRoughnessTexture;
+    }
+
+    // Emissive color
+    m_glEmissiveFactor = {0, 0, 0, 0};
+    if (getColor(shaderObject, "emission", m_glEmissiveFactor)) {
+        m_glMaterial.emissiveFactor = &m_glEmissiveFactor[0];
+    }
+
+    const auto emissiveTexture =
+        ExportableTexture::tryLoad(resources, shaderObject, "emissionColor");
+    if (emissiveTexture) {
+        m_glEmissiveTexture.texture = emissiveTexture;
+        m_glMaterial.emissiveTexture = &m_glEmissiveTexture;
+    }
+
+    // Ambient occlusion
+    // https://academy.substance3d.com/courses/Substance-guide-to-Rendering-in-Arnold
+    // Use the aiMultiply node to multiply the AO with the base color
+    // Not supported
+
+    // Normal
+    float normalScale;
+    GLTF::Texture *normalTexture;
+    if (tryCreateNormalTexture(resources, shaderObject, normalScale,
+                               normalTexture)) {
+        m_glNormalTexture.texture = normalTexture;
+        m_glNormalTexture.scale = normalScale;
+        // TODO: m_glNormalTexture.texCoord = ...
+        m_glMaterial.normalTexture = &m_glNormalTexture;
+    }
+}
