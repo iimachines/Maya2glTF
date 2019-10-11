@@ -1,5 +1,6 @@
 source "maya2glTF_common.mel";
 source "maya2glTF_animachine.mel";
+source "maya2glTF_version.mel";
 
 proc string _quoted(string $text)
 {
@@ -272,10 +273,7 @@ global proc maya2glTF_UI()
 {
     // This is defined on maya startup
     global string $gMainProgressBar;  
-
-    // This is auto-updated by msbuild 
-    string $maya2glTF_version = "V1.0.0 b56abcf";
-
+    
     if (`window -exists maya2glTF_exporter_window`)
         deleteUI maya2glTF_exporter_window;
 
@@ -296,7 +294,7 @@ global proc maya2glTF_UI()
 
     window -title ("maya2glTF") maya2glTF_exporter_window;
 
-    string $header = "Copyright (C)" + $year + " wondermedia.tv         version " + $maya2glTF_version;
+    string $header = "Copyright (C)" + $year + " wondermedia.tv         version " + maya2glTF_version();
 
     string $frame = `frameLayout -mw 30 -mh 30 ($header)`;
 
