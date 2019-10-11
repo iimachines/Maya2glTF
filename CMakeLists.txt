@@ -183,9 +183,8 @@ elseif(APPLE)
   )
   
   install (
-    DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/maya2glTF_version.mel" 
+    FILES "${CMAKE_CURRENT_BINARY_DIR}/maya2glTF_version.mel" 
     DESTINATION "/Users/Shared/Autodesk/maya/scripts"
-    FILES_MATCHING PATTERN "maya2glTF*.mel"
   )
   
   install (
