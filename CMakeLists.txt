@@ -78,6 +78,40 @@ ExternalProject_Get_Property(COLLADA2GLTF binary_dir)
 set(GLTF_LIBRARY_DIR "${binary_dir}/${CMAKE_BUILD_TYPE}") 
 set(DRACO_LIBRARY_DIR "${binary_dir}/dependencies/draco/${CMAKE_BUILD_TYPE}") 
 
+execute_process(
+COMMAND
+    git rev-parse --short HEAD
+RESULT_VARIABLE
+    GIT_SHORT_HASH_RESULT
+OUTPUT_VARIABLE
+    GIT_SHORT_HASH)
+string(REGEX REPLACE "\n$" "" GIT_SHORT_HASH "${GIT_SHORT_HASH}")
+
+execute_process(
+COMMAND
+    git tag -l --points-at HEAD
+RESULT_VARIABLE
+    GIT_TAG_RESULT
+OUTPUT_VARIABLE
+    GIT_TAG)
+string(REGEX REPLACE "\n$" "" GIT_TAG "${GIT_TAG}")
+
+if(NOT GIT_TAG)
+  set(GIT_TAG "master")
+endif()
+
+set(ARCHIVE_VERSION "${GIT_TAG}_${GIT_SHORT_HASH}")
+
+CONFIGURE_FILE(
+  ${CMAKE_CURRENT_SOURCE_DIR}/maya/maya2glTF_version.mel.in
+  ${CMAKE_CURRENT_BINARY_DIR}/maya2glTF_version.mel
+)
+
+CONFIGURE_FILE(
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in
+  ${CMAKE_CURRENT_BINARY_DIR}/version.h
+)
+
 file(GLOB SOURCES "src/*.cpp" "src/*.h" "src/*.c")
 
 if (MSVC)
@@ -95,6 +129,7 @@ include_directories(
   ${MAYA_INCLUDE_DIR}
   ${LINQ_INCLUDE_DIR}
   ${FS_INCLUDE_DIR}
+  ${CMAKE_CURRENT_BINARY_DIR}
 )
 
 link_directories(
@@ -115,17 +150,42 @@ add_dependencies(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME} ${MAYA_LIBRARIES} GLTF draco)
 
 if(MSVC)
-  
+  set(MAYA_OUTPUT_DIR "$<SHELL_PATH:$ENV{USERPROFILE}/Documents/maya")
   add_custom_command(TARGET maya2glTF POST_BUILD 
-    COMMAND xcopy /y "$<SHELL_PATH:$<TARGET_FILE:maya2glTF>>" "$<SHELL_PATH:$ENV{USERPROFILE}/Documents/maya/${MAYA_VERSION}/plug-ins/>"
-    COMMAND xcopy /y "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/scripts/maya2glTF*.mel>" "$<SHELL_PATH:$ENV{USERPROFILE}/Documents/maya/${MAYA_VERSION}/scripts/>"
-    COMMAND xcopy /y /s /i "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/renderData/*.*>" "$<SHELL_PATH:$ENV{USERPROFILE}/Documents/maya/maya2glTF/PBR/>"
-    COMMAND if exist "$<SHELL_PATH:$<TARGET_PDB_FILE:maya2glTF>>" (xcopy /y /c "$<SHELL_PATH:$<TARGET_PDB_FILE:maya2glTF>>" "$<SHELL_PATH:$ENV{USERPROFILE}/Documents/maya/${MAYA_VERSION}/plug-ins/>")
+    COMMAND xcopy /y "$<SHELL_PATH:$<TARGET_FILE:maya2glTF>>" "${MAYA_OUTPUT_DIR}/${MAYA_VERSION}/plug-ins/>"
+    COMMAND xcopy /y "$<SHELL_PATH:${CMAKE_CURRENT_BINARY_DIR}/maya2glTF_version.mel>" "${MAYA_OUTPUT_DIR}/${MAYA_VERSION}/scripts/>"
+    COMMAND xcopy /y "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/scripts/maya2glTF*.mel>" "${MAYA_OUTPUT_DIR}/${MAYA_VERSION}/scripts/>"
+    COMMAND xcopy /y /s /i "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/renderData/*.*>" "${MAYA_OUTPUT_DIR}/maya2glTF/PBR/>"
+    COMMAND if exist "$<SHELL_PATH:$<TARGET_PDB_FILE:maya2glTF>>" (xcopy /y /c "$<SHELL_PATH:$<TARGET_PDB_FILE:maya2glTF>>" "${MAYA_OUTPUT_DIR}/${MAYA_VERSION}/plug-ins/>")
+  )
+  
+  set(MAYA_OUTPUT_DIR "${PROJECT_BINARY_DIR}/maya2gltf_package")
+  file(REMOVE_RECURSE ${MAYA_OUTPUT_DIR}/)
+  set(MAYA_OUTPUT_LIST "${MAYA_OUTPUT_DIR}/"
+    "${MAYA_OUTPUT_DIR}/${MAYA_VERSION}/plug-ins/"
+    "${MAYA_OUTPUT_DIR}/${MAYA_VERSION}/scripts/"    
+    "${MAYA_OUTPUT_DIR}/maya2glTF/PBR/"
+  )
+  file(MAKE_DIRECTORY ${MAYA_OUTPUT_LIST})
+  add_custom_command(TARGET maya2glTF POST_BUILD 
+    COMMAND xcopy /y "$<SHELL_PATH:$<TARGET_FILE:maya2glTF>>" "$<SHELL_PATH:${MAYA_OUTPUT_DIR}/${MAYA_VERSION}/plug-ins/>"    
+    COMMAND xcopy /y "$<SHELL_PATH:${CMAKE_CURRENT_BINARY_DIR}/maya2glTF_version.mel>" "$<SHELL_PATH:${MAYA_OUTPUT_DIR}/${MAYA_VERSION}/scripts/>"
+    COMMAND xcopy /y "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/scripts/maya2glTF*.mel>" "$<SHELL_PATH:${MAYA_OUTPUT_DIR}/${MAYA_VERSION}/scripts/>"
+    COMMAND xcopy /y /s /i "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/renderData/*.*>" "$<SHELL_PATH:${MAYA_OUTPUT_DIR}/maya2glTF/PBR/>"
+    COMMAND if exist "$<SHELL_PATH:$<TARGET_PDB_FILE:maya2glTF>>" (xcopy /y /c "$<SHELL_PATH:$<TARGET_PDB_FILE:maya2glTF>>" "$<SHELL_PATH:${MAYA_OUTPUT_DIR}/${MAYA_VERSION}/plug-ins/>")
+    COMMAND xcopy /y "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/maya2glTFDeploy.bat>" "$<SHELL_PATH:${MAYA_OUTPUT_DIR}/>"
+    COMMAND ${CMAKE_COMMAND} -E tar cfv ${CMAKE_BINARY_DIR}/maya2gltf_${ARCHIVE_VERSION}_maya_${MAYA_VERSION}.zip --format=zip "${MAYA_OUTPUT_DIR}"
   )
 elseif(APPLE)
   install (
     TARGETS maya2glTF 
     DESTINATION "/Users/Shared/Autodesk/maya/${MAYA_VERSION}/plug-ins/"
+  )
+  
+  install (
+    DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/maya2glTF_version.mel" 
+    DESTINATION "/Users/Shared/Autodesk/maya/scripts"
+    FILES_MATCHING PATTERN "maya2glTF*.mel"
   )
   
   install (
@@ -150,6 +210,7 @@ else(LINUX)
     COMMAND mkdir -p "$<SHELL_PATH:$ENV{HOME}/maya/${MAYA_VERSION}/scripts/>"
     COMMAND mkdir -p "$<SHELL_PATH:$ENV{HOME}/maya/maya2glTF/PBR/>"
     COMMAND cp -f "$<SHELL_PATH:$<TARGET_FILE:maya2glTF>>" "$<SHELL_PATH:$ENV{HOME}/maya/${MAYA_VERSION}/plug-ins/>"
+    COMMAND cp -f "$<SHELL_PATH:${CMAKE_CURRENT_BINARY_DIR}/maya2glTF_version.mel>" "$<SHELL_PATH:$ENV{HOME}/maya/${MAYA_VERSION}/scripts/>"      
     COMMAND cp -f "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/scripts/maya2glTF*.mel>" "$<SHELL_PATH:$ENV{HOME}/maya/${MAYA_VERSION}/scripts/>"
     COMMAND cp -rf "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/renderData/>" "$<SHELL_PATH:$ENV{HOME}/maya/maya2glTF/PBR/>"
   )
