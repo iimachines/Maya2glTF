@@ -13,7 +13,7 @@ void MeshBlendShapeWeights::clearWeightsExceptFor(
 
         MStatus status;
         MPlug weightPlug =
-            m_weightArrayPlug.elementByLogicalIndex(plugIndex, &status);
+            m_weightArrayPlug.elementByPhysicalIndex(plugIndex, &status);
         THROW_ON_FAILURE(status);
         weightPlug.setDouble(fullWeightIndex == plugIndex ? 1 : 0);
 
@@ -31,7 +31,7 @@ MeshBlendShapeWeights::MeshBlendShapeWeights(const MPlug &weightArrayPlug)
 
     for (auto weightIndex = 0U; weightIndex < numWeights; ++weightIndex) {
         MPlug weightPlug =
-            m_weightArrayPlug.elementByLogicalIndex(weightIndex, &status);
+            m_weightArrayPlug.elementByPhysicalIndex(weightIndex, &status);
         THROW_ON_FAILURE(status);
 
         std::string plugName{weightPlug.name(&status).asChar()};
@@ -69,7 +69,7 @@ void MeshBlendShapeWeights::breakConnections() {
         const auto weightIndex = pair.second.plugIndex;
 
         MPlug weightPlug =
-            m_weightArrayPlug.elementByLogicalIndex(weightIndex, &status);
+            m_weightArrayPlug.elementByPhysicalIndex(weightIndex, &status);
         THROW_ON_FAILURE(status);
 
         THROW_ON_FAILURE(weightPlug.setLocked(false));
@@ -114,7 +114,7 @@ MeshBlendShapeWeights::~MeshBlendShapeWeights() {
             MStatus status;
 
             MPlug weightPlug =
-                m_weightArrayPlug.elementByLogicalIndex(weightIndex, &status);
+                m_weightArrayPlug.elementByPhysicalIndex(weightIndex, &status);
             if (!checkAndReportStatus(
                     status, "Failed to get blend shape weight plug '%s'!",
                     weightName))
