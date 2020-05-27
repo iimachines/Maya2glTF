@@ -773,3 +773,16 @@ void Arguments::select(Selection &selection, const MDagPath &dagPath,
         }
     }
 }
+
+MTime AnimClipArg::duration() const {
+    return MTime(frameCount() * (1.0 / framesPerSecond), MTime::kSeconds);
+}
+
+int AnimClipArg::frameCount() const {
+    const auto exactStartFrame = startTime.as(MTime::kSeconds) * framesPerSecond;
+    const auto exactEndFrame = endTime.as(MTime::kSeconds) * framesPerSecond;
+    const auto startFrame = round(exactStartFrame);
+    const auto endFrame = round(exactEndFrame);
+    const auto count = static_cast<int>(endFrame - startFrame) + 1;
+    return count;
+}

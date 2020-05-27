@@ -47,15 +47,8 @@ struct AnimClipArg {
     MTime endTime;
     double framesPerSecond;
 
-    MTime duration() const {
-        return (endTime - startTime) +
-               MTime(1.0 / framesPerSecond, MTime::kSeconds);
-    }
-
-    int frameCount() const {
-        return static_cast<int>(
-            round(duration().as(MTime::kSeconds) * framesPerSecond));
-    }
+    MTime duration() const;
+    int frameCount() const;
 };
 
 struct MDagPathComparer {
