@@ -84,6 +84,10 @@ void ExportableScene::getAllAccessors(AccessorsPerDagPath &accessors) {
     }
 }
 
+void ExportableScene::registerOrphanNode(ExportableNode *node) {
+    m_orphans[node->dagPath] = node;
+}
+
 int ExportableScene::distanceToRoot(MDagPath dagPath) {
     int distance;
 

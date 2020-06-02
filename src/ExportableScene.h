@@ -6,7 +6,10 @@
 class ExportableNode;
 
 typedef std::map<std::string, std::unique_ptr<ExportableNode>> NodeTable;
-typedef std::set<ExportableNode *> OrphanNodes;
+
+// OrphanNodes = nodes without a parent. We use the MDagPath as a key to make
+// sure we get a deterministic output (pointers change)
+typedef std::map<MDagPath, ExportableNode *, MDagPathComparer> OrphanNodes;
 
 typedef std::map<MDagPath, std::vector<GLTF::Accessor *>, MDagPathComparer>
     AccessorsPerDagPath;
@@ -40,7 +43,7 @@ class ExportableScene {
     void getAllAccessors(AccessorsPerDagPath &accessors);
 
     // Register a node without parent
-    void registerOrphanNode(ExportableNode *node) { m_orphans.insert(node); }
+    void registerOrphanNode(ExportableNode *node);
 
     static int distanceToRoot(MDagPath dagPath);
 

@@ -111,12 +111,14 @@ ExportableAsset::ExportableAsset(const Arguments &args)
             trs.scale[0] = trs.scale[1] = trs.scale[2] = rootScaleFactor;
         }
 
-        for (auto *node : m_scene.orphans()) {
-            m_glRootNode.children.push_back(&node->glSecondaryNode());
+        for (auto &&pair : m_scene.orphans()) {
+            GLTF::Node *secondary_node = &pair.second->glSecondaryNode();
+            m_glRootNode.children.push_back(secondary_node);
         }
     } else {
-        for (auto *node : m_scene.orphans()) {
-            m_scene.glScene.nodes.push_back(&node->glSecondaryNode());
+        for (auto &&pair : m_scene.orphans()) {
+            GLTF::Node *secondary_node = &pair.second->glSecondaryNode();
+            m_scene.glScene.nodes.push_back(secondary_node);
         }
     }
 
