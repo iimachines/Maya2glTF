@@ -7,3 +7,4 @@ playblast*
 *.swatch
 *.pyc
 ipch
+.DS_Store
