@@ -159,9 +159,10 @@ if(MSVC)
   set(MAYA_OUTPUT_DIR "$<SHELL_PATH:${USER_DOCUMENTS}/maya")
   add_custom_command(TARGET maya2glTF POST_BUILD 
     COMMAND xcopy /y "$<SHELL_PATH:$<TARGET_FILE:maya2glTF>>" "${MAYA_OUTPUT_DIR}/${MAYA_VERSION}/plug-ins/>"
-    COMMAND xcopy /y "$<SHELL_PATH:${CMAKE_CURRENT_BINARY_DIR}/maya2glTF_version.mel>" "${MAYA_OUTPUT_DIR}/${MAYA_VERSION}/scripts/>"
-    COMMAND xcopy /y "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/scripts/maya2glTF*.mel>" "${MAYA_OUTPUT_DIR}/${MAYA_VERSION}/scripts/>"
+    COMMAND xcopy /y "$<SHELL_PATH:${CMAKE_CURRENT_BINARY_DIR}/maya2glTF_version.mel>" "${MAYA_OUTPUT_DIR}/scripts/>"
+    COMMAND xcopy /y "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/scripts/maya2glTF*.mel>" "${MAYA_OUTPUT_DIR}/scripts/>"
     COMMAND xcopy /y /s /i "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/renderData/*.*>" "${MAYA_OUTPUT_DIR}/maya2glTF/PBR/>"
+    COMMAND xcopy /y /s /i "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/prefs/*.*>" "${MAYA_OUTPUT_DIR}/${MAYA_VERSION}/prefs/>"
     COMMAND if exist "$<SHELL_PATH:$<TARGET_PDB_FILE:maya2glTF>>" (xcopy /y /c "$<SHELL_PATH:$<TARGET_PDB_FILE:maya2glTF>>" "${MAYA_OUTPUT_DIR}/${MAYA_VERSION}/plug-ins/>")
   )
   
@@ -172,7 +173,8 @@ if(MSVC)
   set(MAYA_OUTPUT_LIST "${MAYA_OUTPUT_DIR}/"
     "${MAYA_PACKAGE_DIR}/"
     "${MAYA_PACKAGE_DIR}/${MAYA_VERSION}/plug-ins/"
-    "${MAYA_PACKAGE_DIR}/${MAYA_VERSION}/scripts/"    
+    "${MAYA_PACKAGE_DIR}/${MAYA_VERSION}/scripts/"
+    "${MAYA_PACKAGE_DIR}/${MAYA_VERSION}/prefs/"
     "${MAYA_PACKAGE_DIR}/maya2glTF/PBR/"
   )
   file(MAKE_DIRECTORY ${MAYA_OUTPUT_LIST})
@@ -181,6 +183,7 @@ if(MSVC)
     COMMAND xcopy /y "$<SHELL_PATH:${CMAKE_CURRENT_BINARY_DIR}/maya2glTF_version.mel>" "$<SHELL_PATH:${MAYA_PACKAGE_DIR}/${MAYA_VERSION}/scripts/>"
     COMMAND xcopy /y "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/scripts/maya2glTF*.mel>" "$<SHELL_PATH:${MAYA_PACKAGE_DIR}/${MAYA_VERSION}/scripts/>"
     COMMAND xcopy /y /s /i "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/renderData/*.*>" "$<SHELL_PATH:${MAYA_PACKAGE_DIR}/maya2glTF/PBR/>"
+    COMMAND xcopy /y /s /i "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/prefs/*.*>" "$<SHELL_PATH:${MAYA_PACKAGE_DIR}/${MAYA_VERSION}/prefs/>"  
     COMMAND if exist "$<SHELL_PATH:$<TARGET_PDB_FILE:maya2glTF>>" (xcopy /y /c "$<SHELL_PATH:$<TARGET_PDB_FILE:maya2glTF>>" "$<SHELL_PATH:${MAYA_PACKAGE_DIR}/${MAYA_VERSION}/plug-ins/>")
     COMMAND xcopy /y "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/maya2glTFDeploy.bat>" "$<SHELL_PATH:${MAYA_OUTPUT_DIR}/>"
     COMMAND ${CMAKE_COMMAND} -E tar cfv ${CMAKE_BINARY_DIR}/maya2gltf_${ARCHIVE_VERSION}_maya_${MAYA_VERSION}.zip --format=zip "${MAYA_OUTPUT_DIR}"
@@ -212,15 +215,23 @@ elseif(APPLE)
     DIRECTORY "${PROJECT_SOURCE_DIR}/maya/renderData/"
     DESTINATION "/Users/Shared/Autodesk/maya/maya2glTF/PBR"
   )
+
+  install (
+    DIRECTORY "${PROJECT_SOURCE_DIR}/maya/prefs/"
+    DESTINATION "/Users/Shared/Autodesk/maya/${MAYA_VERSION}/prefs/"
+  )
 else(LINUX)
   add_custom_command(TARGET maya2glTF POST_BUILD
     COMMAND mkdir -p "$<SHELL_PATH:$ENV{HOME}/maya/${MAYA_VERSION}/plug-ins/>"
-    COMMAND mkdir -p "$<SHELL_PATH:$ENV{HOME}/maya/${MAYA_VERSION}/scripts/>"
+    COMMAND mkdir -p "$<SHELL_PATH:$ENV{HOME}/maya/scripts/>"
+    COMMAND mkdir -p "$<SHELL_PATH:$ENV{HOME}/maya/${MAYA_VERSION}/prefs/icons/>"
+    COMMAND mkdir -p "$<SHELL_PATH:$ENV{HOME}/maya/${MAYA_VERSION}/prefs/shelves/>"
     COMMAND mkdir -p "$<SHELL_PATH:$ENV{HOME}/maya/maya2glTF/PBR/>"
     COMMAND cp -f "$<SHELL_PATH:$<TARGET_FILE:maya2glTF>>" "$<SHELL_PATH:$ENV{HOME}/maya/${MAYA_VERSION}/plug-ins/>"
-    COMMAND cp -f "$<SHELL_PATH:${CMAKE_CURRENT_BINARY_DIR}/maya2glTF_version.mel>" "$<SHELL_PATH:$ENV{HOME}/maya/${MAYA_VERSION}/scripts/>"      
-    COMMAND cp -f "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/scripts/maya2glTF*.mel>" "$<SHELL_PATH:$ENV{HOME}/maya/${MAYA_VERSION}/scripts/>"
+    COMMAND cp -f "$<SHELL_PATH:${CMAKE_CURRENT_BINARY_DIR}/maya2glTF_version.mel>" "$<SHELL_PATH:$ENV{HOME}/maya/scripts/>"      
+    COMMAND cp -f "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/scripts/maya2glTF*.mel>" "$<SHELL_PATH:$ENV{HOME}/maya/scripts/>"
     COMMAND cp -rf "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/renderData/>" "$<SHELL_PATH:$ENV{HOME}/maya/maya2glTF/PBR/>"
+    COMMAND cp -rf "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/prefs/>" "$<SHELL_PATH:$ENV{HOME}/maya/${MAYA_VERSION}/prefs/>"
   )
 endif()
 
