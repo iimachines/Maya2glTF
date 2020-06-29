@@ -3,11 +3,10 @@
 #include "IndentableStream.h"
 
 ostream &prefix(ostream &stream) {
-    const auto now = std::chrono::system_clock::now();
-    const auto time = std::chrono::system_clock::to_time_t(now);
-
     std::time_t t = std::time(nullptr);
-    std::tm buf = *std::localtime(&t);
+
+    std::tm buf = {};
+    localtime_s(&buf, &t);
 
     stream << "maya2glTF [" << std::put_time(&buf, "%T") << "] ";
     return stream;
