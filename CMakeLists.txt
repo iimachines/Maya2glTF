@@ -102,6 +102,8 @@ endif()
 
 set(ARCHIVE_VERSION "${GIT_TAG}_${GIT_SHORT_HASH}")
 
+message("GIT version = ${ARCHIVE_VERSION}")
+
 CONFIGURE_FILE(
   ${CMAKE_CURRENT_SOURCE_DIR}/maya/maya2glTF_version.mel.in
   ${CMAKE_CURRENT_BINARY_DIR}/maya2glTF_version.mel
