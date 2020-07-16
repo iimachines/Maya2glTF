@@ -249,17 +249,21 @@ void ExportableAsset::save() {
         // Pack everything into a single buffer (default and glb case)
         const auto bufferName = sceneName + "/data";
 
-        // Allocate extra space for images.
-        const auto images = m_glAsset.getAllImages();
         size_t imageBufferLength = 0;
-        for (GLTF::Image *image : images) {
-            imageBufferLength += image->byteLength;
+
+        const auto images = m_glAsset.getAllImages();
+
+        if (args.glb) {
+            // Allocate extra space for images.
+            for (GLTF::Image *image : images) {
+                imageBufferLength += image->byteLength;
+            }
         }
 
         const auto buffer = bufferPacker.packAccessors(allAccessors, bufferName,
                                                        imageBufferLength);
 
-        if (buffer) {
+        if (buffer && imageBufferLength) {
             // Copy images to buffer, and create image buffer-views
             size_t byteOffset = buffer->byteLength - imageBufferLength;
             for (GLTF::Image *image : images) {
@@ -270,9 +274,9 @@ void ExportableAsset::save() {
                             image->byteLength);
                 byteOffset += image->byteLength;
             }
-
-            packedBufferMap[buffer] = bufferName;
         }
+
+        packedBufferMap[buffer] = bufferName;
     }
 
     if (args.niceBufferURIs) {
@@ -378,7 +382,8 @@ void ExportableAsset::save() {
 
         std::ofstream file;
         create(file, outputPath.string(),
-               ios::out | (args.glb ? ios::binary : std::ios_base::openmode(0)));             
+               ios::out |
+                   (args.glb ? ios::binary : std::ios_base::openmode(0)));
 
         if (args.glb) {
             assert(packedBufferMap.size() <= 1);
