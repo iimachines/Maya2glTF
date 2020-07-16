@@ -19,13 +19,10 @@ struct MikkTSpaceIndices {
     gsl::span<Index> tangents;
 
     MikkTSpaceIndices(const MeshIndices &meshIndices, const int setIndex) {
-        positions =
-            gsl::make_span(meshIndices.indicesAt(Semantic::POSITION, 0));
+        positions = gsl::make_span(meshIndices.indicesAt(Semantic::POSITION, 0));
         normals = gsl::make_span(meshIndices.indicesAt(Semantic::NORMAL, 0));
-        texcoords =
-            gsl::make_span(meshIndices.indicesAt(Semantic::TEXCOORD, setIndex));
-        tangents = mutable_span(
-            gsl::make_span(meshIndices.indicesAt(Semantic::TANGENT, setIndex)));
+        texcoords = gsl::make_span(meshIndices.indicesAt(Semantic::TEXCOORD, setIndex));
+        tangents = mutable_span(gsl::make_span(meshIndices.indicesAt(Semantic::TANGENT, setIndex)));
     }
 };
 
@@ -35,23 +32,16 @@ struct MikkTSpaceVectors {
     gsl::span<const TexCoord> texcoords;
     gsl::span<float> tangentComponents;
 
-    MikkTSpaceVectors(const MeshIndices &meshIndices,
-                      VertexElementsPerSetIndexTable &vertexTable,
-                      const int setIndex) {
+    MikkTSpaceVectors(const MeshIndices &meshIndices, VertexElementsPerSetIndexTable &vertexTable, const int setIndex) {
         const auto numTangents = meshIndices.maxVertexCount();
 
         // HACK: We assume the indices arrays are large enough here...
-        assert(meshIndices.indicesAt(Semantic::TANGENT, setIndex).size() >=
-               numTangents);
+        assert(meshIndices.indicesAt(Semantic::TANGENT, setIndex).size() >= numTangents);
 
-        positions = reinterpret_span<Position>(
-            vertexTable.at(Semantic::POSITION).at(0).floats());
-        normals = reinterpret_span<Normal>(
-            vertexTable.at(Semantic::NORMAL).at(0).floats());
-        texcoords = reinterpret_span<TexCoord>(
-            vertexTable.at(Semantic::TEXCOORD).at(setIndex).floats());
-        tangentComponents = mutable_span<float>(
-            vertexTable.at(Semantic::TANGENT).at(setIndex).floats());
+        positions = reinterpret_span<Position>(vertexTable.at(Semantic::POSITION).at(0).floats());
+        normals = reinterpret_span<Normal>(vertexTable.at(Semantic::NORMAL).at(0).floats());
+        texcoords = reinterpret_span<TexCoord>(vertexTable.at(Semantic::TEXCOORD).at(setIndex).floats());
+        tangentComponents = mutable_span<float>(vertexTable.at(Semantic::TANGENT).at(setIndex).floats());
     }
 };
 
@@ -67,12 +57,10 @@ struct MikkTSpaceContext : SMikkTSpaceContext {
     // Cleaning up the mesh with Maya seems to fix this.
     mutable std::unordered_set<int> invalidTriangleIndices;
 
-    MikkTSpaceContext(const MeshIndices &meshIndices,
-                      VertexElementsPerSetIndexTable &vertexTable,
-                      const int setIndex, const ShapeIndex &shapeIndex)
-        : SMikkTSpaceContext{}, triangleCount(meshIndices.primitiveCount()),
-          shapeIndex(shapeIndex), indices(meshIndices, setIndex),
-          vectors(meshIndices, vertexTable, setIndex), interface{} {
+    MikkTSpaceContext(const MeshIndices &meshIndices, VertexElementsPerSetIndexTable &vertexTable, const int setIndex,
+                      const ShapeIndex &shapeIndex)
+        : SMikkTSpaceContext{}, triangleCount(meshIndices.primitiveCount()), shapeIndex(shapeIndex),
+          indices(meshIndices, setIndex), vectors(meshIndices, vertexTable, setIndex), interface{} {
         m_pInterface = &interface;
         m_pUserData = this;
 
@@ -86,31 +74,22 @@ struct MikkTSpaceContext : SMikkTSpaceContext {
     }
 
     void computeTangents(const double angularThreshold) const {
-        const auto mkr =
-            genTangSpace(this, static_cast<float>(angularThreshold));
+        const auto mkr = genTangSpace(this, static_cast<float>(angularThreshold));
 
         if (!mkr) {
-            MayaException::printError(
-                "Failed to get Mikkelsen tangents (aka MikkTSpace)");
+            MayaException::printError("Failed to get Mikkelsen tangents (aka MikkTSpace)");
         }
     }
 
     static int getNumFaces(const SMikkTSpaceContext *pContext) {
-        const auto count = reinterpret_cast<const MikkTSpaceContext *>(pContext)
-                               ->triangleCount;
+        const auto count = reinterpret_cast<const MikkTSpaceContext *>(pContext)->triangleCount;
         return static_cast<int>(count);
     }
 
-    static int getNumVerticesOfFace(const SMikkTSpaceContext *pContext,
-                                    const int iFace) {
-        return 3;
-    }
+    static int getNumVerticesOfFace(const SMikkTSpaceContext *pContext, const int iFace) { return 3; }
 
-    static void getPosition(const SMikkTSpaceContext *pContext,
-                            float fvPosOut[], const int iFace,
-                            const int iVert) {
-        const auto context =
-            reinterpret_cast<const MikkTSpaceContext *>(pContext);
+    static void getPosition(const SMikkTSpaceContext *pContext, float fvPosOut[], const int iFace, const int iVert) {
+        const auto context = reinterpret_cast<const MikkTSpaceContext *>(pContext);
         const auto index = context->indices.positions[iFace * 3 + iVert];
         const auto &vector = context->vectors.positions[index];
         fvPosOut[0] = vector[0];
@@ -118,10 +97,8 @@ struct MikkTSpaceContext : SMikkTSpaceContext {
         fvPosOut[2] = vector[2];
     }
 
-    static void getNormal(const SMikkTSpaceContext *pContext, float fvNormOut[],
-                          const int iFace, const int iVert) {
-        const auto context =
-            reinterpret_cast<const MikkTSpaceContext *>(pContext);
+    static void getNormal(const SMikkTSpaceContext *pContext, float fvNormOut[], const int iFace, const int iVert) {
+        const auto context = reinterpret_cast<const MikkTSpaceContext *>(pContext);
         const auto index = context->indices.normals[iFace * 3 + iVert];
         const auto &vector = context->vectors.normals[index];
         fvNormOut[0] = vector[0];
@@ -129,11 +106,8 @@ struct MikkTSpaceContext : SMikkTSpaceContext {
         fvNormOut[2] = vector[2];
     }
 
-    static void getTexCoord(const SMikkTSpaceContext *pContext,
-                            float fvTexcOut[], const int iFace,
-                            const int iVert) {
-        const auto context =
-            reinterpret_cast<const MikkTSpaceContext *>(pContext);
+    static void getTexCoord(const SMikkTSpaceContext *pContext, float fvTexcOut[], const int iFace, const int iVert) {
+        const auto context = reinterpret_cast<const MikkTSpaceContext *>(pContext);
         const auto index = context->indices.texcoords[iFace * 3 + iVert];
 
         if (index < 0) {
@@ -146,11 +120,9 @@ struct MikkTSpaceContext : SMikkTSpaceContext {
         }
     }
 
-    static void setTSpaceBasic(const SMikkTSpaceContext *pContext,
-                               const float fvTangent[], const float fSign,
+    static void setTSpaceBasic(const SMikkTSpaceContext *pContext, const float fvTangent[], const float fSign,
                                const int iFace, const int iVert) {
-        const auto context =
-            reinterpret_cast<const MikkTSpaceContext *>(pContext);
+        const auto context = reinterpret_cast<const MikkTSpaceContext *>(pContext);
 
         // Re-index
         const auto index = iFace * 3 + iVert;
@@ -169,17 +141,13 @@ struct MikkTSpaceContext : SMikkTSpaceContext {
             }
 
             if (context->shapeIndex.isMainShapeIndex()) {
-                float *p =
-                    &context->vectors
-                         .tangentComponents[index *
-                                            array_size<MainShapeTangent>::size];
+                float *p = &context->vectors.tangentComponents[index * array_size<MainShapeTangent>::size];
                 p[0] = tx;
                 p[1] = ty;
                 p[2] = tz;
                 p[3] = fSign;
             } else {
-                float *p = &context->vectors.tangentComponents
-                                [index * array_size<BlendShapeTangent>::size];
+                float *p = &context->vectors.tangentComponents[index * array_size<BlendShapeTangent>::size];
                 p[0] = tx;
                 p[1] = ty;
                 p[2] = tz;
@@ -187,18 +155,14 @@ struct MikkTSpaceContext : SMikkTSpaceContext {
         }
     }
 
-    static void reportDegenerateTriangle(const SMikkTSpaceContext *pContext,
-                                         int triangleIndex) {
-        const auto context =
-            reinterpret_cast<const MikkTSpaceContext *>(pContext);
+    static void reportDegenerateTriangle(const SMikkTSpaceContext *pContext, int triangleIndex) {
+        const auto context = reinterpret_cast<const MikkTSpaceContext *>(pContext);
         context->invalidTriangleIndices.insert(triangleIndex);
     }
 };
 
-MeshVertices::MeshVertices(const MeshIndices &meshIndices,
-                           const MeshSkeleton *meshSkeleton,
-                           const MFnMesh &mesh, ShapeIndex shapeIndex,
-                           const ExportableNode &node, const Arguments &args)
+MeshVertices::MeshVertices(const MeshIndices &meshIndices, const MeshSkeleton *meshSkeleton, const MFnMesh &mesh,
+                           ShapeIndex shapeIndex, const ExportableNode &node, const Arguments &args)
     : shapeIndex(shapeIndex) {
     MStatus status;
 
@@ -213,9 +177,8 @@ MeshVertices::MeshVertices(const MeshIndices &meshIndices,
     const auto positionScale = args.getBakeScaleFactor();
     for (int i = 0; i < numPoints; ++i) {
         const auto p = mPoints[i] * positionScale;
-        m_positions.push_back({roundToFloat(p.x, posPrecision),
-                               roundToFloat(p.y, posPrecision),
-                               roundToFloat(p.z, posPrecision)});
+        m_positions.push_back(
+            {roundToFloat(p.x, posPrecision), roundToFloat(p.y, posPrecision), roundToFloat(p.z, posPrecision)});
     }
 
     const auto positionsSpan = floats(span(m_positions));
@@ -238,8 +201,7 @@ MeshVertices::MeshVertices(const MeshIndices &meshIndices,
     m_normals.reserve(numNormals);
     for (int i = 0; i < numNormals; ++i) {
         auto n = mNormals[i];
-        m_normals.push_back({roundToFloat(normalSign * n.x, dirPrecision),
-                             roundToFloat(normalSign * n.y, dirPrecision),
+        m_normals.push_back({roundToFloat(normalSign * n.x, dirPrecision), roundToFloat(normalSign * n.y, dirPrecision),
                              roundToFloat(normalSign * n.z, dirPrecision)});
     }
 
@@ -259,10 +221,8 @@ MeshVertices::MeshVertices(const MeshIndices &meshIndices,
         for (int i = 0; i < numColors; ++i) {
             const auto &c = mColors[i];
             ;
-            colors.push_back({roundToFloat(c.r, colPrecision),
-                              roundToFloat(c.g, colPrecision),
-                              roundToFloat(c.b, colPrecision),
-                              roundToFloat(c.a, colPrecision)});
+            colors.push_back({roundToFloat(c.r, colPrecision), roundToFloat(c.g, colPrecision),
+                              roundToFloat(c.b, colPrecision), roundToFloat(c.a, colPrecision)});
         }
 
         const auto colorsSpan = floats(span(colors));
@@ -297,14 +257,12 @@ MeshVertices::MeshVertices(const MeshIndices &meshIndices,
             const auto numTangents = numTriangles * 3;
 
             auto &tangentSet = m_tangentSets[semantic.setIndex];
-            tangentSet.resize(numTangents *
-                              dimension(Semantic::TANGENT, shapeIndex));
+            tangentSet.resize(numTangents * dimension(Semantic::TANGENT, shapeIndex));
 
             const auto tangentSpan = floats(span(tangentSet));
             m_table.at(Semantic::TANGENT).push_back(tangentSpan);
 
-            MikkTSpaceContext context(meshIndices, m_table, semantic.setIndex,
-                                      shapeIndex);
+            MikkTSpaceContext context(meshIndices, m_table, semantic.setIndex, shapeIndex);
             context.computeTangents(args.mikkelsenTangentAngularThreshold);
 
             if (!context.invalidTriangleIndices.empty()) {
@@ -314,47 +272,39 @@ MeshVertices::MeshVertices(const MeshIndices &meshIndices,
                 std::stringstream ss;
                 ss << "select -r";
                 for (auto triangleIndex : context.invalidTriangleIndices) {
-                    ss << ' ' << mesh.name() << ".f["
-                       << meshIndices.triangleToFaceIndex(triangleIndex) << "]";
+                    ss << ' ' << mesh.name() << ".f[" << meshIndices.triangleToFaceIndex(triangleIndex) << "]";
                     if (--maxIndices < 0)
                         break;
                 }
                 ss << ";";
 
-                MayaException::printError(formatted(
-                    "Tangent generator found degenerate faces!\nThis can cause "
-                    "rendering artifacts.\nPlease check and fix your mesh and "
-                    "UV mapping.\nUse the following command select the first "
-                    "invalid faces:\n%s\n\n",
-                    ss.str().c_str()));
+                MayaException::printError(formatted("Tangent generator found degenerate faces!\nThis can cause "
+                                                    "rendering artifacts.\nPlease check and fix your mesh and "
+                                                    "UV mapping.\nUse the following command select the first "
+                                                    "invalid faces:\n%s\n\n",
+                                                    ss.str().c_str()));
             }
         } else {
             MFloatVectorArray mTangents;
 
-            status =
-                mesh.getTangents(mTangents, MSpace::kWorld, &semantic.setName);
+            status = mesh.getTangents(mTangents, MSpace::kWorld, &semantic.setName);
 
             if (status.error()) {
-                MayaException::printError(
-                    formatted(
-                        "Maya failed to provide the tangents of mesh '%s'! "
-                        "This should not happen, investigate your mesh",
-                        mesh.name().asChar()),
-                    status);
+                MayaException::printError(formatted("Maya failed to provide the tangents of mesh '%s'! "
+                                                    "This should not happen, investigate your mesh",
+                                                    mesh.name().asChar()),
+                                          status);
             } else {
                 const int numTangents = mTangents.length();
 
                 auto &tangentSet = m_tangentSets[semantic.setIndex];
-                tangentSet.reserve(numTangents *
-                                   dimension(Semantic::TANGENT, shapeIndex));
+                tangentSet.reserve(numTangents * dimension(Semantic::TANGENT, shapeIndex));
 
                 std::unordered_set<int> invalidTangentIds;
 
                 for (int i = 0; i < numTangents; ++i) {
                     auto t = mTangents[i];
-                    const auto rht = 2 * mesh.isRightHandedTangent(
-                                             i, &semantic.setName, &status) -
-                                     1.0f;
+                    const auto rht = 2 * mesh.isRightHandedTangent(i, &semantic.setName, &status) - 1.0f;
                     THROW_ON_FAILURE(status);
                     tangentSet.push_back(roundToFloat(t.x, dirPrecision));
                     tangentSet.push_back(roundToFloat(t.y, dirPrecision));
@@ -391,19 +341,13 @@ MeshVertices::MeshVertices(const MeshIndices &meshIndices,
                                     "\"pvf\", 0);",
                                     meshName.asChar())
                        << endl;
-                    ss << formatted("setAttr \"%s.displayTangent\" 1;",
-                                    meshName.asChar())
-                       << endl;
-                    ss << formatted("checkMeshDisplayNormals \"%s\";",
-                                    meshName.asChar())
-                       << endl;
+                    ss << formatted("setAttr \"%s.displayTangent\" 1;", meshName.asChar()) << endl;
+                    ss << formatted("checkMeshDisplayNormals \"%s\";", meshName.asChar()) << endl;
                     ss << "select -r";
 
                     while (!itFaceVertex.isDone() && selectedIndexCount < 10) {
-                        if (invalidTangentIds.end() !=
-                            invalidTangentIds.find(itFaceVertex.tangentId())) {
-                            ss << ' ' << mesh.name() << ".vtxFace["
-                               << itFaceVertex.vertId() << "]["
+                        if (invalidTangentIds.end() != invalidTangentIds.find(itFaceVertex.tangentId())) {
+                            ss << ' ' << mesh.name() << ".vtxFace[" << itFaceVertex.vertId() << "]["
                                << itFaceVertex.faceId() << "]";
                             ++selectedIndexCount;
                         }
@@ -413,14 +357,13 @@ MeshVertices::MeshVertices(const MeshIndices &meshIndices,
                     ss << ";";
 
                     // Find the faces with invalid tangents.
-                    MayaException::printError(formatted(
-                        "Mesh '%s' has %d invalid tangents!\nAssign texture "
-                        "coordinates and/or cleanup your mesh and try again "
-                        "please.\nUse the following command to visualize the "
-                        "tangents and select the first invalid "
-                        "face-vertices:\n\n%s\n",
-                        mesh.name().asChar(), invalidTangentIds.size(),
-                        ss.str().c_str()));
+                    MayaException::printError(formatted("Mesh '%s' has %d invalid tangents!\nAssign texture "
+                                                        "coordinates and/or cleanup your mesh and try again "
+                                                        "please.\nUse the following command to visualize the "
+                                                        "tangents and select the first invalid "
+                                                        "face-vertices:\n\n%s\n",
+                                                        mesh.name().asChar(), invalidTangentIds.size(),
+                                                        ss.str().c_str()));
                 }
             }
         }
@@ -431,12 +374,12 @@ MeshVertices::MeshVertices(const MeshIndices &meshIndices,
     if (meshSkeleton) {
         // Now group vertex joint assignments into element of multiple
         // components (4 in GLTF)
-        const auto vertexJointAssignmentElementSize =
-            int(array_size<JointIndices>::size);
+        const auto vertexJointAssignmentElementSize = int(array_size<JointIndices>::size);
 
-        const auto setCount =
-            int(meshSkeleton->vertexJointAssignmentSetCount());
+        const auto setCount = int(meshSkeleton->vertexJointAssignmentSetCount());
         const auto &assignmentsTable = meshSkeleton->vertexJointAssignments();
+
+        m_jointWeightSums.resize(numPoints);
 
         for (int setIndex = 0; setIndex < setCount; ++setIndex) {
             auto &weightsComponents = m_jointWeights[setIndex];
@@ -450,35 +393,41 @@ MeshVertices::MeshVertices(const MeshIndices &meshIndices,
             m_table.at(Semantic::WEIGHTS).push_back(floats(weightsSpan));
             m_table.at(Semantic::JOINTS).push_back(shorts(indicesSpan));
 
-            const auto componentOffset =
-                int(setIndex * vertexJointAssignmentElementSize);
+            const auto componentOffset = int(setIndex * vertexJointAssignmentElementSize);
 
             for (int pointIndex = 0; pointIndex < numPoints; ++pointIndex) {
                 const auto &assignments = assignmentsTable.at(pointIndex);
                 const auto assignmentsSize = int(assignments.size());
 
                 const auto assignmentCount =
-                    std::clamp<int>(assignmentsSize - componentOffset, 0,
-                                    vertexJointAssignmentElementSize);
-                const auto assignmentIndex = std::clamp<int>(
-                    componentOffset, 0, assignmentsSize - assignmentCount);
-                const auto sourceComponents =
-                    assignments.subspan(assignmentIndex, assignmentCount);
+                    std::clamp<int>(assignmentsSize - componentOffset, 0, vertexJointAssignmentElementSize);
+                const auto assignmentIndex = std::clamp<int>(componentOffset, 0, assignmentsSize - assignmentCount);
+                const auto sourceComponents = assignments.subspan(assignmentIndex, assignmentCount);
 
                 const auto targetWeights =
-                    mutable_span(reinterpret_span<JointWeight>(
-                        weightsSpan.subspan(pointIndex, 1)));
+                    mutable_span(reinterpret_span<JointWeight>(weightsSpan.subspan(pointIndex, 1)));
                 const auto targetIndices =
-                    mutable_span(reinterpret_span<JointIndex>(
-                        indicesSpan.subspan(pointIndex, 1)));
+                    mutable_span(reinterpret_span<JointIndex>(indicesSpan.subspan(pointIndex, 1)));
 
-                for (auto componentIndex = 0; componentIndex < assignmentCount;
-                     ++componentIndex) {
-                    const auto &components =
-                        sourceComponents.at(componentIndex);
+                for (auto componentIndex = 0; componentIndex < assignmentCount; ++componentIndex) {
+                    const auto &components = sourceComponents.at(componentIndex);
                     targetIndices[componentIndex] = components.jointIndex;
-                    targetWeights[componentIndex] =
-                        roundToFloat(components.jointWeight, sclPrecision);
+                    targetWeights[componentIndex] = components.jointWeight;
+                    m_jointWeightSums[pointIndex] += components.jointWeight;
+                }
+            }
+        }
+
+        // Normalize
+        for (int setIndex = 0; setIndex < setCount; ++setIndex) {
+            auto &weightsComponents = m_jointWeights[setIndex];
+            auto weightsSpan = span(weightsComponents);
+            for (int pointIndex = 0; pointIndex < numPoints; ++pointIndex) {
+                const auto targetWeights =
+                    mutable_span(reinterpret_span<JointWeight>(weightsSpan.subspan(pointIndex, 1)));
+                float normalize = 1 / m_jointWeightSums[pointIndex];
+                for (auto &weight : targetWeights) {
+                    weight *= normalize;
                 }
             }
         }

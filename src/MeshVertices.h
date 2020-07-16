@@ -109,6 +109,7 @@ class MeshVertices {
     std::map<SetIndex, ColorVector> m_colorSets;
     std::map<SetIndex, JointWeightsVector> m_jointWeights;
     std::map<SetIndex, JointIndicesVector> m_jointIndices;
+    std::vector<float> m_jointWeightSums;
 
     VertexElementsPerSetIndexTable m_table;
 
