@@ -6,8 +6,6 @@ global proc shelf_glTF () {
 
     shelfButton
         -enableCommandRepeat 1
-        -flexibleWidthType 3
-        -flexibleWidthValue 32
         -enable 1
         -width 35
         -height 34
