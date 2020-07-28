@@ -8,30 +8,9 @@
 #include "ExportableScene.h"
 #include "MayaException.h"
 
-ExportableCamera::ExportableCamera(ExportableScene &scene, ExportableNode &node,
-                                   const MDagPath &shapeDagPath)
+ExportableCamera::ExportableCamera(ExportableScene &scene, ExportableNode &node, const MDagPath &shapeDagPath)
     : ExportableObject(shapeDagPath.node()) {
     MStatus status;
-
-    // NOTE: We leave the aspect ratio undefined, so GLTF adapts to the viewport
-    // https://github.com/KhronosGroup/glTF/issues/1292
-
-    // Get resolution to find correct field of view.
-    MSelectionList sl;
-    sl.add(":defaultResolution");
-
-    MObject defaultResolutionNode;
-    status = sl.getDependNode(0, defaultResolutionNode);
-
-    int width;
-    int height;
-
-    const auto hasWidth =
-        !defaultResolutionNode.isNull() &&
-        DagHelper::getPlugValue(defaultResolutionNode, "width", width);
-    const auto hasHeight =
-        !defaultResolutionNode.isNull() &&
-        DagHelper::getPlugValue(defaultResolutionNode, "height", height);
 
     auto &resources = scene.resources();
     auto &args = resources.arguments();
@@ -41,26 +20,48 @@ ExportableCamera::ExportableCamera(ExportableScene &scene, ExportableNode &node,
     MFnCamera camera(shapeDagPath, &status);
     THROW_ON_FAILURE(status);
 
-    double hFov;
-    double vFov;
-    THROW_ON_FAILURE(camera.getPortFieldOfView(
-        hasWidth ? width : 1920, hasHeight ? height : 1080, hFov, vFov));
+    if (camera.isOrtho()) {
+        auto orthographicCamera = std::make_unique<GLTF::CameraOrthographic>();
 
-    auto perspectiveCamera = std::make_unique<GLTF::CameraPerspective>();
-    perspectiveCamera->yfov = float(vFov);
-    THROW_ON_FAILURE(status);
+        // const auto orthoWidth = camera.orthoWidth(&status);
+        // THROW_ON_FAILURE(status);
 
-    perspectiveCamera->aspectRatio =
-        0; // 0 = undefined, adapt to viewport at runtime
-    THROW_ON_FAILURE(status);
+        // const auto aspectRatio = camera.aspectRatio(&status);
+        // THROW_ON_FAILURE(status);
 
-    perspectiveCamera->znear =
-        float(camera.nearClippingPlane(&status)) * args.globalScaleFactor;
-    THROW_ON_FAILURE(status);
+        // See https://github.com/KhronosGroup/glTF/issues/1663
+        orthographicCamera->xmag = 1.0f;
+        orthographicCamera->ymag = 1.0f; // static_cast<float>(aspectRatio);
+        glCamera = move(orthographicCamera);
+    } else {
+        // Get resolution to find correct field of view.
+        MSelectionList sl;
+        sl.add(":defaultResolution");
 
-    perspectiveCamera->zfar =
-        float(camera.farClippingPlane(&status)) * args.globalScaleFactor;
-    THROW_ON_FAILURE(status);
+        MObject defaultResolutionNode;
+        status = sl.getDependNode(0, defaultResolutionNode);
+
+        int width;
+        int height;
+
+        const auto hasWidth =
+            !defaultResolutionNode.isNull() && DagHelper::getPlugValue(defaultResolutionNode, "width", width);
+        const auto hasHeight =
+            !defaultResolutionNode.isNull() && DagHelper::getPlugValue(defaultResolutionNode, "height", height);
+
+        double hFov;
+        double vFov;
+        THROW_ON_FAILURE(camera.getPortFieldOfView(hasWidth ? width : 1920, hasHeight ? height : 1080, hFov, vFov));
+
+        auto perspectiveCamera = std::make_unique<GLTF::CameraPerspective>();
+
+        perspectiveCamera->yfov = float(vFov);
+        THROW_ON_FAILURE(status);
+
+        // NOTE: We leave the aspect ratio undefined, so GLTF adapts to the viewport
+        // https://github.com/KhronosGroup/glTF/issues/1292
+        perspectiveCamera->aspectRatio = 0; 
+        THROW_ON_FAILURE(status);
 
 #if 0
     auto mayaMatrix = camera.projectionMatrix(&status);
@@ -91,11 +92,19 @@ ExportableCamera::ExportableCamera(ExportableScene &scene, ExportableNode &node,
     cout << "gltF projection matrix:" << gltfMatrix << endl;
 #endif
 
-    glCamera = move(perspectiveCamera);
+        glCamera = move(perspectiveCamera);
+    }
+
+    const std::string cameraName{shapeDagPath.partialPathName(&status).asChar()};
+    args.assignName(*glCamera, cameraName);
+
+    glCamera->znear = float(camera.nearClippingPlane(&status)) * args.globalScaleFactor;
+    THROW_ON_FAILURE(status);
+
+    glCamera->zfar = float(camera.farClippingPlane(&status)) * args.globalScaleFactor;
+    THROW_ON_FAILURE(status);
 }
 
 ExportableCamera::~ExportableCamera() = default;
 
-void ExportableCamera::attachToNode(GLTF::Node &node) const {
-    node.camera = glCamera.get();
-}
+void ExportableCamera::attachToNode(GLTF::Node &node) const { node.camera = glCamera.get(); }

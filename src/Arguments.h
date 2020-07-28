@@ -27,18 +27,14 @@ class SyntaxFactory : MSyntax {
     std::map<const char *, const char *> m_argNames;
     std::string m_usage;
 
-    void registerFlag(std::stringstream &ss, const char *shortName,
-                      const char *longName, bool isMultiUse,
+    void registerFlag(std::stringstream &ss, const char *shortName, const char *longName, bool isMultiUse,
                       MArgType argType1 = kNoArg);
-    void registerFlag(std::stringstream &ss, const char *shortName,
-                      const char *longName, MArgType argType1 = kNoArg);
+    void registerFlag(std::stringstream &ss, const char *shortName, const char *longName, MArgType argType1 = kNoArg);
 };
 
 struct AnimClipArg {
-    AnimClipArg(std::string name, const MTime &startTime, const MTime &endTime,
-                const double framesPerSecond)
-        : name{std::move(name)}, startTime{startTime}, endTime{endTime},
-          framesPerSecond{framesPerSecond} {}
+    AnimClipArg(std::string name, const MTime &startTime, const MTime &endTime, const double framesPerSecond)
+        : name{std::move(name)}, startTime{startTime}, endTime{endTime}, framesPerSecond{framesPerSecond} {}
 
     DEFAULT_COPY_MOVE_ASSIGN_DTOR(AnimClipArg);
 
@@ -248,21 +244,15 @@ class Arguments {
         }
     }
 
-    std::string makeName(const std::string &name) const {
-        return disableNameAssignment ? "" : name;
-    }
+    std::string makeName(const std::string &name) const { return disableNameAssignment ? "" : name; }
 
-    float getBakeScaleFactor() const {
-        return bakeScalingFactor ? globalScaleFactor : 1;
-    }
-    float getRootScaleFactor() const {
-        return bakeScalingFactor ? 1 : globalScaleFactor;
-    }
+    float getBakeScaleFactor() const { return bakeScalingFactor ? globalScaleFactor : 1; }
+    float getRootScaleFactor() const { return bakeScalingFactor ? 1 : globalScaleFactor; }
 
   private:
     DISALLOW_COPY_MOVE_ASSIGN(Arguments);
 
-    static void select(Selection &selection, const MDagPath &dagPath,
+    static void select(Selection &shapeSelection, Selection &cameraSelection, const MDagPath &dagPath,
                        bool includeDescendants, bool visibleNodesOnly);
 
     std::ofstream m_mayaOutputFileStream;

@@ -12,8 +12,7 @@ class ExportableNode;
 class ExportableCamera : public ExportableObject {
   public:
     // TODO: Support instancing, for now we create a new camera for each node.
-    ExportableCamera(ExportableScene &scene, ExportableNode &node,
-                     const MDagPath &shapeDagPath);
+    ExportableCamera(ExportableScene &scene, ExportableNode &node, const MDagPath &shapeDagPath);
     virtual ~ExportableCamera();
 
     std::unique_ptr<GLTF::Camera> glCamera;

@@ -125,52 +125,38 @@ SyntaxFactory::SyntaxFactory() {
     registerFlag(ss, flag::sceneName, "sceneName", kString);
     registerFlag(ss, flag::scaleFactor, "scaleFactor", kDouble);
     registerFlag(ss, flag::binary, "binary", kNoArg);
-    registerFlag(ss, flag::separateAccessorBuffers, "separateAccessorBuffers",
-                 kNoArg);
+    registerFlag(ss, flag::separateAccessorBuffers, "separateAccessorBuffers", kNoArg);
     registerFlag(ss, flag::splitMeshAnimation, "splitMeshAnimation", kNoArg);
     registerFlag(ss, flag::splitByReference, "splitByReference", kNoArg);
     registerFlag(ss, flag::dumpGLTF, "dumpGTLF", kString);
     registerFlag(ss, flag::dumpMaya, "dumpMaya", kString);
-    registerFlag(ss, flag::dumpAccessorComponents, "dumpAccessorComponents",
-                 kNoArg);
+    registerFlag(ss, flag::dumpAccessorComponents, "dumpAccessorComponents", kNoArg);
     registerFlag(ss, flag::embedded, "embedded", kNoArg);
     registerFlag(ss, flag::defaultMaterial, "defaultMaterial", kNoArg);
     registerFlag(ss, flag::colorizeMaterials, "colorizeMaterials", kNoArg);
-    registerFlag(ss, flag::skipStandardMaterials, "skipStandardMaterials",
-                 kNoArg);
-    registerFlag(ss, flag::skipMaterialTextures, "skipMaterialTextures",
-                 kNoArg);
+    registerFlag(ss, flag::skipStandardMaterials, "skipStandardMaterials", kNoArg);
+    registerFlag(ss, flag::skipMaterialTextures, "skipMaterialTextures", kNoArg);
     registerFlag(ss, flag::force32bitIndices, "force32bitIndices", kNoArg);
-    registerFlag(ss, flag::disableNameAssignment, "disableNameAssignment",
-                 kNoArg);
-    registerFlag(ss, flag::mikkelsenTangentSpace, "mikkelsenTangentSpace",
-                 kNoArg);
-    registerFlag(ss, flag::mikkelsenTangentAngularThreshold,
-                 "mikkelsenTangentAngularThreshold", kDouble);
+    registerFlag(ss, flag::disableNameAssignment, "disableNameAssignment", kNoArg);
+    registerFlag(ss, flag::mikkelsenTangentSpace, "mikkelsenTangentSpace", kNoArg);
+    registerFlag(ss, flag::mikkelsenTangentAngularThreshold, "mikkelsenTangentAngularThreshold", kDouble);
     registerFlag(ss, flag::debugNormalVectors, "debugNormalVectors", kNoArg);
     registerFlag(ss, flag::debugTangentVectors, "debugTangentVectors", kNoArg);
     registerFlag(ss, flag::debugVectorLength, "debugVectorLength", kDouble);
     registerFlag(ss, flag::globalOpacityFactor, "globalOpacityFactor", kDouble);
     registerFlag(ss, flag::copyright, "copyright", kString);
 
-    registerFlag(ss, flag::animationClipFrameRate, "animationClipFrameRate",
-                 true, kDouble);
-    registerFlag(ss, flag::animationClipName, "animationClipName", true,
-                 kString);
-    registerFlag(ss, flag::animationClipStartTime, "animationClipStartTime",
-                 true, kTime);
-    registerFlag(ss, flag::animationClipEndTime, "animationClipEndTime", true,
-                 kTime);
+    registerFlag(ss, flag::animationClipFrameRate, "animationClipFrameRate", true, kDouble);
+    registerFlag(ss, flag::animationClipName, "animationClipName", true, kString);
+    registerFlag(ss, flag::animationClipStartTime, "animationClipStartTime", true, kTime);
+    registerFlag(ss, flag::animationClipEndTime, "animationClipEndTime", true, kTime);
 
     registerFlag(ss, flag::initialValuesTime, "initialValuesTime", kTime);
 
-    registerFlag(ss, flag::meshPrimitiveAttributes, "meshPrimitiveAttributes",
-                 kString);
-    registerFlag(ss, flag::blendPrimitiveAttributes, "blendPrimitiveAttributes",
-                 kString);
+    registerFlag(ss, flag::meshPrimitiveAttributes, "meshPrimitiveAttributes", kString);
+    registerFlag(ss, flag::blendPrimitiveAttributes, "blendPrimitiveAttributes", kString);
 
-    registerFlag(ss, flag::ignoreMeshDeformers, "ignoreMeshDeformers", true,
-                 kString);
+    registerFlag(ss, flag::ignoreMeshDeformers, "ignoreMeshDeformers", true, kString);
     registerFlag(ss, flag::skipSkinClusters, "skipSkinClusters", kNoArg);
     registerFlag(ss, flag::skipBlendShapes, "skipBlendShapes", kNoArg);
 
@@ -179,27 +165,22 @@ SyntaxFactory::SyntaxFactory() {
     registerFlag(ss, flag::selectedNodesOnly, "selectedNodesOnly", kNoArg);
     registerFlag(ss, flag::visibleNodesOnly, "visibleNodesOnly", kNoArg);
 
-    registerFlag(ss, flag::excludeUnusedTexcoord, "excludeUnusedTexcoord",
-                 kNoArg);
+    registerFlag(ss, flag::excludeUnusedTexcoord, "excludeUnusedTexcoord", kNoArg);
 
-    registerFlag(ss, flag::ignoreSegmentScaleCompensation,
-                 "ignoreSegmentScaleCompensation", kNoArg);
+    registerFlag(ss, flag::ignoreSegmentScaleCompensation, "ignoreSegmentScaleCompensation", kNoArg);
 
     registerFlag(ss, flag::keepShapeNodes, "keepShapeNodes", kNoArg);
     registerFlag(ss, flag::bakeScalingFactor, "bakeScalingFactor", kNoArg);
     registerFlag(ss, flag::forceRootNode, "forceRootNode", kNoArg);
-    registerFlag(ss, flag::forceAnimationChannels, "forceAnimationChannels",
-                 kNoArg);
+    registerFlag(ss, flag::forceAnimationChannels, "forceAnimationChannels", kNoArg);
     registerFlag(ss, flag::hashBufferURIs, "hashBufferUri", kNoArg);
     registerFlag(ss, flag::niceBufferURIs, "niceBufferNames", kNoArg);
 
-    registerFlag(ss, flag::convertUnsupportedImages, "convertUnsupportedImages",
-                 kNoArg);
-    registerFlag(ss, flag::reportSkewedInverseBindMatrices,
-                 "reportSkewedInverseBindMatrices", kNoArg);
+    registerFlag(ss, flag::convertUnsupportedImages, "convertUnsupportedImages", kNoArg);
+    registerFlag(ss, flag::reportSkewedInverseBindMatrices, "reportSkewedInverseBindMatrices", kNoArg);
     registerFlag(ss, flag::clearOutputWindow, "clearOutputWindow", kNoArg);
 
-    registerFlag(ss, flag::cameras, "cameras", kSelectionItem);
+    registerFlag(ss, flag::cameras, "cameras", true, kString);
 
     m_usage = ss.str();
 }
@@ -216,15 +197,13 @@ MSyntax SyntaxFactory::createSyntax() {
     return s;
 }
 
-void SyntaxFactory::registerFlag(std::stringstream &ss, const char *shortName,
-                                 const char *longName,
+void SyntaxFactory::registerFlag(std::stringstream &ss, const char *shortName, const char *longName,
                                  const MArgType argType1) {
     registerFlag(ss, shortName, longName, false, argType1);
 }
 
-void SyntaxFactory::registerFlag(std::stringstream &ss, const char *shortName,
-                                 const char *longName, const bool isMultiUse,
-                                 const MArgType argType1) {
+void SyntaxFactory::registerFlag(std::stringstream &ss, const char *shortName, const char *longName,
+                                 const bool isMultiUse, const MArgType argType1) {
     // short-name should be unique
     assert(m_argNames.find(shortName) == m_argNames.end());
 
@@ -256,8 +235,7 @@ void SyntaxFactory::registerFlag(std::stringstream &ss, const char *shortName,
 
 class ArgChecker {
   public:
-    ArgChecker(const MSyntax &syntax, const MArgList &argList, MStatus &status)
-        : adb(syntax, argList, &status) {
+    ArgChecker(const MSyntax &syntax, const MArgList &argList, MStatus &status) : adb(syntax, argList, &status) {
         // TODO: How to provide more error information about what arguments are
         // wrong?
         throwOnFailure(status, "Invalid arguments");
@@ -267,14 +245,11 @@ class ArgChecker {
         throwOnFailure(adb.getObjects(selection), "failed to get selection");
 
         if (selection.length() < 1)
-            throwOnFailure(MStatus::kInvalidParameter,
-                           "At least one object must be selected or passed to "
-                           "the command");
+            throwOnFailure(MStatus::kInvalidParameter, "At least one object must be selected or passed to "
+                                                       "the command");
     }
 
-    MeshSemanticSet
-    getSemanticSet(const char *shortName,
-                   const Semantic::SemanticKinds &defaultKinds) const {
+    MeshSemanticSet getSemanticSet(const char *shortName, const Semantic::SemanticKinds &defaultKinds) const {
         MeshSemanticSet semantics;
 
         // Always include position
@@ -305,13 +280,10 @@ class ArgChecker {
         return result;
     }
 
-    int flagUsageCount(const char *shortName) const {
-        return adb.numberOfFlagUses(shortName);
-    }
+    int flagUsageCount(const char *shortName) const { return adb.numberOfFlagUses(shortName); }
 
     template <typename T>
-    void required(const char *shortName, T &value, const int flagIndex = 0,
-                  const int componentIndex = 0) const {
+    void required(const char *shortName, T &value, const int flagIndex = 0, const int componentIndex = 0) const {
         MStatus status;
 
         if (!isFlagSet(shortName))
@@ -319,29 +291,20 @@ class ArgChecker {
 
         if (flagUsageCount(shortName) == 1) {
             status = adb.getFlagArgument(shortName, componentIndex, value);
-            throwOnArgument(status, shortName,
-                            "Failed to get required argument");
+            throwOnArgument(status, shortName, "Failed to get required argument");
         } else {
             MArgList args;
             status = adb.getFlagArgumentList(shortName, flagIndex, args);
-            throwOnArgument(
-                status, shortName,
-                formatted("Failed to get required multi-flag #%d argument",
-                          flagIndex)
-                    .c_str());
+            throwOnArgument(status, shortName,
+                            formatted("Failed to get required multi-flag #%d argument", flagIndex).c_str());
             status = args.get(componentIndex, value);
-            throwOnArgument(
-                status, shortName,
-                formatted(
-                    "Failed to get required multi-flag #%d argument value",
-                    flagIndex)
-                    .c_str());
+            throwOnArgument(status, shortName,
+                            formatted("Failed to get required multi-flag #%d argument value", flagIndex).c_str());
         }
     }
 
     template <typename T>
-    bool optional(const char *shortName, T &value, const int flagIndex = 0,
-                  const int componentIndex = 0) const {
+    bool optional(const char *shortName, T &value, const int flagIndex = 0, const int componentIndex = 0) const {
         if (!adb.isFlagSet(shortName))
             return false;
 
@@ -349,23 +312,15 @@ class ArgChecker {
 
         if (flagUsageCount(shortName) == 1) {
             status = adb.getFlagArgument(shortName, componentIndex, value);
-            throwOnArgument(status, shortName,
-                            "Failed to get optional argument");
+            throwOnArgument(status, shortName, "Failed to get optional argument");
         } else {
             MArgList args;
             status = adb.getFlagArgumentList(shortName, flagIndex, args);
-            throwOnArgument(
-                status, shortName,
-                formatted("Failed to get optional multi-flag #%d argument",
-                          flagIndex)
-                    .c_str());
+            throwOnArgument(status, shortName,
+                            formatted("Failed to get optional multi-flag #%d argument", flagIndex).c_str());
             status = args.get(componentIndex, value);
-            throwOnArgument(
-                status, shortName,
-                formatted(
-                    "Failed to get optional multi-flag #%d argument value",
-                    flagIndex)
-                    .c_str());
+            throwOnArgument(status, shortName,
+                            formatted("Failed to get optional multi-flag #%d argument value", flagIndex).c_str());
         }
 
         return true;
@@ -379,38 +334,31 @@ class ArgChecker {
         return true;
     }
 
-    bool optional(const char *shortName, MSelectionList &list) const {
+    bool optional(const char *shortName, MSelectionList &list, int argIndex = 0) const {
         if (!adb.isFlagSet(shortName))
             return false;
 
-        adb.getFlagArgument(shortName, 0, list);
+        adb.getFlagArgument(shortName, argIndex, list);
         return true;
     }
 
-    std::unique_ptr<IndentableStream>
-    getOutputStream(const char *arg, const char *outputName,
-                    const fs::path &outputFolder,
-                    std::ofstream &fileOutputStream) const {
+    std::unique_ptr<IndentableStream> getOutputStream(const char *arg, const char *outputName,
+                                                      const fs::path &outputFolder,
+                                                      std::ofstream &fileOutputStream) const {
         std::ostream *out = nullptr;
 
         if (adb.isFlagSet(arg)) {
             MString argPath;
-            if (adb.getFlagArgument(arg, 0, argPath).error() ||
-                argPath.toLowerCase() == "console") {
+            if (adb.getFlagArgument(arg, 0, argPath).error() || argPath.toLowerCase() == "console") {
                 out = &cout;
-            } else if (argPath.length() == 0 ||
-                       argPath.substring(0, 0) == "-") {
-                throwInvalid(arg,
-                             "requires an output filepath argument, or just "
-                             "'console' to print to Maya's console window");
+            } else if (argPath.length() == 0 || argPath.substring(0, 0) == "-") {
+                throwInvalid(arg, "requires an output filepath argument, or just "
+                                  "'console' to print to Maya's console window");
             } else {
                 const fs::path argumentPath(argPath.asChar());
-                const fs::path absolutePath = argumentPath.is_relative()
-                                                  ? outputFolder / argumentPath
-                                                  : argumentPath;
+                const fs::path absolutePath = argumentPath.is_relative() ? outputFolder / argumentPath : argumentPath;
 
-                cout << prefix << "Writing " << outputName << " output to file "
-                     << absolutePath << endl;
+                cout << prefix << "Writing " << outputName << " output to file " << absolutePath << endl;
 
                 fileOutputStream.open(absolutePath);
                 out = &fileOutputStream;
@@ -424,43 +372,33 @@ class ArgChecker {
         if (status.error()) {
             const auto statusStr = status.errorString().asChar();
             const auto usageStr = SyntaxFactory::get().usage();
-            throw MayaException(
-                status,
-                formatted("%s (%s)\nUsage:\n%s", message, statusStr, usageStr));
+            throw MayaException(status, formatted("%s (%s)\nUsage:\n%s", message, statusStr, usageStr));
         }
     }
 
     static void throwUsage(const char *message) {
         const auto usageStr = SyntaxFactory::get().usage();
-        throw MayaException(MStatus::kFailure,
-                            formatted("%s\nUsage:\n%s", message, usageStr));
+        throw MayaException(MStatus::kFailure, formatted("%s\nUsage:\n%s", message, usageStr));
     }
 
-    static void throwOnArgument(const MStatus &status, const char *shortArgName,
-                                const char *message = nullptr) {
+    static void throwOnArgument(const MStatus &status, const char *shortArgName, const char *message = nullptr) {
         if (status.error()) {
-            const auto longArgName =
-                SyntaxFactory::get().longArgName(shortArgName);
+            const auto longArgName = SyntaxFactory::get().longArgName(shortArgName);
             const auto statusStr = status.errorString().asChar();
             const auto usageStr = SyntaxFactory::get().usage();
             throw MayaException(
-                status,
-                message
-                    ? formatted("-%s (-%s): %s\nUsage:\n%s", shortArgName,
-                                longArgName, statusStr, usageStr)
-                    : formatted("-%s (-%s): %s %s\nUsage:\n%s", shortArgName,
-                                longArgName, message, statusStr, usageStr));
+                status, message ? formatted("-%s (-%s): %s\nUsage:\n%s", shortArgName, longArgName, statusStr, usageStr)
+                                : formatted("-%s (-%s): %s %s\nUsage:\n%s", shortArgName, longArgName, message,
+                                            statusStr, usageStr));
         }
     }
 
-    static void throwInvalid(const char *shortArgName,
-                             const char *message = "Invalid parameter") {
+    static void throwInvalid(const char *shortArgName, const char *message = "Invalid parameter") {
         const auto longArgName = SyntaxFactory::get().longArgName(shortArgName);
         const auto usageStr = SyntaxFactory::get().usage();
 
         throw MayaException(MStatus::kInvalidParameter,
-                            formatted("%s -%s (%s)\nUsage:\n%s", message,
-                                      shortArgName, longArgName, usageStr));
+                            formatted("%s -%s (%s)\nUsage:\n%s", message, shortArgName, longArgName, usageStr));
     }
 
   private:
@@ -481,8 +419,7 @@ Arguments::Arguments(const MArgList &args, const MSyntax &syntax) {
 
     MStringArray skippedObjects;
 
-    for (uint selectionIndex = 0; selectionIndex < userSelection.length();
-         ++selectionIndex) {
+    for (uint selectionIndex = 0; selectionIndex < userSelection.length(); ++selectionIndex) {
         MDagPath dagPath;
         status = userSelection.getDagPath(selectionIndex, dagPath);
 
@@ -490,19 +427,15 @@ Arguments::Arguments(const MArgList &args, const MSyntax &syntax) {
             if (visibleNodesOnly && !dagPath.isVisible()) {
                 skippedObjects.append(dagPath.partialPathName());
             } else {
-                select(meshShapes, dagPath, !selectedNodesOnly,
-                       !visibleNodesOnly);
+                select(meshShapes, cameraShapes, dagPath, !selectedNodesOnly, !visibleNodesOnly);
             }
         } else {
-            MayaException::printError(
-                formatted("Failed to get DAG path of selected object #%d\n",
-                          selectionIndex));
+            MayaException::printError(formatted("Failed to get DAG path of selected object #%d\n", selectionIndex));
         }
     }
 
     if (skippedObjects.length() > 0) {
-        cout << prefix << "WARNING: -visibleNodesOnly will skip "
-             << skippedObjects << endl;
+        cout << prefix << "WARNING: -visibleNodesOnly will skip " << skippedObjects << endl;
     }
 
     adb.required(flag::outputFolder, outputFolder);
@@ -514,10 +447,8 @@ Arguments::Arguments(const MArgList &args, const MSyntax &syntax) {
     glb = adb.isFlagSet(flag::binary);
 
     const fs::path outputFolderPath(outputFolder.asChar());
-    m_mayaOutputStream = adb.getOutputStream(
-        flag::dumpMaya, "Maya debug", outputFolderPath, m_mayaOutputFileStream);
-    m_gltfOutputStream = adb.getOutputStream(
-        flag::dumpGLTF, "glTF debug", outputFolderPath, m_gltfOutputFileStream);
+    m_mayaOutputStream = adb.getOutputStream(flag::dumpMaya, "Maya debug", outputFolderPath, m_mayaOutputFileStream);
+    m_gltfOutputStream = adb.getOutputStream(flag::dumpGLTF, "glTF debug", outputFolderPath, m_gltfOutputFileStream);
 
     dumpMaya = m_mayaOutputStream.get();
     dumpGLTF = m_gltfOutputStream.get();
@@ -538,8 +469,7 @@ Arguments::Arguments(const MArgList &args, const MSyntax &syntax) {
     skipBlendShapes = adb.isFlagSet(flag::skipBlendShapes);
     redrawViewport = adb.isFlagSet(flag::redrawViewport);
     excludeUnusedTexcoord = adb.isFlagSet(flag::excludeUnusedTexcoord);
-    ignoreSegmentScaleCompensation =
-        adb.isFlagSet(flag::ignoreSegmentScaleCompensation);
+    ignoreSegmentScaleCompensation = adb.isFlagSet(flag::ignoreSegmentScaleCompensation);
     keepShapeNodes = adb.isFlagSet(flag::keepShapeNodes);
     bakeScalingFactor = adb.isFlagSet(flag::bakeScalingFactor);
     forceRootNode = adb.isFlagSet(flag::forceRootNode);
@@ -547,8 +477,7 @@ Arguments::Arguments(const MArgList &args, const MSyntax &syntax) {
     hashBufferURIs = adb.isFlagSet(flag::hashBufferURIs);
     niceBufferURIs = adb.isFlagSet(flag::niceBufferURIs);
     convertUnsupportedImages = adb.isFlagSet(flag::convertUnsupportedImages);
-    reportSkewedInverseBindMatrices =
-        adb.isFlagSet(flag::reportSkewedInverseBindMatrices);
+    reportSkewedInverseBindMatrices = adb.isFlagSet(flag::reportSkewedInverseBindMatrices);
     clearOutputWindow = adb.isFlagSet(flag::clearOutputWindow);
 
     adb.optional(flag::globalOpacityFactor, opacityFactor);
@@ -568,10 +497,8 @@ Arguments::Arguments(const MArgList &args, const MSyntax &syntax) {
         sceneName = fileName.substr(0, lastindex).c_str();
     }
 
-    mikkelsenTangentAngularThreshold =
-        adb.isFlagSet(flag::mikkelsenTangentSpace) ? 180.0f : 0.0f;
-    adb.optional(flag::mikkelsenTangentAngularThreshold,
-                 mikkelsenTangentAngularThreshold);
+    mikkelsenTangentAngularThreshold = adb.isFlagSet(flag::mikkelsenTangentSpace) ? 180.0f : 0.0f;
+    adb.optional(flag::mikkelsenTangentAngularThreshold, mikkelsenTangentAngularThreshold);
 
     debugTangentVectors = adb.isFlagSet(flag::debugTangentVectors);
     debugNormalVectors = adb.isFlagSet(flag::debugNormalVectors);
@@ -583,36 +510,29 @@ Arguments::Arguments(const MArgList &args, const MSyntax &syntax) {
     adb.optional(flag::glbFileExtension, glbFileExtension);
 
     // Parse mesh deformers to ignore
-    const auto deformerNameCount =
-        adb.flagUsageCount(flag::ignoreMeshDeformers);
-    for (auto deformerNameIndex = 0; deformerNameIndex < deformerNameCount;
-         ++deformerNameIndex) {
+    const auto deformerNameCount = adb.flagUsageCount(flag::ignoreMeshDeformers);
+    for (auto deformerNameIndex = 0; deformerNameIndex < deformerNameCount; ++deformerNameIndex) {
         MString deformerName;
-        adb.required(flag::ignoreMeshDeformers, deformerName,
-                     deformerNameIndex);
+        adb.required(flag::ignoreMeshDeformers, deformerName, deformerNameIndex);
         ignoreMeshDeformers.add(deformerName);
     }
 
     // Parse mesh primitive attributes
-    meshPrimitiveAttributes =
-        adb.getSemanticSet(flag::meshPrimitiveAttributes, Semantic::kinds());
-    blendPrimitiveAttributes = adb.getSemanticSet(
-        flag::blendPrimitiveAttributes, Semantic::blendShapeKinds());
+    meshPrimitiveAttributes = adb.getSemanticSet(flag::meshPrimitiveAttributes, Semantic::kinds());
+    blendPrimitiveAttributes = adb.getSemanticSet(flag::blendPrimitiveAttributes, Semantic::blendShapeKinds());
 
     // Parse animation clips
     const auto clipCount = adb.flagUsageCount(flag::animationClipName);
     animationClips.reserve(clipCount);
 
-    initialValuesTime =
-        clipCount > 0 ? MTime(0, MTime::kSeconds) : MAnimControl::currentTime();
+    initialValuesTime = clipCount > 0 ? MTime(0, MTime::kSeconds) : MAnimControl::currentTime();
     adb.optional(flag::initialValuesTime, initialValuesTime);
 
     const auto fpsCount = adb.flagUsageCount(flag::animationClipFrameRate);
 
     for (int clipIndex = 0; clipIndex < clipCount; ++clipIndex) {
         double fps;
-        adb.required(flag::animationClipFrameRate, fps,
-                     fpsCount == 1 ? 0 : clipIndex);
+        adb.required(flag::animationClipFrameRate, fps, fpsCount == 1 ? 0 : clipIndex);
 
         MString name;
         adb.required(flag::animationClipName, name, clipIndex);
@@ -628,65 +548,72 @@ Arguments::Arguments(const MArgList &args, const MSyntax &syntax) {
 
     // Sort clips by starting time.
     std::sort(animationClips.begin(), animationClips.end(),
-              [](const AnimClipArg &left, const AnimClipArg &right) {
-                  return left.startTime < right.endTime;
-              });
+              [](const AnimClipArg &left, const AnimClipArg &right) { return left.startTime < right.endTime; });
 
     // Print the animation clips
     for (const auto &clip : animationClips) {
-        cout << prefix << "Exporting clip " << clip.name
-             << ", start:" << clip.startTime << ", end: " << clip.endTime
-             << ", duration:" << clip.duration()
-             << ", frames: " << clip.frameCount()
+        cout << prefix << "Exporting clip " << clip.name << ", start:" << clip.startTime << ", end: " << clip.endTime
+             << ", duration:" << clip.duration() << ", frames: " << clip.frameCount()
              << ", rate: " << clip.framesPerSecond << "fps" << endl;
     }
 
-    // Get cameras to export
-    MSelectionList cameraList;
-    adb.optional(flag::cameras, cameraList);
+    // Get extra cameras to export
+    const auto extraCameraCount = adb.flagUsageCount(flag::cameras);
 
-    for (unsigned i = 0; i < cameraList.length(); ++i) {
-        MDagPath dagPath;
-        cameraList.getDagPath(i, dagPath);
-
-        if (!dagPath.hasFn(MFn::kTransform)) {
-            cerr << prefix << "Skipping " << dagPath.partialPathName()
-                 << ", it is not a camera transform" << endl;
+    for (auto flagIndex = 0; flagIndex < extraCameraCount; ++flagIndex) {
+        MString cameraPattern;
+        if (!adb.optional(flag::cameras, cameraPattern, flagIndex)) {
             continue;
         }
 
-        unsigned shapeCount;
-        status = dagPath.numberOfShapesDirectlyBelow(shapeCount);
-        if (!status) {
-            cerr << prefix << "Skipping " << dagPath.partialPathName()
-                 << ", it has no shapes attached to it" << endl;
+        MSelectionList cameraSelection;
+        if (!cameraSelection.add(cameraPattern)) {
+            cerr << prefix << "Skipping " << cameraPattern << ", it doesn't match any object" << endl;
             continue;
         }
 
-        bool foundCameraShape = false;
-
-        for (auto shapeIndex = 0U; shapeIndex < shapeCount; ++shapeIndex) {
-            MDagPath shapePath = dagPath;
-            status = shapePath.extendToShapeDirectlyBelow(shapeIndex);
-            if (!status)
+        for (unsigned i = 0; i < cameraSelection.length(); ++i) {
+            MDagPath dagPath;
+            if (!cameraSelection.getDagPath(i, dagPath)) {
+                cerr << prefix << "Skipping " << cameraPattern << " matched object #" << i << endl;
                 continue;
+            }
 
-            MFnCamera camera(shapePath, &status);
-            if (!status)
+            if (!dagPath.hasFn(MFn::kTransform)) {
+                cerr << prefix << "Skipping " << dagPath.partialPathName() << ", it is not a camera transform" << endl;
                 continue;
+            }
 
-            cameraShapes.insert(shapePath);
-            foundCameraShape = true;
+            unsigned shapeCount;
+            status = dagPath.numberOfShapesDirectlyBelow(shapeCount);
+            if (!status) {
+                cerr << prefix << "Skipping " << dagPath.partialPathName() << ", it has no shapes attached to it"
+                     << endl;
+                continue;
+            }
+
+            bool foundCameraShape = false;
+
+            for (auto shapeIndex = 0U; shapeIndex < shapeCount; ++shapeIndex) {
+                MDagPath shapePath = dagPath;
+                status = shapePath.extendToShapeDirectlyBelow(shapeIndex);
+                if (!status)
+                    continue;
+
+                MFnCamera camera(shapePath, &status);
+                if (!status)
+                    continue;
+
+                cameraShapes.insert(shapePath);
+                foundCameraShape = true;
+            }
+
+            if (!foundCameraShape) {
+                cerr << prefix << "Skipping " << dagPath.partialPathName() << ", it has no cameras attached to it"
+                     << endl;
+                continue;
+            }
         }
-
-        if (!foundCameraShape) {
-            cerr << prefix << "Skipping " << dagPath.partialPathName()
-                 << ", it has no cameras attached to it" << endl;
-            continue;
-        }
-
-        cout << prefix << "Included camera " << dagPath.partialPathName()
-             << endl;
     }
 
     // for (int i = 0; i < cameraCount; ++i)
@@ -696,13 +623,19 @@ Arguments::Arguments(const MArgList &args, const MSyntax &syntax) {
     //    cameras.add(camera);
     //}
 
-    cout << prefix << "Exporting";
-
+    cout << prefix << "Exporting shapes:";
     for (auto &path : meshShapes) {
         cout << " " << path.partialPathName();
     }
+    cout << endl;
 
-    cout << " to " << outputFolder << "/" << sceneName << "..." << endl;
+    cout << prefix << "Exporting cameras:";
+    for (auto &path : cameraShapes) {
+        cout << " " << path.partialPathName();
+    }
+    cout << endl;
+
+    cout << prefix << "Exporting to " << outputFolder << "/" << sceneName << "..." << endl;
 }
 
 Arguments::~Arguments() {
@@ -717,9 +650,8 @@ Arguments::~Arguments() {
     }
 }
 
-void Arguments::select(Selection &selection, const MDagPath &dagPath,
-                       const bool includeDescendants,
-                       const bool includeInvisibleNodes) {
+void Arguments::select(Selection &shapeSelection, Selection &cameraSelection, const MDagPath &dagPath,
+                       const bool includeDescendants, const bool includeInvisibleNodes) {
     MStatus status;
 
     std::string debugName{dagPath.partialPathName().asChar()};
@@ -730,30 +662,46 @@ void Arguments::select(Selection &selection, const MDagPath &dagPath,
             status = dagPath.numberOfShapesDirectlyBelow(shapeCount);
 
             if (status) {
-                for (auto shapeIndex = 0U; shapeIndex < shapeCount;
-                     ++shapeIndex) {
+                for (auto shapeIndex = 0U; shapeIndex < shapeCount; ++shapeIndex) {
                     MDagPath shapePath = dagPath;
                     status = shapePath.extendToShapeDirectlyBelow(shapeIndex);
                     if (status) {
-                        // Do not include intermediate meshes
                         MFnMesh mesh(shapePath, &status);
+                        // Do not include intermediate meshes
                         if (status && !mesh.isIntermediateObject()) {
-                            selection.insert(shapePath);
+                            shapeSelection.insert(shapePath);
+                        }
+
+                        MFnCamera camera(shapePath, &status);
+                        // Do not include intermediate cameras
+                        if (status && !camera.isIntermediateObject()) {
+                            cameraSelection.insert(shapePath);
                         }
                     }
                 }
             }
         } else if (dagPath.hasFn(MFn::kMesh)) {
-            // Do not include intermediate meshes
             MFnMesh mesh(dagPath, &status);
+            // Do not include intermediate meshes
             if (status && !mesh.isIntermediateObject()) {
                 MDagPath shapePath;
                 status = mesh.getPath(shapePath);
                 if (status) {
-                    selection.insert(shapePath);
+                    shapeSelection.insert(shapePath);
                 } else {
-                    cerr << prefix << "Failed to get DAG path of "
-                         << mesh.partialPathName() << endl;
+                    cerr << prefix << "Failed to get DAG path of " << mesh.partialPathName() << endl;
+                }
+            }
+        } else if (dagPath.hasFn(MFn::kCamera)) {
+            MFnCamera camera(dagPath, &status);
+            // Do not include intermediate cameras
+            if (status && !camera.isIntermediateObject()) {
+                MDagPath cameraPath;
+                status = camera.getPath(cameraPath);
+                if (status) {
+                    cameraSelection.insert(cameraPath);
+                } else {
+                    cerr << prefix << "Failed to get DAG path of " << camera.partialPathName() << endl;
                 }
             }
         }
@@ -767,16 +715,13 @@ void Arguments::select(Selection &selection, const MDagPath &dagPath,
                 MDagPath childDagPath = dagPath;
                 status = childDagPath.push(child);
                 THROW_ON_FAILURE(status);
-                select(selection, childDagPath, includeDescendants,
-                       includeInvisibleNodes);
+                select(shapeSelection, cameraSelection, childDagPath, includeDescendants, includeInvisibleNodes);
             }
         }
     }
 }
 
-MTime AnimClipArg::duration() const {
-    return MTime(frameCount() * (1.0 / framesPerSecond), MTime::kSeconds);
-}
+MTime AnimClipArg::duration() const { return MTime(frameCount() * (1.0 / framesPerSecond), MTime::kSeconds); }
 
 int AnimClipArg::frameCount() const {
     const auto exactStartFrame = startTime.as(MTime::kSeconds) * framesPerSecond;
