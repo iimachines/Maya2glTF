@@ -135,9 +135,8 @@ class Arguments {
      * row one component, for debugging */
     bool dumpAccessorComponents = false;
 
-    /** Embed all resources in the GLTF file? By default a separate GLTF JSON
-     * and binary BIN file is exported */
-    bool embedded = false;
+    /** When exporting as GLB, don't embed textures in the GLB file? */
+    bool externalTextures = false;
 
     /** By default the Maya node names are assigned to the GLTF node names */
     bool disableNameAssignment = false;

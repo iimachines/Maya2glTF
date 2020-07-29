@@ -13,13 +13,10 @@
 using GLTF::Constants::WebGL;
 
 struct MStringComparer {
-    bool operator()(const MString &a, const MString &b) const {
-        return strcmp(a.asChar(), b.asChar()) < 0;
-    }
+    bool operator()(const MString &a, const MString &b) const { return strcmp(a.asChar(), b.asChar()) < 0; }
 };
 
-ExportableAsset::ExportableAsset(const Arguments &args)
-    : m_resources{args}, m_scene{m_resources} {
+ExportableAsset::ExportableAsset(const Arguments &args) : m_resources{args}, m_scene{m_resources} {
     m_glAsset.scenes.push_back(&m_scene.glScene);
     m_glAsset.scene = 0;
 
@@ -56,18 +53,14 @@ ExportableAsset::ExportableAsset(const Arguments &args)
     uiSetupProgress(progressStepCount);
 
     for (auto &dagPath : args.meshShapes) {
-        uiAdvanceProgress(std::string("exporting mesh ") +
-                          dagPath.partialPathName().asChar());
-        cout << prefix << "Processing mesh '"
-             << dagPath.partialPathName().asChar() << "' ..." << endl;
+        uiAdvanceProgress(std::string("exporting mesh ") + dagPath.partialPathName().asChar());
+        cout << prefix << "Processing mesh '" << dagPath.partialPathName().asChar() << "' ..." << endl;
         m_scene.getNode(dagPath);
     }
 
     for (auto &dagPath : args.cameraShapes) {
-        uiAdvanceProgress(std::string("exporting camera") +
-                          dagPath.partialPathName().asChar());
-        cout << prefix << "Processing camera '"
-             << dagPath.partialPathName().asChar() << "' ..." << endl;
+        uiAdvanceProgress(std::string("exporting camera") + dagPath.partialPathName().asChar());
+        cout << prefix << "Processing camera '" << dagPath.partialPathName().asChar() << "' ..." << endl;
         m_scene.getNode(dagPath);
     }
 
@@ -82,8 +75,7 @@ ExportableAsset::ExportableAsset(const Arguments &args)
     if (clipCount) {
         for (auto &clipArg : args.animationClips) {
             uiAdvanceProgress("exporting clip " + clipArg.name);
-            auto clip =
-                std::make_unique<ExportableClip>(args, clipArg, m_scene);
+            auto clip = std::make_unique<ExportableClip>(args, clipArg, m_scene);
             if (!clip->glAnimation.channels.empty()) {
                 m_glAsset.animations.push_back(&clip->glAnimation);
                 m_clips.emplace_back(std::move(clip));
@@ -129,8 +121,7 @@ ExportableAsset::ExportableAsset(const Arguments &args)
 
 ExportableAsset::~ExportableAsset() { uiTeardownProgress(); }
 
-ExportableAsset::Cleanup::Cleanup()
-    : currentTime{MAnimControl::currentTime()} {}
+ExportableAsset::Cleanup::Cleanup() : currentTime{MAnimControl::currentTime()} {}
 
 ExportableAsset::Cleanup::~Cleanup() { setCurrentTime(currentTime, true); }
 
@@ -138,19 +129,16 @@ const std::string &ExportableAsset::prettyJsonString() const {
     if (m_prettyJsonString.empty() && !m_rawJsonString.empty()) {
         // Pretty format the JSON
         rapidjson::Document jsonDocument;
-        const bool hasParseErrors =
-            jsonDocument.Parse(m_rawJsonString.c_str()).HasParseError();
+        const bool hasParseErrors = jsonDocument.Parse(m_rawJsonString.c_str()).HasParseError();
 
         if (hasParseErrors) {
-            cerr << prefix
-                 << "Failed to reformat glTF JSON, outputting raw JSON" << endl;
+            cerr << prefix << "Failed to reformat glTF JSON, outputting raw JSON" << endl;
             m_prettyJsonString = m_rawJsonString;
         } else {
             rapidjson::StringBuffer jsonPrettyBuffer;
 
             // Write the pretty JSON
-            rapidjson::PrettyWriter<rapidjson::StringBuffer> jsonPrettyWriter(
-                jsonPrettyBuffer);
+            rapidjson::PrettyWriter<rapidjson::StringBuffer> jsonPrettyWriter(jsonPrettyBuffer);
             jsonDocument.Accept(jsonPrettyWriter);
             m_prettyJsonString = jsonPrettyBuffer.GetString();
         }
@@ -176,8 +164,7 @@ void ExportableAsset::save() {
         if (!errorCode)
             break;
 
-        std::cerr << prefix << "Waiting for " << outputFolder
-                  << " to be created..." << endl;
+        std::cerr << prefix << "Waiting for " << outputFolder << " to be created..." << endl;
 
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
@@ -185,20 +172,23 @@ void ExportableAsset::save() {
     // Last try, this will throw an exception if it fails.
     create_directories(outputFolder);
 
-    const auto embed = args.glb || args.embedded;
-
     const auto allAccessors = m_glAsset.getAllAccessors();
 
     if (args.dumpAccessorComponents) {
         dumpAccessorComponents(allAccessors);
     }
 
+    GLTF::Options options;
+    options.embeddedBuffers = args.glb;
+    options.embeddedShaders = args.glb;
+    options.embeddedTextures = args.glb && !args.externalTextures;
+    options.name = args.sceneName.asChar();
+    options.binary = args.glb;
+
     AccessorPacker bufferPacker;
 
     PackedBufferMap packedBufferMap;
 
-    // NOTE: when exporting glb, we always merge everything into a single/
-    // buffer.
     if (!args.glb && !args.separateAccessorBuffers && args.splitMeshAnimation) {
         // Combine mesh and clip accessors into two separate buffers
 
@@ -212,8 +202,7 @@ void ExportableAsset::save() {
         // Flatten mesh accessors into a set.
         std::set<GLTF::Accessor *> meshAccessorSet;
         for (auto &pair : meshAccessorsPerDagPath) {
-            std::copy(pair.second.begin(), pair.second.end(),
-                      std::inserter(meshAccessorSet, meshAccessorSet.end()));
+            std::copy(pair.second.begin(), pair.second.end(), std::inserter(meshAccessorSet, meshAccessorSet.end()));
         }
 
         // Clip accessors = allAccessors - meshAccessorSet
@@ -223,13 +212,11 @@ void ExportableAsset::save() {
             }
         }
 
-        packMeshAccessors(meshAccessorsPerDagPath, bufferPacker,
-                          packedBufferMap, "/mesh");
+        packMeshAccessors(meshAccessorsPerDagPath, bufferPacker, packedBufferMap, "/mesh");
 
         // TODO: Also associate clips with dag-paths!
         const auto animBufferName = sceneName + "/anim";
-        const auto animBuffer =
-            bufferPacker.packAccessors(animAccessors, animBufferName);
+        const auto animBuffer = bufferPacker.packAccessors(animAccessors, animBufferName);
         if (animBuffer) {
             packedBufferMap[animBuffer] = animBufferName;
         }
@@ -237,46 +224,42 @@ void ExportableAsset::save() {
         // Keep every accessor separate, useful for debugging.
         auto index = 0;
         for (auto accessor : allAccessors) {
-            const auto name = accessor->name.empty()
-                                  ? "buffer" + std::to_string(index)
-                                  : accessor->name;
+            const auto name = accessor->name.empty() ? "buffer" + std::to_string(index) : accessor->name;
             accessor->bufferView->name = name;
             accessor->bufferView->buffer->name = name;
             packedBufferMap[accessor->bufferView->buffer] = name;
             ++index;
         }
     } else {
-        // Pack everything into a single buffer (default and glb case)
+        // Pack everything into a single buffer (default and glb case), except external textures
         const auto bufferName = sceneName + "/data";
 
         size_t imageBufferLength = 0;
 
         const auto images = m_glAsset.getAllImages();
 
-        if (args.glb) {
+        if (options.embeddedTextures) {
             // Allocate extra space for images.
             for (GLTF::Image *image : images) {
                 imageBufferLength += image->byteLength;
             }
         }
 
-        const auto buffer = bufferPacker.packAccessors(allAccessors, bufferName,
-                                                       imageBufferLength);
+        const auto buffer = bufferPacker.packAccessors(allAccessors, bufferName, imageBufferLength);
 
-        if (buffer && imageBufferLength) {
-            // Copy images to buffer, and create image buffer-views
-            size_t byteOffset = buffer->byteLength - imageBufferLength;
-            for (GLTF::Image *image : images) {
-                const auto bufferView =
-                    new GLTF::BufferView(byteOffset, image->byteLength, buffer);
-                image->bufferView = bufferView;
-                std::memcpy(buffer->data + byteOffset, image->data,
-                            image->byteLength);
-                byteOffset += image->byteLength;
+        if (buffer) {
+            if (imageBufferLength) {
+                // Copy images to buffer, and create image buffer-views
+                size_t byteOffset = buffer->byteLength - imageBufferLength;
+                for (GLTF::Image *image : images) {
+                    const auto bufferView = new GLTF::BufferView(byteOffset, image->byteLength, buffer);
+                    image->bufferView = bufferView;
+                    std::memcpy(buffer->data + byteOffset, image->data, image->byteLength);
+                    byteOffset += image->byteLength;
+                }
             }
+            packedBufferMap[buffer] = bufferName;
         }
-
-        packedBufferMap[buffer] = bufferName;
     }
 
     if (args.niceBufferURIs) {
@@ -304,8 +287,7 @@ void ExportableAsset::save() {
             auto buffer = pair.first;
 
             std::string hash_hex_str;
-            picosha2::hash256_hex_string(
-                buffer->data, buffer->data + buffer->byteLength, hash_hex_str);
+            picosha2::hash256_hex_string(buffer->data, buffer->data + buffer->byteLength, hash_hex_str);
 
             std::string filename = pair.second;
             makeValidFilename(filename);
@@ -322,21 +304,12 @@ void ExportableAsset::save() {
     rapidjson::Writer<rapidjson::StringBuffer> jsonWriter(jsonStringBuffer);
     jsonWriter.StartObject();
 
-    GLTF::Options options;
-    options.embeddedBuffers = embed;
-    options.embeddedShaders = embed;
-    options.embeddedTextures = embed;
-    options.name = args.sceneName.asChar();
-    options.binary = args.glb;
-
     m_glAsset.writeJSON(&jsonWriter, &options);
     jsonWriter.EndObject();
 
     m_rawJsonString = jsonStringBuffer.GetString();
 
-    const auto outputFilename =
-        args.sceneName + "." +
-        (args.glb ? args.glbFileExtension : args.gltfFileExtension);
+    const auto outputFilename = args.sceneName + "." + (args.glb ? args.glbFileExtension : args.gltfFileExtension);
     const auto outputPath = outputFolder / outputFilename.asChar();
 
     cout << prefix << "Writing glTF file to '" << outputPath << "'" << endl;
@@ -346,8 +319,7 @@ void ExportableAsset::save() {
             fs::path uri = outputFolder / image->uri;
             std::ofstream file;
             create(file, uri.generic_string(), ios::out | ios::binary);
-            file.write(reinterpret_cast<char *>(image->data),
-                       image->byteLength);
+            file.write(reinterpret_cast<char *>(image->data), image->byteLength);
             file.close();
         }
     }
@@ -359,8 +331,7 @@ void ExportableAsset::save() {
                 fs::path uri = outputFolder / buffer->uri;
                 std::ofstream file;
                 create(file, uri.generic_string(), ios::out | ios::binary);
-                file.write(reinterpret_cast<char *>(buffer->data),
-                           buffer->byteLength);
+                file.write(reinterpret_cast<char *>(buffer->data), buffer->byteLength);
                 file.close();
             }
         }
@@ -381,15 +352,11 @@ void ExportableAsset::save() {
         const auto &jsonString = m_rawJsonString;
 
         std::ofstream file;
-        create(file, outputPath.string(),
-               ios::out |
-                   (args.glb ? ios::binary : std::ios_base::openmode(0)));
+        create(file, outputPath.string(), ios::out | (args.glb ? ios::binary : std::ios_base::openmode(0)));
 
         if (args.glb) {
             assert(packedBufferMap.size() <= 1);
-            const auto maybeBuffer = packedBufferMap.empty()
-                                         ? nullptr
-                                         : packedBufferMap.begin()->first;
+            const auto maybeBuffer = packedBufferMap.empty() ? nullptr : packedBufferMap.begin()->first;
             const auto bufferLength = maybeBuffer ? maybeBuffer->byteLength : 0;
 
             file.write("glTF", 4); // magic header
@@ -404,17 +371,15 @@ void ExportableAsset::save() {
             const int headerLength = 12;
             const int chunkHeaderLength = 8;
 
-            writeHeader[1] =
-                headerLength + (chunkHeaderLength + jsonLength + jsonPadding) +
-                (chunkHeaderLength + bufferLength + binPadding); // length
+            writeHeader[1] = headerLength + (chunkHeaderLength + jsonLength + jsonPadding) +
+                             (chunkHeaderLength + bufferLength + binPadding); // length
 
             file.write(reinterpret_cast<char *>(writeHeader),
                        sizeof(uint32_t) * 2); // GLB header
 
             writeHeader[0] = jsonLength + jsonPadding; // chunkLength
             writeHeader[1] = 0x4E4F534A;               // chunkType JSON
-            file.write(reinterpret_cast<char *>(writeHeader),
-                       sizeof(uint32_t) * 2);
+            file.write(reinterpret_cast<char *>(writeHeader), sizeof(uint32_t) * 2);
 
             file.write(jsonString.c_str(), jsonLength);
             for (int i = 0; i < jsonPadding; i++) {
@@ -424,11 +389,9 @@ void ExportableAsset::save() {
             if (bufferLength) {
                 writeHeader[0] = bufferLength + binPadding; // chunkLength
                 writeHeader[1] = 0x004E4942;                // chunkType BIN
-                file.write(reinterpret_cast<char *>(writeHeader),
-                           sizeof(uint32_t) * 2);
+                file.write(reinterpret_cast<char *>(writeHeader), sizeof(uint32_t) * 2);
 
-                file.write(reinterpret_cast<char *>(maybeBuffer->data),
-                           bufferLength);
+                file.write(reinterpret_cast<char *>(maybeBuffer->data), bufferLength);
                 for (int i = 0; i < binPadding; i++) {
                     file.write("\0", 1);
                 }
@@ -449,9 +412,8 @@ void ExportableAsset::save() {
     }
 }
 
-void ExportableAsset::packMeshAccessors(
-    AccessorsPerDagPath &accessorsPerDagPath, AccessorPacker &packer,
-    PackedBufferMap &packedBufferMap, std::string nameSuffix) const {
+void ExportableAsset::packMeshAccessors(AccessorsPerDagPath &accessorsPerDagPath, AccessorPacker &packer,
+                                        PackedBufferMap &packedBufferMap, std::string nameSuffix) const {
     AccessorsPerDagPath remainingAccessorsPerDagPath = accessorsPerDagPath;
 
     const auto &args = m_resources.arguments();
@@ -481,8 +443,7 @@ void ExportableAsset::packMeshAccessors(
                 std::string fullName = pair.first.partialPathName().asChar();
                 if (refNodeSet.find(fullName) != refNodeSet.end()) {
                     remainingAccessorsPerDagPath.erase(pair.first);
-                    std::copy(pair.second.begin(), pair.second.end(),
-                              std::back_inserter(refAccessors));
+                    std::copy(pair.second.begin(), pair.second.end(), std::back_inserter(refAccessors));
                 }
             }
 
@@ -509,8 +470,7 @@ void ExportableAsset::packMeshAccessors(
         std::vector<GLTF::Accessor *> flatAccessors;
 
         for (auto &pair : remainingAccessorsPerDagPath) {
-            std::copy(pair.second.begin(), pair.second.end(),
-                      std::back_inserter(flatAccessors));
+            std::copy(pair.second.begin(), pair.second.end(), std::back_inserter(flatAccessors));
         }
 
         const auto bufferName = args.sceneName.asChar() + nameSuffix;
@@ -522,8 +482,7 @@ void ExportableAsset::packMeshAccessors(
     }
 }
 
-void ExportableAsset::create(std::ofstream &file, const std::string &path,
-                             const std::ios_base::openmode mode) {
+void ExportableAsset::create(std::ofstream &file, const std::string &path, const std::ios_base::openmode mode) {
     file.open(path, mode);
 
     if (!file.is_open()) {
@@ -534,8 +493,7 @@ void ExportableAsset::create(std::ofstream &file, const std::string &path,
 }
 
 template <typename T>
-void ExportableAsset::dumpAccessorComponentValues(
-    const GLTF::Accessor *accessor, int fileIndex, bool isInteger) const {
+void ExportableAsset::dumpAccessorComponentValues(const GLTF::Accessor *accessor, int fileIndex, bool isInteger) const {
     // NOTE: Because formatting with std::ostream is so slow,
     // we use the milo.h implementation for fast floating point printing.
     const auto &args = m_resources.arguments();
@@ -544,21 +502,18 @@ void ExportableAsset::dumpAccessorComponentValues(
     std::ofstream ofs;
     std::string filename = accessor->name;
     if (filename.empty()) {
-        filename = std::string(args.sceneName.asChar()) + "_" +
-                   std::to_string(fileIndex);
+        filename = std::string(args.sceneName.asChar()) + "_" + std::to_string(fileIndex);
     }
 
     makeValidFilename(filename);
 
-    ofs.open((outputFolder / (filename + ".txt")).c_str(),
-             std::ofstream::out | std::ofstream::binary);
+    ofs.open((outputFolder / (filename + ".txt")).c_str(), std::ofstream::out | std::ofstream::binary);
 
     const T *data = reinterpret_cast<T *>(accessor->bufferView->buffer->data);
 
     const int dimension = GLTF::Accessor::getNumberOfComponents(accessor->type);
 
-    const int rowBufferSize =
-        dimension * fmt::BUFFER_SIZE + 2 * (dimension + 1);
+    const int rowBufferSize = dimension * fmt::BUFFER_SIZE + 2 * (dimension + 1);
     const auto rowBuffer = static_cast<char *>(alloca(rowBufferSize));
 
     const auto colWidth = 16;
@@ -573,8 +528,7 @@ void ExportableAsset::dumpAccessorComponentValues(
             while (str < end)
                 *str++ = ' ';
             end = str + colWidth;
-            str = isInteger ? rapidjson::internal::i64toa(
-                                  static_cast<int64_t>(data[col]), str)
+            str = isInteger ? rapidjson::internal::i64toa(static_cast<int64_t>(data[col]), str)
                             : fmt::format_double(str, data[col], 8);
         }
 
@@ -590,8 +544,7 @@ void ExportableAsset::dumpAccessorComponentValues(
     ofs.close();
 }
 
-void ExportableAsset::dumpAccessorComponents(
-    const std::vector<GLTF::Accessor *> &accessors) const {
+void ExportableAsset::dumpAccessorComponents(const std::vector<GLTF::Accessor *> &accessors) const {
     int fileIndex = 0;
 
     for (auto &&accessor : accessors) {
@@ -607,10 +560,9 @@ void ExportableAsset::dumpAccessorComponents(
             break;
         default:
             // TODO: Add support for other accessor component types.
-            MayaException::printError(
-                "Unsupported accessor component " +
-                    std::to_string(static_cast<int>(accessor->componentType)),
-                MStatus::kNotImplemented);
+            MayaException::printError("Unsupported accessor component " +
+                                          std::to_string(static_cast<int>(accessor->componentType)),
+                                      MStatus::kNotImplemented);
             break;
         }
 

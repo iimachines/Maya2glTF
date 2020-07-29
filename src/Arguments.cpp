@@ -17,7 +17,7 @@ const auto sceneName = "sn";
 const auto binary = "glb";
 const auto dumpMaya = "dmy";
 const auto dumpGLTF = "dgl";
-const auto embedded = "emb";
+const auto externalTextures = "ext";
 const auto copyright = "cpr";
 const auto splitMeshAnimation = "sma";
 const auto splitByReference = "sbr";
@@ -131,7 +131,7 @@ SyntaxFactory::SyntaxFactory() {
     registerFlag(ss, flag::dumpGLTF, "dumpGTLF", kString);
     registerFlag(ss, flag::dumpMaya, "dumpMaya", kString);
     registerFlag(ss, flag::dumpAccessorComponents, "dumpAccessorComponents", kNoArg);
-    registerFlag(ss, flag::embedded, "embedded", kNoArg);
+    registerFlag(ss, flag::externalTextures, "externalTextures", kNoArg);
     registerFlag(ss, flag::defaultMaterial, "defaultMaterial", kNoArg);
     registerFlag(ss, flag::colorizeMaterials, "colorizeMaterials", kNoArg);
     registerFlag(ss, flag::skipStandardMaterials, "skipStandardMaterials", kNoArg);
@@ -442,7 +442,6 @@ Arguments::Arguments(const MArgList &args, const MSyntax &syntax) {
     adb.optional(flag::scaleFactor, globalScaleFactor);
 
     cleanOutputFolder = adb.isFlagSet(flag::cleanOutputFolder);
-    ;
 
     glb = adb.isFlagSet(flag::binary);
 
@@ -454,7 +453,7 @@ Arguments::Arguments(const MArgList &args, const MSyntax &syntax) {
     dumpGLTF = m_gltfOutputStream.get();
     dumpAccessorComponents = adb.isFlagSet(flag::dumpAccessorComponents);
 
-    embedded = adb.isFlagSet(flag::embedded);
+    externalTextures = adb.isFlagSet(flag::externalTextures);
     splitMeshAnimation = adb.isFlagSet(flag::splitMeshAnimation);
     splitByReference = adb.isFlagSet(flag::splitByReference);
     separateAccessorBuffers = adb.isFlagSet(flag::separateAccessorBuffers);
