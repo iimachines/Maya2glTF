@@ -275,13 +275,11 @@ Maya interally uses a dataflow architecture (called the _dependency graph_). Thi
 
 I consider this plugin to be production quality now, but use it at your own risk :)
 
-- Supports **Maya 2016 EXT2, 2017, 2018, 2019** (64-bit only)
+- Supports **Maya 2017-2020** (64-bit only)
 
-  - Maya 2016 is a different product from Maya 2016 EXT2 and is **_not supported_**, since I can't find a compatible devkit for it.
+  - Maya 2016 is not supported any more
 
-- No Linux support yet
-
-  - the code is written using C++ 17 and CMake, so should be platform independent, so can be ported by people with this experience (PR welcome! :)
+- Linux support hasn't been tested a lot.
 
 - Supports **static and animated, skinned and morphed meshes**
 
