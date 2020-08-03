@@ -8,7 +8,7 @@ global proc shelf_glTF () {
         -enableCommandRepeat 1
         -enable 1
         -width 35
-        -height 34
+        -height 35
         -manage 1
         -visible 1
         -preventOverride 0
@@ -36,4 +36,35 @@ global proc shelf_glTF () {
         -flat 1
     ;
 
+    shelfButton
+        -enableCommandRepeat 1
+        -enable 1
+        -width 35
+        -height 35
+        -manage 1
+        -visible 1
+        -preventOverride 0
+        -annotation "Set logical glTF parent" 
+        -enableBackground 0
+        -backgroundColor 0 0 0 
+        -highlightColor 0.321569 0.521569 0.65098 
+        -align "center" 
+        -label "Set logical parent" 
+        -labelOffset 0
+        -rotation 0
+        -flipX 0
+        -flipY 0
+        -useAlpha 1
+        -overlayLabelColor 0.8 0.8 0.8 
+        -overlayLabelBackColor 0 0 0 0.5 
+        -image "Maya2glTF_SetLogicalParent.png" 
+        -image1 "Maya2glTF_SetLogicalParent.png" 
+        -style "iconOnly" 
+        -marginWidth 1
+        -marginHeight 1
+        -command "maya2glTF_SetLogicalParent();\n" 
+        -sourceType "mel" 
+        -commandRepeatable 1
+        -flat 1
+    ;
 } 
