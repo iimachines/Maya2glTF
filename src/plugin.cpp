@@ -12,8 +12,7 @@ static OutputStreamsPatch<char> patch;
 
 MStatus initializePlugin(MObject obj) {
     MStatus status;
-    MFnPlugin plugin(obj, "WonderMedia Maya to glTF 2.0 exporter", version,
-                     "Any");
+    MFnPlugin plugin(obj, "IIM Maya to glTF 2.0 exporter", version, "Any");
     status = plugin.registerCommand("maya2glTF", Exporter::createInstance,
                                     SyntaxFactory::createSyntax);
     CHECK_MSTATUS_AND_RETURN_IT(status);

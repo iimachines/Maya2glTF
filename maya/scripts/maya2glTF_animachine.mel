@@ -127,7 +127,7 @@ proc string _getAnimMetaData(string $animationName, string $attributes[], float 
 /** 
     Exports the animation metadata of the current scene. 
     
-    For now, the $sceneName will be parsed like WonderMedia's AnimationNow software, to extract the clip mood, kind etc.
+    For now, the $sceneName will be parsed like IIM's AnimationNow software, to extract the clip mood, kind etc.
     This should be replaced by custom attributes one day.
 
     The $clipName is the human friendly name of the clip. 

@@ -15,7 +15,7 @@ include(ExternalProject)
 # COLLADA2GLTF
 # We only need to build the GLTF sub-library, hence the SOURCE_SUBDIR
 ExternalProject_Add(COLLADA2GLTF
-  GIT_REPOSITORY https://github.com/WonderMediaProductions/COLLADA2GLTF
+  GIT_REPOSITORY https://github.com/iimachines/COLLADA2GLTF
   GIT_TAG Maya2glTF
   PREFIX COLLADA2GLTF
   SOURCE_SUBDIR GLTF

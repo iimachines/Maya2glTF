@@ -294,7 +294,7 @@ global proc maya2glTF_UI()
 
     window -title ("maya2glTF") maya2glTF_exporter_window;
 
-    string $header = "Copyright (C)" + $year + " wondermedia.tv         version " + maya2glTF_version();
+    string $header = "Copyright (C)" + $year + " IIM    version " + maya2glTF_version();
 
     string $frame = `frameLayout -mw 30 -mh 30 ($header)`;
 

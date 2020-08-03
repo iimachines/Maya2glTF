@@ -2,10 +2,19 @@
 
 ## News
 
-* Version 1.0 released for Windows! 
-  - Mac OS-X release will follow.
+* Version [1.0rc5 released](https://github.com/iimachines/Maya2glTF/releases) for Windows! 
 
-* Support for Maya 2019
+* Support for Maya 2017-2020
+
+* Added `-ext` option (`-externalTextures`) to keep textures outside of `glb` file
+
+* Cameras can be exported, either by selecting them, or by passing one or more by name with the `-cam <name>` flag
+
+* Skin weights are normalized to 1 now
+
+* Export node order is now deterministic
+
+* Fixed wrong exported frame count 
 
 * Added donet core tool to merge multiple GLTF files into one
   - This allows exporting one animation per Maya file
@@ -14,7 +23,7 @@
 
 * Exports small animation metadata JSON file.
 
-See the [releases](https://github.com/WonderMediaProductions/maya2glTF/releases) tab.
+See the [releases](https://github.com/iimachines/Maya2glTF/releases) tab.
 
 ![Maya Tiger screenshot](/img/tiger-wim@koetan.gif)
 
@@ -22,19 +31,19 @@ See the [releases](https://github.com/WonderMediaProductions/maya2glTF/releases)
 
 ## Installation
 
-- Supports Maya 2019, 2018 and 2017, Windows 10 x64 and macOS High Sierra
+- Supports Maya 2017-2020, Windows 10 x64, macOS High Sierra+ and Linux
 
 - *Windows 10 x64*
   - install the [Microsoft Visual C++ redistributables](https://go.microsoft.com/fwlink/?LinkId=746572).
     - on many systems this is already installed, so you might want to skip this step.
-  - download the desired [Maya2glTF_xxx.zip release](https://github.com/WonderMediaProductions/maya2glTF/releases)
+  - download the desired [release](https://github.com/iimachines/Maya2glTF/releases)
   - extract the downloaded `zip` file to any location (e.g. your desktop)
   - open the created `maya2glTF` folder
-  - double click on the `deploy.bat` file
+  - double click on the `deploy` batch file
     - This will copy the plug-in and scripts to your `Documents` folder
   - re-launch Maya 2017 or 2018
-- *macOS High Sierra*
-   - TODO
+- *macOS High Sierra* and *Linux*
+    - must currently be build from source, see below
 
 ## Usage
 
@@ -99,11 +108,11 @@ See the [releases](https://github.com/WonderMediaProductions/maya2glTF/releases)
 
 ## Rationale
 
-At **[Wonder Media](https://wondermedia.tv)**, we are specialized in creating realtime interactive 3D animation, for education, events and broadcast television, since 1992. We have developed our own multi-machine real-time 3D puppeteering software called **AnimationNow**, and we are about to upgrade this to make use of up-to-date rendering techniques.
+At **[IIM](https://www.iim.media)**, we are specialized in creating realtime interactive 3D animation, for web, education, events and broadcast television, since 1992. We have developed our own multi-machine real-time 3D puppeteering software called **AnimationNow**, and we are about to upgrade this to make use of up-to-date rendering techniques.
 
 If something goes wrong in our production pipeline, it usually is exporting our complex rigged Maya characters. In the past, we contributed both donations and patches to the open source OGRE exporter, but now we want to dig deep into the Maya API ourselves, so we can help out our artists if something goes wrong during the export.
 
-**[glTF 2.0](https://www.khronos.org/gltf)** seems to contain most of the features we need, and is extensible. IMHO [glTF](https://www.khronos.org/gltf) must become the defacto standard for animated 3D content. At [Wonder Media](https://wondermedia.tv), we plan to use [glTF](https://www.khronos.org/gltf) for all our 3D assets.
+**[glTF 2.0](https://www.khronos.org/gltf)** seems to contain most of the features we need, and is extensible. IMHO [glTF](https://www.khronos.org/gltf) must become the defacto standard for animated 3D content. At [IIM](https://www.iim.media), we plan to use [glTF](https://www.khronos.org/gltf) for all our 3D assets.
 
 ## Limitations
 
@@ -135,10 +144,14 @@ Maya interally uses a dataflow architecture (called the _dependency graph_). Thi
     - exports a single `glb` asset file
     - default is a JSON `glTF` and binary `bin` file containing the buffers
 
-  - `-embedded (-emb)` _(optional)_
+  - `-externalTextures (-ext)` _(optional)_
 
-    - embeds buffers into the `glTF` file, as base-64 encoded strings
-    - by default the buffers are stored in a separate `bin` file
+    - doesn't embed textures in the `glb` files. 
+    - only valid when exporting a `-glb`
+
+  - `-camera (-cam) STRING` _(optional, multiple)_
+
+    - exports camera given by name.
 
   - `-initialValuesTime (-ivt) TIME` _(optional)_
 
@@ -302,34 +315,31 @@ I consider this plugin to be production quality now, but use it at your own risk
 
 ## Building
 
-- Currently out-of-the-box downloads are only provided for Windows x64 and MacOS.
+- Currently out-of-the-box downloads are only provided for Windows x64 
 
   - _If you want to try the exporter, but you can't build it, give me a sign_
-
-  - No Linux or Windows 7 support, but it should be easily ported.
-    - Feel free to provide a PR :)
 
 - I assume you already installed a [GIT client](https://git-scm.com/downloads)
 
 - Some versions of Maya require a **[Maya devkit](https://www.autodesk.com/developer-network/platform-technologies/maya)**
-  - *Seems not needed for Maya 2018 and 2019*
+  - *Seems not needed for Maya 2018+*
 
 * Clone this repository
 
   - Open a command prompt (aka terminal), and run
 
   ```
-  git clone https://github.com/WonderMediaProductions/maya2glTF --branch master
+  git clone https://github.com/iimachines/Maya2glTF.git --branch master
   ```
 
 ### Building for **Windows**
-- Install **[Visual Studio 2017](https://www.visualstudio.com/downloads)**
+- Install **[Visual Studio 2019](https://www.visualstudio.com/downloads)**
 
   - Select at least the **C++ desktop development** payload
   - In the individual components tab, select:
     - the **Windows 8.1 SDK**
     - the **Windows Universal CRT SDK**
-  - This document was written for Visual Studio 2017 15.9.12, other versions might not work.
+  - This document was written for Visual Studio 2019, other versions might not work.
 
 - Install the Win64-x64 version of **[CMAKE](https://cmake.org)**
 
@@ -338,14 +348,15 @@ I consider this plugin to be production quality now, but use it at your own risk
 * Enter the `maya2glTF` folder, and run
 
   ```
-  windows_create_vs_project -D MAYA_VERSION=2018
+  windows_create_vs_project -D MAYA_VERSION=2020
   ```
 
+  - Change 2020 in the Maya version you want to target.
   - After a couple of seconds, a Visual Studio solution should be generated in the `build` folder.
 
 * Next build the `maya2glTF` plugin itself
 
-  - Launch Visual Studio 2017
+  - Launch Visual Studio 2019
 
   - Open the solution `maya2glTF\build\maya2glTF.sln`
 
@@ -354,6 +365,25 @@ I consider this plugin to be production quality now, but use it at your own risk
   - Build
 
   - If all goes well, the plugin and all scripts will be copied to your `%userprofile%\Documents\maya` folders
+
+### Building for **MacOS**
+    - install [XCode](https://www.apple.com/us/search/xcode) from the app-store
+    - install [CMake](https://cmake.org/download/)
+    - open a Terminal window
+        - See `Finder` `Utilities` `Terminal`
+    - clone this repository
+        - e.g. `git clone https://github.com/iimachines/Maya2glTF.git ~/Documents/Maya2glTF`
+    - enter the cloned directory
+        - e.g. `cd ~/Documents/Maya2glTF`
+    - create the build script by running
+        - `./osx_create_project.sh 2020`
+        - Replace 2020 with the Maya version you're targetting
+    - enter the generated `build` folder, and `make` the plugin
+        - `make`
+    - if all goes well, the plugin should be ready to be used.
+
+### Building for **Linux**
+    - TODO
 
 #### Testing the build
 
