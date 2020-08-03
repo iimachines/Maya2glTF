@@ -4,11 +4,9 @@
 
 ostream &prefix(ostream &stream) {
     std::time_t t = std::time(nullptr);
+    std::tm* buf = std::localtime(&t);
 
-    std::tm buf = {};
-    localtime_s(&buf, &t);
-
-    stream << "maya2glTF [" << std::put_time(&buf, "%T") << "] ";
+    stream << "maya2glTF [" << std::put_time(buf, "%T") << "] ";
     return stream;
 }
 
