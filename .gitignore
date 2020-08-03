@@ -2,5 +2,9 @@
 build
 packages
 export
+playblast*
 *.bck
 *.swatch
+*.pyc
+ipch
+.DS_Store

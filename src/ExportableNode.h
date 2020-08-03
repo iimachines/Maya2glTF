@@ -1,74 +1,95 @@
 #pragma once
 
-#include "ExportableObject.h"	
+#include "ExportableCamera.h"
 #include "ExportableMesh.h"
+#include "ExportableObject.h"
 #include "ExportableScene.h"
 #include "Transform.h"
 
-enum class TransformKind
-{
-	// A simple transform without segment scale compensation nor pivot point
-	Simple,
+enum class TransformKind {
+    // A simple transform without segment scale compensation nor pivot point
+    Simple,
 
-	// A joint with segment scale compensation
-	ComplexJoint,
+    // A joint with segment scale compensation
+    ComplexJoint,
 
-	// A transform with a pivot point
-	ComplexTransform
+    // A transform with a pivot point
+    ComplexTransform
 };
 
-class ExportableNode : public ExportableObject
-{
-public:
-	~ExportableNode();
-	
-	ExportableMesh* mesh() const { return m_mesh.get(); }
+class ExportableNode : public ExportableObject {
+  public:
+    ~ExportableNode();
 
-	const MDagPath dagPath;
+    // Mesh attached to node, or null
+    ExportableMesh *mesh() const { return m_mesh.get(); }
 
-	TransformKind transformKind = TransformKind::Simple;
+    // Camera attached to node, or null
+    ExportableCamera *camera() const { return m_camera.get(); }
 
-	double scaleFactor = 1.0;
+    bool hasAttachedShape() const { return m_mesh || m_camera; }
 
-	MPoint pivotPoint;
+    const MDagPath dagPath;
 
-	// nullptr for root nodes.
-	ExportableNode* parentNode = nullptr;
+    TransformKind transformKind = TransformKind::Simple;
 
-	NodeTransformState initialTransformState;
-	NodeTransformState currentTransformState;
+    double scaleFactor = 1.0;
 
-	std::unique_ptr<NodeAnimation> createAnimation(const ExportableFrames& frameTimes, const double scaleFactor) override;
+    MPoint pivotPoint;
 
-	// The primary node to represent the transform
-	// See Transform.h for details
-	GLTF::Node& glPrimaryNode() { return m_glNodes[0]; }
-	const GLTF::Node& glPrimaryNode() const { return const_cast<ExportableNode*>(this)->glPrimaryNode(); }
+    // nullptr for root nodes.
+    ExportableNode *parentNode = nullptr;
 
-	// The secondary node to represent the transform
-	// Can be the same as the primary node for simple transforms
-	// See Transform.h for details
-	GLTF::Node& glSecondaryNode() { return m_glNodes[transformKind != TransformKind::Simple]; }
-	const GLTF::Node& glSecondaryNode() const { return const_cast<ExportableNode*>(this)->glSecondaryNode(); }
+    NodeTransformState initialTransformState;
+    NodeTransformState currentTransformState;
 
-	MDagPath parentDagPath() const { return parentNode ? parentNode->dagPath : MDagPath(); }
+    std::unique_ptr<NodeAnimation>
+    createAnimation(const ExportableFrames &frameTimes,
+                    const double scaleFactor) override;
 
-	// Update the node transforms using the values at the current frame
-	void updateNodeTransforms(NodeTransformCache& transformCache);
+    // The primary node to represent the transform
+    // See Transform.h for details
+    GLTF::Node &glPrimaryNode() { return m_glNodes[0]; }
+    const GLTF::Node &glPrimaryNode() const {
+        return const_cast<ExportableNode *>(this)->glPrimaryNode();
+    }
 
-	// If this node is a redundant shape node, move the mesh to the parent node, and return true. 
-	bool tryMergeRedundantShapeNode();
+    // The secondary node to represent the transform
+    // Can be the same as the primary node for simple transforms
+    // See Transform.h for details
+    GLTF::Node &glSecondaryNode() {
+        return m_glNodes[transformKind != TransformKind::Simple];
+    }
+    const GLTF::Node &glSecondaryNode() const {
+        return const_cast<ExportableNode *>(this)->glSecondaryNode();
+    }
 
-private:
-	friend class ExportableScene;
+    MDagPath parentDagPath() const {
+        return parentNode ? parentNode->dagPath : MDagPath();
+    }
 
-	ExportableNode(const MDagPath& dagPath);
+    // Update the node transforms using the values at the current frame
+    void updateNodeTransforms(NodeTransformCache &transformCache);
 
-	void load(ExportableScene& scene, NodeTransformCache& transformCache);
+    // If this node is a redundant shape node, move the mesh to the parent node,
+    // and return true.
+    bool tryMergeRedundantShapeNode();
 
-	std::array<GLTF::Node, 2> m_glNodes;
-	std::unique_ptr<ExportableMesh> m_mesh;
+    void getAllAccessors(std::vector<GLTF::Accessor *> &accessors) const;
 
-	DISALLOW_COPY_MOVE_ASSIGN(ExportableNode);
+  private:
+    friend class ExportableScene;
+
+    ExportableNode(const MDagPath &dagPath);
+
+    void load(ExportableScene &scene, NodeTransformCache &transformCache);
+
+    std::array<GLTF::Node, 2> m_glNodes;
+    std::unique_ptr<ExportableMesh> m_mesh;
+    std::unique_ptr<ExportableCamera> m_camera;
+
+    bool m_disableNameAssignment = false;
+    bool m_forceAnimationChannels = false;
+
+    DISALLOW_COPY_MOVE_ASSIGN(ExportableNode);
 };
-

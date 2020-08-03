@@ -1,123 +1,168 @@
 #include "externals.h"
-#include "MeshBlendShapeWeights.h"
+
 #include "MayaException.h"
+#include "MeshBlendShapeWeights.h"
 
-void MeshBlendShapeWeights::clearWeightsExceptFor(const size_t index) const
-{
-	const auto numWeights = m_originalWeightPlugStates.size();
+void MeshBlendShapeWeights::clearWeightsExceptFor(
+    const WeightPlugEntry *fullWeightEntry) const {
+    const auto fullWeightIndex =
+        fullWeightEntry ? fullWeightEntry->plugIndex : -1;
 
-	for (auto weightIndex = 0U; weightIndex<numWeights; ++weightIndex)
-	{
-		MStatus status;
-		MPlug weightPlug = m_weightArrayPlug.elementByLogicalIndex(weightIndex, &status);
-		THROW_ON_FAILURE(status);
-		weightPlug.setDouble(weightIndex == index ? 1 : 0);
-	}
+    for (auto &pair : m_weightPlugEntries) {
+        const auto plugIndex = pair.second.plugIndex;
+
+        MStatus status;
+        MPlug weightPlug =
+            m_weightArrayPlug.elementByLogicalIndex(plugIndex, &status);
+        THROW_ON_FAILURE(status);
+        weightPlug.setDouble(fullWeightIndex == plugIndex ? 1 : 0);
+
+        m_isDeformerModified = true;
+    }
 }
 
-MeshBlendShapeWeights::MeshBlendShapeWeights(const MPlug& weightArrayPlug)
-:m_weightArrayPlug(weightArrayPlug)
-{
-	MStatus status;
+MeshBlendShapeWeights::MeshBlendShapeWeights(const MPlug &weightArrayPlug)
+    : m_weightArrayPlug(weightArrayPlug) {
+    MStatus status;
 
-	// Backup weights and connections.
-	const auto numWeights = m_weightArrayPlug.evaluateNumElements(&status);
-	THROW_ON_FAILURE(status);
+    // Backup weights and connections.
+    const auto numWeights = m_weightArrayPlug.evaluateNumElements(&status);
+    THROW_ON_FAILURE(status);
 
-	m_originalWeightPlugStates.reserve(numWeights);
+    for (auto weightIndex = 0U; weightIndex < numWeights; ++weightIndex) {
+        MPlug weightPlug =
+            m_weightArrayPlug.elementByLogicalIndex(weightIndex, &status);
+        THROW_ON_FAILURE(status);
 
-	for (auto weightIndex = 0U; weightIndex<numWeights; ++weightIndex)
-	{
-		OriginalWeightPlugState state;
+        std::string plugName{weightPlug.name(&status).asChar()};
+        THROW_ON_FAILURE(status);
 
-		MPlug weightPlug = m_weightArrayPlug.elementByLogicalIndex(weightIndex, &status);
-		THROW_ON_FAILURE(status);
-		state.weight = weightPlug.asDouble();
+        WeightPlugEntry &entry = m_weightPlugEntries[plugName];
+        entry.plugIndex = weightIndex;
 
-		state.locked = weightPlug.isLocked(&status);
-		THROW_ON_FAILURE(status);
+        status = weightPlug.getValue(entry.originalWeight);
+        THROW_ON_FAILURE(status);
 
-		// Remember connections.
-		weightPlug.connectedTo(state.dstConnections, true, false, &status);
-		THROW_ON_FAILURE(status);
-		weightPlug.connectedTo(state.srcConnections, false, true, &status);
-		THROW_ON_FAILURE(status);
+        entry.isLocked = weightPlug.isLocked(&status);
+        THROW_ON_FAILURE(status);
 
-		m_originalWeightPlugStates.push_back(state);
-	}
+        // Remember connections.
+        weightPlug.connectedTo(entry.dstConnections, true, false, &status);
+        THROW_ON_FAILURE(status);
+
+        weightPlug.connectedTo(entry.srcConnections, false, true, &status);
+        THROW_ON_FAILURE(status);
+    }
+
+    // Assign indices based on sorted map order
+    int shapeIndex = 0;
+    for (auto &&pair : m_weightPlugEntries) {
+        pair.second.shapeIndex = shapeIndex++;
+    }
 }
 
-void MeshBlendShapeWeights::breakConnections()
-{
-	MStatus status;
-	MDagModifier dagModifier;
+void MeshBlendShapeWeights::breakConnections() {
+    MStatus status;
+    MDagModifier dagModifier;
 
-	const auto numWeights = m_originalWeightPlugStates.size();
-	for (auto weightIndex = 0U; weightIndex<numWeights; ++weightIndex)
-	{
-		MPlug weightPlug = m_weightArrayPlug.elementByLogicalIndex(weightIndex, &status);
-		THROW_ON_FAILURE(status);
+    for (auto &pair : m_weightPlugEntries) {
+        const auto weightIndex = pair.second.plugIndex;
 
-		THROW_ON_FAILURE(weightPlug.setLocked(false));
+        MPlug weightPlug =
+            m_weightArrayPlug.elementByLogicalIndex(weightIndex, &status);
+        THROW_ON_FAILURE(status);
 
-		const MPlugArray& dstConnections = m_originalWeightPlugStates[weightIndex].dstConnections;
-		for (auto connectionIndex = 0U; connectionIndex<dstConnections.length(); ++connectionIndex)
-		{
-			status = dagModifier.disconnect(dstConnections[connectionIndex], weightPlug);
-			THROW_ON_FAILURE(status);
-			status = dagModifier.doIt();
-			THROW_ON_FAILURE(status);
-		}
-	}
+        THROW_ON_FAILURE(weightPlug.setLocked(false));
+
+        const MPlugArray &dstConnections = pair.second.dstConnections;
+        for (auto connectionIndex = 0U;
+             connectionIndex < dstConnections.length(); ++connectionIndex) {
+            status = dagModifier.disconnect(dstConnections[connectionIndex],
+                                            weightPlug);
+            THROW_ON_FAILURE(status);
+            status = dagModifier.doIt();
+            THROW_ON_FAILURE(status);
+        }
+
+        m_isDeformerModified = true;
+    }
 }
 
-MeshBlendShapeWeights::~MeshBlendShapeWeights()
-{
-	// We don't throw exceptions in this destructor...
-	const auto numWeights = m_originalWeightPlugStates.size();
+int MeshBlendShapeWeights::animatedPlugCount() const {
+    int animatedCount = 0;
 
-	for (auto weightIndex = 0U; weightIndex<numWeights; ++weightIndex)
-	{
-		MStatus status;
+    for (auto &pair : m_weightPlugEntries) {
+        const WeightPlugEntry &entry = pair.second;
+        const auto plug = getWeightPlug(entry);
 
-		const OriginalWeightPlugState& state = m_originalWeightPlugStates[weightIndex];
+        MStatus status;
+        animatedCount += MAnimUtil::isAnimated(plug, false, &status);
+    }
 
-		MPlug weightPlug = m_weightArrayPlug.elementByLogicalIndex(weightIndex, &status);
-		if (!checkAndReportStatus(status,
-			"Failed to get blend shape weight plug #%d!", weightIndex))
-			continue;
+    return animatedCount;
+}
 
-		if (!checkAndReportStatus(weightPlug.setDouble(state.weight),
-			"Failed to restore blend shape weight #%d!", weightIndex))
-			continue;
+MeshBlendShapeWeights::~MeshBlendShapeWeights() {
+    if (m_isDeformerModified) {
+        // We don't throw exceptions in this destructor...
+        for (auto &pair : m_weightPlugEntries) {
+            const auto *weightName = pair.first.c_str();
+            const WeightPlugEntry &entry = pair.second;
 
-		if (!checkAndReportStatus(weightPlug.setLocked(state.locked),
-			"Failed to restore blend shape locked state #%d!", weightIndex))
-			continue;
+            const auto weightIndex = entry.plugIndex;
 
-		MDagModifier dagModifier;
-		const MPlugArray& srcConnections = state.srcConnections;
-		const MPlugArray& dstConnections = state.dstConnections;
-		for (auto j = 0U; j<srcConnections.length(); j++)
-		{
-			if (!checkAndReportStatus(dagModifier.connect(weightPlug, srcConnections[j]),
-				"Failed to restore blend shape weight source connection #%d!", weightIndex))
-				continue;
+            MStatus status;
 
-			if (!checkAndReportStatus(dagModifier.doIt(),
-				"Failed to restore blend shape weight source connection #%d!", weightIndex))
-				continue;
-		}
+            MPlug weightPlug =
+                m_weightArrayPlug.elementByLogicalIndex(weightIndex, &status);
+            if (!checkAndReportStatus(
+                    status, "Failed to get blend shape weight plug '%s'!",
+                    weightName))
+                continue;
 
-		for (auto j = 0U; j<dstConnections.length(); j++)
-		{
-			if (!checkAndReportStatus(dagModifier.connect(dstConnections[j], weightPlug),
-				"Failed to restore blend shape weight destination connection #%d!", weightIndex))
-				continue;
+            if (!checkAndReportStatus(
+                    weightPlug.setDouble(entry.originalWeight),
+                    "Failed to restore blend shape weight '%s'!", weightName))
+                continue;
 
-			if (!checkAndReportStatus(dagModifier.doIt(),
-				"Failed to restore blend shape weight destination connection #%d!", weightIndex))
-				continue;
-		}
-	}
+            if (!checkAndReportStatus(
+                    weightPlug.setLocked(entry.isLocked),
+                    "Failed to restore blend shape locked state '%s'!",
+                    weightName))
+                continue;
+
+            MDagModifier dagModifier;
+            const MPlugArray &srcConnections = entry.srcConnections;
+            const MPlugArray &dstConnections = entry.dstConnections;
+            for (auto j = 0U; j < srcConnections.length(); j++) {
+                if (!checkAndReportStatus(
+                        dagModifier.connect(weightPlug, srcConnections[j]),
+                        "Failed to restore blend shape weight source "
+                        "connection '%s'!",
+                        weightName))
+                    continue;
+
+                if (!checkAndReportStatus(dagModifier.doIt(),
+                                          "Failed to restore blend shape "
+                                          "weight source connection '%s'!",
+                                          weightName))
+                    continue;
+            }
+
+            for (auto j = 0U; j < dstConnections.length(); j++) {
+                if (!checkAndReportStatus(
+                        dagModifier.connect(dstConnections[j], weightPlug),
+                        "Failed to restore blend shape weight destination "
+                        "connection '%s'!",
+                        weightName))
+                    continue;
+
+                if (!checkAndReportStatus(dagModifier.doIt(),
+                                          "Failed to restore blend shape "
+                                          "weight destination connection '%s'!",
+                                          weightName))
+                    continue;
+            }
+        }
+    }
 }

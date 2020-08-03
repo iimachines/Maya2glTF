@@ -2,19 +2,27 @@
 
 #include "macros.h"
 
-class ExportableFrames
-{
-public:
-	ExportableFrames(std::string accessorName, int frameCount, double framesPerSecond);
-	~ExportableFrames() = default;
+class ExportableFrames {
+  public:
+    ExportableFrames(std::string accessorName, int frameCount,
+                     double framesPerSecond);
+    ~ExportableFrames() = default;
 
-	const int count;
+    const int count;
 
-	// For each animation frame, the clip-relative time in seconds.
-	std::vector<float> times;
+    // For each animation frame, the clip-relative time in seconds.
+    std::vector<float> times;
 
-	std::unique_ptr<GLTF::Accessor> glInputs;
+    GLTF::Accessor *glInputs() const;
 
-private:
-	DISALLOW_COPY_MOVE_ASSIGN(ExportableFrames);
+    GLTF::Accessor *glInput0() const;
+
+    void getAllAccessors(std::vector<GLTF::Accessor *> &accessors) const;
+
+  private:
+    const std::string m_accessorName;
+    mutable std::unique_ptr<GLTF::Accessor> m_glInputs;
+    mutable std::unique_ptr<GLTF::Accessor> m_glInput0;
+
+    DISALLOW_COPY_MOVE_ASSIGN(ExportableFrames);
 };

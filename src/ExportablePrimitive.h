@@ -1,38 +1,39 @@
 #pragma once
 
-#include "sceneTypes.h"
-#include "MeshRenderables.h"
-#include "ExportableMesh.h"
 #include "ExportableMaterial.h"
+#include "ExportableMesh.h"
+#include "MeshRenderables.h"
+#include "sceneTypes.h"
 
-typedef std::vector<std::unique_ptr<GLTF::Primitive::Target>> BlendShapeToTargetTable;
+typedef std::vector<std::unique_ptr<GLTF::Primitive::Target>>
+    BlendShapeToTargetTable;
 
 class ExportableResources;
 
-class ExportablePrimitive
-{
-public:
-	ExportablePrimitive(
-		const VertexBuffer& vertexBuffer,
-		ExportableResources& resources,
-		ExportableMaterial* material);
-	
-	ExportablePrimitive(
-		const VertexBuffer& vertexBuffer, 
-		ExportableResources& resources,
-		Semantic::Kind debugSemantic,
-		const ShapeIndex& debugShapeIndex,
-		double debugLineLength,
-		Color debugLineColor);
-	
-	virtual ~ExportablePrimitive();
+class ExportablePrimitive {
+  public:
+    ExportablePrimitive(const std::string &name,
+                        const VertexBuffer &vertexBuffer,
+                        ExportableResources &resources,
+                        ExportableMaterial *material);
 
-	GLTF::Primitive glPrimitive;
-	std::unique_ptr<GLTF::Accessor> glIndices;
-	BlendShapeToTargetTable glTargetTable;
+    ExportablePrimitive(const std::string &name,
+                        const VertexBuffer &vertexBuffer,
+                        ExportableResources &resources,
+                        Semantic::Kind debugSemantic,
+                        const ShapeIndex &debugShapeIndex,
+                        double debugLineLength, Color debugLineColor);
 
-private:
-	std::vector<std::unique_ptr<GLTF::Accessor>> glAccessors;
+    virtual ~ExportablePrimitive();
 
-	DISALLOW_COPY_MOVE_ASSIGN(ExportablePrimitive);
+    GLTF::Primitive glPrimitive;
+    std::unique_ptr<GLTF::Accessor> glIndices;
+    BlendShapeToTargetTable glTargetTable;
+
+    void getAllAccessors(std::vector<GLTF::Accessor *> &accessors) const;
+
+  private:
+    std::vector<std::unique_ptr<GLTF::Accessor>> glAccessors;
+
+    DISALLOW_COPY_MOVE_ASSIGN(ExportablePrimitive);
 };

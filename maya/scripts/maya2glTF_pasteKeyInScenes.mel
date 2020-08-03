@@ -1,0 +1,121 @@
+/** 
+    Pastes a single key from a non-animated setup scene (aka T-pose) to multiple animation scenes (aka clips),
+    so that each animation clip starts from this T-pose. 
+
+    Only creates a key for the "rig controllers" in a scene, and currently assumes that NURBS curves 
+    are used to model all rig controllers (will be made more flexible in a future revision)
+
+    When exporting each clip with maya2glTF, when the T-pose keyframe is pasted at frame -1000, use the following arguments:
+    
+    -initialValuesTime -1000 -splitMeshAnimation -hashBufferUri -mikkelsenTangentSpace
+
+    -splitMeshAnimation will create a separate buffer for the mesh and animation
+
+    -hashBufferUri will generate a new for the buffer based on its contents. 
+     If you didn't edit the meshes or materials in the animated clips (as you should), each clip should export to the same buffer. 
+
+    -mikkelsenTangentSpace flag is optional, but recommended for glTF. 
+  */
+proc string _quoted(string $text)
+{
+    string $quote = "\"";
+    return $quote+$text+$quote;
+}
+
+proc string _ensureTrailingSlash( string $folderPath ) {
+    if (size($folderPath) == 0)
+        error ("Invalid folder path!");
+
+    if (substring($folderPath, size($folderPath), size($folderPath)) != "/")
+        $folderPath += "/";
+
+    return $folderPath;
+}
+
+proc string _combinePaths(string $path1, string $path2) {
+    return size($path1) == 0
+     ? $path2
+     : _ensureTrailingSlash($path1)+$path2;
+}
+
+proc _pasteKeyInScenes(string $filenames[], string $setupScenePath, int $setupKeyFrame, string $inputScenesDir, string $outputScenesDir) {
+    int $sceneCount = size($filenames);
+
+    sysFile -makeDir $outputScenesDir;
+
+    // Load setup scene
+    print ("Loading setup '" + $setupScenePath + "'...\n");
+
+    if (catch (`file -f -ignoreVersion -prompt off -o $setupScenePath`)) {
+        warning "Some errors occurred while loading the setup scene, this can happen if some Maya components (like Arnold) are not installed";
+    }
+
+    // Create a key for all controllers, and copy to the API clipboard
+    string $controllers[] = `listTransforms "-type nurbsCurve"`;
+
+    if (size($controllers) > 0) {
+        select -r $controllers;
+        setKeyframe -breakdown 0 -hierarchy none -controlPoints 0 -shape 0 -time $setupKeyFrame;
+        copyKey -clipboard "api" -shape 0 -time $setupKeyFrame;
+    } else {
+        error "Scene doesn't contain any controllers";
+    }
+        
+    int $sceneIndex = 0;
+
+    for($filename in $filenames) {
+        string $inputFilePath = _combinePaths($inputScenesDir, $filename);
+        string $outputFilePath = _combinePaths($outputScenesDir, $filename);
+
+        progressWindow -edit -progress $sceneIndex -status $filename;
+
+        $sceneIndex += 1;
+
+        print (`format -s($sceneIndex) -s($sceneCount) -s($filename) "Loading #^1s/^2s '^3s'...\n"`);
+
+        if (catch (`file -f -ignoreVersion -prompt off -o $inputFilePath`)) {
+            warning "Some errors occurred while loading the clip scene, this can happen if some Maya components (like Arnold) are not installed";
+        }
+    
+        if ( `progressWindow -query -isCancelled` ) {
+            error "Aborted";
+        }
+
+        string $controllers[] =  `listTransforms "-type nurbsCurve"`;
+
+        if (size($controllers) > 0) {
+            select -r $controllers;
+            pasteKey -clipboard "api" -time $setupKeyFrame;
+        } else {
+            warning "Scene doesn't contain any controllers";
+        }
+
+        file -rename $outputFilePath;
+         
+        file -f -type "mayaAscii"  -prompt off -save;
+    }
+}
+
+global proc maya2glTF_pasteKeyInScenes(string $setupScenePath, int $setupKeyFrame, string $inputScenesDir, string $outputScenesDir)
+{
+    string $filenames[] = `getFileList -folder $inputScenesDir`;
+    int $sceneCount = size($filenames);
+
+    progressWindow -endProgress;
+
+    progressWindow 
+        -title "maya2glTF" 
+        -min 0 
+        -max ($sceneCount+1) 
+        -status "Setup..." 
+        -isInterruptable true 
+        -progress 0;
+
+    if (catch(_pasteKeyInScenes($filenames, $setupScenePath, $setupKeyFrame, $inputScenesDir, $outputScenesDir))) {
+        warning "*** Errors occurred ***";
+    }
+
+    progressWindow -endProgress;
+}
+
+//maya2glTF_pasteKeyInScenes("D:/Nova/024_WM_TheRecyclables/03_Production/03_anim/Nova/Nova_SetUp.ma", -1000, "D:/Nova/024_WM_TheRecyclables/03_Production/03_anim/Nova", "d:/nova/keyed");

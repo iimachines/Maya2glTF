@@ -1,47 +1,60 @@
 #pragma once
-#include "ExportableResources.h"
 #include "ExportableClip.h"
+#include "ExportableResources.h"
 #include "ExportableScene.h"
 
 class Arguments;
 
-class ExportableAsset
-{
-public:
-	ExportableAsset(const Arguments& args);
-	~ExportableAsset();
+// A packed buffer and a filename hint.
+typedef std::map<GLTF::Buffer *, std::string> PackedBufferMap;
 
-	const std::string& prettyJsonString() const;
+class ExportableAsset {
+  public:
+    ExportableAsset(const Arguments &args);
+    ~ExportableAsset();
 
-	void save();
+    const std::string &prettyJsonString() const;
 
-private:
-	DISALLOW_COPY_MOVE_ASSIGN(ExportableAsset);
+    void save();
 
-	struct Cleanup
-	{
-		MTime currentTime;
+  private:
+    DISALLOW_COPY_MOVE_ASSIGN(ExportableAsset);
 
-		Cleanup();
-		~Cleanup();
-	};
+    struct Cleanup {
+        MTime currentTime;
 
-	Cleanup m_cleanup;
+        Cleanup();
+        ~Cleanup();
+    };
 
-	GLTF::Asset m_glAsset;
-	GLTF::Asset::Metadata m_glMetadata;
-	GLTF::Node m_glRootNode;
-	GLTF::Node::TransformTRS m_glRootTransform;
+    Cleanup m_cleanup;
 
-	ExportableResources m_resources;
-	ExportableScene m_scene;
+    GLTF::Asset m_glAsset;
+    GLTF::Asset::Metadata m_glMetadata;
+    GLTF::Node m_glRootNode;
+    GLTF::Node::TransformTRS m_glRootTransform;
 
-	//std::vector<std::unique_ptr<ExportableItem>> m_items;
-	std::vector<std::unique_ptr<ExportableClip>> m_clips;
+    ExportableResources m_resources;
+    ExportableScene m_scene;
 
-	std::string m_rawJsonString;
-	mutable std::string m_prettyJsonString;
+    // std::vector<std::unique_ptr<ExportableItem>> m_items;
+    std::vector<std::unique_ptr<ExportableClip>> m_clips;
 
-	static void create(std::ofstream& file, const std::string& path, const std::ios_base::openmode mode);
+    std::string m_rawJsonString;
+    mutable std::string m_prettyJsonString;
+
+    void dumpAccessorComponents(
+        const std::vector<GLTF::Accessor *> &accessors) const;
+
+    void packMeshAccessors(AccessorsPerDagPath &accessors,
+                           class AccessorPacker &packer,
+                           PackedBufferMap &packedBufferMap,
+                           std::string namePrefix) const;
+
+    static void create(std::ofstream &file, const std::string &path,
+                       const std::ios_base::openmode mode);
+
+    template <typename T>
+    void dumpAccessorComponentValues(const GLTF::Accessor *accessor,
+                                     int fileIndex, bool isInteger) const;
 };
-

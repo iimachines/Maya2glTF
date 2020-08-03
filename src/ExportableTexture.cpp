@@ -1,70 +1,87 @@
 #include "externals.h"
-#include "ExportableTexture.h"
-#include "DagHelper.h"
-#include "MayaException.h"
-#include "ExportableResources.h"
+
 #include "Arguments.h"
+#include "DagHelper.h"
+#include "ExportableResources.h"
+#include "ExportableTexture.h"
+#include "MayaException.h"
 
-ExportableTexture::ExportableTexture(ExportableResources& resources, const MObject& obj, const char* attributeName)
-	: glTexture(nullptr)
-	, glSampler(nullptr)
-{
-	connectedObject = DagHelper::findNodeConnectedTo(obj, attributeName);
-	if (connectedObject.isNull())
-		return;
+ExportableTexture::ExportableTexture(Private, ExportableResources &resources,
+                                     const MObject &obj,
+                                     const char *attributeName) {
+    if (resources.arguments().skipMaterialTextures)
+        return;
 
-	MStatus status;
-	MFnDependencyNode connectedNode(connectedObject, &status);
-	THROW_ON_FAILURE(status);
+    connectedObject = DagHelper::findNodeConnectedTo(obj, attributeName);
+    if (connectedObject.isNull())
+        return;
 
-	const auto apiType = connectedObject.apiType();
-	if (apiType != MFn::kFileTexture)
-	{
-		MayaException::printError(formatted(
-			"Unsupported texture node '%s' #%d",
-			connectedObject.apiTypeStr(), apiType));
-		return;
-	}
+    MStatus status;
+    MFnDependencyNode connectedNode(connectedObject, &status);
+    THROW_ON_FAILURE(status);
 
-	if (!DagHelper::getPlugValue(connectedObject, "fileTextureName", imageFilePath))
-	{
-		MayaException::printError(
-			formatted("Failed to get %s.fileTextureName", connectedNode.name()));
-		return;
-	}
+    const auto apiType = connectedObject.apiType();
+    if (apiType != MFn::kFileTexture) {
+        MayaException::printError(formatted("Unsupported texture node '%s' #%d",
+                                            connectedObject.apiTypeStr(),
+                                            apiType));
+        return;
+    }
 
-	int filterType = IMAGE_FILTER_MipMap;
-	DagHelper::getPlugValue(connectedObject, "filterType", filterType);
+    if (!DagHelper::getPlugValue(connectedObject, "fileTextureName",
+                                 imageFilePath)) {
+        MayaException::printError(formatted("Failed to get %s.fileTextureName",
+                                            connectedNode.name().asChar()));
+        return;
+    }
 
-	int uWrap = false;
-	int vWrap = false;
-	int uMirror = false;
-	int vMirror = false;
+    int filterType = IMAGE_FILTER_MipMap;
+    DagHelper::getPlugValue(connectedObject, "filterType", filterType);
 
-	DagHelper::getPlugValue(connectedObject, "wrapU", uWrap);
-	DagHelper::getPlugValue(connectedObject, "wrapV", vWrap);
-	DagHelper::getPlugValue(connectedObject, "mirrorU", uMirror);
-	DagHelper::getPlugValue(connectedObject, "mirrorV", vMirror);
+    int uWrap = false;
+    int vWrap = false;
+    int uMirror = false;
+    int vMirror = false;
 
-	cout << prefix << "Found texture '" << imageFilePath << "'"
-		<< " with filter type = " << filterType
-		<< ", image wrapping = " << uWrap << " " << vWrap << ", mirror = " << uMirror << " " << vMirror << endl;
+    DagHelper::getPlugValue(connectedObject, "wrapU", uWrap);
+    DagHelper::getPlugValue(connectedObject, "wrapV", vWrap);
+    DagHelper::getPlugValue(connectedObject, "mirrorU", uMirror);
+    DagHelper::getPlugValue(connectedObject, "mirrorV", vMirror);
 
-	auto uTiling = uWrap * IMAGE_TILING_Wrap + uMirror * IMAGE_TILING_Mirror;
-	auto vTiling = vWrap * IMAGE_TILING_Wrap + vMirror * IMAGE_TILING_Mirror;
+    cout << prefix << "Found texture '" << imageFilePath << "'"
+         << " with filter type = " << filterType
+         << ", image wrapping = " << uWrap << " " << vWrap
+         << ", mirror = " << uMirror << " " << vMirror << endl;
 
-	glSampler = resources.getSampler(
-		static_cast<ImageFilterKind>(filterType),
-		static_cast<ImageTilingFlags>(uTiling),
-		static_cast<ImageTilingFlags>(vTiling));
-	assert(glSampler);
+    auto uTiling = uWrap * IMAGE_TILING_Wrap + uMirror * IMAGE_TILING_Mirror;
+    auto vTiling = vWrap * IMAGE_TILING_Wrap + vMirror * IMAGE_TILING_Mirror;
 
-	const auto imagePtr = resources.getImage(imageFilePath.asChar());
-	if (!imagePtr)
-		return;
+    glSampler = resources.getSampler(static_cast<ImageFilterKind>(filterType),
+                                     static_cast<ImageTilingFlags>(uTiling),
+                                     static_cast<ImageTilingFlags>(vTiling));
+    assert(glSampler);
 
-	glTexture = resources.getTexture(imagePtr, glSampler);
-	assert(glTexture);
+    const auto imagePtr = resources.getImage(imageFilePath.asChar());
+    if (imagePtr) {
+        glTexture = resources.getTexture(imagePtr, glSampler);
+        assert(glTexture);
+    }
+}
+
+std::unique_ptr<ExportableTexture>
+ExportableTexture::tryCreate(ExportableResources &resources, const MObject &obj,
+                             const char *attributeName) {
+
+    auto instance = std::make_unique<ExportableTexture>(Private(), resources,
+                                                        obj, attributeName);
+    return instance->glTexture ? std::move(instance) : nullptr;
+}
+
+GLTF::Texture *ExportableTexture::tryLoad(ExportableResources &resources,
+                                          const MObject &obj,
+                                          const char *attributeName) {
+    const auto instance = tryCreate(resources, obj, attributeName);
+    return instance ? instance->glTexture : nullptr;
 }
 
 ExportableTexture::~ExportableTexture() = default;
