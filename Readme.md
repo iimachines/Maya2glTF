@@ -41,7 +41,7 @@ See the [releases](https://github.com/iimachines/Maya2glTF/releases) tab.
   - open the created `maya2glTF` folder
   - double click on the `deploy` batch file
     - This will copy the plug-in and scripts to your `Documents` folder
-  - re-launch Maya 2017 or 2018
+  - re-launch Maya
 - *macOS High Sierra* and *Linux*
     - must currently be build from source, see below
 
