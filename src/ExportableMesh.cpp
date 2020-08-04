@@ -13,8 +13,7 @@
 #include "MeshSkeleton.h"
 #include "accessors.h"
 
-ExportableMesh::ExportableMesh(ExportableScene &scene, ExportableNode &node,
-                               const MDagPath &shapeDagPath)
+ExportableMesh::ExportableMesh(ExportableScene &scene, ExportableNode &node, const MDagPath &shapeDagPath)
     : ExportableObject(shapeDagPath.node()) {
     MStatus status;
 
@@ -38,8 +37,7 @@ ExportableMesh::ExportableMesh(ExportableScene &scene, ExportableNode &node,
         MeshRenderables renderables(mayaMesh->allShapes(), args);
         const auto &shadingMap = mainShape.indices().shadingPerInstance();
         const auto &shading = shadingMap.at(renderables.instanceNumber);
-        const auto shaderCount =
-            static_cast<int>(shading.shaderGroups.length());
+        const auto shaderCount = static_cast<int>(shading.shaderGroups.length());
 
         /* TODO: Implement overrides
         auto mainDagPath = mainShape.dagPath();
@@ -68,17 +66,14 @@ ExportableMesh::ExportableMesh(ExportableScene &scene, ExportableNode &node,
                 const auto &vertexBuffer = pair.second;
 
                 const int shaderIndex = vertexSignature.shaderIndex;
-                auto &shaderGroup =
-                    shaderIndex >= 0 && shaderIndex < shaderCount
-                        ? shading.shaderGroups[shaderIndex]
-                        : MObject::kNullObj;
+                auto &shaderGroup = shaderIndex >= 0 && shaderIndex < shaderCount ? shading.shaderGroups[shaderIndex]
+                                                                                  : MObject::kNullObj;
 
                 ExportableMaterial *material = nullptr;
 
                 // Assign material to primitive
                 if (args.colorizeMaterials) {
-                    const float h =
-                        vertexBufferIndex * 1.0f / vertexBufferCount;
+                    const float h = vertexBufferIndex * 1.0f / vertexBufferCount;
                     const float s = shaderCount == 0 ? 0.5f : 1;
                     const float v = shaderIndex < 0 ? 0.5f : 1;
                     material = resources.getDebugMaterial({h, s, v});
@@ -89,36 +84,27 @@ ExportableMesh::ExportableMesh(ExportableScene &scene, ExportableNode &node,
                 }
 
                 if (material) {
-                    const auto primitiveName =
-                        shapeName + "#" + std::to_string(vertexBufferIndex);
+                    const auto primitiveName = shapeName + "#" + std::to_string(vertexBufferIndex);
 
                     auto exportablePrimitive =
-                        std::make_unique<ExportablePrimitive>(
-                            primitiveName, vertexBuffer, resources, material);
-                    glMesh.primitives.push_back(
-                        &exportablePrimitive->glPrimitive);
+                        std::make_unique<ExportablePrimitive>(primitiveName, vertexBuffer, resources, material);
+                    glMesh.primitives.push_back(&exportablePrimitive->glPrimitive);
 
                     m_primitives.emplace_back(std::move(exportablePrimitive));
 
                     if (args.debugTangentVectors) {
-                        auto debugPrimitive =
-                            std::make_unique<ExportablePrimitive>(
-                                primitiveName, vertexBuffer, resources,
-                                Semantic::Kind::TANGENT, ShapeIndex::main(),
-                                args.debugVectorLength, Color({1, 0, 0, 1}));
-                        glMesh.primitives.push_back(
-                            &debugPrimitive->glPrimitive);
+                        auto debugPrimitive = std::make_unique<ExportablePrimitive>(
+                            primitiveName, vertexBuffer, resources, Semantic::Kind::TANGENT, ShapeIndex::main(),
+                            args.debugVectorLength, Color({1, 0, 0, 1}));
+                        glMesh.primitives.push_back(&debugPrimitive->glPrimitive);
                         m_primitives.emplace_back(move(debugPrimitive));
                     }
 
                     if (args.debugNormalVectors) {
-                        auto debugPrimitive =
-                            std::make_unique<ExportablePrimitive>(
-                                primitiveName, vertexBuffer, resources,
-                                Semantic::Kind::NORMAL, ShapeIndex::main(),
-                                args.debugVectorLength, Color({1, 1, 0, 1}));
-                        glMesh.primitives.push_back(
-                            &debugPrimitive->glPrimitive);
+                        auto debugPrimitive = std::make_unique<ExportablePrimitive>(
+                            primitiveName, vertexBuffer, resources, Semantic::Kind::NORMAL, ShapeIndex::main(),
+                            args.debugVectorLength, Color({1, 1, 0, 1}));
+                        glMesh.primitives.push_back(&debugPrimitive->glPrimitive);
                         m_primitives.emplace_back(move(debugPrimitive));
                     }
                 }
@@ -134,17 +120,13 @@ ExportableMesh::ExportableMesh(ExportableScene &scene, ExportableNode &node,
                     MString weight = shape->weightPlug.name();
                     weight.split('.', weightArrays);
 
-                    m_morphTargetNames->addName(
-                        weightArrays.length() <= 1
-                            ? std::string("morph_") +
-                                  std::to_string(m_morphTargetNames->size())
-                            : std::string(weightArrays[1].asChar()));
+                    m_morphTargetNames->addName(weightArrays.length() <= 1
+                                                    ? std::string("morph_") + std::to_string(m_morphTargetNames->size())
+                                                    : std::string(weightArrays[1].asChar()));
                 }
             }
             if (!mayaMesh->allShapes().empty()) {
-                glMesh.extras.insert(
-                    {"targetNames",
-                     static_cast<GLTF::Object *>(m_morphTargetNames.get())});
+                glMesh.extras.insert({"targetNames", static_cast<GLTF::Object *>(m_morphTargetNames.get())});
             }
         }
 
@@ -155,19 +137,17 @@ ExportableMesh::ExportableMesh(ExportableScene &scene, ExportableNode &node,
 
             auto &joints = skeleton.joints();
 
-            std::map<int, std::vector<ExportableNode *>> distanceToRootMap;
+            // std::map<int, std::vector<ExportableNode *>> distanceToRootMap;
 
             m_inverseBindMatrices.reserve(joints.size());
 
             // Get joints, and build inverse bind matrices.
             for (auto &joint : joints) {
                 auto *jointNode = joint.node;
-                glSkin.joints.emplace_back(
-                    const_cast<GLTF::Node *>(&jointNode->glPrimaryNode()));
+                glSkin.joints.emplace_back(const_cast<GLTF::Node *>(&jointNode->glPrimaryNode()));
 
-                auto distanceToRoot =
-                    ExportableScene::distanceToRoot(jointNode->dagPath);
-                distanceToRootMap[distanceToRoot].emplace_back(jointNode);
+                // auto distanceToRoot = ExportableScene::distanceToRoot(jointNode->dagPath);
+                // distanceToRootMap[distanceToRoot].emplace_back(jointNode);
 
                 double ibm[4][4];
                 THROW_ON_FAILURE(joint.inverseBindMatrix.get(ibm));
@@ -176,8 +156,7 @@ ExportableMesh::ExportableMesh(ExportableScene &scene, ExportableNode &node,
 
                 for (int i = 0; i < 4; ++i) {
                     for (int j = 0; j < 4; ++j) {
-                        inverseBindMatrix[i][j] =
-                            roundToFloat(ibm[i][j], matPrecision);
+                        inverseBindMatrix[i][j] = roundToFloat(ibm[i][j], matPrecision);
                     }
                 }
 
@@ -185,8 +164,7 @@ ExportableMesh::ExportableMesh(ExportableScene &scene, ExportableNode &node,
             }
 
             m_inverseBindMatricesAccessor = contiguousChannelAccessor(
-                args.makeName(shapeName + "/skin/IBM"),
-                reinterpret_span<float>(m_inverseBindMatrices), 16);
+                args.makeName(shapeName + "/skin/IBM"), reinterpret_span<float>(m_inverseBindMatrices), 16);
 
             glSkin.inverseBindMatrices = m_inverseBindMatricesAccessor.get();
 
@@ -212,8 +190,7 @@ ExportableMesh::ExportableMesh(ExportableScene &scene, ExportableNode &node,
 
 ExportableMesh::~ExportableMesh() = default;
 
-void ExportableMesh::getAllAccessors(
-    std::vector<GLTF::Accessor *> &accessors) const {
+void ExportableMesh::getAllAccessors(std::vector<GLTF::Accessor *> &accessors) const {
     for (auto &&primitive : m_primitives) {
         primitive->getAllAccessors(accessors);
     }

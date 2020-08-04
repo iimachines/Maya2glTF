@@ -11,8 +11,7 @@ typedef std::map<std::string, std::unique_ptr<ExportableNode>> NodeTable;
 // sure we get a deterministic output (pointers change)
 typedef std::map<MDagPath, ExportableNode *, MDagPathComparer> OrphanNodes;
 
-typedef std::map<MDagPath, std::vector<GLTF::Accessor *>, MDagPathComparer>
-    AccessorsPerDagPath;
+typedef std::map<MDagPath, std::vector<GLTF::Accessor *>, MDagPathComparer> AccessorsPerDagPath;
 
 // Maps each DAG path to the corresponding node
 // Owns and creates each node on the fly.
@@ -45,7 +44,7 @@ class ExportableScene {
     // Register a node without parent
     void registerOrphanNode(ExportableNode *node);
 
-    static int distanceToRoot(MDagPath dagPath);
+    // static int distanceToRoot(MDagPath dagPath);
 
     const NodeTable &table() const { return m_table; }
 
@@ -55,6 +54,8 @@ class ExportableScene {
     DISALLOW_COPY_MOVE_ASSIGN(ExportableScene);
 
     friend class ExportableNode;
+
+    static bool findLogicalParent(const MFnDagNode &childDagNode, MDagPath &parentDagPath);
 
     ExportableResources &m_resources;
     NodeTable m_table;
