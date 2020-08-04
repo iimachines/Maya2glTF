@@ -2,7 +2,7 @@
 
 ## News
 
-* Version [1.0rc5 released](https://github.com/iimachines/Maya2glTF/releases) for Windows! 
+* Version [1.1.0 released](https://github.com/iimachines/Maya2glTF/releases) for Windows! 
 
 * Support for Maya 2017-2020
 
