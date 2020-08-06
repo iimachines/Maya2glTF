@@ -221,18 +221,38 @@ elseif(APPLE)
     DESTINATION "/Users/Shared/Autodesk/maya/${MAYA_VERSION}/prefs/"
   )
 else(LINUX)
-  add_custom_command(TARGET maya2glTF POST_BUILD
-    COMMAND mkdir -p "$<SHELL_PATH:$ENV{HOME}/maya/${MAYA_VERSION}/plug-ins/>"
-    COMMAND mkdir -p "$<SHELL_PATH:$ENV{HOME}/maya/scripts/>"
-    COMMAND mkdir -p "$<SHELL_PATH:$ENV{HOME}/maya/${MAYA_VERSION}/prefs/icons/>"
-    COMMAND mkdir -p "$<SHELL_PATH:$ENV{HOME}/maya/${MAYA_VERSION}/prefs/shelves/>"
-    COMMAND mkdir -p "$<SHELL_PATH:$ENV{HOME}/maya/maya2glTF/PBR/>"
-    COMMAND cp -f "$<SHELL_PATH:$<TARGET_FILE:maya2glTF>>" "$<SHELL_PATH:$ENV{HOME}/maya/${MAYA_VERSION}/plug-ins/>"
-    COMMAND cp -f "$<SHELL_PATH:${CMAKE_CURRENT_BINARY_DIR}/maya2glTF_version.mel>" "$<SHELL_PATH:$ENV{HOME}/maya/scripts/>"      
-    COMMAND cp -f "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/scripts/maya2glTF*.mel>" "$<SHELL_PATH:$ENV{HOME}/maya/scripts/>"
-    COMMAND cp -rf "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/renderData/>" "$<SHELL_PATH:$ENV{HOME}/maya/maya2glTF/PBR/>"
-    COMMAND cp -rf "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/prefs/>" "$<SHELL_PATH:$ENV{HOME}/maya/${MAYA_VERSION}/prefs/>"
+  install (
+    TARGETS maya2glTF 
+    DESTINATION "/usr/autodesk/maya${MAYA_VERSION}/plug-ins"
   )
+  
+  install (
+    FILES "${CMAKE_CURRENT_BINARY_DIR}/maya2glTF_version.mel" 
+    DESTINATION "/usr/autodesk/maya${MAYA_VERSION}/scripts"
+  )
+  
+  install (
+    DIRECTORY "${PROJECT_SOURCE_DIR}/maya/scripts/" 
+    DESTINATION "/usr/autodesk/maya${MAYA_VERSION}/scripts"
+    FILES_MATCHING PATTERN "maya2glTF*.mel"
+  )
+
+  install (
+    DIRECTORY "${CMAKE_BINARY_DIR}/generated/" 
+    DESTINATION "/usr/autodesk/maya${MAYA_VERSION}/scripts"
+    FILES_MATCHING PATTERN "maya2glTF*.mel"
+  )
+
+  install (
+    DIRECTORY "${PROJECT_SOURCE_DIR}/maya/renderData/"
+    DESTINATION "/usr/autodesk/maya${MAYA_VERSION}/maya2glTF/PBR"
+  )
+
+  install (
+    DIRECTORY "${PROJECT_SOURCE_DIR}/maya/prefs"
+    DESTINATION "/usr/autodesk/maya${MAYA_VERSION}"
+  )
+
 endif()
 
 MAYA_PLUGIN(${PROJECT_NAME})
