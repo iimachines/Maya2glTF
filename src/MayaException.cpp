@@ -26,3 +26,14 @@ void MayaException::printError(const std::string &message) {
     MGlobal::executeCommand(MString("error ") + escaped(message).c_str());
     cerr << prefix << "*** ERROR *** " << message << endl;
 }
+
+MStatus MayaException::printWarning(const std::string &message, const MStatus &status) {
+    MGlobal::executeCommand(MString("warning ") + escaped(message).c_str());
+    cerr << prefix << "*** WARNING *** " << message << " [" << status.errorString().asChar() << "]" << endl;
+    return status;
+}
+
+void MayaException::printWarning(const std::string &message) {
+    MGlobal::executeCommand(MString("warning ") + escaped(message).c_str());
+    cerr << prefix << "*** WARNING  *** " << message << endl;
+}
