@@ -62,7 +62,7 @@ global proc shelf_glTF () {
         -style "iconOnly" 
         -marginWidth 1
         -marginHeight 1
-        -command "maya2glTF_setLogicalParent();\n" 
+        -command "maya2glTF_logicalParents(1);\n" 
         -sourceType "mel" 
         -commandRepeatable 1
         -flat 1
@@ -94,7 +94,7 @@ global proc shelf_glTF () {
         -style "iconOnly" 
         -marginWidth 1
         -marginHeight 1
-        -command "maya2glTF_clearLogicalParents();\n" 
+        -command "maya2glTF_logicalParents(0);\n" 
         -sourceType "mel" 
         -commandRepeatable 1
         -flat 1

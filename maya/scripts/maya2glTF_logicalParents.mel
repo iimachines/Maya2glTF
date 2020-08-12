@@ -37,3 +37,10 @@ global proc maya2glTF_clearLogicalParents() {
     }
 }
 
+global proc maya2glTF_logicalParents(int $add) {
+    if ($add){ 
+        maya2glTF_setLogicalParent();
+    } else {
+        maya2glTF_clearLogicalParents();
+    }
+}
