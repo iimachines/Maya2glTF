@@ -34,7 +34,7 @@ See the [releases](https://github.com/iimachines/Maya2glTF/releases) tab.
 - Supports Maya 2017-2020, Windows 10 x64, macOS High Sierra+ and Linux
 
 - *Windows 10 x64*
-  - install the [Microsoft Visual C++ redistributables](https://go.microsoft.com/fwlink/?LinkId=746572).
+  - install the [Microsoft Visual C++ redistributables](https://aka.ms/vs/16/release/vc_redist.x64.exe).
     - on many systems this is already installed, so you might want to skip this step.
   - download the desired [release](https://github.com/iimachines/Maya2glTF/releases)
   - extract the downloaded `zip` file to any location (e.g. your desktop)
