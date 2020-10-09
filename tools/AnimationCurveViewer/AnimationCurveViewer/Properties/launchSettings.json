@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "AnimationCurveViewer": {
+      "commandName": "Project",
+      "commandLineArgs": "\"C:\\Users\\bugfa\\Downloads\\001_KneeBounce\\Legs_openKnee_TwoFeet\\Legs_OpenKnee_TwoFeet.gltf\""
+    }
+  }
+}
