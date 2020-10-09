@@ -233,6 +233,27 @@ namespace iim.AnimationCurveViewer
                             }
                         }
 
+                        // Normalize points
+                        var normalizedPoints = new Point[dimension][];
+
+                        for (int axis = 0; axis < dimension; ++axis)
+                        {
+                            normalizedPoints[axis] = new Point[pointCount];
+                        }
+
+                        for (int i = 0; i < pointCount; i++)
+                        {
+                            for (int axis = 0; axis < dimension; ++axis)
+                            {
+                                Point p = curvesPoints[axis][i];
+                                var t = p.X;
+                                var y = p.Y;
+                                p.X = t;
+                                p.Y = (y - yStarts[axis]) * yScales[axis];
+                                normalizedPoints[axis][i] = p;
+                            }
+                        }
+
                         // Compute visual points
                         var xOffset = curveThickness;
                         var yOffset = curveThickness;
@@ -248,11 +269,11 @@ namespace iim.AnimationCurveViewer
                         {
                             for (int axis = 0; axis < dimension; ++axis)
                             {
-                                Point p = curvesPoints[axis][i];
+                                Point p = normalizedPoints[axis][i];
                                 var t = p.X;
                                 var y = p.Y;
                                 p.X = xOffset + t * timeScale;
-                                p.Y = (y - yStarts[axis]) * yScales[axis] * yHeight + yOffset;
+                                p.Y = yOffset + y * yHeight;
                                 visualPoints[axis][i] = p;
                             }
                         }
@@ -266,6 +287,36 @@ namespace iim.AnimationCurveViewer
                             HorizontalAlignment = HorizontalAlignment.Left,
                             IsHitTestVisible = true
                         };
+
+                        for (int axis = 0; axis < dimension; ++axis)
+                        {
+                            var cubicSegments = CubicRegression.FitCubics(visualPoints[axis], 64).ToArray();
+                            var cubicGeometry = CubicSegment.GetGeometry(cubicSegments);
+
+                            curvesCanvas.Children.Add(new PathShape
+                            {
+                                Data = cubicGeometry,
+                                Height = curveHeight,
+                                Stroke = curveColors[axis],
+                                StrokeThickness = curveThickness * 2,
+                                Opacity = 0.5,
+                                ClipToBounds = false,
+                                IsHitTestVisible = false
+                            });
+
+                            var points = CubicSegment.GetPoints(cubicSegments).ToArray();
+
+                            var dots = Curve.ToPointsGeometry(points, curveThickness * 3);
+
+                            curvesCanvas.Children.Add(new PathShape
+                            {
+                                Data = dots,
+                                Height = curveHeight,
+                                Fill = curveColors[axis],
+                                ClipToBounds = false,
+                                IsHitTestVisible = false
+                            });
+                        }
 
                         const int textBlockMargin = 20;
 
@@ -308,7 +359,7 @@ namespace iim.AnimationCurveViewer
                                 Data = line,
                                 Height = curveHeight,
                                 Stroke = curveColors[axis],
-                                StrokeThickness = 2,
+                                StrokeThickness = curveThickness,
                                 ClipToBounds = false,
                                 IsHitTestVisible = false
                             });
