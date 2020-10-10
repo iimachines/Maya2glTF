@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 
 namespace iim.AnimationCurveViewer
 {
     public static class CubicRegression
     {
-        private struct State
+        private struct Coefficients
         {
             /// <summary>
             /// Sjk = sum of u[i]^j * v[i]^k where (u[i],v[i]) are the coordinates of sample#i relative to the segment's FirstSample
@@ -23,30 +24,12 @@ namespace iim.AnimationCurveViewer
             public double S11;
             public double S01;
 
-            public CubicSegment Segment;
-
-            public readonly int SegmentIndex;
-
-            public readonly double FixedC;
-
-
-            /// <summary>
-            /// HACK: This point is both the current sample and the origin point (in the accumulator)
-            /// </summary>
-            public readonly Point Point;
-
-            public State(Point point, int segmentIndex, double fixedC) : this()
+            public Coefficients(Vector v)
             {
-                Point = point;
                 S00 = 1;
-                SegmentIndex = segmentIndex;
-                FixedC = fixedC;
-            }
 
-            public void Compute(Point origin)
-            {
-                S10 = Point.X - origin.X;
-                S01 = Point.Y - origin.Y;
+                S10 = v.X;
+                S01 = v.Y;
 
                 S20 = S10 * S10;
                 S30 = S20 * S10;
@@ -59,24 +42,102 @@ namespace iim.AnimationCurveViewer
                 S31 = S30 * S01;
             }
 
-            public CubicSegment GetNextCubicSegment(State current, double epsilon)
+            public void Add(in Coefficients c)
             {
-                current.Compute(Point);
+                S60 += c.S60;
+                S50 += c.S50;
+                S40 += c.S40;
+                S30 += c.S30;
+                S20 += c.S20;
+                S10 += c.S10;
+                S00 += c.S00;
+                S31 += c.S31;
+                S21 += c.S21;
+                S11 += c.S11;
+                S01 += c.S01;
+            }
 
-                S60 += current.S60;
-                S50 += current.S50;
-                S40 += current.S40;
-                S30 += current.S30;
-                S20 += current.S20;
-                S10 += current.S10;
-                S00 += current.S00;
-                S31 += current.S31;
-                S21 += current.S21;
-                S11 += current.S11;
-                S01 += current.S01;
-
+            public CubicSegment GetStartSegment(Point startPoint, Point endPoint, double epsilon)
+            {
                 // Need at least 4 points
                 if (S00 < 4)
+                    return null;
+
+                Mat4D A = new Mat4D(
+                    S60, S50, S40, S30,
+                    S50, S40, S30, S20,
+                    S40, S30, S20, S10,
+                    S30, S20, S10, 1);
+
+                double det = A.Determinant();
+                if (Math.Abs(det) < epsilon)
+                    return null;
+
+                Mat4D M;
+                A.Adjoints(out M);
+
+                Vec4D V = new Vec4D(S31 / det, S21 / det, S11 / det, S01 / det);
+
+                Vec4D abcd;
+                M.Product(ref V, out abcd);
+
+                return new CubicSegment(abcd.X, abcd.Y, abcd.Z, abcd.W, startPoint, endPoint);
+            }
+
+            public CubicSegment GetConnectedSegment(double fixedC, Point startPoint, Point endPoint, double epsilon)
+            {
+                // Need at least 3 points
+                if (S00 < 3)
+                    return null;
+
+                // a*S60 + b*S50 + d*S30 = S31 - c*S40
+                // a*S50 + b*S40 + d*S20 = S21 - c*S30
+                // a*S30 + b*S20 + d     = S01 - c*S10
+
+                var A = new Mat3D(
+                    S60, S50, S30,
+                    S50, S40, S20,
+                    S30, S20, 1);
+
+                double det = A.Determinant();
+                if (Math.Abs(det) < epsilon)
+                    return null;
+
+                Mat3D M;
+                A.Adjoints(out M);
+
+                var V = new Vector3((S31 - fixedC * S40) / det, (S21 - fixedC * S30) / det, (S01 - fixedC * S10) / det);
+
+                Vector3 abd;
+                M.Product(ref V, out abd);
+
+                return new CubicSegment(abd.X, abd.Y, fixedC, abd.Z, startPoint, endPoint);
+            }
+        }
+
+        /*
+        private struct State
+        {
+            public Coefficients Coefficients;
+            public CubicSegment Segment;
+            public readonly bool IsStart;
+            public readonly double FixedC;
+            public readonly Point StartPoint;
+
+            public State(Point point, bool isStart, double fixedC) : this()
+            {
+                StartPoint = point;
+                Coefficients.S00 = 1;
+                IsStart = isStart;
+                FixedC = fixedC;
+            }
+
+            public CubicSegment GetNextCubicSegment(Point point, double epsilon)
+            {
+                Coefficients.Add(new Coefficients(point - StartPoint));
+
+                // Need at least 4 points
+                if (Coefficients.S00 < 4)
                     return null;
 
                 // Our cubic segment has the equation f(u) = a*u^3 + b*u^2 + c*u + d
@@ -111,69 +172,132 @@ namespace iim.AnimationCurveViewer
                 // [S40,S30,S20,S10] [c] = [S11]
                 // [S30,S20,S10,  1] [d]   [S01]
 
-                Mat4D A = new Mat4D(
-                    S60, S50, S40, S30,
-                    S50, S40, S30, S20,
-                    S40, S30, S20, S10,
-                    S30, S20, S10, 1);
-
-                double det = A.Determinant();
-                if (Math.Abs(det) < epsilon)
-                    return null;
-
-                Mat4D M;
-                A.Adjoints(out M);
-
-                Vec4D V = new Vec4D(S31 / det, S21 / det, S11 / det, S01 / det);
-
-                Vec4D abcd;
-                M.Product(ref V, out abcd);
-
-                return new CubicSegment(abcd.X, abcd.Y, abcd.Z, abcd.W, SegmentIndex, Point, current.Point, Segment);
+                return IsStart
+                    ? Coefficients.GetStartSegment(epsilon, StartPoint, point, Segment)
+                    : Coefficients.GetConnectedSegment(FixedC, epsilon, StartPoint, point, Segment);
             }
         }
+        */
 
-        public static IEnumerable<CubicSegment> FitCubics(this Point[] points, double maxError, double epsilon = float.Epsilon)
+        /// <summary>
+        /// Largest squared error
+        /// </summary>
+        private static double ComputeError(CubicSegment segment, Point[] points, int startIndex, int stopIndex)
         {
-            State accum = default;
+            double maxError = 0;
 
-            for (var index = 0; index < points.Length; index++)
+            for (var index = startIndex; index <= stopIndex; index++)
             {
-                var p = points[index];
-                var current = new State(p, 0, 0);
-                if (index == 0)
+                var point = points[index];
+                var u = point.X - segment.FirstPoint.X;
+                var v = point.Y - segment.FirstPoint.Y;
+                double vPred = segment.RelEvaluate(u);
+                double dvPred = v - vPred;
+                maxError = Math.Max(maxError, dvPred * dvPred);
+            }
+
+            return maxError;
+        }
+
+        public static List<CubicSegment> FitCubics(Point[] points, double maxError, double epsilon = float.Epsilon)
+        {
+            var segments = new List<CubicSegment>();
+
+            Coefficients coefficients = default;
+            // CubicSegment fittingSegment = default;
+            bool isStart = true;
+            double fixedC = 0;
+            Point startPoint = default;
+            int startIndex = 0;
+            bool restart = true;
+
+            var fittingPairs = new List<(CubicSegment, int)>();
+
+            for (var index = 0; index < points.Length;)
+            {
+                var point = points[index];
+
+                if (restart)
                 {
-                    accum = current;
+                    startPoint = point;
+                    startIndex = index;
+                    coefficients = new Coefficients(default);
+                    restart = false;
+                    fittingPairs.Clear();
+                    ++index;
                     continue;
                 }
 
-                var fitting = accum;
+                coefficients.Add(new Coefficients(point - startPoint));
 
-                var segment = accum.GetNextCubicSegment(current, epsilon);
+                var nextSegment = isStart
+                    ? coefficients.GetStartSegment(startPoint, point, epsilon)
+                    : coefficients.GetConnectedSegment(fixedC, startPoint, point, epsilon);
 
-                if (segment != null)
+                if (nextSegment == null)
                 {
-                    if (segment.Error > maxError)
-                    {
-                        yield return fitting.Segment;
+                    // Can't compute yet (e.g less than 4 points)
+                    ++index;
+                    continue;
+                }
 
-                        // Started over at half the segment.
-                        double fixedC = fitting.Segment.AbsDerivative(fitting.Segment.LastPoint.X);
-                        accum = new State(fitting.Segment.LastPoint, fitting.SegmentIndex + 1, fixedC);
-                        accum.GetNextCubicSegment(current, epsilon);
-                    }
-                    else
+                var error = ComputeError(nextSegment, points, startIndex, index);
+
+                if (error <= maxError)
+                {
+                    // next segment fits, continue.
+                    fittingPairs.Add((nextSegment, index));
+                    ++index;
+                    continue;
+                }
+
+                // Next segment doesn't fit anymore, restart
+                if (fittingPairs.Count == 0)
+                    throw new InvalidOperationException("Expected at least one fitting cubic segment!");
+
+                var (fittingSegment, fittingIndex) = fittingPairs.Last();
+
+                var (zeroX1, zeroX2, zeroCount) = fittingSegment.ZeroAbsDerivatives;
+
+
+                CubicSegment prevSegment = null;
+                int prevIndex = 0;
+
+                var zeroX = zeroX2 > fittingSegment.LastPoint.X ? zeroX1 : zeroX2;
+
+                if (zeroCount > 0 && zeroX > fittingSegment.FirstPoint.X && zeroX <= fittingSegment.LastPoint.X)
+                {
+                    for (int i = fittingPairs.Count; --i >= 0; )
                     {
-                        // The segment still fits, replace the previous segment
-                        accum.Segment = segment;
+                        (prevSegment, prevIndex) = fittingPairs[i];
+                        if (prevSegment.LastPoint.X <= zeroX)
+                        {
+                            fittingPairs.Clear();
+                            break;
+                        }
                     }
                 }
+
+                if (fittingPairs.Count > 0)
+                {
+                    (prevSegment, prevIndex) = fittingPairs.Last();
+                }
+
+                segments.Add(prevSegment);
+                index = prevIndex;
+                fixedC = prevSegment!.AbsDerivative(prevSegment.LastPoint.X);
+                restart = true;
+                isStart = false;
+                fittingPairs.Clear();
             }
 
-            if (accum.S00 >= 4)
+            if (fittingPairs.Count > 0)
             {
-                yield return accum.Segment;
+                var (fittingSegment, _) = fittingPairs.Last();
+                segments.Add(fittingSegment);
             }
+
+            return segments;
         }
     }
 }

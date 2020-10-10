@@ -290,7 +290,7 @@ namespace iim.AnimationCurveViewer
 
                         for (int axis = 0; axis < dimension; ++axis)
                         {
-                            var cubicSegments = CubicRegression.FitCubics(visualPoints[axis], 64).ToArray();
+                            var cubicSegments = CubicRegression.FitCubics(visualPoints[axis], 256).ToArray();
                             var cubicGeometry = CubicSegment.GetGeometry(cubicSegments);
 
                             curvesCanvas.Children.Add(new PathShape
@@ -455,7 +455,13 @@ namespace iim.AnimationCurveViewer
                         };
 
                         curveStack.Children.Add(animationGroup);
+
+                        // STOP AT FIRST
+                        break;
                     }
+
+                    // STOP AT FIRST
+                    break;
                 }
 
                 tab.Content = new ScrollViewer
@@ -464,6 +470,9 @@ namespace iim.AnimationCurveViewer
                 };
 
                 tabs.Items.Add(tab);
+
+                // STOP AT FIRST
+                break;
             }
 
             Content = new DockPanel

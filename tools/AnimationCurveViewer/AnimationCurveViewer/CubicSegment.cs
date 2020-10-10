@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Windows;
 using System.Windows.Media;
 
@@ -9,82 +8,12 @@ namespace iim.AnimationCurveViewer
 {
     public sealed class CubicSegment
     {
-        private double m_Error = Double.NaN;
-
         public readonly double A, B, C, D;
 
         public readonly Point FirstPoint;
         public readonly Point LastPoint;
-        public readonly CubicSegment Previous;
 
-        public readonly int Index;
-
-        public double Width => LastPoint.X - FirstPoint.X;
-
-        /*
-        /// <summary>
-        /// Average squared error
-        /// </summary>
-        public double Error
-        {
-            get
-            {
-                if (double.IsNaN(m_Error))
-                {
-                    double error = 0;
-
-                    if (Previous != null)
-                    {
-                        foreach (var p in Points)
-                        {
-                            var u = p.X - FirstPoint.X;
-                            var v = p.Y - FirstPoint.Y;
-                            double vPred = RelEvaluate(u);
-                            double dvPred = v - vPred;
-                            error += dvPred * dvPred;
-                        }
-
-                        error /= Width;
-                    }
-
-                    m_Error = error;
-                }
-
-                return m_Error;
-            }
-        }*/
-
-        /// <summary>
-        /// Largest squared error
-        /// </summary>
-        public double Error
-        {
-            get
-            {
-                if (double.IsNaN(m_Error))
-                {
-                    double maxError = 0;
-
-                    if (Previous != null)
-                    {
-                        foreach (var p in Points)
-                        {
-                            var u = p.X - FirstPoint.X;
-                            var v = p.Y - FirstPoint.Y;
-                            double vPred = RelEvaluate(u);
-                            double dvPred = v - vPred;
-                            maxError = Math.Max(maxError, dvPred * dvPred);
-                        }
-                    }
-
-                    m_Error = maxError;
-                }
-
-                return m_Error;
-            }
-        }
-
-        public CubicSegment(double a, double b, double c, double d, int index, Point firstPoint, Point lastPoint, CubicSegment previous)
+        public CubicSegment(double a, double b, double c, double d, Point firstPoint, Point lastPoint)
         {
             A = a;
             B = b;
@@ -92,33 +21,11 @@ namespace iim.AnimationCurveViewer
             D = d;
             FirstPoint = firstPoint;
             LastPoint = lastPoint;
-            Previous = previous;
-            Index = index;
         }
 
         public override string ToString()
         {
-            return $"{A:0.00}x^3 + {B:0.00}x^2 + {C:0.00}x + {D:0.00}, first:{FirstPoint}, last:{LastPoint:0.00}, error:{Error:0.000}";
-        }
-
-        /// <summary>
-        /// Points in reverse order
-        /// </summary>
-        public IEnumerable<Point> Points
-        {
-            get
-            {
-                var link = this;
-                var last = link;
-                while (link != null)
-                {
-                    yield return link.LastPoint;
-                    last = link;
-                    link = link.Previous;
-                }
-
-                yield return last.FirstPoint;
-            }
+            return $"{A:0.00}x^3 + {B:0.00}x^2 + {C:0.00}x + {D:0.00}, first:{FirstPoint}, last:{LastPoint:0.00}";
         }
 
         public IEnumerable<Point> Sample(double dist)
@@ -141,6 +48,32 @@ namespace iim.AnimationCurveViewer
         {
             return (3 * A * u + 2 * B) * u + C;
         }
+
+        public (double u1, double u2, int count) ZeroRelDerivatives => Solvers.SolveQuadratic(3 * A, 2 * B, C);
+        
+        public (double x1, double x2, int count) ZeroAbsDerivatives
+        {
+            get
+            {
+                var (u1, u2, count) = ZeroRelDerivatives;
+                var x1 = u1 + FirstPoint.X;
+                var x2 = u2 + FirstPoint.X;
+                return (x1, x2, count);
+            }
+        }
+
+        public double RelSecondDerivative(double u)
+        {
+            return 6 * A * u + 2 * B;
+        }
+
+        public double ZeroSecondRelDerivative =>
+            // 6 * A * u + 2 * B = 0
+            // <=>
+            // u = -B/3A
+            -B / (3 * A);
+
+        public double ZeroSecondAbsDerivative => ZeroSecondRelDerivative + FirstPoint.X;
 
         public double AbsEvaluate(double x)
         {
