@@ -211,7 +211,7 @@ namespace iim.AnimationCurveViewer
             int startIndex = 0;
             bool restart = true;
 
-            var fittingPairs = new List<(CubicSegment, int)>();
+            CubicSegment fittingSegment = null;
 
             for (var index = 0; index < points.Length;)
             {
@@ -223,7 +223,7 @@ namespace iim.AnimationCurveViewer
                     startIndex = index;
                     coefficients = new Coefficients(default);
                     restart = false;
-                    fittingPairs.Clear();
+                    fittingSegment = null;
                     ++index;
                     continue;
                 }
@@ -246,54 +246,41 @@ namespace iim.AnimationCurveViewer
                 if (error <= maxError)
                 {
                     // next segment fits, continue.
-                    fittingPairs.Add((nextSegment, index));
+                    fittingSegment = nextSegment;
                     ++index;
                     continue;
                 }
 
                 // Next segment doesn't fit anymore, restart
-                if (fittingPairs.Count == 0)
+                if (fittingSegment == null)
                     throw new InvalidOperationException("Expected at least one fitting cubic segment!");
 
-                var (fittingSegment, fittingIndex) = fittingPairs.Last();
-
                 var (zeroX1, zeroX2, zeroCount) = fittingSegment.ZeroAbsDerivatives;
-
-
-                CubicSegment prevSegment = null;
-                int prevIndex = 0;
-
                 var zeroX = zeroX2 > fittingSegment.LastPoint.X ? zeroX1 : zeroX2;
 
+                // Find index of zero second derivative point.
                 if (zeroCount > 0 && zeroX > fittingSegment.FirstPoint.X && zeroX <= fittingSegment.LastPoint.X)
                 {
-                    for (int i = fittingPairs.Count; --i >= 0; )
+                    for (int i = index; --i > startIndex;)
                     {
-                        (prevSegment, prevIndex) = fittingPairs[i];
-                        if (prevSegment.LastPoint.X <= zeroX)
+                        if (points[i].X <= zeroX)
                         {
-                            fittingPairs.Clear();
+                            fittingSegment.LastPoint = points[i];
+                            index = i;
                             break;
                         }
                     }
                 }
 
-                if (fittingPairs.Count > 0)
-                {
-                    (prevSegment, prevIndex) = fittingPairs.Last();
-                }
-
-                segments.Add(prevSegment);
-                index = prevIndex;
-                fixedC = prevSegment!.AbsDerivative(prevSegment.LastPoint.X);
+                segments.Add(fittingSegment);
+                fixedC = fittingSegment.AbsDerivative(fittingSegment.LastPoint.X);
                 restart = true;
                 isStart = false;
-                fittingPairs.Clear();
+                fittingSegment = null;
             }
 
-            if (fittingPairs.Count > 0)
+            if (fittingSegment != null)
             {
-                var (fittingSegment, _) = fittingPairs.Last();
                 segments.Add(fittingSegment);
             }
 

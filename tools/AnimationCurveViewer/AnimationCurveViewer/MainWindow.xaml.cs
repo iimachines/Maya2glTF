@@ -69,11 +69,9 @@ namespace iim.AnimationCurveViewer
             const float minRange = 1e-9f;
             const int curveHeight = 256;
             const int curveMargin = 10;
-            const float timeScale = 60 * 10;
+            const float timeScale = 60 * 5;
             const int curveThickness = 2;
-
-
-            float minTimeScaleForDots = 60 * 4;
+            const bool showCurveSamples = false;
 
             var tabs = new TabControl();
 
@@ -288,10 +286,15 @@ namespace iim.AnimationCurveViewer
                             IsHitTestVisible = true
                         };
 
+                        StringBuilder fittedPointCounts = new StringBuilder();
+
                         for (int axis = 0; axis < dimension; ++axis)
                         {
-                            var cubicSegments = CubicRegression.FitCubics(visualPoints[axis], 256).ToArray();
+                            var cubicSegments = CubicRegression.FitCubics(visualPoints[axis], 16);
                             var cubicGeometry = CubicSegment.GetGeometry(cubicSegments);
+
+                            fittedPointCounts.Append(cubicSegments.Count * 3 + 1);
+                            fittedPointCounts.Append(' ');
 
                             curvesCanvas.Children.Add(new PathShape
                             {
@@ -344,7 +347,7 @@ namespace iim.AnimationCurveViewer
 
                         animationHeader.Children.Add(new TextBlock
                         {
-                            Text = $"{targetNodeName}/{animation.Name}#{iChannel}",
+                            Text = $"{targetNodeName}/{animation.Name}#{iChannel} ({timesAccessor.Count} -> {fittedPointCounts})",
                             Foreground = Brushes.Yellow,
                             HorizontalAlignment = HorizontalAlignment.Left,
                             Margin = new Thickness(textBlockMargin, 0, textBlockMargin, 0),
@@ -364,7 +367,7 @@ namespace iim.AnimationCurveViewer
                                 IsHitTestVisible = false
                             });
 
-                            if (timeScale >= minTimeScaleForDots)
+                            if (showCurveSamples)
                             {
                                 var dots = Curve.ToPointsGeometry(visualPoints[axis], curveThickness);
 
@@ -457,11 +460,11 @@ namespace iim.AnimationCurveViewer
                         curveStack.Children.Add(animationGroup);
 
                         // STOP AT FIRST
-                        break;
+                        // break;
                     }
 
                     // STOP AT FIRST
-                    break;
+                    // break;
                 }
 
                 tab.Content = new ScrollViewer
@@ -472,7 +475,7 @@ namespace iim.AnimationCurveViewer
                 tabs.Items.Add(tab);
 
                 // STOP AT FIRST
-                break;
+                // break;
             }
 
             Content = new DockPanel

@@ -11,7 +11,7 @@ namespace iim.AnimationCurveViewer
         public readonly double A, B, C, D;
 
         public readonly Point FirstPoint;
-        public readonly Point LastPoint;
+        public Point LastPoint;
 
         public CubicSegment(double a, double b, double c, double d, Point firstPoint, Point lastPoint)
         {
@@ -85,10 +85,10 @@ namespace iim.AnimationCurveViewer
             return RelDerivative(x - FirstPoint.X);
         }
 
-        public static IEnumerable<Point> GetPoints(CubicSegment[] segments)
+        public static IEnumerable<Point> GetPoints(IList<CubicSegment> segments)
         {
             CubicSegment segment = null;
-            for (var index = 0; index < segments.Length; index++)
+            for (var index = 0; index < segments.Count; index++)
             {
                 segment = segments[index];
                 yield return segment.FirstPoint;
@@ -101,13 +101,13 @@ namespace iim.AnimationCurveViewer
         }
 
 
-        public static StreamGeometry GetGeometry(CubicSegment[] segments)
+        public static StreamGeometry GetGeometry(IList<CubicSegment> segments)
         {
             var geometry = new StreamGeometry();
 
             using (var sgc = geometry.Open())
             {
-                for (var index = 0; index < segments.Length; index++)
+                for (var index = 0; index < segments.Count; index++)
                 {
                     var segment = segments[index];
                     if (index == 0)
