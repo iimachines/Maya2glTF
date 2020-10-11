@@ -66,7 +66,7 @@ namespace iim.AnimationCurveViewer
                 Brushes.MediumTurquoise
             };
 
-            const float minRange = 1e-9f;
+            const float minRange = 1e-4f;
             const int curveHeight = 256;
             const int curveMargin = 10;
             const int pixelsPerFrame = 10;
@@ -88,6 +88,11 @@ namespace iim.AnimationCurveViewer
             var curveKinds = Enum.GetValues(curveKindType).Cast<AnimationChannelTarget.PathEnum>();
 
             var tabBackground = new SolidColorBrush(Color.FromRgb(32, 32, 32));
+
+            var inputFloatCount = 0;
+            var outputFloatCount = 0;
+
+            var countedAccessors = new HashSet<int>();
 
             // Create a tab per animation curve kind (rotation, translation,...)
             foreach (var curveKind in curveKinds)
@@ -119,7 +124,9 @@ namespace iim.AnimationCurveViewer
                             ? gltf.Nodes[channel.Target.Node.Value].Name
                             : null;
 
-                        Console.WriteLine($"Processing {curveKind} animation '{animation.Name}' for target node '{targetNodeName ?? "(null)"}'...");
+                        var channelTitle = $"{targetNodeName ?? "(null)"}/{animation.Name}/{curveKind}";
+
+                        Console.WriteLine($"Processing {channelTitle}...");
 
                         var sampler = animation.Samplers[channel.Sampler];
 
@@ -133,6 +140,12 @@ namespace iim.AnimationCurveViewer
                         var valuesSpan = gltf.GetComponentSpan(valuesAccessor, bufferProvider);
 
                         var dimension = valuesAccessor.GetComponentDimension();
+
+                        if (countedAccessors.Add(sampler.Input))
+                            inputFloatCount += timesAccessor.Count;
+
+                        if (countedAccessors.Add(sampler.Output))
+                            inputFloatCount += valuesAccessor.Count;
 
                         // Add a curve for each dimension to the canvas
                         var pointCount = timesAccessor.Count;
@@ -206,26 +219,27 @@ namespace iim.AnimationCurveViewer
 
                         for (int axis = 0; axis < dimension; ++axis)
                         {
-                            if (isQuaternion)
+                            // var center = (yMax[axis] + yMin[axis]) / 2;
+                            var range = yMax[axis] - yMin[axis];
+
+                            var isConst = Math.Abs(range) < minRange;
+
+                            if (isConst)
                             {
-                                yStarts[axis] = -1.0;
-                                yScales[axis] = 0.5;
+                                yStarts[axis] = 0;
+                                yScales[axis] = 0;
                             }
+                            // else if (isQuaternion)
+                            // {
+                            //     yStarts[axis] = -1.0;
+                            //     yScales[axis] = 0.5;
+                            // }
+                            // yStarts[axis] = center - minRange;
+                            // yScales[axis] = 0.5 / minRange;
                             else
                             {
-                                var center = (yMax[axis] + yMin[axis]) / 2;
-                                var range = yMax[axis] - yMin[axis];
-
-                                if (Math.Abs(range) < minRange)
-                                {
-                                    yStarts[axis] = center - minRange;
-                                    yScales[axis] = 0.5 / minRange;
-                                }
-                                else
-                                {
-                                    yStarts[axis] = yMin[axis];
-                                    yScales[axis] = 1 / (yMax[axis] - yMin[axis]);
-                                }
+                                yStarts[axis] = yMin[axis];
+                                yScales[axis] = 1 / (yMax[axis] - yMin[axis]);
                             }
                         }
 
@@ -294,7 +308,8 @@ namespace iim.AnimationCurveViewer
                         // Create range text blocks
                         for (int axis = 0; axis < dimension; ++axis)
                         {
-                            var text = $"min:{yMin[axis]:F6} max:{yMax[axis]:F6} range:{(yMax[axis] - yMin[axis]):F6}";
+                            var text = $"{(yScales[axis] == 0 ? '_' : '~')} min:{yMin[axis]:F6} max:{yMax[axis]:F6} range:{(yMax[axis] - yMin[axis]):F6}";
+
                             var textBlock = new TextBlock
                             {
                                 FontFamily = fontFamily,
@@ -338,9 +353,9 @@ namespace iim.AnimationCurveViewer
 
                         StringBuilder fittedKnotCounts = new StringBuilder();
 
+#if false
                         for (int axis = 0; axis < dimension; ++axis)
                         {
-#if false
                             var inputPoints = visualPoints[axis];
 
                             alglib.spline1dfit(
@@ -406,18 +421,35 @@ namespace iim.AnimationCurveViewer
                                 ClipToBounds = false,
                                 IsHitTestVisible = false
                             });
-
+                    }
 #endif
 
 #if true
+                        //var maxErrors = yScales.Select(_ => 0.01D).ToArray();
+                        //var (knotIndices, largestError) = Solvers.FitAkimaSplines(channelTitle, normalizedPoints, pointCount, dimension, maxErrors);
+
+                        var maxError = curveKind switch
+                        {
+                            AnimationChannelTarget.PathEnum.translation => 1e-2,
+                            AnimationChannelTarget.PathEnum.rotation => 1e-3,
+                            AnimationChannelTarget.PathEnum.scale => 1e-4,
+                            AnimationChannelTarget.PathEnum.weights => 1e-2,
+                            _ => throw new ArgumentOutOfRangeException()
+                        };
+
+                        var maxErrors = Enumerable.Range(0, dimension).Select(_ => maxError).ToArray();
+
+                        var (knotIndices, largestError) = Solvers.FitAkimaSplines(channelTitle, curvesPoints, pointCount, dimension, maxErrors);
+
+                        fittedKnotCounts.Append($"#{knotIndices.Count} {largestError}");
+
+                        // TODO: This only works with a GLTF extension that supports Akima splines...
+                        outputFloatCount += knotIndices.Count * (1 + dimension);
+
+                        for (int axis = 0; axis < dimension; ++axis)
+                        {
                             var inputPoints = visualPoints[axis];
-
-                            var knotIndices = Solvers.FitAkimaSpline(inputPoints, 16);
-
                             var knotPoints = knotIndices.Select(i => inputPoints[i]).ToArray();
-
-                            fittedKnotCounts.Append(knotPoints.Length);
-                            fittedKnotCounts.Append(' ');
 
                             alglib.spline1dbuildakima(
                                 knotPoints.Select(p => p.X).ToArray(),
@@ -457,10 +489,12 @@ namespace iim.AnimationCurveViewer
                                 IsHitTestVisible = false,
                                 Opacity = 0.5
                             });
-
+                        }
 #endif
 
 #if false
+                        for (int axis = 0; axis < dimension; ++axis)
+                        {
                             var cubicSegments = CubicRegression.FitCubics(visualPoints[axis], 8);
                             var cubicGeometry = CubicSegment.GetGeometry(cubicSegments);
 
@@ -491,9 +525,8 @@ namespace iim.AnimationCurveViewer
                                 IsHitTestVisible = false,
                                 Opacity = 0.5,
                             });
-#endif
                         }
-
+#endif
                         animationHeader.Children.Add(new TextBlock
                         {
                             Text = $"{targetNodeName}/{animation.Name}#{iChannel} ({timesAccessor.Count} -> {fittedKnotCounts})",
@@ -600,6 +633,8 @@ namespace iim.AnimationCurveViewer
                     tabs,
                 }
             };
+
+            Title = $"{inputFloatCount} -> {outputFloatCount} 1/{inputFloatCount * 1D / outputFloatCount:F2} {outputFloatCount * 100D / inputFloatCount:F2}%)";
         }
     }
 }
