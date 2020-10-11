@@ -179,24 +179,21 @@ namespace iim.AnimationCurveViewer
         }
         */
 
-        /// <summary>
-        /// Largest squared error
-        /// </summary>
-        private static double ComputeError(CubicSegment segment, Point[] points, int startIndex, int stopIndex)
+        private static bool Fits(CubicSegment segment, Point[] points, int startIndex, int stopIndex, double maxError)
         {
-            double maxError = 0;
-
-            for (var index = startIndex; index <= stopIndex; index++)
+            for (var index = stopIndex; --index >= startIndex;)
             {
                 var point = points[index];
                 var u = point.X - segment.FirstPoint.X;
                 var v = point.Y - segment.FirstPoint.Y;
                 double vPred = segment.RelEvaluate(u);
                 double dvPred = v - vPred;
-                maxError = Math.Max(maxError, dvPred * dvPred);
+                double error = Math.Abs(dvPred);
+                if (error > maxError)
+                    return false;
             }
 
-            return maxError;
+            return true;
         }
 
         public static List<CubicSegment> FitCubics(Point[] points, double maxError, double epsilon = float.Epsilon)
@@ -241,9 +238,7 @@ namespace iim.AnimationCurveViewer
                     continue;
                 }
 
-                var error = ComputeError(nextSegment, points, startIndex, index);
-
-                if (error <= maxError)
+                if (Fits(nextSegment, points, startIndex, index, maxError))
                 {
                     // next segment fits, continue.
                     fittingSegment = nextSegment;
@@ -255,6 +250,11 @@ namespace iim.AnimationCurveViewer
                 if (fittingSegment == null)
                     throw new InvalidOperationException("Expected at least one fitting cubic segment!");
 
+                segments.Add(fittingSegment);
+                restart = true;
+                fittingSegment = null;
+
+#if false
                 var (zeroX1, zeroX2, zeroCount) = fittingSegment.ZeroAbsDerivatives;
                 var zeroX = zeroX2 > fittingSegment.LastPoint.X ? zeroX1 : zeroX2;
 
@@ -272,11 +272,9 @@ namespace iim.AnimationCurveViewer
                     }
                 }
 
-                segments.Add(fittingSegment);
                 fixedC = fittingSegment.AbsDerivative(fittingSegment.LastPoint.X);
-                restart = true;
                 isStart = false;
-                fittingSegment = null;
+#endif
             }
 
             if (fittingSegment != null)
