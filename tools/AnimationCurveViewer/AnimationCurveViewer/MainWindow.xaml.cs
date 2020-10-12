@@ -58,7 +58,7 @@ namespace iim.AnimationCurveViewer
 
             var bufferProvider = gltf.CreateDefaultBufferProvider(gltfFilePath);
 
-            Quantizer.Process(gltf, bufferProvider);
+            ChannelProcessor.Process(gltf, bufferProvider, ChannelQuantizer.Process);
 
             foreach (var path in Directory.GetFiles(Path.GetDirectoryName(gltfFilePath)))
             {

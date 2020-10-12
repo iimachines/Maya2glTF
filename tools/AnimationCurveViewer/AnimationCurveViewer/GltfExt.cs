@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Threading.Channels;
 using glTFLoader;
@@ -181,13 +182,17 @@ namespace iim.AnimationCurveViewer
             return $"{targetNodeName}/{animation.Name}/{channel.Target.Path}";
         }
 
-        public static Span<T> GetFloatChannel<T>(this Gltf gltf, BufferProvider bufferProvider, Animation animation, AnimationChannel channel)
-            where T : unmanaged
+        public static Accessor GetChannelOutputAccessor(this Gltf gltf, Animation animation, AnimationChannel channel)
         {
             var sampler = animation.Samplers[channel.Sampler];
-
             var valuesAccessor = gltf.Accessors[sampler.Output];
-            
+            return valuesAccessor;
+        }
+
+        public static Span<T> GetFloatOutputChannel<T>(this Gltf gltf, BufferProvider bufferProvider, Animation animation, AnimationChannel channel)
+            where T : unmanaged
+        {
+            var valuesAccessor = GetChannelOutputAccessor(gltf, animation, channel);
             if (valuesAccessor.ComponentType != Accessor.ComponentTypeEnum.FLOAT)
                 throw new NotSupportedException($"{GetChannelName(gltf, animation, channel)} has non-float values accessor");
 
@@ -198,6 +203,14 @@ namespace iim.AnimationCurveViewer
         public static Span<T> ToSpan<T>(this T[] items) where T : unmanaged
         {
             return new Span<T>(items);
+        }
+
+        public static void CopyTo(this in Quaternion q, float[] target, int index)
+        {
+            target[index + 0] = q.X;
+            target[index + 1] = q.Y;
+            target[index + 2] = q.Z;
+            target[index + 3] = q.W;
         }
     }
 }
