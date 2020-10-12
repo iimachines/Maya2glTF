@@ -9,11 +9,9 @@
 #include "NodeAnimation.h"
 #include "Transform.h"
 
-ExportableNode::ExportableNode(const MDagPath &dagPath)
-    : ExportableObject(dagPath.node()), dagPath(dagPath) {}
+ExportableNode::ExportableNode(const MDagPath &dagPath) : ExportableObject(dagPath.node()), dagPath(dagPath) {}
 
-void ExportableNode::load(ExportableScene &scene,
-                          NodeTransformCache &transformCache) {
+void ExportableNode::load(ExportableScene &scene, NodeTransformCache &transformCache) {
     MStatus status;
 
     auto &resources = scene.resources();
@@ -24,8 +22,7 @@ void ExportableNode::load(ExportableScene &scene,
 
     // Is this a joint with segment scale compensation? (the default in Maya)
     bool maybeSegmentScaleCompensation = false;
-    DagHelper::getPlugValue(obj, "segmentScaleCompensate",
-                            maybeSegmentScaleCompensation);
+    DagHelper::getPlugValue(obj, "segmentScaleCompensate", maybeSegmentScaleCompensation);
 
     // Remember scale factor
     scaleFactor = args.getBakeScaleFactor();
@@ -40,8 +37,7 @@ void ExportableNode::load(ExportableScene &scene,
     // Deal with segment scale compensation
     // A root joint never has segment scale compensation, since the parent is
     // the world.
-    if (maybeSegmentScaleCompensation && parentNode &&
-        parentNode->obj.hasFn(MFn::kJoint) &&
+    if (maybeSegmentScaleCompensation && parentNode && parentNode->obj.hasFn(MFn::kJoint) &&
         !args.ignoreSegmentScaleCompensation) {
         transformKind = TransformKind::ComplexJoint;
     }
@@ -56,12 +52,10 @@ void ExportableNode::load(ExportableScene &scene,
         const auto rotatePivot = fnTransform.rotatePivot(MSpace::kObject);
 
         if (scalePivot != rotatePivot) {
-            MayaException::printError(
-                formatted(
-                    "Transform '%s' has different scaling and rotation pivots, "
-                    "this is not supported, ignoring scaling pivot!",
-                    dagPath.partialPathName().asChar()),
-                MStatus::kNotImplemented);
+            MayaException::printError(formatted("Transform '%s' has different scaling and rotation pivots, "
+                                                "this is not supported, ignoring scaling pivot!",
+                                                dagPath.partialPathName().asChar()),
+                                      MStatus::kNotImplemented);
         }
 
         pivotPoint = rotatePivot;
@@ -123,8 +117,7 @@ void ExportableNode::load(ExportableScene &scene,
              << "' has initial transforms that are not representable by glTF! "
                 "Skewing is not supported, use 3 nodes to simulate this. "
                 "Deviation = "
-             << std::fixed << std::setprecision(2)
-             << initialTransformState.maxNonOrthogonality * 100 << "%" << endl;
+             << std::fixed << std::setprecision(2) << initialTransformState.maxNonOrthogonality * 100 << "%" << endl;
     }
 
     // Create mesh, if any
@@ -135,8 +128,7 @@ void ExportableNode::load(ExportableScene &scene,
 
         if (status && shapeDagPath.hasFn(MFn::kMesh)) {
             // The shape is a mesh
-            m_mesh =
-                std::make_unique<ExportableMesh>(scene, *this, shapeDagPath);
+            m_mesh = std::make_unique<ExportableMesh>(scene, *this, shapeDagPath);
             m_mesh->attachToNode(pNode);
         }
     }
@@ -148,8 +140,7 @@ void ExportableNode::load(ExportableScene &scene,
 
         if (status && shapeDagPath.hasFn(MFn::kCamera)) {
             // The shape is a camera
-            m_camera =
-                std::make_unique<ExportableCamera>(scene, *this, shapeDagPath);
+            m_camera = std::make_unique<ExportableCamera>(scene, *this, shapeDagPath);
             m_camera->attachToNode(pNode);
         }
     }
@@ -158,11 +149,10 @@ void ExportableNode::load(ExportableScene &scene,
 ExportableNode::~ExportableNode() = default;
 
 std::unique_ptr<NodeAnimation>
-ExportableNode::createAnimation(const ExportableFrames &frameTimes,
-                                const double scaleFactor) {
-    return std::make_unique<NodeAnimation>(*this, frameTimes, scaleFactor,
-                                           m_disableNameAssignment,
-                                           m_forceAnimationChannels);
+ExportableNode::createAnimation(const Arguments &args, const ExportableFrames &frameTimes, const double scaleFactor) {
+
+    return std::make_unique<NodeAnimation>(*this, frameTimes, scaleFactor, m_disableNameAssignment,
+                                           m_forceAnimationChannels, args);
 }
 
 void ExportableNode::updateNodeTransforms(NodeTransformCache &transformCache) {
@@ -175,12 +165,10 @@ void ExportableNode::updateNodeTransforms(NodeTransformCache &transformCache) {
         // and scale matrices.
         const auto currentFrameTime = MAnimControl::currentTime();
 
-        cerr << prefix << "WARNING: node '" << name()
-             << "' has transforms at the current frame " << currentFrameTime
+        cerr << prefix << "WARNING: node '" << name() << "' has transforms at the current frame " << currentFrameTime
              << " that are not representable by glTF! Skewing is not "
                 "supported, use 3 nodes to simulate this. Deviation = "
-             << std::fixed << std::setprecision(2)
-             << currentTransformState.maxNonOrthogonality * 100 << "%" << endl;
+             << std::fixed << std::setprecision(2) << currentTransformState.maxNonOrthogonality * 100 << "%" << endl;
     }
 }
 
@@ -211,17 +199,14 @@ bool ExportableNode::tryMergeRedundantShapeNode() {
         return false;
 
     auto *trs = static_cast<const GLTF::Node::TransformTRS *>(transform);
-    if (trs->translation[0] != 0 || trs->translation[1] != 0 ||
-        trs->translation[2] != 0)
+    if (trs->translation[0] != 0 || trs->translation[1] != 0 || trs->translation[2] != 0)
         return false;
-    if (trs->rotation[0] != 0 || trs->rotation[1] != 0 ||
-        trs->rotation[2] != 0 || trs->rotation[3] != 1)
+    if (trs->rotation[0] != 0 || trs->rotation[1] != 0 || trs->rotation[2] != 0 || trs->rotation[3] != 1)
         return false;
     if (trs->scale[0] != 1 || trs->scale[1] != 1 || trs->scale[2] != 1)
         return false;
 
-    cout << prefix << "Shape-only node '" << name()
-         << "' is redundant, moving its shapes to parent node '"
+    cout << prefix << "Shape-only node '" << name() << "' is redundant, moving its shapes to parent node '"
          << parentNode->name() << "'" << endl;
 
     glParentNode.children.clear();
@@ -242,8 +227,7 @@ bool ExportableNode::tryMergeRedundantShapeNode() {
     return true;
 }
 
-void ExportableNode::getAllAccessors(
-    std::vector<GLTF::Accessor *> &accessors) const {
+void ExportableNode::getAllAccessors(std::vector<GLTF::Accessor *> &accessors) const {
     if (m_mesh) {
         m_mesh->getAllAccessors(accessors);
     }

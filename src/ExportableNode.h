@@ -43,30 +43,21 @@ class ExportableNode : public ExportableObject {
     NodeTransformState initialTransformState;
     NodeTransformState currentTransformState;
 
-    std::unique_ptr<NodeAnimation>
-    createAnimation(const ExportableFrames &frameTimes,
-                    const double scaleFactor) override;
+    std::unique_ptr<NodeAnimation> createAnimation(const Arguments &args, const ExportableFrames &frameTimes,
+                                                   double scaleFactor) override;
 
     // The primary node to represent the transform
     // See Transform.h for details
     GLTF::Node &glPrimaryNode() { return m_glNodes[0]; }
-    const GLTF::Node &glPrimaryNode() const {
-        return const_cast<ExportableNode *>(this)->glPrimaryNode();
-    }
+    const GLTF::Node &glPrimaryNode() const { return const_cast<ExportableNode *>(this)->glPrimaryNode(); }
 
     // The secondary node to represent the transform
     // Can be the same as the primary node for simple transforms
     // See Transform.h for details
-    GLTF::Node &glSecondaryNode() {
-        return m_glNodes[transformKind != TransformKind::Simple];
-    }
-    const GLTF::Node &glSecondaryNode() const {
-        return const_cast<ExportableNode *>(this)->glSecondaryNode();
-    }
+    GLTF::Node &glSecondaryNode() { return m_glNodes[transformKind != TransformKind::Simple]; }
+    const GLTF::Node &glSecondaryNode() const { return const_cast<ExportableNode *>(this)->glSecondaryNode(); }
 
-    MDagPath parentDagPath() const {
-        return parentNode ? parentNode->dagPath : MDagPath();
-    }
+    MDagPath parentDagPath() const { return parentNode ? parentNode->dagPath : MDagPath(); }
 
     // Update the node transforms using the values at the current frame
     void updateNodeTransforms(NodeTransformCache &transformCache);

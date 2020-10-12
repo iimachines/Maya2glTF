@@ -2,7 +2,7 @@
 
 #include "ExportableNode.h"
 #include "PropAnimation.h"
-#include "sceneTypes.h"
+#include "Arguments.h"
 
 class ExportableNode;
 class ExportableMesh;
@@ -11,7 +11,10 @@ class NodeTransformCache;
 class NodeAnimation {
   public:
     NodeAnimation(const ExportableNode &node, const ExportableFrames &frames, double scaleFactor,
-                  bool disableNameAssignment, bool forceChannels);
+                  bool disableNameAssignment, bool forceChannels, const Arguments &args);
+
+    /** Consider a blend shape weight animation path as constant if all values are below this threshold */
+    double constantWeightsThreshold = 1e-9;
 
     virtual ~NodeAnimation() = default;
 
@@ -30,6 +33,7 @@ class NodeAnimation {
     const bool m_disableNameAssignment;
     const bool m_forceChannels;
     const size_t m_blendShapeCount;
+    const Arguments &m_arguments;
 
     double m_maxNonOrthogonality = 0;
     std::vector<MTime> m_invalidLocalTransformTimes;
@@ -41,12 +45,12 @@ class NodeAnimation {
     std::unique_ptr<PropAnimation> m_weights;
 
     void finish(GLTF::Animation &glAnimation, const char *propName, std::unique_ptr<PropAnimation> &animatedProp,
-                const gsl::span<const float> &baseValues) const;
+                double constantThreshold, const gsl::span<const float> &baseValues) const;
 
     template <int N>
     void finish(GLTF::Animation &glAnimation, const char *propName, std::unique_ptr<PropAnimation> &animatedProp,
-                const float (&baseValues)[N]) {
-        finish(glAnimation, propName, animatedProp, gsl::make_span(&baseValues[0], N));
+                double constantThreshold, const float (&baseValues)[N]) {
+        finish(glAnimation, propName, animatedProp, constantThreshold, gsl::make_span(&baseValues[0], N));
     }
 
     static void getAllAccessors(const std::unique_ptr<PropAnimation> &animatedProp,

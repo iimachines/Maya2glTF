@@ -82,6 +82,12 @@ const auto reportSkewedInverseBindMatrices = "rsb";
 const auto clearOutputWindow = "cow";
 
 const auto cameras = "cam";
+
+const auto constantTranslationThreshold = "ctt";
+const auto constantRotationThreshold = "crt";
+const auto constantScalingThreshold = "cst";
+const auto constantWeightsThreshold = "cwt";
+
 } // namespace flag
 
 inline const char *getArgTypeName(const MSyntax::MArgType argType) {
@@ -181,6 +187,11 @@ SyntaxFactory::SyntaxFactory() {
     registerFlag(ss, flag::clearOutputWindow, "clearOutputWindow", kNoArg);
 
     registerFlag(ss, flag::cameras, "cameras", true, kString);
+
+    registerFlag(ss, flag::constantTranslationThreshold, "constantTranslationThreshold", kDouble);
+    registerFlag(ss, flag::constantRotationThreshold, "constantRotationThreshold", kDouble);
+    registerFlag(ss, flag::constantScalingThreshold, "constantScalingThreshold", kDouble);
+    registerFlag(ss, flag::constantWeightsThreshold, "constantWeightsThreshold", kDouble);
 
     m_usage = ss.str();
 }
@@ -480,6 +491,11 @@ Arguments::Arguments(const MArgList &args, const MSyntax &syntax) {
     clearOutputWindow = adb.isFlagSet(flag::clearOutputWindow);
 
     adb.optional(flag::globalOpacityFactor, opacityFactor);
+
+    adb.optional(flag::constantTranslationThreshold, constantTranslationThreshold);
+    adb.optional(flag::constantRotationThreshold, constantRotationThreshold);
+    adb.optional(flag::constantScalingThreshold, constantScalingThreshold);
+    adb.optional(flag::constantWeightsThreshold, constantWeightsThreshold);
 
     if (!adb.optional(flag::sceneName, sceneName)) {
         // Use filename without extension of current scene file.

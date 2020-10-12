@@ -232,6 +232,18 @@ class Arguments {
      * too. */
     bool visibleNodesOnly = false;
 
+    /** Consider a translation animation path as constant if all values are below this threshold */
+    double constantTranslationThreshold = 1e-9;
+
+    /** Consider a rotation animation path as constant if all values are below this threshold */
+    double constantRotationThreshold = 1e-9;
+
+    /** Consider a scaling animation path as constant if all values are below this threshold */
+    double constantScalingThreshold = 1e-9;
+
+    /** Consider a blend shape weight animation path as constant if all values are below this threshold */
+    double constantWeightsThreshold = 1e-9;
+
     std::vector<AnimClipArg> animationClips;
 
     /** Copyright text of the exported file */
