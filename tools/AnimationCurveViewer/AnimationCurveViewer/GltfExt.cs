@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading.Channels;
 using glTFLoader;
 using glTFLoader.Schema;
 using Buffer = glTFLoader.Schema.Buffer;
@@ -123,8 +125,15 @@ namespace iim.AnimationCurveViewer
             int byteOffset = accessor.ByteOffset + bufferView.ByteOffset;
             byteOffset += accessor.GetByteStride(gltf.BufferViews) * index;
             var buffer = gltf.Buffers[bufferView.Buffer];
-            var data = new Span<byte>(bufferProvider(buffer, bufferView.Buffer)).Slice(byteOffset);
+            var byteLength = accessor.Count * accessor.GetComponentByteLength() * accessor.GetComponentDimension();
+            var data = new Span<byte>(bufferProvider(buffer, bufferView.Buffer)).Slice(byteOffset, byteLength);
             return data;
+        }
+
+        public static Span<T> GetComponentSpan<T>(this Gltf gltf, Accessor accessor, BufferProvider bufferProvider, int index = 0)
+            where T : unmanaged
+        {
+            return MemoryMarshal.Cast<byte, T>(GetComponentSpan(gltf, accessor, bufferProvider, index));
         }
 
         public static float[] GetNextFloatComponents(this Accessor accessor, Span<byte> data, float[] components, ref int byteOffset)
@@ -162,6 +171,33 @@ namespace iim.AnimationCurveViewer
             var value = MemoryMarshal.Read<T>(buffer.Slice(byteOffset, sizeof(T)));
             byteOffset += sizeof(T);
             return value;
+        }
+
+        public static string GetChannelName(this Gltf gltf, Animation animation, AnimationChannel channel)
+        {
+            Debug.Assert(channel.Target.Node != null, "channel.Target.Node != null");
+            var targetNode = gltf.Nodes[channel.Target.Node.Value];
+            var targetNodeName = targetNode.Name;
+            return $"{targetNodeName}/{animation.Name}/{channel.Target.Path}";
+        }
+
+        public static Span<T> GetFloatChannel<T>(this Gltf gltf, BufferProvider bufferProvider, Animation animation, AnimationChannel channel)
+            where T : unmanaged
+        {
+            var sampler = animation.Samplers[channel.Sampler];
+
+            var valuesAccessor = gltf.Accessors[sampler.Output];
+            
+            if (valuesAccessor.ComponentType != Accessor.ComponentTypeEnum.FLOAT)
+                throw new NotSupportedException($"{GetChannelName(gltf, animation, channel)} has non-float values accessor");
+
+            var valuesSpan = gltf.GetComponentSpan<T>(valuesAccessor, bufferProvider);
+            return valuesSpan;
+        }
+
+        public static Span<T> ToSpan<T>(this T[] items) where T : unmanaged
+        {
+            return new Span<T>(items);
         }
     }
 }

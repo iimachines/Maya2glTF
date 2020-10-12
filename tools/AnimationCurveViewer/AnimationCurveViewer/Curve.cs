@@ -6,7 +6,7 @@ namespace iim.AnimationCurveViewer
 {
 	public static class Curve
 	{
-		public static StreamGeometry ToPointsGeometry(Point[] points, int radius)
+		public static StreamGeometry ToPointsGeometry(Point[] points, double radius)
 		{
 			var geometry = new StreamGeometry();
 

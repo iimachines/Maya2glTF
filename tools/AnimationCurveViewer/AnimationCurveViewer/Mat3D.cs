@@ -261,7 +261,7 @@ namespace iim.AnimationCurveViewer
             C2 = m.B3;
         }
 
-        public void Product(ref Vector3 v, out Vector3 result)
+        public void Product(ref Vec3D v, out Vec3D result)
         {
             result.X = A1 * v.X + A2 * v.Y + A3 * v.Z;
             result.Y = B1 * v.X + B2 * v.Y + B3 * v.Z;

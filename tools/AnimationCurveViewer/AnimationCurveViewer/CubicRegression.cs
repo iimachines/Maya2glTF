@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 
@@ -106,9 +107,9 @@ namespace iim.AnimationCurveViewer
                 Mat3D M;
                 A.Adjoints(out M);
 
-                var V = new Vector3((S31 - fixedC * S40) / det, (S21 - fixedC * S30) / det, (S01 - fixedC * S10) / det);
+                var V = new Vec3D((S31 - fixedC * S40) / det, (S21 - fixedC * S30) / det, (S01 - fixedC * S10) / det);
 
-                Vector3 abd;
+                Vec3D abd;
                 M.Product(ref V, out abd);
 
                 return new CubicSegment(abd.X, abd.Y, fixedC, abd.Z, startPoint, endPoint);
@@ -179,26 +180,23 @@ namespace iim.AnimationCurveViewer
         }
         */
 
-        private static bool Fits(CubicSegment segment, Point[] points, int startIndex, int stopIndex, double maxError)
+        private static bool Fits(CubicSegment segment, Point[] points, int startIndex, int stopIndex, double qScale, double qMin, double qMax)
         {
-            for (var index = stopIndex; --index >= startIndex;)
+            for (var index = stopIndex; index >= startIndex; --index )
             {
                 var point = points[index];
-                var u = point.X - segment.FirstPoint.X;
-                var v = point.Y - segment.FirstPoint.Y;
-                double vPred = segment.RelEvaluate(u);
-                double dvPred = v - vPred;
-                double error = Math.Abs(dvPred);
-                if (error > maxError)
+                double yPred = segment.AbsEvaluate(point.X);
+                double qError = Math.Round((yPred - point.Y) * qScale);
+                if (qError < qMin || qError > qMax)
                     return false;
             }
 
             return true;
         }
 
-        public static List<CubicSegment> FitCubics(Point[] points, double maxError, double epsilon = float.Epsilon)
+        public static List<(CubicSegment segment, int stop)> FitCubics(Point[] points, double qScale, double qMin, double qMax, double epsilon = float.Epsilon)
         {
-            var segments = new List<CubicSegment>();
+            var segments = new List<(CubicSegment, int)>();
 
             Coefficients coefficients = default;
             // CubicSegment fittingSegment = default;
@@ -209,6 +207,7 @@ namespace iim.AnimationCurveViewer
             bool restart = true;
 
             CubicSegment fittingSegment = null;
+            int fittingIndex = -1;
 
             for (var index = 0; index < points.Length;)
             {
@@ -220,7 +219,6 @@ namespace iim.AnimationCurveViewer
                     startIndex = index;
                     coefficients = new Coefficients(default);
                     restart = false;
-                    fittingSegment = null;
                     ++index;
                     continue;
                 }
@@ -238,11 +236,12 @@ namespace iim.AnimationCurveViewer
                     continue;
                 }
 
-                if (Fits(nextSegment, points, startIndex, index, maxError))
+                if (Fits(nextSegment, points, startIndex, index, qScale, qMin, qMax))
                 {
                     // next segment fits, continue.
                     fittingSegment = nextSegment;
-                    ++index;
+                    fittingIndex = ++index;
+
                     continue;
                 }
 
@@ -250,10 +249,10 @@ namespace iim.AnimationCurveViewer
                 if (fittingSegment == null)
                     throw new InvalidOperationException("Expected at least one fitting cubic segment!");
 
-                segments.Add(fittingSegment);
+                segments.Add((fittingSegment, fittingIndex));
                 restart = true;
                 fittingSegment = null;
-
+                fittingIndex = -1;
 #if false
                 var (zeroX1, zeroX2, zeroCount) = fittingSegment.ZeroAbsDerivatives;
                 var zeroX = zeroX2 > fittingSegment.LastPoint.X ? zeroX1 : zeroX2;
@@ -279,7 +278,7 @@ namespace iim.AnimationCurveViewer
 
             if (fittingSegment != null)
             {
-                segments.Add(fittingSegment);
+                segments.Add((fittingSegment, points.Length));
             }
 
             return segments;
