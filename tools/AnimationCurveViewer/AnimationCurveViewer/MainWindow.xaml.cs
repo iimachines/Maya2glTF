@@ -58,7 +58,10 @@ namespace iim.AnimationCurveViewer
 
             var bufferProvider = gltf.CreateDefaultBufferProvider(gltfFilePath);
 
-            ChannelProcessor.Process(gltf, bufferProvider, ChannelQuantizer.Process);
+            // ChannelProcessor.Process(gltf, bufferProvider, ChannelQuantizer.Process);
+            var fitter = new ChannelFitter();
+            ChannelProcessor.Process(gltf, bufferProvider, fitter.Process, false);
+            Title = $"{fitter.InputByteCount} -> {fitter.OutputByteCount}";
 
             foreach (var path in Directory.GetFiles(Path.GetDirectoryName(gltfFilePath)))
             {
@@ -870,7 +873,7 @@ namespace iim.AnimationCurveViewer
 
             outputByteCount += (int)quantStream.Length;
 
-            Title = $"{inputByteCount} -> {outputByteCount} 1/{inputByteCount * 1D / outputByteCount:F2} {outputByteCount * 100D / inputByteCount:F2}%)";
+            //Title = $"{inputByteCount} -> {outputByteCount} 1/{inputByteCount * 1D / outputByteCount:F2} {outputByteCount * 100D / inputByteCount:F2}%)";
 #endif
 
         }

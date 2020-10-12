@@ -315,5 +315,115 @@ namespace iim.AnimationCurveViewer
 
             return polys;
         }
+
+        public static IList<int> FitAkimaSpline(Point[] points, double maxError)
+        {
+            int pointCount = points.Length;
+
+            // Brute force algorithm, randomly tries knots, then splits each interval at largest error.
+            var random = new Random(0x76543210);
+
+            // TODO: Preprocess to find discontinuities! 
+            // TODO: Research Adaptive spline fitting with particle swarm optimization
+            // https://arxiv.org/pdf/1907.12160.pdf
+            // Matlab code: https://github.com/mohanty-sd/SHAPES
+            var result = Enumerable
+#if DEBUG
+                .Range(0, 0)
+#else
+                .Range(0, 100)
+#endif
+                .Select(n => Enumerable
+                    .Range(0, n / 10)
+                    .Select(_ => random.Next(1, pointCount - 1))
+                    .Distinct()
+                    .OrderBy(r => r)
+                    .ToArray())
+                .Concat(new[]
+                {
+                    new[] { pointCount / 2 },
+                    new[] { 1 * pointCount / 3, 2 * pointCount / 3 }
+                })
+#if !DEBUG
+                .AsParallel()
+#endif
+                .Select(middleKnotIndices =>
+                {
+                    // Start with 3 points
+                    var knotIndices = middleKnotIndices.Prepend(0).Append(pointCount - 1).ToList();
+
+                    var knotXs = new double[pointCount];
+                    var knotYs = new double[pointCount];
+
+                    alglib.spline1dinterpolant spline = null;
+
+                    for (; ; )
+                    {
+                        // Build spline.
+                        spline?.Dispose();
+
+                        for (var ki = 0; ki < knotIndices.Count; ki++)
+                        {
+                            var p = points[knotIndices[ki]];
+                            knotXs[ki] = p.X;
+                            knotYs[ki] = p.Y;
+                        }
+
+                        alglib.spline1dbuildakima(knotXs, knotYs, knotIndices.Count, out spline);
+
+                        // Split at highest error.
+                        var knotCount = knotIndices.Count;
+                        var splitIndices = new List<int>(knotCount * 2);
+
+                        for (int i = 0; i < knotCount - 1; i++)
+                        {
+                            var iStart = knotIndices[i];
+                            var iEnd = knotIndices[i + 1];
+
+                            splitIndices.Add(iStart);
+
+                            bool shouldSplit = false;
+                            int splitIndex = -1;
+                            double splitError = 0;
+
+                            for (int j = iStart; j < iEnd; ++j)
+                            {
+                                var p = points[j];
+                                var y = p.Y;
+                                var z = alglib.spline1dcalc(spline, p.X);
+
+                                var error = Math.Abs(y - z);
+
+                                shouldSplit |= error > maxError;
+
+                                if (error > splitError)
+                                {
+                                    splitError = error;
+                                    splitIndex = j;
+                                }
+                            }
+
+                            if (shouldSplit)
+                            {
+                                splitIndices.Add(splitIndex);
+                            }
+                        }
+
+                        splitIndices.Add(knotIndices.Last());
+
+                        if (splitIndices.Count == knotIndices.Count)
+                            return knotIndices;
+
+                        knotIndices = splitIndices;
+                    }
+                })
+#if !DEBUG
+                .AsSequential()
+#endif
+                .OrderBy(knotIndices => knotIndices.Count)
+                .First();
+
+            return result;
+        }
     }
 }
