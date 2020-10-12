@@ -79,8 +79,5 @@ class ExportableNode : public ExportableObject {
     std::unique_ptr<ExportableMesh> m_mesh;
     std::unique_ptr<ExportableCamera> m_camera;
 
-    bool m_disableNameAssignment = false;
-    bool m_forceAnimationChannels = false;
-
     DISALLOW_COPY_MOVE_ASSIGN(ExportableNode);
 };

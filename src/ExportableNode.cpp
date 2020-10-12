@@ -17,9 +17,6 @@ void ExportableNode::load(ExportableScene &scene, NodeTransformCache &transformC
     auto &resources = scene.resources();
     auto &args = resources.arguments();
 
-    m_disableNameAssignment = args.disableNameAssignment;
-    m_forceAnimationChannels = args.forceAnimationChannels;
-
     // Is this a joint with segment scale compensation? (the default in Maya)
     bool maybeSegmentScaleCompensation = false;
     DagHelper::getPlugValue(obj, "segmentScaleCompensate", maybeSegmentScaleCompensation);
@@ -151,8 +148,7 @@ ExportableNode::~ExportableNode() = default;
 std::unique_ptr<NodeAnimation>
 ExportableNode::createAnimation(const Arguments &args, const ExportableFrames &frameTimes, const double scaleFactor) {
 
-    return std::make_unique<NodeAnimation>(*this, frameTimes, scaleFactor, m_disableNameAssignment,
-                                           m_forceAnimationChannels, args);
+    return std::make_unique<NodeAnimation>(*this, frameTimes, scaleFactor, args);
 }
 
 void ExportableNode::updateNodeTransforms(NodeTransformCache &transformCache) {

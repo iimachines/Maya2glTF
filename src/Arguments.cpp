@@ -69,6 +69,8 @@ const auto forceRootNode = "frn";
 
 const auto forceAnimationChannels = "fac";
 
+const auto forceAnimationSampling = "fas";
+
 const auto hashBufferURIs = "hbu";
 
 const auto dumpAccessorComponents = "dac";
@@ -179,6 +181,8 @@ SyntaxFactory::SyntaxFactory() {
     registerFlag(ss, flag::bakeScalingFactor, "bakeScalingFactor", kNoArg);
     registerFlag(ss, flag::forceRootNode, "forceRootNode", kNoArg);
     registerFlag(ss, flag::forceAnimationChannels, "forceAnimationChannels", kNoArg);
+    registerFlag(ss, flag::forceAnimationSampling, "forceAnimationSampling", kNoArg);
+    
     registerFlag(ss, flag::hashBufferURIs, "hashBufferUri", kNoArg);
     registerFlag(ss, flag::niceBufferURIs, "niceBufferNames", kNoArg);
 
@@ -484,6 +488,7 @@ Arguments::Arguments(const MArgList &args, const MSyntax &syntax) {
     bakeScalingFactor = adb.isFlagSet(flag::bakeScalingFactor);
     forceRootNode = adb.isFlagSet(flag::forceRootNode);
     forceAnimationChannels = adb.isFlagSet(flag::forceAnimationChannels);
+    forceAnimationSampling = adb.isFlagSet(flag::forceAnimationSampling);
     hashBufferURIs = adb.isFlagSet(flag::hashBufferURIs);
     niceBufferURIs = adb.isFlagSet(flag::niceBufferURIs);
     convertUnsupportedImages = adb.isFlagSet(flag::convertUnsupportedImages);

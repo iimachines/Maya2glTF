@@ -199,9 +199,11 @@ class Arguments {
      * which case an extra root node is not always needed? */
     bool forceRootNode = false;
 
-    /** Force the creation of an animation channel for each node, even if the
-     * node doesn't contain any animation? */
+    /** Force the creation of an animation channel for each node, even if the node doesn't contain any animation? */
     bool forceAnimationChannels = false;
+
+    /** Force the sampling of an animation channel for each node, even if the node doesn't contain any animation? */
+    bool forceAnimationSampling = false;
 
     /** Use a hash of the buffer for its URI? Useful when exporting the same
      * mesh buffer per animation scene */
