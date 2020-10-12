@@ -81,19 +81,19 @@ void NodeAnimation::sampleAt(const MTime &absoluteTime, const int frameIndex,
     switch (node.transformKind) {
     case TransformKind::Simple:
         m_positions->append(gsl::make_span(pTRS.translation));
-        m_rotations->append(gsl::make_span(pTRS.rotation));
+        m_rotations->appendQuaternion(gsl::make_span(pTRS.rotation));
         m_scales->append(gsl::make_span(pTRS.scale));
         break;
     case TransformKind::ComplexJoint:
         m_positions->append(gsl::make_span(sTRS.translation));
-        m_rotations->append(gsl::make_span(pTRS.rotation));
+        m_rotations->appendQuaternion(gsl::make_span(pTRS.rotation));
         m_scales->append(gsl::make_span(pTRS.scale));
         m_correctors->append(gsl::make_span(sTRS.scale));
         break;
 
     case TransformKind::ComplexTransform:
         m_positions->append(gsl::make_span(sTRS.translation));
-        m_rotations->append(gsl::make_span(sTRS.rotation));
+        m_rotations->appendQuaternion(gsl::make_span(sTRS.rotation));
         m_scales->append(gsl::make_span(sTRS.scale));
         m_correctors->append(gsl::make_span(pTRS.translation));
         break;
