@@ -290,10 +290,11 @@ MeshVertices::MeshVertices(const MeshIndices &meshIndices, const MeshSkeleton *m
             status = mesh.getTangents(mTangents, MSpace::kWorld, &semantic.setName);
 
             if (status.error()) {
-                MayaException::printError(formatted("Maya failed to provide the tangents of mesh '%s'! "
-                                                    "This should not happen, investigate your mesh",
-                                                    mesh.name().asChar()),
-                                          status);
+                MayaException::printWarning(
+                    formatted("Maya failed to provide the tangents of mesh '%s'!\n"
+                              "Assign texture coordinates and/or cleanup your mesh and try again please",
+                              mesh.name().asChar()),
+                    status);
             } else {
                 const int numTangents = mTangents.length();
 

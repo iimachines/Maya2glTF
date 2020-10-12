@@ -1,0 +1,46 @@
+global proc maya2glTF_setLogicalParent() {
+    string $nodes[] = `ls -sl -type transform`;
+    if (size($nodes) < 2)
+        error "You must select one parent transform node and one or more child transform nodes";
+
+    string $parent = $nodes[0];
+
+    int $i = 0;
+    while (++$i < size($nodes)) {
+        string $child = $nodes[$i];
+        print ("Setting logical glTF parent of "+$child+" to "+$parent + "...\n");
+        if (!`attributeExists "Maya2glTF_LogicalParent" $child`) {
+            addAttr -nn "glTF Logical Parent" -ln Maya2glTF_LogicalParent -dt "string" -storable 1 $child;
+        }
+        setAttr -type "string" ($child+".Maya2glTF_LogicalParent") $parent;
+    }
+}
+
+global proc maya2glTF_clearLogicalParents() {
+    string $nodes[] = `ls -sl -type transform`;
+    if (size($nodes) < 1)
+        error "You must select one or more transform nodes";
+
+    int $i;
+    int $cleared = 0;
+    for ($i=0; $i < size($nodes); ++$i) {
+        string $node = $nodes[$i];
+        if (`attributeExists "Maya2glTF_LogicalParent" $node`) {
+            print ("Clearing logical glTF parent of "+$node+"...\n");
+            deleteAttr -attribute Maya2glTF_LogicalParent $node;
+            ++$cleared;
+        }
+    }
+
+    if (!$cleared) {
+        print ("No node had a glTF logical parent attribute.\n");
+    }
+}
+
+global proc maya2glTF_logicalParents(int $add) {
+    if ($add){ 
+        maya2glTF_setLogicalParent();
+    } else {
+        maya2glTF_clearLogicalParents();
+    }
+}
