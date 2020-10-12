@@ -261,6 +261,8 @@ namespace iim.AnimationCurveViewer
                         return lm * wm;
                     }).ToArray();
 
+                    nodeWorldTransforms[node] = newWorldTransforms;
+
                     if (node.Children != null)
                     {
                         foreach (var childIndex in node.Children)

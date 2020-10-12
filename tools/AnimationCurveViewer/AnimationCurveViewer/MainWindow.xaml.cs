@@ -60,7 +60,7 @@ namespace iim.AnimationCurveViewer
 
             // ChannelProcessor.Process(gltf, bufferProvider, ChannelQuantizer.Process);
             var fitter = new ChannelFitter();
-            ChannelProcessor.Process(gltf, bufferProvider, fitter.Process, false);
+            ChannelProcessor.Process(gltf, bufferProvider, fitter.Process, true);
             Title = $"{fitter.InputByteCount} -> {fitter.OutputByteCount}";
 
             foreach (var path in Directory.GetFiles(Path.GetDirectoryName(gltfFilePath)))

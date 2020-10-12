@@ -26,9 +26,9 @@ namespace iim.AnimationCurveViewer
 
             var maxError = pathKind switch
             {
-                AnimationChannelTarget.PathEnum.translation => 1,
-                AnimationChannelTarget.PathEnum.rotation => 0.05,
-                AnimationChannelTarget.PathEnum.scale => 0.05,
+                AnimationChannelTarget.PathEnum.translation => 0.05,
+                AnimationChannelTarget.PathEnum.rotation => 0.005,
+                AnimationChannelTarget.PathEnum.scale => 0.005,
                 AnimationChannelTarget.PathEnum.weights => 0.01,
                 _ => throw new ArgumentOutOfRangeException()
             };
