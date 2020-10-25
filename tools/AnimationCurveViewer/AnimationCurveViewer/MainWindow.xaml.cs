@@ -67,24 +67,11 @@ namespace iim.AnimationCurveViewer
             var totalInputByteCount = 0;
             var totalOutputByteCount = 0;
 
-            foreach (var path in Directory.GetFiles(Path.GetDirectoryName(gltfFilePath)))
-            {
-                File.Copy(path, Path.Combine(@"c:\temp\gltf", Path.GetFileName(path)), true);
-            }
-
-            for (var index = 0; index < gltf.Buffers.Length; index++)
-            {
-                var buffer = gltf.Buffers[index];
-                File.WriteAllBytes(Path.Combine(@"c:\temp\gltf", buffer.Uri), bufferProvider(buffer, index));
-            }
-
-            //Application.Current.Shutdown();
-
-            // var gltf = glTFLoader.Interface.LoadModel(@"C:\Users\bugfa\Downloads\001_KneeBounce\Arms_Baseball_Standard\Arms_Baseball_Standard.gltf");
-            // var buffer = File.ReadAllBytes(@"C:\Users\bugfa\Downloads\001_KneeBounce\Arms_Baseball_Standard\Arms_Baseball_Standard0.bin");
-
             // TODO: Use viewmodels!
             var fontFamily = new FontFamily("Consolas");
+
+            using var chebyStream = File.Create(Path.Combine(@"c:\temp\gltf", "chevy.bin"));
+            using var errorStream = File.Create(Path.Combine(@"c:\temp\gltf", "errors.bin"));
 
             var curveColors = new[]
             {
@@ -349,7 +336,7 @@ namespace iim.AnimationCurveViewer
                         }
 
                         // Process animation channel
-                        var fitter = new ChebyshevChannelFitter();
+                        var fitter = new ChebyshevChannelFitter(chebyStream, errorStream);
                         fitter.Process(gltf, animation, channel, timesFloats, valueFloats, false);
 
                         for (int axis = 0; axis < dimension; ++axis)
@@ -488,6 +475,18 @@ namespace iim.AnimationCurveViewer
             //Title = $"{inputByteCount} -> {outputByteCount} 1/{inputByteCount * 1D / outputByteCount:F2} {outputByteCount * 100D / inputByteCount:F2}%)";
 #endif
             Title = $"{totalInputByteCount} -> {totalOutputByteCount} ({1.0 * totalInputByteCount / totalOutputByteCount:0.00}x)";
+
+            // Save
+            foreach (var path in Directory.GetFiles(Path.GetDirectoryName(gltfFilePath)))
+            {
+                File.Copy(path, Path.Combine(@"c:\temp\gltf", Path.GetFileName(path)), true);
+            }
+
+            for (var index = 0; index < gltf.Buffers.Length; index++)
+            {
+                var buffer = gltf.Buffers[index];
+                File.WriteAllBytes(Path.Combine(@"c:\temp\gltf", buffer.Uri), bufferProvider(buffer, index));
+            }
         }
     }
 }

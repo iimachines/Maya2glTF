@@ -1,19 +1,28 @@
 ﻿using System;
-using System.Diagnostics;
+using System.IO;
 using System.Linq;
-using System.Windows;
+using System.Numerics;
 using glTFLoader.Schema;
 
 namespace iim.AnimationCurveViewer
 {
     public class ChebyshevChannelFitter
     {
+        private readonly BinaryWriter _chevyStream;
+        private readonly BinaryWriter _errorStream;
+
         public int InputByteCount;
         public int OutputByteCount;
 
+        public ChebyshevChannelFitter(Stream chevyStream, Stream errorStream)
+        {
+            _chevyStream = new BinaryWriter(chevyStream);
+            _errorStream = new BinaryWriter(errorStream);
+        }
+
         public void Process(Gltf gltf,
             Animation animation, AnimationChannel channel,
-            Span<float> times, Span<float> values, bool isRoot)
+            Span<float> times, Span<float> inputValues, bool isRoot)
         {
             var pathKind = channel.Target.Path;
 
@@ -22,26 +31,44 @@ namespace iim.AnimationCurveViewer
 
             var sampleCount = times.Length;
 
-            var bucketLength = 32;
+            var values = inputValues;
+
+            if (channel.Target.Path == AnimationChannelTarget.PathEnum.rotation)
+            {
+                // Convert to log of quaternion, assuming quaternions are unit length
+                dimension = 3;
+
+                // 4 -> 3
+                InputByteCount += 4 * sampleCount;
+
+                values = new float[sampleCount * 3];
+
+                for (int i = 0; i < sampleCount; ++i)
+                {
+                    var qx = inputValues[i * 4 + 0];
+                    var qy = inputValues[i * 4 + 1];
+                    var qz = inputValues[i * 4 + 2];
+                    var qw = inputValues[i * 4 + 3];
+
+                    var q1 = new Quaternion(qx, qy, qz, qw);
+                    var v = q1.Log();
+
+                    values[i * 3 + 0] = v.X;
+                    values[i * 3 + 1] = v.Y;
+                    values[i * 3 + 2] = v.Z;
+                }
+            }
+
+            var bucketLength = 256;
 
             var xPoints = new double[bucketLength];
             var yPoints = new double[bucketLength];
 
-            // var maxError = pathKind switch
-            // {
-            //     AnimationChannelTarget.PathEnum.translation => 0.05,
-            //     AnimationChannelTarget.PathEnum.rotation => 0.005,
-            //     AnimationChannelTarget.PathEnum.scale => 0.005,
-            //     AnimationChannelTarget.PathEnum.weights => 0.01,
-            //     _ => throw new ArgumentOutOfRangeException()
-            // };
-
-            // The maximum error so that we can encode the difference in 4 bits
             var absMaxError = pathKind switch
             {
-                AnimationChannelTarget.PathEnum.translation => 0.01,
-                AnimationChannelTarget.PathEnum.rotation => 0.001,
-                AnimationChannelTarget.PathEnum.scale => 0.001,
+                AnimationChannelTarget.PathEnum.translation => 0.1,
+                AnimationChannelTarget.PathEnum.rotation => 1D/1024,
+                AnimationChannelTarget.PathEnum.scale => 0.01,
                 AnimationChannelTarget.PathEnum.weights => 0.01,
                 _ => throw new ArgumentOutOfRangeException()
             };
@@ -166,7 +193,10 @@ namespace iim.AnimationCurveViewer
 
                         Console.WriteLine($"{axis} -> {bestChebyCount} #{bestErrorBits}");
 
-                        byte[] errors = new byte[pointCount];
+                        for (int i = 0; i < bestChebyCount; ++i)
+                        {
+                            _chevyStream.Write((float)fltCheby.Coefficients[i]);
+                        }
 
                         // Re-evaluate 
                         double qMax = Math.Pow(2, bestErrorBits) - 1;
@@ -187,7 +217,7 @@ namespace iim.AnimationCurveViewer
                                 var qy = Math.Round(qMid * (dy / maxError) + qMid);
                                 if (qy < 0 || qy > qMax)
                                     throw new Exception();
-                                errors[i] = (byte)qy;
+                                _errorStream.Write((byte) qy);
                                 var fy = (qy - qMid) / qMid * maxError;
                                 if (!double.IsFinite(fy))
                                     throw new Exception();
@@ -195,6 +225,24 @@ namespace iim.AnimationCurveViewer
                             }
                         }
                     }
+                }
+            }
+
+            if (channel.Target.Path == AnimationChannelTarget.PathEnum.rotation)
+            {
+                // Convert back to quaternions
+                for (int i = 0; i < sampleCount; ++i)
+                {
+                    var nx = values[i * 3 + 0];
+                    var ny = values[i * 3 + 1];
+                    var nz = values[i * 3 + 2];
+
+                    var q = new Vector3(nx, ny, nz).Exp();
+
+                    inputValues[i * 4 + 0] = q.X;
+                    inputValues[i * 4 + 1] = q.Y;
+                    inputValues[i * 4 + 2] = q.Z;
+                    inputValues[i * 4 + 3] = q.W;
                 }
             }
         }
