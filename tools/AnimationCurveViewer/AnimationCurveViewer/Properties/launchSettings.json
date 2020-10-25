@@ -2,7 +2,7 @@
   "profiles": {
     "AnimationCurveViewer": {
       "commandName": "Project",
-      "commandLineArgs": "\"D:\\IIM\\export4\\Legs_KneeJump_Standard.gltf\""
+      "commandLineArgs": "\"D:\\IIM\\export5\\Legs_KneeJump_Standard.gltf\""
     }
   }
 }

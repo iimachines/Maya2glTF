@@ -59,9 +59,13 @@ namespace iim.AnimationCurveViewer
             var bufferProvider = gltf.CreateDefaultBufferProvider(gltfFilePath);
 
             // ChannelProcessor.Process(gltf, bufferProvider, ChannelQuantizer.Process);
-            var fitter = new ChannelFitter();
-            ChannelProcessor.Process(gltf, bufferProvider, fitter.Process, true);
-            Title = $"{fitter.InputByteCount} -> {fitter.OutputByteCount}";
+            // var fitter = new AkimaChannelFitter();
+            // var fitter = new ChebyshevChannelFitter();
+            // var fitter = new ChannelQuantizer();
+            // ChannelProcessor.Process(gltf, bufferProvider, fitter.Process, false);
+
+            var totalInputByteCount = 0;
+            var totalOutputByteCount = 0;
 
             foreach (var path in Directory.GetFiles(Path.GetDirectoryName(gltfFilePath)))
             {
@@ -113,6 +117,7 @@ namespace iim.AnimationCurveViewer
 
             var tabBackground = new SolidColorBrush(Color.FromRgb(32, 32, 32));
 
+            var stopAtFirst = false;
 
 #if true
             var inputByteCount = 0;
@@ -186,8 +191,8 @@ namespace iim.AnimationCurveViewer
 
                         // Add a curve for each dimension to the canvas
                         var pointCount = timesAccessor.Count;
-                        var curveTimes = new float[pointCount];
-                        var curvesPoints = new Point[dimension][];
+                        // var curveTimes = new float[pointCount];
+                        // var curvesPoints = new Point[dimension][];
 
                         if (timesAccessor.ComponentType != Accessor.ComponentTypeEnum.FLOAT)
                             throw new NotSupportedException($"{channelTitle} has non-float time accessor");
@@ -195,21 +200,20 @@ namespace iim.AnimationCurveViewer
                         if (valuesAccessor.ComponentType != Accessor.ComponentTypeEnum.FLOAT)
                             throw new NotSupportedException($"{channelTitle} has non-float values accessor");
 
-                        var timesFloats = MemoryMarshal.Cast<byte, float>(valuesSpan);
+                        var timesFloats = MemoryMarshal.Cast<byte, float>(timesSpan);
                         var valueFloats = MemoryMarshal.Cast<byte, float>(valuesSpan);
 
-                        for (int axis = 0; axis < dimension; ++axis)
-                        {
-                            var curvePoints = curvesPoints[axis] = new Point[pointCount];
-
-                            for (int i = 0; i < pointCount; ++i)
-                            {
-                                var j = i * dimension + axis;
-                                var t = timesFloats[i];
-                                var v = valueFloats[j];
-                                curvePoints[i] = new Point(t, v);
-                            }
-                        }
+                        // {
+                        //     var curvePoints = curvesPoints[axis] = new Point[pointCount];
+                        //
+                        //     for (int i = 0; i < pointCount; ++i)
+                        //     {
+                        //         var j = i * dimension + axis;
+                        //         var t = timesFloats[i];
+                        //         var v = valueFloats[j];
+                        //         curvePoints[i] = new Point(t, v);
+                        //     }
+                        // }
 
                         // Compute y starts (visual min) and scales.
                         var yStarts = new double[dimension];
@@ -254,53 +258,31 @@ namespace iim.AnimationCurveViewer
                                 }
                         }
 
-                        // Normalize points
-                        var normalizedPoints = new Point[dimension][];
-
-                        for (int axis = 0; axis < dimension; ++axis)
+                        Point GetNormalizedPoint(Span<float> times, Span<float> values, int axis, int index)
                         {
-                            normalizedPoints[axis] = new Point[pointCount];
-                        }
-
-                        for (int i = 0; i < pointCount; i++)
-                        {
-                            for (int axis = 0; axis < dimension; ++axis)
-                            {
-                                Point p = curvesPoints[axis][i];
-                                var t = p.X;
-                                var y = p.Y;
-                                p.X = t;
-                                p.Y = (y - yStarts[axis]) * yScales[axis];
-                                normalizedPoints[axis][i] = p;
-                            }
+                            var t = times[index];
+                            var v = values[index * dimension + axis];
+                            var y = (v - yStarts![axis]) * yScales![axis];
+                            return new Point(t, y);
                         }
 
                         // Compute visual points
-                        var xOffset = curveThickness;
-                        var yOffset = curveThickness;
-                        var yHeight = curveHeight - 2 * curveThickness;
-                        var visualPoints = new Point[dimension][];
+                        double xOffset = curveThickness;
+                        double yOffset = curveThickness;
+                        double yHeight = curveHeight - 2 * curveThickness;
 
-                        for (int axis = 0; axis < dimension; ++axis)
+                        Point GetVisualPoint(Span<float> times, Span<float> values, int axis, int index)
                         {
-                            visualPoints[axis] = new Point[pointCount];
-                        }
-
-                        for (int i = 0; i < pointCount; i++)
-                        {
-                            for (int axis = 0; axis < dimension; ++axis)
-                            {
-                                Point p = normalizedPoints[axis][i];
-                                var y = p.Y;
-                                p.X = xOffset + i * pixelsPerFrame;
-                                p.Y = yOffset + y * yHeight;
-                                visualPoints[axis][i] = p;
-                            }
+                            Point p = GetNormalizedPoint(times, values, axis, index);
+                            var y = p.Y;
+                            p.X = xOffset + index * pixelsPerFrame;
+                            p.Y = yOffset + y * yHeight;
+                            return p;
                         }
 
                         var curvesCanvas = new Canvas
                         {
-                            Width = Math.Ceiling(visualPoints[0].Last().X + 2 * curveThickness),
+                            Width = Math.Ceiling(xOffset + timesFloats.Length * pixelsPerFrame + 2 * curveThickness),
                             Height = (curveHeight + 2 * curveMargin),
                             Margin = new Thickness(0, curveMargin, 0, curveMargin),
                             Background = Brushes.Transparent,
@@ -335,7 +317,11 @@ namespace iim.AnimationCurveViewer
 
                         for (int axis = 0; axis < dimension; ++axis)
                         {
-                            var line = Curve.ToLineGeometry(visualPoints[axis]);
+                            var visualPoints = new Point[pointCount];
+                            for (int i = 0; i < pointCount; ++i)
+                                visualPoints[i] = GetVisualPoint(timesFloats, valueFloats, axis, i);
+
+                            var line = Curve.ToLineGeometry(visualPoints);
 
                             curvesCanvas.Children.Add(new PathShape
                             {
@@ -347,431 +333,55 @@ namespace iim.AnimationCurveViewer
                                 IsHitTestVisible = false
                             });
 
-                            if (showCurveSamples)
-                            {
-                                var dots = Curve.ToPointsGeometry(visualPoints[axis], curveThickness);
-
-                                curvesCanvas.Children.Add(new PathShape
-                                {
-                                    Data = dots,
-                                    Height = curveHeight,
-                                    Fill = Brushes.LightGoldenrodYellow,
-                                    ClipToBounds = false,
-                                    IsHitTestVisible = false
-                                });
-                            }
-                        }
-
-                        StringBuilder fittedKnotCounts = new StringBuilder();
-
-                        // bool isRoot = parentTable[targetNode] == null;
-                        //
-                        // // We want 0.1mm precision for translation.
-                        // // We give roots a range of ~ 100x100 meter,
-                        // // and children a range of ~ 3x3 meter.
-                        // // TODO: Compute bits for quaternion.
-                        // var quantBits = curveKind switch
-                        // {
-                        //     AnimationChannelTarget.PathEnum.translation => isRoot ? 20 : 15,
-                        //     AnimationChannelTarget.PathEnum.rotation => 10,
-                        //     AnimationChannelTarget.PathEnum.scale => 10,
-                        //     AnimationChannelTarget.PathEnum.weights => 10,
-                        //     _ => throw new ArgumentOutOfRangeException()
-                        // };
-                        //
-                        // var quantErrorBits = curveKind switch
-                        // {
-                        //     AnimationChannelTarget.PathEnum.translation => isRoot ? 8 : 4,
-                        //     _ => 4
-                        // };
-                        //
-                        // var qScale = curveKind switch
-                        // {
-                        //     AnimationChannelTarget.PathEnum.translation => 10, // cm to mm
-                        //     _ => 1 << quantBits
-                        // };
-                        //
-                        // var qMin = -(1 << (quantErrorBits - 1));
-                        // var qMax = (1 << (quantErrorBits - 1)) - 1;
-
-#if false
-
-                        var segmentsCount = 0;
-
-                        for (int axis = 0; axis < dimension; ++axis)
-                        {
-                            var curvePoints = curvesPoints[axis];
-
-                            var segments = CubicRegression.FitCubics(curvePoints, qScale, qMin, qMax);
-
-                            segmentsCount += segments.Count;
-
-                            var fittedPoints = new Point[pointCount];
-
-                            int index = 0;
-
-                            sbyte[] quantErrors = ArrayPool<sbyte>.Shared.Rent(pointCount);
-
-                            var valueFloats = MemoryMarshal.Cast<byte, float>(valuesSpan);
-
-                            foreach (var (segment, stop) in segments)
-                            {
-                                while (index < stop)
-                                {
-                                    var cp = curvePoints[index];
-                                    var py = segment.AbsEvaluate(cp.X);
-                                    var qError = Math.Round((py - cp.Y) * qScale);
-                                    Debug.Assert(qError >= qMin && qError <= qMax);
-
-                                    valueFloats[index * dimension + axis] = (float) (py + qError / qScale);
-
-                                    quantErrors[index] = (sbyte)qError;
-
-                                    var vx = xOffset + index * pixelsPerFrame;
-                                    var vy = yOffset + (py - yStarts[axis]) * yScales[axis] * yHeight;
-                                    fittedPoints[index++] = new Point(vx, vy);
-                                }
-                            }
-
-                            var quantData = MemoryMarshal.AsBytes(new Span<sbyte>(quantErrors));
-                            zipStream.Write(quantData);
-
-                            /*
-                            var polys = Solvers.FitBestPolynomial(curvePoints, precision);
-
-
-                            int index = 0;
-
-                            foreach (var (stop, poly) in polys)
-                            {
-                                while (index < stop)
-                                {
-                                    var x = curvePoints[index].X;
-                                    var y = alglib.barycentriccalc(poly, x);
-
-                                    var vx = xOffset + index * pixelsPerFrame;
-                                    var vy = yOffset + (y - yStarts[axis]) * yScales[axis] * yHeight;
-                                    fittedPoints[index++] = new Point(vx, vy);
-                                }
-                            }
-                            */
-
-                            var dots = Curve.ToPointsGeometry(fittedPoints, curveThickness * 2);
-
-                            curvesCanvas.Children.Add(new PathShape
-                            {
-                                Data = dots,
-                                Height = curveHeight,
-                                Fill = curveColors[axis],
-                                ClipToBounds = false,
-                                IsHitTestVisible = false
-                            });
-                        }
-
-                        // one byte per segment-index (todo: fit per 256 samples)
-                        fittedKnotCounts.Append(segmentsCount * 4);
-                        outputByteCount += segmentsCount + segmentsCount * 16;
-#endif
-
-#if false
-                        for (int axis = 0; axis < dimension; ++axis)
-                        {
-                            var inputPoints = visualPoints[axis];
-
-                            alglib.spline1dfit(
-                                inputPoints.Select(p => p.X).ToArray(),
-                                inputPoints.Select(p => p.Y).ToArray(),
-                                8, 1e-4,
-                                out var spline, out var report);
-
-                            alglib.spline1dunpack(spline, out var count, out var curvePoints);
-
-                            var controlPointCount = curvePoints.GetLength(0);
-
-                            fittedPointCounts.Append(controlPointCount);
-                            fittedPointCounts.Append(' ');
-
-                            var fittedPoints = new Point[pointCount];
-                            var firstX = inputPoints[0].X;
-                            var lastX = inputPoints[pointCount - 1].X;
-
-                            for (int i = 0; i < pointCount; ++i)
-                            {
-                                var x = inputPoints[i].X;
-                                var y = alglib.spline1dcalc(spline, x);
-                                fittedPoints[i] = new Point(x, y);
-                            }
-
-                            var line = Curve.ToLineGeometry(fittedPoints);
-
-                            curvesCanvas.Children.Add(new PathShape
-                            {
-                                Data = line,
-                                Height = curveHeight,
-                                Stroke = curveColors[axis],
-                                StrokeThickness = curveThickness * 2,
-                                Opacity = 0.5,
-                                ClipToBounds = false,
-                                IsHitTestVisible = false
-                            });
-
-                            var points = new Point[controlPointCount + 1];
-
-                            for (int i = 0; i < controlPointCount; i++)
-                            {
-                                var x = curvePoints[i, 0];
-                                var y = alglib.spline1dcalc(spline, x);
-                                points[i] = new Point(x, y);
-
-                                if (i == controlPointCount - 1)
-                                {
-                                    x = curvePoints[i, 1];
-                                    y = alglib.spline1dcalc(spline, x);
-                                    points[i + 1] = new Point(x, y);
-                                }
-                            }
-
-                            var dots = Curve.ToPointsGeometry(points, curveThickness * 3);
-
-                            curvesCanvas.Children.Add(new PathShape
-                            {
-                                Data = dots,
-                                Height = curveHeight,
-                                Fill = curveColors[axis],
-                                ClipToBounds = false,
-                                IsHitTestVisible = false
-                            });
-                    }
-#endif
-
-#if false
-                        //var maxErrors = yScales.Select(_ => 0.01D).ToArray();
-                        //var (knotIndices, largestError) = Solvers.FitAkimaSplines(channelTitle, normalizedPoints, pointCount, dimension, maxErrors);
-
-                        // Translation: quantize to 32-bit integer, in mm.
-                        // allow 4-bits difference from curve => ±7.5mm
-
-                        var maxError = curveKind switch
-                        {
-                            AnimationChannelTarget.PathEnum.translation => 0.1, // mm
-                            AnimationChannelTarget.PathEnum.rotation => 0.01, // 1%
-                            AnimationChannelTarget.PathEnum.scale => 0.001,
-                            AnimationChannelTarget.PathEnum.weights => 0.001,
-                            _ => throw new ArgumentOutOfRangeException()
-                        };
-
-                        var maxErrors = Enumerable.Range(0, dimension).Select(_ => maxError).ToArray();
-
-                        var (knotIndices, largestError) = Solvers.FitAkimaSplines(curvesPoints, pointCount, dimension, maxErrors);
-
-                        fittedKnotCounts.Append($"#{knotIndices.Count} {largestError}");
-
-                        // TODO: This only works with a GLTF extension that supports Akima splines...
-                        outputFloatCount += knotIndices.Count * (1 + dimension);
-
-                        for (int axis = 0; axis < dimension; ++axis)
-                        {
-                            var inputPoints = visualPoints[axis];
-                            var knotPoints = knotIndices.Select(i => inputPoints[i]).ToArray();
-
-                            alglib.spline1dbuildakima(
-                                knotPoints.Select(p => p.X).ToArray(),
-                                knotPoints.Select(p => p.Y).ToArray(),
-                                out var spline);
-
-                            var fittedPoints = new Point[pointCount];
-
-                            for (int i = 0; i < pointCount; ++i)
-                            {
-                                var x = inputPoints[i].X;
-                                var y = alglib.spline1dcalc(spline, x);
-                                fittedPoints[i] = new Point(x, y);
-                            }
-
-                            var line = Curve.ToLineGeometry(fittedPoints);
-
-                            curvesCanvas.Children.Add(new PathShape
-                            {
-                                Data = line,
-                                Height = curveHeight,
-                                Stroke = curveColors[axis],
-                                StrokeThickness = curveThickness * 2,
-                                Opacity = 0.5,
-                                ClipToBounds = false,
-                                IsHitTestVisible = false
-                            });
-
-                            var dots = Curve.ToPointsGeometry(knotPoints, curveThickness * 3);
-
-                            curvesCanvas.Children.Add(new PathShape
-                            {
-                                Data = dots,
-                                Height = curveHeight,
-                                Fill = curveColors[axis],
-                                ClipToBounds = false,
-                                IsHitTestVisible = false,
-                                Opacity = 0.5
-                            });
-                        }
-#endif
-
-#if false
-                        var quantRange = 1 << quantBits;
-
-                        // Quantize values accessors
-
-                        if (curveKind == AnimationChannelTarget.PathEnum.rotation)
-                        {
-                            for (var i = 0; i < valueFloats.Length; i++)
-                            {
-                                var f = Math.Round(valueFloats[i] * qScale) / qScale;
-                                valueFloats[i] = (float)f;
-                            }
-                        }
-#endif
-
-#if false
-                        for (int axis = 0; axis < dimension; ++axis)
-                        {
-                            // Quantize the curve points
-                            var baseline = yMin[axis];
-                            var encodedPoints = curvesPoints[axis]
-                                .Select(p => new Point(p.X, (p.Y - baseline) * quantScale))
-                                .ToArray();
-
-                            if (encodedPoints.Any(p => p.Y < 0 || p.Y >= quantRange))
-                                throw new ArgumentOutOfRangeException(channelTitle);
-
-                            var (knotIndices, quantErrors) = Solvers.FitAkimaSpline(encodedPoints, quantError);
-
-                            fittedKnotCounts.Append($"#{knotIndices.Count}");
-
-                            var quantData = MemoryMarshal.AsBytes(new Span<sbyte>(quantErrors));
-                            zipStream.Write(quantData);
-
-                            // 8-bits per time (todo: fit per 256 samples)
-                            // outputByteCount += knotIndices.Count * 5 + quantErrors.Length * quantError / 8;
-                            outputByteCount += knotIndices.Count * 5;
-
-                            var knotPoints = knotIndices.Select(i => encodedPoints[i]).ToArray();
-
-                            alglib.spline1dbuildakima(
-                                knotPoints.Select(p => p.X).ToArray(),
-                                knotPoints.Select(p => p.Y).ToArray(),
-                                out var spline);
-
-                            var fittedPoints = new Point[pointCount];
-
-                            for (int i = 0; i < pointCount; ++i)
-                            {
-                                var x = encodedPoints[i].X;
-                                var y = Math.Round(alglib.spline1dcalc(spline, x));
-                                y += quantErrors[i];
-                                y /= quantScale;
-                                y += baseline;
-                                fittedPoints[i] = new Point(x, y);
-                            }
-
-                            for (var i = 0; i < pointCount; ++i)
-                            {
-                                valueFloats[i * dimension + axis] = (float)fittedPoints[i].Y;
-                            }
-
-                            var visualKnotPoints = knotIndices.Select(i => visualPoints[axis][i]).ToArray();
-
-                            var yStart = yStarts[axis];
-                            var yScale = yScales[axis];
-
-                            var decodedPoints = fittedPoints
-                                .Select((p, i) =>
-                                {
-                                    var x = xOffset + i * pixelsPerFrame;
-                                    var y = yOffset + (p.Y - yStart) * yScale * yHeight;
-                                    return new Point(x, y);
-                                })
-                                .ToArray();
-
-                            var dots = Curve.ToPointsGeometry(decodedPoints, curveThickness * 1.5);
-
-                            curvesCanvas.Children.Add(new PathShape
-                            {
-                                Data = dots,
-                                Height = curveHeight,
-                                Fill = curveColors[axis],
-                                ClipToBounds = false,
-                                IsHitTestVisible = false,
-                                Opacity = 0.5
-                            });
-
-                            var line = Curve.ToLineGeometry(visualKnotPoints);
-
-                            curvesCanvas.Children.Add(new PathShape
-                            {
-                                Data = line,
-                                Height = curveHeight,
-                                Stroke = curveColors[axis],
-                                StrokeThickness = curveThickness * 2,
-                                Opacity = 0.5,
-                                ClipToBounds = false,
-                                IsHitTestVisible = false
-                            });
-
-                            // var dots = Curve.ToPointsGeometry(knotPoints, curveThickness * 3);
-                            //
-                            // curvesCanvas.Children.Add(new PathShape
+                            // if (showCurveSamples)
                             // {
-                            //     Data = dots,
-                            //     Height = curveHeight,
-                            //     Fill = curveColors[axis],
-                            //     ClipToBounds = false,
-                            //     IsHitTestVisible = false,
-                            //     Opacity = 0.5
-                            // });
+                            //     var dots = Curve.ToPointsGeometry(visualPoints[axis], curveThickness);
+                            //
+                            //     curvesCanvas.Children.Add(new PathShape
+                            //     {
+                            //         Data = dots,
+                            //         Height = curveHeight,
+                            //         Fill = Brushes.LightGoldenrodYellow,
+                            //         ClipToBounds = false,
+                            //         IsHitTestVisible = false
+                            //     });
+                            // }
                         }
-#endif
 
-#if false
+                        // Process animation channel
+                        var fitter = new ChebyshevChannelFitter();
+                        fitter.Process(gltf, animation, channel, timesFloats, valueFloats, false);
+
                         for (int axis = 0; axis < dimension; ++axis)
                         {
-                            var cubicSegments = CubicRegression.FitCubics(visualPoints[axis], 8);
-                            var cubicGeometry = CubicSegment.GetGeometry(cubicSegments);
+                            var visualPoints = new Point[pointCount];
+                            for (int i = 0; i < pointCount; ++i)
+                                visualPoints[i] = GetVisualPoint(timesFloats, valueFloats, axis, i);
 
-                            fittedPointCounts.Append(cubicSegments.Count * 3 + 1);
-                            fittedPointCounts.Append(' ');
+                            var line = Curve.ToLineGeometry(visualPoints);
 
                             curvesCanvas.Children.Add(new PathShape
                             {
-                                Data = cubicGeometry,
+                                Data = line,
                                 Height = curveHeight,
                                 Stroke = curveColors[axis],
-                                StrokeThickness = curveThickness * 2,
-                                Opacity = 0.5,
-                                ClipToBounds = false,
-                                IsHitTestVisible = false
-                            });
-
-                            var points = CubicSegment.GetPoints(cubicSegments).ToArray();
-
-                            var dots = Curve.ToPointsGeometry(points, curveThickness * 3);
-
-                            curvesCanvas.Children.Add(new PathShape
-                            {
-                                Data = dots,
-                                Height = curveHeight,
-                                Fill = curveColors[axis],
+                                StrokeThickness = curveThickness * 3,
                                 ClipToBounds = false,
                                 IsHitTestVisible = false,
-                                Opacity = 0.5,
+                                Opacity = 0.5
                             });
                         }
-#endif
+
                         animationHeader.Children.Add(new TextBlock
                         {
-                            Text = $"{targetNodeName}/{animation.Name}#{iChannel} ({timesAccessor.Count} -> {fittedKnotCounts})",
+                            Text = $"{targetNodeName}/{animation.Name}#{iChannel} ({fitter.InputByteCount } -> { fitter.OutputByteCount} ({ 1.0 * fitter.InputByteCount / fitter.OutputByteCount:0.00})",
                             Foreground = Brushes.Yellow,
                             HorizontalAlignment = HorizontalAlignment.Left,
                             Margin = new Thickness(textBlockMargin, 0, textBlockMargin, 0),
                         });
+
+                        totalInputByteCount += fitter.InputByteCount;
+                        totalOutputByteCount += fitter.OutputByteCount;
 
                         var curvesScroller = new ScrollViewer
                         {
@@ -801,6 +411,7 @@ namespace iim.AnimationCurveViewer
 
                         curvesCanvas.Children.Add(frameMarker);
 
+#if false
                         curvesCanvas.MouseLeave += (sender, e) => { frameMarker.Visibility = Visibility.Hidden; };
 
                         curvesCanvas.MouseMove += (sender, e) =>
@@ -837,15 +448,16 @@ namespace iim.AnimationCurveViewer
                                 keyInfo.Text = text.ToString();
                             }
                         };
+#endif
 
                         curveStack.Children.Add(animationGroup);
 
-                        // STOP AT FIRST
-                        // break;
+                        if (stopAtFirst)
+                            break;
                     }
 
-                    // STOP AT FIRST
-                    // break;
+                    if (stopAtFirst)
+                        break;
                 }
 
                 tab.Content = new ScrollViewer
@@ -855,8 +467,8 @@ namespace iim.AnimationCurveViewer
 
                 tabs.Items.Add(tab);
 
-                // STOP AT FIRST
-                // break;
+                if (stopAtFirst)
+                    break;
             }
 
             Content = new DockPanel
@@ -875,7 +487,7 @@ namespace iim.AnimationCurveViewer
 
             //Title = $"{inputByteCount} -> {outputByteCount} 1/{inputByteCount * 1D / outputByteCount:F2} {outputByteCount * 100D / inputByteCount:F2}%)";
 #endif
-
+            Title = $"{totalInputByteCount} -> {totalOutputByteCount} ({1.0 * totalInputByteCount / totalOutputByteCount:0.00}x)";
         }
     }
 }

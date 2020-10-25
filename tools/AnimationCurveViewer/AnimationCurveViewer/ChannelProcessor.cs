@@ -60,16 +60,20 @@ namespace iim.AnimationCurveViewer
                 return (pair.animation, pair.channel);
             }
 
+            var sortedNodes = gltf.Nodes
+                .OrderBy(GetDistanceFromRoot)
+                .ToArray();
+
             var sortedAnimatingNodes = gltf.Nodes
                 .Where(nodeAnimEntries.ContainsKey)
                 .OrderBy(GetDistanceFromRoot)
                 .ToArray();
 
-            foreach (var node in sortedAnimatingNodes)
+            foreach (var node in sortedNodes)
             {
                 var d = GetDistanceFromRoot(node);
                 var i = new string(' ', d * 2);
-                Console.WriteLine($"{i}{node.Name}");
+                Console.WriteLine($"{(nodeAnimEntries.ContainsKey(node) ? "A" : "S")} {i}{node.Name}");
             }
 
             var timelineEntry = nodeAnimEntries[sortedAnimatingNodes[0]][0];
@@ -87,10 +91,7 @@ namespace iim.AnimationCurveViewer
 
             Matrix4x4[]? GetNodeWorldTransforms(Node? node)
             {
-                Matrix4x4[]? transforms = null;
-                if (node != null)
-                    nodeWorldTransforms?.TryGetValue(node, out transforms);
-                return transforms;
+                return node != null ? nodeWorldTransforms[node] : null;
             }
 
             Span<Vector3> PeekTranslations(Node node)
@@ -117,27 +118,45 @@ namespace iim.AnimationCurveViewer
                     : gltf.GetFloatOutputChannel<Vector3>(bufferProvider, sAnimEntry.Value.animation, sAnimEntry.Value.channel).ToArray();
             }
 
+            Vector3 GetDefaultTranslation(Node node1)
+            {
+                var vector3 = MemoryMarshal.Cast<float, Vector3>(node1.Translation.ToSpan())[0];
+                return vector3;
+            }
+
             Span<Vector3> GetTranslations(Node node)
             {
-                var defaultTranslation = MemoryMarshal.Cast<float, Vector3>(node.Translation.ToSpan())[0];
+                var defaultTranslation = GetDefaultTranslation(node);
                 var span = PeekTranslations(node);
                 return span.IsEmpty
                     ? Enumerable.Repeat(defaultTranslation, sampleCount).ToArray()
                     : span;
             }
 
+            Quaternion GetDefaultRotation(Node node)
+            {
+                var quaternion = MemoryMarshal.Cast<float, Quaternion>(node.Rotation.ToSpan())[0];
+                return quaternion;
+            }
+
             Span<Quaternion> GetRotations(Node node)
             {
-                var defaultRotation = MemoryMarshal.Cast<float, Quaternion>(node.Rotation.ToSpan())[0];
+                var defaultRotation = GetDefaultRotation(node);
                 var span = PeekRotations(node);
                 return span.IsEmpty
                     ? Enumerable.Repeat(defaultRotation, sampleCount).ToArray()
                     : span;
             }
 
+            Vector3 GetDefaultScale(Node node)
+            {
+                var defaultScale1 = MemoryMarshal.Cast<float, Vector3>(node.Scale.ToSpan())[0];
+                return defaultScale1;
+            }
+
             Span<Vector3> GetScales(Node node)
             {
-                var defaultScale = MemoryMarshal.Cast<float, Vector3>(node.Scale.ToSpan())[0];
+                var defaultScale = GetDefaultScale(node);
                 var span = PeekScales(node);
                 return span.IsEmpty
                     ? Enumerable.Repeat(defaultScale, sampleCount).ToArray()
@@ -165,7 +184,7 @@ namespace iim.AnimationCurveViewer
             //     }
             // }
 
-            foreach (var node in sortedAnimatingNodes)
+            foreach (var node in sortedNodes)
             {
                 var translations = GetTranslations(node).ToArray();
                 var rotations = GetRotations(node).ToArray();
@@ -201,11 +220,9 @@ namespace iim.AnimationCurveViewer
 
             // Process the channels.
             // Fix the errors by correcting the child nodes channels.
-            foreach (var node in sortedAnimatingNodes)
+            foreach (var animNode in sortedAnimatingNodes)
             {
-                var animEntries = nodeAnimEntries[node];
-                var parentNode = GetParentNode(node);
-                var parentTransforms = GetNodeWorldTransforms(parentNode);
+                var animEntries = nodeAnimEntries[animNode];
 
                 foreach (var (channel, animation, targetNode) in animEntries.Values)
                 {
@@ -236,101 +253,135 @@ namespace iim.AnimationCurveViewer
                         accessor.Min[axis] = min;
                         accessor.Max[axis] = max;
                     }
-
-                    ;
                 }
 
                 // All channels of the current node are quantized.
                 // Adjusts the channels of the children to compensate the error.
                 if (adjustChildren)
                 {
-                    var translations = GetTranslations(node).ToArray();
-                    var rotations = GetRotations(node).ToArray();
-                    var scales = GetScales(node).ToArray();
+                    var stack = new Stack<Node>();
+                    stack.Push(animNode);
 
-                    Matrix4x4[] newWorldTransforms = timelineFloats.Select((time, frame) =>
+                    while (stack.Count > 0)
                     {
-                        var s = scales[frame];
-                        var t = translations[frame];
-                        var r = rotations[frame];
-                        var sm = Matrix4x4.CreateScale(s);
-                        var rm = Matrix4x4.CreateFromQuaternion(r);
-                        var tm = Matrix4x4.CreateTranslation(t);
-                        var lm = sm * rm * tm;
-                        var wm = parentTransforms?[frame] ?? Matrix4x4.Identity;
-                        return lm * wm;
-                    }).ToArray();
+                        var current = stack.Pop();
 
-                    nodeWorldTransforms[node] = newWorldTransforms;
+                        var parentNode = GetParentNode(current);
+                        var parentTransforms = GetNodeWorldTransforms(parentNode);
 
-                    if (node.Children != null)
-                    {
-                        foreach (var childIndex in node.Children)
+                        var translations = GetTranslations(current).ToArray();
+                        var rotations = GetRotations(current).ToArray();
+                        var scales = GetScales(current).ToArray();
+
+                        Matrix4x4[] newWorldTransforms = timelineFloats.Select((time, frame) =>
                         {
-                            var childNode = gltf.Nodes[childIndex];
+                            var s = scales[frame];
+                            var t = translations[frame];
+                            var r = rotations[frame];
+                            var sm = Matrix4x4.CreateScale(s);
+                            var rm = Matrix4x4.CreateFromQuaternion(r);
+                            var tm = Matrix4x4.CreateTranslation(t);
+                            var lm = sm * rm * tm;
+                            var wm = parentTransforms?[frame] ?? Matrix4x4.Identity;
+                            return lm * wm;
+                        }).ToArray();
 
-                            var childTranslations = PeekTranslations(childNode);
-                            var childRotations = PeekRotations(childNode);
-                            var childScales = PeekScales(childNode);
+                        nodeWorldTransforms[current] = newWorldTransforms;
 
-                            if (!nodeWorldTransforms.TryGetValue(childNode, out var childWorldTransforms))
-                                continue;
+                        if (current.Children != null)
+                        {
+                            foreach (var childIndex in current.Children)
+                            {
+                                var childNode = gltf.Nodes[childIndex];
 
-                            var childLocalTransforms = childWorldTransforms
-                                .Select((localToWorldTransform, i) =>
+                                var childTranslations = PeekTranslations(childNode);
+                                var childRotations = PeekRotations(childNode);
+                                var childScales = PeekScales(childNode);
+
+                                var childWorldTransforms = nodeWorldTransforms[childNode];
+
+                                var childLocalTransforms = childWorldTransforms
+                                    .Select((localToWorldTransform, i) =>
+                                    {
+                                        var parentToWorldTransform = newWorldTransforms[i];
+                                        Matrix4x4.Invert(parentToWorldTransform, out var worldToParentTransform);
+                                        var localToParentTransform = localToWorldTransform * worldToParentTransform;
+                                        var decomposed = Matrix4x4.Decompose(localToParentTransform, out var scale, out var rotation, out var translation);
+                                        // Debug.Assert(decomposed);
+                                        // rotation = Quaternion.Identity;
+                                        // scale = Vector3.One;
+                                        // translation = Vector3.Zero;
+                                        return (scale, rotation, translation);
+                                    })
+                                    .ToArray();
+
+                                Node? childToPush = null;
+
+                                if (childTranslations.IsEmpty)
                                 {
-                                    var parentToWorldTransform = newWorldTransforms[i];
-                                    Matrix4x4.Invert(parentToWorldTransform, out var worldToParentTransform);
-                                    var localToParentTransform = localToWorldTransform * worldToParentTransform;
-                                    var decomposed = Matrix4x4.Decompose(localToParentTransform, out var scale, out var rotation, out var translation);
-                                    // Debug.Assert(decomposed);
-                                    // rotation = Quaternion.Identity;
-                                    // scale = Vector3.One;
-                                    // translation = Vector3.Zero;
-                                    return (scale, rotation, translation);
-                                })
-                                .ToArray();
+                                    // Can't modify translation, push it towards the children, if needed.
+                                    var translation = GetDefaultTranslation(childNode);
+                                    if (childLocalTransforms.Any(entry => (translation - entry.translation).LengthSquared() > 1e-9))
+                                        childToPush = childNode;
+                                }
+                                else
+                                {
+                                    isAdjusted.Add(childNode);
+                                    childLocalTransforms.Select(trs => trs.translation).ToArray().CopyTo(childTranslations);
+                                }
 
+                                if (childRotations.IsEmpty)
+                                {
+                                    // Can't modify rotation, push it towards the children, if needed.
+                                    var rotation = GetDefaultRotation(childNode);
+                                    if (childLocalTransforms.Any(entry => (rotation - entry.rotation).LengthSquared() > 1e-9))
+                                        childToPush = childNode;
+                                }
+                                else
+                                {
+                                    isAdjusted.Add(childNode);
+                                    childLocalTransforms.Select(trs => trs.rotation).ToArray().CopyTo(childRotations);
+                                }
 
-                            if (!childTranslations.IsEmpty)
-                            {
-                                isAdjusted.Add(childNode);
-                                childLocalTransforms.Select(trs => trs.translation).ToArray().CopyTo(childTranslations);
+                                if (childScales.IsEmpty)
+                                {
+                                    // Can't modify scale, push it towards the children, if needed.
+                                    var scale = GetDefaultScale(childNode);
+                                    if (childLocalTransforms.Any(entry => (scale - entry.scale).LengthSquared() > 1e-9))
+                                        childToPush = childNode;
+                                }
+                                else
+                                {
+                                    isAdjusted.Add(childNode);
+                                    childLocalTransforms.Select(trs => trs.scale).ToArray().CopyTo(childScales);
+                                }
+
+                                if (childToPush != null)
+                                {
+                                    stack.Push(childToPush);
+                                }
                             }
-
-                            if (!childRotations.IsEmpty)
-                            {
-                                isAdjusted.Add(childNode);
-                                childLocalTransforms.Select(trs => trs.rotation).ToArray().CopyTo(childRotations);
-                            }
-
-                            if (!childScales.IsEmpty)
-                            {
-                                isAdjusted.Add(childNode);
-                                childLocalTransforms.Select(trs => trs.scale).ToArray().CopyTo(childScales);
-                            }
-
                         }
                     }
                 }
             }
 
-        //     foreach (var node in sortedAnimatingNodes)
-        //     {
-        //         var animEntries = nodeAnimEntries[node];
-        //     
-        //         foreach (var (channel, animation, targetNode) in animEntries.Values)
-        //         {
-        //             var channelName = gltf.GetChannelName(animation, channel);
-        //             Console.WriteLine($"Processing channels of {channelName}...");
-        //
-        //             if (isAdjusted.Contains(node))
-        //             {
-        //                 var values = gltf.GetFloatOutputChannel<float>(bufferProvider, animation, channel);
-        //                 values.Clear();
-        //             }
-        //         }
-        //     }
+            //     foreach (var node in sortedAnimatingNodes)
+            //     {
+            //         var animEntries = nodeAnimEntries[node];
+            //     
+            //         foreach (var (channel, animation, targetNode) in animEntries.Values)
+            //         {
+            //             var channelName = gltf.GetChannelName(animation, channel);
+            //             Console.WriteLine($"Processing channels of {channelName}...");
+            //
+            //             if (isAdjusted.Contains(node))
+            //             {
+            //                 var values = gltf.GetFloatOutputChannel<float>(bufferProvider, animation, channel);
+            //                 values.Clear();
+            //             }
+            //         }
+            //     }
         }
     }
 }

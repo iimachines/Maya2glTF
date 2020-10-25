@@ -6,7 +6,7 @@ using glTFLoader.Schema;
 
 namespace iim.AnimationCurveViewer
 {
-    public class ChannelFitter
+    public class AkimaChannelFitter
     {
         public int InputByteCount;
         public int OutputByteCount;
@@ -24,11 +24,20 @@ namespace iim.AnimationCurveViewer
 
             var points = new Point[pointCount];
 
+            // var maxError = pathKind switch
+            // {
+            //     AnimationChannelTarget.PathEnum.translation => 0.05,
+            //     AnimationChannelTarget.PathEnum.rotation => 0.005,
+            //     AnimationChannelTarget.PathEnum.scale => 0.005,
+            //     AnimationChannelTarget.PathEnum.weights => 0.01,
+            //     _ => throw new ArgumentOutOfRangeException()
+            // };
+
             var maxError = pathKind switch
             {
-                AnimationChannelTarget.PathEnum.translation => 0.05,
-                AnimationChannelTarget.PathEnum.rotation => 0.005,
-                AnimationChannelTarget.PathEnum.scale => 0.005,
+                AnimationChannelTarget.PathEnum.translation => 0.1,
+                AnimationChannelTarget.PathEnum.rotation => 0.1,
+                AnimationChannelTarget.PathEnum.scale => 0.01,
                 AnimationChannelTarget.PathEnum.weights => 0.01,
                 _ => throw new ArgumentOutOfRangeException()
             };

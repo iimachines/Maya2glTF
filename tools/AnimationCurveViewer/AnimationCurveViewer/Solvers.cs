@@ -11,6 +11,14 @@ namespace iim.AnimationCurveViewer
 {
     public static class Solvers
     {
+        public static int GreatestCommonDivisor(int a, int b)
+        {
+            if (b == 0)
+                return a;
+
+            return GreatestCommonDivisor(b, a % b);
+        }
+
         public static (double x1, double x2, int count) SolveQuadratic(double a, double b, double c, double epsilon = float.Epsilon)
         {
             double bb4ac = b * b - 4 * a * c;
