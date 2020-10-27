@@ -336,7 +336,7 @@ namespace iim.AnimationCurveViewer
                         }
 
                         // Process animation channel
-                        var fitter = new ChebyshevChannelFitter(chebyStream, errorStream);
+                        var fitter = new ChebyshevChannelFitter3(chebyStream, errorStream);
                         fitter.Process(gltf, animation, channel, timesFloats, valueFloats, false);
 
                         for (int axis = 0; axis < dimension; ++axis)

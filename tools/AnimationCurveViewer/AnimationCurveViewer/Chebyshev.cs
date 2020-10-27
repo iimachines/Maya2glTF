@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace iim.AnimationCurveViewer
 {
@@ -15,6 +17,10 @@ namespace iim.AnimationCurveViewer
             Coefficients = coefficients.ToArray();
             MinX = minX;
             MaxX = maxX;
+        }
+
+        public Chebyshev(IEnumerable<float> coefficients, double minX, double maxX) : this(coefficients.Select(f => (double) f).ToArray(), minX, maxX)
+        {
         }
 
         public Chebyshev(Func<double, double> func, double minX, double maxX, int count)

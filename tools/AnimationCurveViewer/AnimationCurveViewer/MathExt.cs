@@ -1,10 +1,31 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 
 namespace iim.AnimationCurveViewer
 {
     public static class MathExt
     {
+        public static IEnumerable<T> AsParallelInRelease<T>(this IEnumerable<T> sequence)
+        {
+#if DEBUG
+            return sequence;
+#else
+            return sequence.AsParallel();
+#endif
+        }
+
+        public static IEnumerable<T> AsSequentialInRelease<T>(this IEnumerable<T> sequence)
+        {
+            return sequence;
+        }
+
+        public static IEnumerable<T> AsSequentialInRelease<T>(this ParallelQuery<T> sequence)
+        {
+            return sequence;
+        }
+
         public static Vector3 Log(this in Quaternion q)
         {
             // https://math.stackexchange.com/questions/2552/the-logarithm-of-quaternion
