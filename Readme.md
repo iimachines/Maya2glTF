@@ -1,4 +1,8 @@
 ﻿# Maya to glTF exporter
+ 
+## Poll
+
+If you believe this plugin is good enough to request Github Sponsoring, please say so [here](https://github.com/iimachines/Maya2glTF/issues/144)
 
 ## News
 
