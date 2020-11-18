@@ -6,7 +6,6 @@
 ExportableItem::~ExportableItem() = default;
 
 std::unique_ptr<NodeAnimation>
-ExportableItem::createAnimation(const ExportableFrames &frameTimes,
-                                const double scaleFactor) {
+ExportableItem::createAnimation(const Arguments &, const ExportableFrames &, double ) {
     return nullptr;
 }
