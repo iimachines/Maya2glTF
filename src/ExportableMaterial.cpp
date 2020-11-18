@@ -111,7 +111,7 @@ void ExportableMaterialPBR::convert(ExportableResources &resources, const MObjec
     THROW_ON_FAILURE(status);
 
     auto &args = resources.arguments();
-    args.assignName(m_glMaterial, shader.name().asChar());
+    args.assignName(m_glMaterial, shader, "");
 
     m_glMetallicRoughness.roughnessFactor = 1;
     m_glMetallicRoughness.metallicFactor = 0;
@@ -165,7 +165,7 @@ void ExportableMaterialPBR::loadPBR(ExportableResources &resources, const MFnDep
     THROW_ON_FAILURE(status);
 
     auto &args = resources.arguments();
-    args.assignName(m_glMaterial, shaderNode.name().asChar());
+    args.assignName(m_glMaterial, shaderNode, "");
 
     // Base color. For some reason Maya splits this attribute into separate RGB
     // and A attributes
@@ -365,7 +365,7 @@ void ExportableMaterialPBR::loadAiStandard(
     THROW_ON_FAILURE(status);
 
     auto &args = resources.arguments();
-    args.assignName(m_glMaterial, shaderNode.name().asChar());
+    args.assignName(m_glMaterial, shaderNode, "");
 
     float opacityFactor = 1.f;
 

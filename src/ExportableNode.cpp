@@ -24,10 +24,10 @@ void ExportableNode::load(ExportableScene &scene, NodeTransformCache &transformC
     // Remember scale factor
     scaleFactor = args.getBakeScaleFactor();
 
-    // Get name
-    const auto name = dagPath.partialPathName(&status);
-    THROW_ON_FAILURE(status);
-
+    // // Get name
+    // const auto name = dagPath.partialPathName(&status);
+    // THROW_ON_FAILURE(status);
+    //
     // Get parent
     parentNode = scene.getParent(this);
 
@@ -77,17 +77,17 @@ void ExportableNode::load(ExportableScene &scene, NodeTransformCache &transformC
 
     switch (transformKind) {
     case TransformKind::ComplexJoint:
-        args.assignName(sNode, (name + ":SSC").asChar());
-        args.assignName(pNode, name.asChar());
+        args.assignName(sNode, dagPath, ":SSC");
+        args.assignName(pNode, dagPath, "");
         sNode.children.emplace_back(&pNode);
         break;
     case TransformKind::ComplexTransform:
-        args.assignName(pNode, (name + ":PIV").asChar());
-        args.assignName(sNode, name.asChar());
+        args.assignName(pNode, dagPath, ":PIV");
+        args.assignName(sNode, dagPath, "");
         sNode.children.emplace_back(&pNode);
         break;
     default:;
-        args.assignName(pNode, name.asChar());
+        args.assignName(pNode, dagPath, "");
         break;
     }
 
@@ -110,7 +110,7 @@ void ExportableNode::load(ExportableScene &scene, NodeTransformCache &transformC
     if (initialTransformState.maxNonOrthogonality > MAX_NON_ORTHOGONALITY) {
         // TODO: Use SVG to decompose the 3x3 matrix into a product of rotation
         // and scale matrices.
-        cerr << prefix << "WARNING: node '" << name
+        cerr << prefix << "WARNING: node '" << name()
              << "' has initial transforms that are not representable by glTF! "
                 "Skewing is not supported, use 3 nodes to simulate this. "
                 "Deviation = "

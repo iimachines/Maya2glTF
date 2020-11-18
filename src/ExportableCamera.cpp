@@ -95,8 +95,7 @@ ExportableCamera::ExportableCamera(ExportableScene &scene, ExportableNode &node,
         glCamera = move(perspectiveCamera);
     }
 
-    const std::string cameraName{shapeDagPath.partialPathName(&status).asChar()};
-    args.assignName(*glCamera, cameraName);
+    args.assignName(*glCamera, shapeDagPath, "");
 
     glCamera->znear = float(camera.nearClippingPlane(&status)) * args.globalScaleFactor;
     THROW_ON_FAILURE(status);

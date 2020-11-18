@@ -17,8 +17,6 @@ ExportableMesh::ExportableMesh(ExportableScene &scene, ExportableNode &node, con
     : ExportableObject(shapeDagPath.node()) {
     MStatus status;
 
-    const std::string shapeName{shapeDagPath.partialPathName(&status).asChar()};
-
     auto &resources = scene.resources();
     auto &args = resources.arguments();
 
@@ -29,7 +27,7 @@ ExportableMesh::ExportableMesh(ExportableScene &scene, ExportableNode &node, con
     }
 
     if (!mayaMesh->isEmpty()) {
-        args.assignName(glMesh, shapeName);
+        auto shapeName = args.assignName(glMesh, shapeDagPath, "");
 
         auto &mainShape = mayaMesh->shape();
 
@@ -133,7 +131,7 @@ ExportableMesh::ExportableMesh(ExportableScene &scene, ExportableNode &node, con
         // Generate skin
         auto &skeleton = mainShape.skeleton();
         if (!skeleton.isEmpty()) {
-            args.assignName(glSkin, shapeName);
+            args.assignName(glSkin, shapeDagPath, "");
 
             auto &joints = skeleton.joints();
 
