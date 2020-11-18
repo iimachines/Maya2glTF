@@ -6,8 +6,7 @@
 
 class ExportableClip {
   public:
-    ExportableClip(const Arguments &args, const AnimClipArg &clipArg,
-                   const ExportableScene &scene);
+    ExportableClip(const Arguments &args, const AnimClipArg &clipArg, const ExportableScene &scene);
     virtual ~ExportableClip();
 
     GLTF::Animation glAnimation;

@@ -5,11 +5,8 @@
 #include "progress.h"
 #include "timeControl.h"
 
-ExportableClip::ExportableClip(const Arguments &args,
-                               const AnimClipArg &clipArg,
-                               const ExportableScene &scene)
-    : m_frames(args.makeName(clipArg.name + "/anim/frames"),
-               clipArg.frameCount(), clipArg.framesPerSecond) {
+ExportableClip::ExportableClip(const Arguments &args, const AnimClipArg &clipArg, const ExportableScene &scene)
+    : m_frames(args.makeName(clipArg.name + "/anim/frames"), clipArg.frameCount(), clipArg.framesPerSecond) {
     glAnimation.name = clipArg.name;
 
     const auto frameCount = clipArg.frameCount();
@@ -21,30 +18,25 @@ ExportableClip::ExportableClip(const Arguments &args,
 
     for (auto &pair : items) {
         auto &node = pair.second;
-        auto nodeAnimation = node->createAnimation(m_frames, scaleFactor);
+        auto nodeAnimation = node->createAnimation(args, m_frames, scaleFactor);
         if (nodeAnimation) {
             m_nodeAnimations.emplace_back(std::move(nodeAnimation));
         }
     }
 
-    for (auto relativeFrameIndex = 0; relativeFrameIndex < frameCount;
-         ++relativeFrameIndex) {
+    for (auto relativeFrameIndex = 0; relativeFrameIndex < frameCount; ++relativeFrameIndex) {
         const double relativeFrameTime = m_frames.times.at(relativeFrameIndex);
-        const MTime absoluteFrameTime =
-            clipArg.startTime + MTime(relativeFrameTime, MTime::kSeconds);
+        const MTime absoluteFrameTime = clipArg.startTime + MTime(relativeFrameTime, MTime::kSeconds);
         setCurrentTime(absoluteFrameTime, args.redrawViewport);
 
         NodeTransformCache transformCache;
         for (auto &nodeAnimation : m_nodeAnimations) {
-            nodeAnimation->sampleAt(absoluteFrameTime, relativeFrameIndex,
-                                    transformCache);
+            nodeAnimation->sampleAt(absoluteFrameTime, relativeFrameIndex, transformCache);
         }
 
-        if (relativeFrameIndex % checkProgressFrameInterval ==
-            checkProgressFrameInterval - 1) {
-            uiAdvanceProgress(
-                "exporting clip '" + clipArg.name +
-                formatted("' %d%%", relativeFrameIndex * 100 / frameCount));
+        if (relativeFrameIndex % checkProgressFrameInterval == checkProgressFrameInterval - 1) {
+            uiAdvanceProgress("exporting clip '" + clipArg.name +
+                              formatted("' %d%%", relativeFrameIndex * 100 / frameCount));
         }
     }
 
@@ -55,8 +47,7 @@ ExportableClip::ExportableClip(const Arguments &args,
 
 ExportableClip::~ExportableClip() = default;
 
-void ExportableClip::getAllAccessors(
-    std::vector<GLTF::Accessor *> &accessors) const {
+void ExportableClip::getAllAccessors(std::vector<GLTF::Accessor *> &accessors) const {
     m_frames.getAllAccessors(accessors);
 
     for (auto &&animation : m_nodeAnimations) {
