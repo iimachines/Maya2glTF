@@ -27,8 +27,7 @@ class SyntaxFactory : MSyntax {
     std::map<const char *, const char *> m_argNames;
     std::string m_usage;
 
-    void registerFlag(std::stringstream &ss, const char *shortName, const char *longName, bool isMultiUse,
-                      MArgType argType1 = kNoArg);
+    void registerFlag(std::stringstream &ss, const char *shortName, const char *longName, bool isMultiUse, MArgType argType1 = kNoArg);
     void registerFlag(std::stringstream &ss, const char *shortName, const char *longName, MArgType argType1 = kNoArg);
 };
 
@@ -48,9 +47,7 @@ struct AnimClipArg {
 };
 
 struct MDagPathComparer {
-    bool operator()(const MDagPath &a, const MDagPath &b) const {
-        return strcmp(a.fullPathName().asChar(), b.fullPathName().asChar()) < 0;
-    }
+    bool operator()(const MDagPath &a, const MDagPath &b) const { return strcmp(a.fullPathName().asChar(), b.fullPathName().asChar()) < 0; }
 };
 
 typedef std::set<MDagPath, MDagPathComparer> Selection;
@@ -140,6 +137,9 @@ class Arguments {
 
     /** By default the Maya node names are assigned to the GLTF node names */
     bool disableNameAssignment = false;
+
+    /** By default we remove the Maya object namespace from GLTF node names  */
+    bool keepObjectNamespace = false;
 
     /** Generate debug tangent vector lines? */
     bool debugTangentVectors = false;
@@ -251,11 +251,8 @@ class Arguments {
     /** Copyright text of the exported file */
     MString copyright;
 
-    void assignName(GLTF::Object &glObj, const std::string &name) const {
-        if (!disableNameAssignment) {
-            glObj.name = name;
-        }
-    }
+    std::string assignName(GLTF::Object &glObj, const MDagPath &dagPath, const MString &suffix) const;
+    std::string assignName(GLTF::Object &glObj, const MFnDependencyNode &node, const MString &suffix) const;
 
     std::string makeName(const std::string &name) const { return disableNameAssignment ? "" : name; }
 
@@ -265,8 +262,8 @@ class Arguments {
   private:
     DISALLOW_COPY_MOVE_ASSIGN(Arguments);
 
-    static void select(Selection &shapeSelection, Selection &cameraSelection, const MDagPath &dagPath,
-                       bool includeDescendants, bool visibleNodesOnly);
+    static void select(Selection &shapeSelection, Selection &cameraSelection, const MDagPath &dagPath, bool includeDescendants,
+                       bool visibleNodesOnly);
 
     std::ofstream m_mayaOutputFileStream;
     std::ofstream m_gltfOutputFileStream;

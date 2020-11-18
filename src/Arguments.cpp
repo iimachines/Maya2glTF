@@ -90,6 +90,8 @@ const auto constantRotationThreshold = "crt";
 const auto constantScalingThreshold = "cst";
 const auto constantWeightsThreshold = "cwt";
 
+const auto keepObjectNamespace = "kon";
+
 } // namespace flag
 
 inline const char *getArgTypeName(const MSyntax::MArgType argType) {
@@ -182,7 +184,7 @@ SyntaxFactory::SyntaxFactory() {
     registerFlag(ss, flag::forceRootNode, "forceRootNode", kNoArg);
     registerFlag(ss, flag::forceAnimationChannels, "forceAnimationChannels", kNoArg);
     registerFlag(ss, flag::forceAnimationSampling, "forceAnimationSampling", kNoArg);
-    
+
     registerFlag(ss, flag::hashBufferURIs, "hashBufferUri", kNoArg);
     registerFlag(ss, flag::niceBufferURIs, "niceBufferNames", kNoArg);
 
@@ -196,6 +198,8 @@ SyntaxFactory::SyntaxFactory() {
     registerFlag(ss, flag::constantRotationThreshold, "constantRotationThreshold", kDouble);
     registerFlag(ss, flag::constantScalingThreshold, "constantScalingThreshold", kDouble);
     registerFlag(ss, flag::constantWeightsThreshold, "constantWeightsThreshold", kDouble);
+
+    registerFlag(ss, flag::keepObjectNamespace, "keepMayaNamespaces", kNoArg);
 
     m_usage = ss.str();
 }
@@ -212,13 +216,11 @@ MSyntax SyntaxFactory::createSyntax() {
     return s;
 }
 
-void SyntaxFactory::registerFlag(std::stringstream &ss, const char *shortName, const char *longName,
-                                 const MArgType argType1) {
+void SyntaxFactory::registerFlag(std::stringstream &ss, const char *shortName, const char *longName, const MArgType argType1) {
     registerFlag(ss, shortName, longName, false, argType1);
 }
 
-void SyntaxFactory::registerFlag(std::stringstream &ss, const char *shortName, const char *longName,
-                                 const bool isMultiUse, const MArgType argType1) {
+void SyntaxFactory::registerFlag(std::stringstream &ss, const char *shortName, const char *longName, const bool isMultiUse, const MArgType argType1) {
     // short-name should be unique
     assert(m_argNames.find(shortName) == m_argNames.end());
 
@@ -297,8 +299,7 @@ class ArgChecker {
 
     int flagUsageCount(const char *shortName) const { return adb.numberOfFlagUses(shortName); }
 
-    template <typename T>
-    void required(const char *shortName, T &value, const int flagIndex = 0, const int componentIndex = 0) const {
+    template <typename T> void required(const char *shortName, T &value, const int flagIndex = 0, const int componentIndex = 0) const {
         MStatus status;
 
         if (!isFlagSet(shortName))
@@ -310,16 +311,13 @@ class ArgChecker {
         } else {
             MArgList args;
             status = adb.getFlagArgumentList(shortName, flagIndex, args);
-            throwOnArgument(status, shortName,
-                            formatted("Failed to get required multi-flag #%d argument", flagIndex).c_str());
+            throwOnArgument(status, shortName, formatted("Failed to get required multi-flag #%d argument", flagIndex).c_str());
             status = args.get(componentIndex, value);
-            throwOnArgument(status, shortName,
-                            formatted("Failed to get required multi-flag #%d argument value", flagIndex).c_str());
+            throwOnArgument(status, shortName, formatted("Failed to get required multi-flag #%d argument value", flagIndex).c_str());
         }
     }
 
-    template <typename T>
-    bool optional(const char *shortName, T &value, const int flagIndex = 0, const int componentIndex = 0) const {
+    template <typename T> bool optional(const char *shortName, T &value, const int flagIndex = 0, const int componentIndex = 0) const {
         if (!adb.isFlagSet(shortName))
             return false;
 
@@ -331,11 +329,9 @@ class ArgChecker {
         } else {
             MArgList args;
             status = adb.getFlagArgumentList(shortName, flagIndex, args);
-            throwOnArgument(status, shortName,
-                            formatted("Failed to get optional multi-flag #%d argument", flagIndex).c_str());
+            throwOnArgument(status, shortName, formatted("Failed to get optional multi-flag #%d argument", flagIndex).c_str());
             status = args.get(componentIndex, value);
-            throwOnArgument(status, shortName,
-                            formatted("Failed to get optional multi-flag #%d argument value", flagIndex).c_str());
+            throwOnArgument(status, shortName, formatted("Failed to get optional multi-flag #%d argument value", flagIndex).c_str());
         }
 
         return true;
@@ -357,8 +353,7 @@ class ArgChecker {
         return true;
     }
 
-    std::unique_ptr<IndentableStream> getOutputStream(const char *arg, const char *outputName,
-                                                      const fs::path &outputFolder,
+    std::unique_ptr<IndentableStream> getOutputStream(const char *arg, const char *outputName, const fs::path &outputFolder,
                                                       std::ofstream &fileOutputStream) const {
         std::ostream *out = nullptr;
 
@@ -401,10 +396,8 @@ class ArgChecker {
             const auto longArgName = SyntaxFactory::get().longArgName(shortArgName);
             const auto statusStr = status.errorString().asChar();
             const auto usageStr = SyntaxFactory::get().usage();
-            throw MayaException(
-                status, message ? formatted("-%s (-%s): %s\nUsage:\n%s", shortArgName, longArgName, statusStr, usageStr)
-                                : formatted("-%s (-%s): %s %s\nUsage:\n%s", shortArgName, longArgName, message,
-                                            statusStr, usageStr));
+            throw MayaException(status, message ? formatted("-%s (-%s): %s\nUsage:\n%s", shortArgName, longArgName, statusStr, usageStr)
+                                                : formatted("-%s (-%s): %s %s\nUsage:\n%s", shortArgName, longArgName, message, statusStr, usageStr));
         }
     }
 
@@ -412,8 +405,7 @@ class ArgChecker {
         const auto longArgName = SyntaxFactory::get().longArgName(shortArgName);
         const auto usageStr = SyntaxFactory::get().usage();
 
-        throw MayaException(MStatus::kInvalidParameter,
-                            formatted("%s -%s (%s)\nUsage:\n%s", message, shortArgName, longArgName, usageStr));
+        throw MayaException(MStatus::kInvalidParameter, formatted("%s -%s (%s)\nUsage:\n%s", message, shortArgName, longArgName, usageStr));
     }
 
   private:
@@ -479,6 +471,7 @@ Arguments::Arguments(const MArgList &args, const MSyntax &syntax) {
 
     force32bitIndices = adb.isFlagSet(flag::force32bitIndices);
     disableNameAssignment = adb.isFlagSet(flag::disableNameAssignment);
+    keepObjectNamespace = adb.isFlagSet(flag::keepObjectNamespace);
     skipSkinClusters = adb.isFlagSet(flag::skipSkinClusters);
     skipBlendShapes = adb.isFlagSet(flag::skipBlendShapes);
     redrawViewport = adb.isFlagSet(flag::redrawViewport);
@@ -573,8 +566,7 @@ Arguments::Arguments(const MArgList &args, const MSyntax &syntax) {
     // Print the animation clips
     for (const auto &clip : animationClips) {
         cout << prefix << "Exporting clip " << clip.name << ", start:" << clip.startTime << ", end: " << clip.endTime
-             << ", duration:" << clip.duration() << ", frames: " << clip.frameCount()
-             << ", rate: " << clip.framesPerSecond << "fps" << endl;
+             << ", duration:" << clip.duration() << ", frames: " << clip.frameCount() << ", rate: " << clip.framesPerSecond << "fps" << endl;
     }
 
     // Get extra cameras to export
@@ -607,8 +599,7 @@ Arguments::Arguments(const MArgList &args, const MSyntax &syntax) {
             unsigned shapeCount;
             status = dagPath.numberOfShapesDirectlyBelow(shapeCount);
             if (!status) {
-                cerr << prefix << "Skipping " << dagPath.partialPathName() << ", it has no shapes attached to it"
-                     << endl;
+                cerr << prefix << "Skipping " << dagPath.partialPathName() << ", it has no shapes attached to it" << endl;
                 continue;
             }
 
@@ -629,8 +620,7 @@ Arguments::Arguments(const MArgList &args, const MSyntax &syntax) {
             }
 
             if (!foundCameraShape) {
-                cerr << prefix << "Skipping " << dagPath.partialPathName() << ", it has no cameras attached to it"
-                     << endl;
+                cerr << prefix << "Skipping " << dagPath.partialPathName() << ", it has no cameras attached to it" << endl;
                 continue;
             }
         }
@@ -670,8 +660,43 @@ Arguments::~Arguments() {
     }
 }
 
-void Arguments::select(Selection &shapeSelection, Selection &cameraSelection, const MDagPath &dagPath,
-                       const bool includeDescendants, const bool includeInvisibleNodes) {
+std::string Arguments::assignName(GLTF::Object &glObj, const MDagPath &dagPath, const MString &suffix) const {
+    MStatus status;
+    auto obj = dagPath.node(&status);
+    THROW_ON_FAILURE(status)
+
+    const MFnDependencyNode node(obj, &status);
+    THROW_ON_FAILURE(status)
+
+    return assignName(glObj, node, suffix);
+}
+
+std::string Arguments::assignName(GLTF::Object &glObj, const MFnDependencyNode &node, const MString &suffix) const {
+    MStatus status;
+
+    auto name = node.name(&status);
+    THROW_ON_FAILURE(status)
+
+    if (!keepObjectNamespace) {
+        const auto ns = node.parentNamespace(&status);
+        if (status && ns.length() > 0) {
+            name.substitute(ns + ":", "");
+        }
+    }
+
+    name += suffix;
+
+    std::string result(name.asChar());
+
+    if (!disableNameAssignment) {
+        glObj.name = result;
+    }
+
+    return result;
+}
+
+void Arguments::select(Selection &shapeSelection, Selection &cameraSelection, const MDagPath &dagPath, const bool includeDescendants,
+                       const bool includeInvisibleNodes) {
     MStatus status;
 
     std::string debugName{dagPath.partialPathName().asChar()};
