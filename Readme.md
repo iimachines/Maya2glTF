@@ -97,6 +97,7 @@ See the [releases](https://github.com/iimachines/Maya2glTF/releases) tab.
   - `brdf` => Bidirectional reflectance distribution function lookup table texture
   - _you can customize these conventions, see `maya2glTF_assignPbrShader.mel`_
 - all textures are optional
+- set the [technique to transparent if desired](https://github.com/iimachines/Maya2glTF/issues/150)
 - see the [glTF PBR page](https://github.com/KhronosGroup/glTF-WebGL-PBR) page for more info.
 - the metallic and roughness textures are always merged into a single texture when exporting.
   - _If you provide JPEGs, we use Maya's JPEG encoder to generate this texture. However, the default Maya JPEG encoding settings are very low quality_.
