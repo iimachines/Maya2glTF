@@ -32,8 +32,8 @@ class SyntaxFactory : MSyntax {
 };
 
 struct AnimClipArg {
-    AnimClipArg(std::string name, const MTime &startTime, const MTime &endTime, const double framesPerSecond)
-        : name{std::move(name)}, startTime{startTime}, endTime{endTime}, framesPerSecond{framesPerSecond} {}
+    AnimClipArg(std::string name, const MTime &startTime, const MTime &endTime, const double framesPerSecond, const int stepDetectSampleCount)
+        : name{std::move(name)}, startTime{startTime}, endTime{endTime}, framesPerSecond{framesPerSecond}, stepDetectSampleCount(stepDetectSampleCount) {}
 
     DEFAULT_COPY_MOVE_ASSIGN_DTOR(AnimClipArg);
 
@@ -41,6 +41,7 @@ struct AnimClipArg {
     MTime startTime;
     MTime endTime;
     double framesPerSecond;
+    int stepDetectSampleCount;
 
     MTime duration() const;
     int frameCount() const;
@@ -205,6 +206,9 @@ class Arguments {
     /** Force the sampling of an animation channel for each node, even if the node doesn't contain any animation? */
     bool forceAnimationSampling = false;
 
+    /** Sample more frames to detect step functions in the animation? By default LINEAR interpolation is always used */
+    int detectStepAnimations = 0;
+
     /** Use a hash of the buffer for its URI? Useful when exporting the same
      * mesh buffer per animation scene */
     bool hashBufferURIs = false;
@@ -258,6 +262,8 @@ class Arguments {
 
     float getBakeScaleFactor() const { return bakeScalingFactor ? globalScaleFactor : 1; }
     float getRootScaleFactor() const { return bakeScalingFactor ? 1 : globalScaleFactor; }
+
+    int getStepDetectSampleCount() const { return detectStepAnimations > 0 ? detectStepAnimations : 1; }
 
   private:
     DISALLOW_COPY_MOVE_ASSIGN(Arguments);

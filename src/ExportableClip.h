@@ -11,8 +11,6 @@ class ExportableClip {
 
     GLTF::Animation glAnimation;
 
-    void getAllAccessors(std::vector<GLTF::Accessor *> &accessors) const;
-
   private:
     ExportableFrames m_frames;
     std::vector<std::unique_ptr<NodeAnimation>> m_nodeAnimations;

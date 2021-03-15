@@ -4,23 +4,21 @@
 
 class ExportableFrames {
   public:
-    ExportableFrames(std::string accessorName, int frameCount,
-                     double framesPerSecond);
+    ExportableFrames(std::string accessorName, int frameCount, double framesPerSecond);
     ~ExportableFrames() = default;
 
     const int count;
-
-    // For each animation frame, the clip-relative time in seconds.
-    std::vector<float> times;
 
     GLTF::Accessor *glInputs() const;
 
     GLTF::Accessor *glInput0() const;
 
-    void getAllAccessors(std::vector<GLTF::Accessor *> &accessors) const;
-
   private:
     const std::string m_accessorName;
+
+    // For each animation frame, the clip-relative time in seconds.
+    std::vector<float> m_glTimes;
+
     mutable std::unique_ptr<GLTF::Accessor> m_glInputs;
     mutable std::unique_ptr<GLTF::Accessor> m_glInput0;
 
