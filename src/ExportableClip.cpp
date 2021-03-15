@@ -9,7 +9,8 @@ ExportableClip::ExportableClip(const Arguments &args, const AnimClipArg &clipArg
     : m_frames(args.makeName(clipArg.name + "/anim/frames"), clipArg.frameCount(), clipArg.framesPerSecond) {
     glAnimation.name = clipArg.name;
 
-    const auto frameCount = clipArg.frameCount();
+    const auto stepDetectSampleCount = args.getStepDetectSampleCount();
+    const auto frameCount = m_frames.count;
     const auto scaleFactor = args.getBakeScaleFactor();
 
     auto &items = scene.table();
@@ -24,19 +25,26 @@ ExportableClip::ExportableClip(const Arguments &args, const AnimClipArg &clipArg
         }
     }
 
-    for (auto relativeFrameIndex = 0; relativeFrameIndex < frameCount; ++relativeFrameIndex) {
-        const double relativeFrameTime = m_frames.times.at(relativeFrameIndex);
-        const MTime absoluteFrameTime = clipArg.startTime + MTime(relativeFrameTime, MTime::kSeconds);
-        setCurrentTime(absoluteFrameTime, args.redrawViewport);
+    const auto superSampleFrameRate = stepDetectSampleCount * clipArg.framesPerSecond;
 
-        NodeTransformCache transformCache;
-        for (auto &nodeAnimation : m_nodeAnimations) {
-            nodeAnimation->sampleAt(absoluteFrameTime, relativeFrameIndex, transformCache);
+    // To make sure Maya never rounds to just before a frame, we add half the smallest time step. Need to detect step interpolation
+    const double mayaTimeEpsilon = 0.5 / 141120000;
+
+    for (size_t relativeFrameIndex = 0; relativeFrameIndex < frameCount; ++relativeFrameIndex) {
+        for (size_t superSampleIndex = 0; superSampleIndex < stepDetectSampleCount; ++superSampleIndex) {
+            const double relativeFrameTime = (relativeFrameIndex * stepDetectSampleCount + superSampleIndex) / superSampleFrameRate + mayaTimeEpsilon;
+            const MTime absoluteFrameTime = clipArg.startTime + MTime(relativeFrameTime, MTime::kSeconds);
+            setCurrentTime(absoluteFrameTime, args.redrawViewport && superSampleIndex == 0);
+            // const auto absoluteFrameTimeDebug = MAnimControl::currentTime().as(MTime::k24FPS);
+
+            NodeTransformCache transformCache;
+            for (auto &nodeAnimation : m_nodeAnimations) {
+                nodeAnimation->sampleAt(absoluteFrameTime, relativeFrameIndex, superSampleIndex, transformCache);
+            }
         }
 
         if (relativeFrameIndex % checkProgressFrameInterval == checkProgressFrameInterval - 1) {
-            uiAdvanceProgress("exporting clip '" + clipArg.name +
-                              formatted("' %d%%", relativeFrameIndex * 100 / frameCount));
+            uiAdvanceProgress("exporting clip '" + clipArg.name + formatted("' %d%%", relativeFrameIndex * 100 / frameCount));
         }
     }
 
@@ -46,11 +54,3 @@ ExportableClip::ExportableClip(const Arguments &args, const AnimClipArg &clipArg
 }
 
 ExportableClip::~ExportableClip() = default;
-
-void ExportableClip::getAllAccessors(std::vector<GLTF::Accessor *> &accessors) const {
-    m_frames.getAllAccessors(accessors);
-
-    for (auto &&animation : m_nodeAnimations) {
-        animation->getAllAccessors(accessors);
-    }
-}
