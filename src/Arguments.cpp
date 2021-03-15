@@ -71,6 +71,8 @@ const auto forceAnimationChannels = "fac";
 
 const auto forceAnimationSampling = "fas";
 
+const auto detectStepAnimations = "dsa";
+
 const auto hashBufferURIs = "hbu";
 
 const auto dumpAccessorComponents = "dac";
@@ -155,6 +157,7 @@ SyntaxFactory::SyntaxFactory() {
     registerFlag(ss, flag::debugVectorLength, "debugVectorLength", kDouble);
     registerFlag(ss, flag::globalOpacityFactor, "globalOpacityFactor", kDouble);
     registerFlag(ss, flag::copyright, "copyright", kString);
+    registerFlag(ss, flag::detectStepAnimations, "detectStepAnimations", kLong);
 
     registerFlag(ss, flag::animationClipFrameRate, "animationClipFrameRate", true, kDouble);
     registerFlag(ss, flag::animationClipName, "animationClipName", true, kString);
@@ -516,6 +519,7 @@ Arguments::Arguments(const MArgList &args, const MSyntax &syntax) {
     debugTangentVectors = adb.isFlagSet(flag::debugTangentVectors);
     debugNormalVectors = adb.isFlagSet(flag::debugNormalVectors);
 
+    adb.optional(flag::detectStepAnimations, detectStepAnimations);
     adb.optional(flag::debugVectorLength, debugVectorLength);
     adb.optional(flag::copyright, copyright);
 
@@ -543,6 +547,8 @@ Arguments::Arguments(const MArgList &args, const MSyntax &syntax) {
 
     const auto fpsCount = adb.flagUsageCount(flag::animationClipFrameRate);
 
+    const auto stepDetectSampleCount = getStepDetectSampleCount();
+
     for (int clipIndex = 0; clipIndex < clipCount; ++clipIndex) {
         double fps;
         adb.required(flag::animationClipFrameRate, fps, fpsCount == 1 ? 0 : clipIndex);
@@ -556,7 +562,7 @@ Arguments::Arguments(const MArgList &args, const MSyntax &syntax) {
         MTime end;
         adb.required(flag::animationClipEndTime, end, clipIndex);
 
-        animationClips.emplace_back(name.asChar(), start, end, fps);
+        animationClips.emplace_back(name.asChar(), start, end, fps, stepDetectSampleCount);
     }
 
     // Sort clips by starting time.
@@ -774,5 +780,5 @@ int AnimClipArg::frameCount() const {
     const auto startFrame = round(exactStartFrame);
     const auto endFrame = round(exactEndFrame);
     const auto count = static_cast<int>(endFrame - startFrame) + 1;
-    return count;
+    return count * stepDetectSampleCount;
 }

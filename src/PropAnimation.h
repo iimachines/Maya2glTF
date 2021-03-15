@@ -8,18 +8,12 @@ class ExportableNode;
 
 class PropAnimation {
   public:
-    PropAnimation(const ExportableFrames &frames, const GLTF::Node &node, const GLTF::Animation::Path path,
-                  const size_t dimension, const bool useFloatArray, const char *interpolation = "LINEAR")
+    PropAnimation(const ExportableFrames &frames, const GLTF::Node &node, const GLTF::Animation::Path path, const size_t dimension, const bool useFloatArray)
         : dimension(dimension), useFloatArray(useFloatArray), frames(frames) {
         componentValuesPerFrame.reserve(frames.count * dimension);
 
         glTarget.node = &const_cast<GLTF::Node &>(node);
         glTarget.path = path;
-
-        glChannel.sampler = &glSampler;
-        glChannel.target = &glTarget;
-
-        glSampler.interpolation = interpolation;
     }
 
     ~PropAnimation() = default;
@@ -30,8 +24,11 @@ class PropAnimation {
 
     std::vector<float> componentValuesPerFrame;
 
-    GLTF::Animation::Channel glChannel;
-    GLTF::Animation::Sampler glSampler;
+    struct AnimChannel {
+        GLTF::Animation::Channel glChannel;
+        GLTF::Animation::Sampler glSampler;
+    };
+
     GLTF::Animation::Channel::Target glTarget;
 
     template <std::ptrdiff_t Extent> void append(const gsl::span<const float, Extent> &components) {
@@ -73,6 +70,10 @@ class PropAnimation {
 
     void finish(const std::string &name, const bool useSingleKey) {
         if (!m_outputs) {
+            glChannel.sampler = &glSampler;
+            glChannel.target = &glTarget;
+            glSampler.interpolation = interpolation;
+
             if (useSingleKey) {
                 componentValuesPerFrame.resize(dimension);
                 glSampler.input = frames.glInput0();
@@ -86,12 +87,6 @@ class PropAnimation {
 
             // A channel cannot have a name according to the spec.
             // glChannel.name = name;
-        }
-    }
-
-    void getAllAccessors(std::vector<GLTF::Accessor *> &accessors) const {
-        if (m_outputs && m_outputs->count > 0) {
-            accessors.emplace_back(m_outputs.get());
         }
     }
 

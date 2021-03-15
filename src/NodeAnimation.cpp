@@ -110,6 +110,9 @@ void NodeAnimation::sampleAt(const MTime &absoluteTime, const int frameIndex, No
 }
 
 void NodeAnimation::exportTo(GLTF::Animation &glAnimation) {
+
+    const auto detectStepSampleCount = m_arguments.getStepDetectSampleCount();
+
     if (!m_invalidLocalTransformTimes.empty()) {
         // TODO: Use SVG to decompose the 3x3 matrix into a product of rotation
         // and scale matrices.
@@ -173,18 +176,8 @@ void NodeAnimation::exportTo(GLTF::Animation &glAnimation) {
     }
 }
 
-void NodeAnimation::getAllAccessors(std::vector<GLTF::Accessor *> &accessors) const {
-    getAllAccessors(m_positions, accessors);
-    getAllAccessors(m_rotations, accessors);
-    getAllAccessors(m_scales, accessors);
-    getAllAccessors(m_correctors, accessors);
-    getAllAccessors(m_dummyProps1, accessors);
-    getAllAccessors(m_dummyProps2, accessors);
-    getAllAccessors(m_weights, accessors);
-}
-
 void NodeAnimation::finish(GLTF::Animation &glAnimation, const char *propName, std::unique_ptr<PropAnimation> &animatedProp, double constantThreshold,
-                           const gsl::span<const float> &baseValues) const {
+                           int detectStepSampleCount, const gsl::span<const float> &baseValues) const {
     const auto dimension = animatedProp->dimension;
 
     if (dimension) {
@@ -192,6 +185,7 @@ void NodeAnimation::finish(GLTF::Animation &glAnimation, const char *propName, s
 
         auto &componentValues = animatedProp->componentValuesPerFrame;
 
+        // Check if all samples are constant. In that case, we drop the animation, unless it is forced
         bool isConstant = true;
 
         for (size_t offset = 0; offset < componentValues.size() && isConstant; offset += dimension) {
@@ -204,16 +198,16 @@ void NodeAnimation::finish(GLTF::Animation &glAnimation, const char *propName, s
             // All animation frames are the same as the scene, to need to animate the prop.
             animatedProp.release();
         } else {
-            // TODO: Apply a curve simplifier.
-            auto useSingleKey = isConstant && !m_arguments.forceAnimationSampling;
-            animatedProp->finish(m_arguments.disableNameAssignment ? "" : node.name() + "/anim/" + glAnimation.name + "/" + propName, useSingleKey);
-            glAnimation.channels.push_back(&animatedProp->glChannel);
+            const auto useSingleKey = isConstant && !m_arguments.forceAnimationSampling;
+            if (useSingleKey || detectStepSampleCount <= 1) {
+                animatedProp->finish(m_arguments.disableNameAssignment ? "" : node.name() + "/anim/" + glAnimation.name + "/" + propName, useSingleKey);
+                glAnimation.channels.push_back(&animatedProp->glChannel);
+            } else {
+                // Now detect what parts of the sampled animation could use step-functions.
+                //
+                // TODO: Apply a curve simplifier.
+            }
         }
     }
 }
 
-void NodeAnimation::getAllAccessors(const std::unique_ptr<PropAnimation> &animatedProp, std::vector<GLTF::Accessor *> &accessors) {
-    if (animatedProp) {
-        animatedProp->getAllAccessors(accessors);
-    }
-}

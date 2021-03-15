@@ -4,8 +4,7 @@
 
 class ExportableFrames {
   public:
-    ExportableFrames(std::string accessorName, int frameCount,
-                     double framesPerSecond);
+    ExportableFrames(std::string accessorName, int frameCount, double framesPerSecond);
     ~ExportableFrames() = default;
 
     const int count;
@@ -16,8 +15,6 @@ class ExportableFrames {
     GLTF::Accessor *glInputs() const;
 
     GLTF::Accessor *glInput0() const;
-
-    void getAllAccessors(std::vector<GLTF::Accessor *> &accessors) const;
 
   private:
     const std::string m_accessorName;

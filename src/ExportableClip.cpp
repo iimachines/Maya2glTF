@@ -9,7 +9,8 @@ ExportableClip::ExportableClip(const Arguments &args, const AnimClipArg &clipArg
     : m_frames(args.makeName(clipArg.name + "/anim/frames"), clipArg.frameCount(), clipArg.framesPerSecond) {
     glAnimation.name = clipArg.name;
 
-    const auto frameCount = clipArg.frameCount();
+    const auto stepDetectSampleCount = args.getStepDetectSampleCount();
+    const auto frameCount = m_frames.count;
     const auto scaleFactor = args.getBakeScaleFactor();
 
     auto &items = scene.table();
@@ -41,16 +42,8 @@ ExportableClip::ExportableClip(const Arguments &args, const AnimClipArg &clipArg
     }
 
     for (auto &nodeAnimation : m_nodeAnimations) {
-        nodeAnimation->exportTo(glAnimation);
+        nodeAnimation->exportTo(glAnimation, stepDetectSampleCount);
     }
 }
 
 ExportableClip::~ExportableClip() = default;
-
-void ExportableClip::getAllAccessors(std::vector<GLTF::Accessor *> &accessors) const {
-    m_frames.getAllAccessors(accessors);
-
-    for (auto &&animation : m_nodeAnimations) {
-        animation->getAllAccessors(accessors);
-    }
-}
