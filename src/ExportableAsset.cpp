@@ -371,8 +371,9 @@ void ExportableAsset::save() {
             const int headerLength = 12;
             const int chunkHeaderLength = 8;
 
-            writeHeader[1] = headerLength + (chunkHeaderLength + jsonLength + jsonPadding) +
-                             (chunkHeaderLength + bufferLength + binPadding); // length
+            const int dataChunkSize = bufferLength ? (chunkHeaderLength + bufferLength + binPadding) : 0;
+
+            writeHeader[1] = headerLength + (chunkHeaderLength + jsonLength + jsonPadding) + dataChunkSize; // length
 
             file.write(reinterpret_cast<char *>(writeHeader),
                        sizeof(uint32_t) * 2); // GLB header
