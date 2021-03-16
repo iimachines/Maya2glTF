@@ -185,6 +185,12 @@ Maya interally uses a dataflow architecture (called the _dependency graph_). Thi
     - required when exporting animation clips
     - either you pass this for each clip, or once
 
+  - `-detectStepAnimations (-dsa) NUMBER` _(optional)_
+
+    - pass `-dsa 2` to detect `STEP` "interpolations" in the sampled animations curves. 
+    - enable this e.g. when binding the `shape.visiblity` to `node.scale.x, y z`, to prevent interpolation.
+    - currently this is all or nothing, animation curves are not yet split into discrete and continuous parts
+    
   - `-meshPrimitiveAttributes (-mpa) STRING` _(optional)_
 
     - the attributes for the shapes to export, separated by a vertical bar |
