@@ -1,3 +1,5 @@
+@echo off
+
 call windows_create_vs_project.bat %1
 if errorlevel 1 goto :fail
 
@@ -7,7 +9,9 @@ if errorlevel 1 goto :fail
 xcopy /s /e /y build\%1\redist\*.* build\redist\
 if errorlevel 1 goto :fail
 
-exit
+if "%2"=="AUTO" (
+    exit
+)
 
 :fail
 echo *** FAILURE ***
