@@ -6,9 +6,11 @@ If you believe this plugin is good enough to request Github Sponsoring, please s
 
 ## News
 
-* Version [1.1.1 released](https://github.com/iimachines/Maya2glTF/releases) for Windows! 
+* Version [1.4.0 released](https://github.com/iimachines/Maya2glTF/releases) for Windows! 
 
-* Support for Maya 2017-2020
+* Support for Maya 2017-2022
+
+* Added feature to detect step animations by using super sampling
 
 * Added `-ext` option (`-externalTextures`) to keep textures outside of `glb` file
 
