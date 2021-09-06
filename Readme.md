@@ -74,6 +74,8 @@ See the [releases](https://github.com/iimachines/Maya2glTF/releases) tab.
 
 ## Shading
 - _I assume you already used something like Substance Painter to create glTF-PBR textures_
+- **Make sure you have selected OpenGL for rendering, DirectX is _not_ supported yet**
+  ![image](https://user-images.githubusercontent.com/2389359/132230501-962fd5cc-5ee9-484c-9136-c0bb483754ee.png)
 - select the polygons you want to shade
 - click the `assign PBR shader to selection` button
 - the first time, you need to select our PBR OpenGL shader at:
