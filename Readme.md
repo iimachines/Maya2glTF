@@ -380,22 +380,22 @@ I consider this plugin to be production quality now, but use it at your own risk
   - If all goes well, the plugin and all scripts will be copied to your `%userprofile%\Documents\maya` folders
 
 ### Building for **MacOS**
-    - install [XCode](https://www.apple.com/us/search/xcode) from the app-store
-    - install [CMake](https://cmake.org/download/)
-    - open a Terminal window
-        - See `Finder` `Utilities` `Terminal`
-    - clone this repository
-        - e.g. `git clone https://github.com/iimachines/Maya2glTF.git ~/Documents/Maya2glTF`
-    - enter the cloned directory
-        - e.g. `cd ~/Documents/Maya2glTF`
-    - create the build script by running
-        - `./osx_create_project.sh 2020`
-        - Replace 2020 with the Maya version you're targetting
-    - enter the generated `build` folder, and `make` the plugin
-        - `make`
-    - then install the plugin by running
-        - `make install`
-    - if all goes well, the plugin should be ready to be used.
+  - install [XCode](https://www.apple.com/us/search/xcode) from the app-store
+  - install [CMake](https://cmake.org/download/)
+  - open a Terminal window
+    - See `Finder` `Utilities` `Terminal`
+  - clone this repository
+    - e.g. `git clone https://github.com/iimachines/Maya2glTF.git ~/Documents/Maya2glTF`
+  - enter the cloned directory
+    - e.g. `cd ~/Documents/Maya2glTF`
+  - create the build script by running
+    - `./osx_create_project.sh 2020`
+    - Replace 2020 with the Maya version you're targetting
+  - enter the generated `build` folder, and `make` the plugin
+    - `make`
+  - then install the plugin by running
+    - `make install`
+  - if all goes well, the plugin should be ready to be used.
 
 
 ### Building for **Linux**
