@@ -393,7 +393,10 @@ I consider this plugin to be production quality now, but use it at your own risk
         - Replace 2020 with the Maya version you're targetting
     - enter the generated `build` folder, and `make` the plugin
         - `make`
+    - then install the plugin by running
+        - `make install`
     - if all goes well, the plugin should be ready to be used.
+
 
 ### Building for **Linux**
     - TODO
