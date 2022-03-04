@@ -153,6 +153,13 @@ Maya interally uses a dataflow architecture (called the _dependency graph_). Thi
     - exports a single `glb` asset file
     - default is a JSON `glTF` and binary `bin` file containing the buffers
 
+  - `-niceBufferURIs (-nbu)` _(optional)_
+    - removes `0` suffix from generated `.bin` files if only a single one is generated.
+    - doesn't append `/data` to the buffer names, just used the scene name.
+
+  - `-hashBufferURIs (-hbu)` _(optional)_
+    - computes an 256-bit hash for each buffer, and uses that as the buffer name.
+
   - `-externalTextures (-ext)` _(optional)_
 
     - doesn't embed textures in the `glb` files. 

@@ -232,7 +232,8 @@ void ExportableAsset::save() {
         }
     } else {
         // Pack everything into a single buffer (default and glb case), except external textures
-        const auto bufferName = sceneName + "/data";
+        // For backwards compat, keep the "/data" suffix unless -niceBufferURIs is passed.
+        const auto bufferName = sceneName + (args.niceBufferURIs ? "": "/data");
 
         size_t imageBufferLength = 0;
 
@@ -263,17 +264,24 @@ void ExportableAsset::save() {
     }
 
     if (args.niceBufferURIs) {
-        std::map<std::string, int> bufferNameSuffix;
+        // Make valid URIs for each buffer, and also
+        // count how many times a buffer name occurs.
+        // If more than once, give the buffer URIs a suffix 0,1,2,3,4...
+        std::map<std::string, int> bufferNameCounts;
+        for (auto &pair : packedBufferMap) {
+            auto& uri = pair.second;
+            makeValidFilename(uri);
+            bufferNameCounts[uri] += 1;
+        }
 
+        std::map<std::string, int> bufferNameSuffix;
         for (const auto &pair : packedBufferMap) {
             auto buffer = pair.first;
             auto uri = pair.second;
-            makeValidFilename(uri);
 
-            auto &suffix = bufferNameSuffix[uri];
-            suffix += 1;
-
-            uri += std::to_string(suffix);
+            if (bufferNameCounts[uri] > 1) {
+                 uri += std::to_string(bufferNameSuffix[uri]++);
+            }
 
             uri += ".bin";
 

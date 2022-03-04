@@ -97,7 +97,7 @@ OUTPUT_VARIABLE
 string(REGEX REPLACE "\n$" "" GIT_TAG "${GIT_TAG}")
 
 if(NOT GIT_TAG)
-  set(GIT_TAG "master")
+  set(GIT_TAG "main")
 endif()
 
 set(ARCHIVE_VERSION "${GIT_TAG}_${GIT_SHORT_HASH}")

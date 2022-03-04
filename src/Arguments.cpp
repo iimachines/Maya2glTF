@@ -188,8 +188,8 @@ SyntaxFactory::SyntaxFactory() {
     registerFlag(ss, flag::forceAnimationChannels, "forceAnimationChannels", kNoArg);
     registerFlag(ss, flag::forceAnimationSampling, "forceAnimationSampling", kNoArg);
 
-    registerFlag(ss, flag::hashBufferURIs, "hashBufferUri", kNoArg);
-    registerFlag(ss, flag::niceBufferURIs, "niceBufferNames", kNoArg);
+    registerFlag(ss, flag::hashBufferURIs, "hashBufferURI", kNoArg);
+    registerFlag(ss, flag::niceBufferURIs, "niceBufferURIs", kNoArg);
 
     registerFlag(ss, flag::convertUnsupportedImages, "convertUnsupportedImages", kNoArg);
     registerFlag(ss, flag::reportSkewedInverseBindMatrices, "reportSkewedInverseBindMatrices", kNoArg);
