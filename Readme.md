@@ -6,30 +6,7 @@ If you believe this plugin is good enough to request Github Sponsoring, please s
 
 ## News
 
-* Version [1.4.0 released](https://github.com/iimachines/Maya2glTF/releases) for Windows! 
-
-* Support for Maya 2017-2022
-
-* Added feature to detect step animations by using super sampling
-
-* Added `-ext` option (`-externalTextures`) to keep textures outside of `glb` file
-
-* Cameras can be exported, either by selecting them, or by passing one or more by name with the `-cam <name>` flag
-
-* Skin weights are normalized to 1 now
-
-* Export node order is now deterministic
-
-* Fixed wrong exported frame count 
-
-* Added donet core tool to merge multiple GLTF files into one
-  - This allows exporting one animation per Maya file
-
-* Added scripts to generate animated GIF and VP9s 
-
-* Exports small animation metadata JSON file.
-
-See the [releases](https://github.com/iimachines/Maya2glTF/releases) tab.
+* Version [1.5.0 released](https://github.com/iimachines/Maya2glTF/releases) for Windows! 
 
 ![Maya Tiger screenshot](/img/tiger-wim@koetan.gif)
 
