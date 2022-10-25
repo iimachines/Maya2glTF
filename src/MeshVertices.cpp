@@ -168,9 +168,18 @@ MeshVertices::MeshVertices(const MeshIndices &meshIndices, const MeshSkeleton *m
 
     auto &semantics = meshIndices.semantics;
 
+    MFnMesh input_mesh;
+    if (args.skinUsePreBindMatrixAndMesh && meshSkeleton && !meshSkeleton->inputShape().isNull()) {
+       // Use skincluster input mesh data to retrieve pre-bind point positions and normals
+        input_mesh.setObject(meshSkeleton->inputShape());
+    } else {
+        // Use output mesh data at 'initialValuesTime' as bind pose point positions and normals
+        input_mesh.setObject(mesh.dagPath());
+    }
+
     // Get points
     MPointArray mPoints;
-    THROW_ON_FAILURE(mesh.getPoints(mPoints, MSpace::kTransform));
+    THROW_ON_FAILURE(input_mesh.getPoints(mPoints, MSpace::kTransform));
     const int numPoints = mPoints.length();
     m_positions.reserve(numPoints);
 
@@ -185,7 +194,7 @@ MeshVertices::MeshVertices(const MeshIndices &meshIndices, const MeshSkeleton *m
 
     const auto positionsSpan = floats(span(m_positions));
     m_table.at(Semantic::POSITION).push_back(positionsSpan);
-
+    
     // Get normals
     auto oppositePlug = mesh.findPlug("opposite", true, &status);
     THROW_ON_FAILURE(status);
@@ -198,7 +207,7 @@ MeshVertices::MeshVertices(const MeshIndices &meshIndices, const MeshSkeleton *m
     const float normalSign = shouldFlipNormals ? -1.0f : 1.0f;
 
     MFloatVectorArray mNormals;
-    THROW_ON_FAILURE(mesh.getNormals(mNormals, MSpace::kWorld));
+    THROW_ON_FAILURE(input_mesh.getNormals(mNormals, MSpace::kWorld));
     const int numNormals = mNormals.length();
     m_normals.reserve(numNormals);
     for (int i = 0; i < numNormals; ++i) {

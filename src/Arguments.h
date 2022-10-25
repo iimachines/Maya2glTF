@@ -220,6 +220,12 @@ class Arguments {
      */
     MTime initialValuesTime;
 
+    /**
+     * Use the skinCluster's preBindMatrix values and input mesh for initial base bind 
+     * instead of the visible output mesh from at initialValuesTime.
+     */
+    bool skinUsePreBindMatrixAndMesh = false;
+
     /** Redraw the viewport while exporting? True in debug builds by default,
      * false otherwise (for speed) */
 #ifdef _DEBUG
