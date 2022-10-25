@@ -92,6 +92,13 @@ const auto constantRotationThreshold = "crt";
 const auto constantScalingThreshold = "cst";
 const auto constantWeightsThreshold = "cwt";
 
+const auto posPrecision = "prp";
+const auto dirPrecision = "prd";
+const auto colPrecision = "prc";
+const auto texPrecision = "prt";
+const auto sclPrecision = "prs";
+const auto matPrecision = "prm";
+
 const auto keepObjectNamespace = "kon";
 
 } // namespace flag
@@ -201,6 +208,13 @@ SyntaxFactory::SyntaxFactory() {
     registerFlag(ss, flag::constantRotationThreshold, "constantRotationThreshold", kDouble);
     registerFlag(ss, flag::constantScalingThreshold, "constantScalingThreshold", kDouble);
     registerFlag(ss, flag::constantWeightsThreshold, "constantWeightsThreshold", kDouble);
+
+    registerFlag(ss, flag::posPrecision, "posPrecision", kDouble);
+    registerFlag(ss, flag::dirPrecision, "dirPrecision", kDouble);
+    registerFlag(ss, flag::colPrecision, "colPrecision", kDouble);
+    registerFlag(ss, flag::texPrecision, "texPrecision", kDouble);
+    registerFlag(ss, flag::sclPrecision, "sclPrecision", kDouble);
+    registerFlag(ss, flag::matPrecision, "matPrecision", kDouble);
 
     registerFlag(ss, flag::keepObjectNamespace, "keepMayaNamespaces", kNoArg);
 
@@ -497,6 +511,13 @@ Arguments::Arguments(const MArgList &args, const MSyntax &syntax) {
     adb.optional(flag::constantRotationThreshold, constantRotationThreshold);
     adb.optional(flag::constantScalingThreshold, constantScalingThreshold);
     adb.optional(flag::constantWeightsThreshold, constantWeightsThreshold);
+
+    adb.optional(flag::posPrecision, posPrecision);
+    adb.optional(flag::dirPrecision, dirPrecision);
+    adb.optional(flag::colPrecision, colPrecision);
+    adb.optional(flag::texPrecision, texPrecision);
+    adb.optional(flag::sclPrecision, sclPrecision);
+    adb.optional(flag::matPrecision, matPrecision);
 
     if (!adb.optional(flag::sceneName, sceneName)) {
         // Use filename without extension of current scene file.

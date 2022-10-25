@@ -24,20 +24,6 @@ const std::array<T, N> &&reinterpret_array(const T (&items)[N]) {
     return std::move(*reinterpret_cast<const std::array<T, N> *>(items));
 }
 
-// const double posPrecision = 1e6;
-// const double dirPrecision = 1e4;
-// const double colPrecision = 1e4;
-// const double texPrecision = 1e4;
-// const double sclPrecision = 1e4;
-// const double matPrecision = 1e6;
-
-const double posPrecision = 1e9;
-const double dirPrecision = 1e9;
-const double colPrecision = 1e9;
-const double texPrecision = 1e9;
-const double sclPrecision = 1e9;
-const double matPrecision = 1e9;
-
 inline double roundTo(const double v, const double precision) {
     return round(v * precision) / precision;
 }

@@ -34,6 +34,9 @@ class ExportableNode : public ExportableObject {
     TransformKind transformKind = TransformKind::Simple;
 
     double scaleFactor = 1.0;
+    double posPrecision = 1e9;
+    double dirPrecision = 1e9;
+    double sclPrecision = 1e9;
 
     MPoint pivotPoint;
 

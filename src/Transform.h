@@ -95,7 +95,10 @@ class NodeTransformCache {
     ~NodeTransformCache() = default;
 
     const NodeTransformState &getTransform(const ExportableNode *node,
-                                           double scaleFactor);
+                                           double scaleFactor,
+                                           const double posPrecision,
+                                           const double sclPrecision,
+                                           const double dirPrecision);
 
   private:
     DISALLOW_COPY_MOVE_ASSIGN(NodeTransformCache);

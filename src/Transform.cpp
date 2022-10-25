@@ -25,15 +25,14 @@ double getAxesNonOrthogonality(const MMatrix &m) {
     return e;
 }
 
-void getTranslation(const MTransformationMatrix &m, float *result,
-                    double scaleFactor) {
+void getTranslation(const MTransformationMatrix &m, float *result, double scaleFactor, const double posPrecision) {
     const MVector t = m.getTranslation(MSpace::kPostTransform);
     result[0] = roundToFloat(t.x * scaleFactor, posPrecision);
     result[1] = roundToFloat(t.y * scaleFactor, posPrecision);
     result[2] = roundToFloat(t.z * scaleFactor, posPrecision);
 }
 
-void getScaling(const MTransformationMatrix &m, float *result) {
+void getScaling(const MTransformationMatrix &m, float *result, const double sclPrecision) {
     double s[3];
     THROW_ON_FAILURE(m.getScale(s, MSpace::kPostTransform));
     result[0] = roundToFloat(s[0], sclPrecision);
@@ -41,7 +40,7 @@ void getScaling(const MTransformationMatrix &m, float *result) {
     result[2] = roundToFloat(s[2], sclPrecision);
 }
 
-void getRotation(const MTransformationMatrix &m, float *result) {
+void getRotation(const MTransformationMatrix &m, float *result, const double dirPrecision) {
     double q[4];
     THROW_ON_FAILURE(m.getRotationQuaternion(q[0], q[1], q[2], q[3]));
 
@@ -110,7 +109,10 @@ void makeIdentity(GLTF::Node::TransformTRS &trs) {
 
 const NodeTransformState &
 NodeTransformCache::getTransform(const ExportableNode *node,
-                                 const double scaleFactor) {
+                                 const double scaleFactor,
+                                 const double posPrecision,
+                                 const double sclPrecision,
+                                 const double dirPrecision) {
     auto &state = m_table[node];
 
     if (state.isInitialized > 0)
@@ -148,13 +150,13 @@ NodeTransformCache::getTransform(const ExportableNode *node,
 
             auto &trs = state.localTransforms[0];
 
-            getTranslation(mayaLocalMatrix, trs.translation, scaleFactor);
-            getRotation(mayaLocalMatrix, trs.rotation);
-            getScaling(mayaLocalMatrix, trs.scale);
+            getTranslation(mayaLocalMatrix, trs.translation, scaleFactor, posPrecision);
+            getRotation(mayaLocalMatrix, trs.rotation, dirPrecision);
+            getScaling(mayaLocalMatrix, trs.scale, sclPrecision);
         } break;
 
         case TransformKind::ComplexJoint: {
-            auto &parentTransform = getTransform(node->parentNode, scaleFactor);
+            auto &parentTransform = getTransform(node->parentNode, scaleFactor, posPrecision, sclPrecision, dirPrecision);
             auto &parentPrimaryTRS = parentTransform.primaryTRS();
             double parentScale[3] = {parentPrimaryTRS.scale[0],
                                      parentPrimaryTRS.scale[1],
@@ -195,8 +197,8 @@ NodeTransformCache::getTransform(const ExportableNode *node,
             state.maxNonOrthogonality = getAxesNonOrthogonality(m);
 
             const MTransformationMatrix mayaLocalMatrix(m);
-            getRotation(mayaLocalMatrix, trs0.rotation);
-            getScaling(mayaLocalMatrix, trs0.scale);
+            getRotation(mayaLocalMatrix, trs0.rotation, dirPrecision);
+            getScaling(mayaLocalMatrix, trs0.scale, sclPrecision);
         } break;
 
         case TransformKind::ComplexTransform: {
@@ -230,9 +232,9 @@ NodeTransformCache::getTransform(const ExportableNode *node,
             const MTransformationMatrix mayaMatrix(combinedMatrix);
 
             // trs1: scale, rotation and translation + pivot-offset combined
-            getTranslation(mayaMatrix, trs1.translation, scaleFactor);
-            getRotation(mayaMatrix, trs1.rotation);
-            getScaling(mayaMatrix, trs1.scale);
+            getTranslation(mayaMatrix, trs1.translation, scaleFactor, posPrecision);
+            getRotation(mayaMatrix, trs1.rotation, dirPrecision);
+            getScaling(mayaMatrix, trs1.scale, sclPrecision);
         } break;
 
         default:

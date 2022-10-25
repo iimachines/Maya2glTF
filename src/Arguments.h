@@ -250,6 +250,14 @@ class Arguments {
     /** Consider a blend shape weight animation path as constant if all values are below this threshold */
     double constantWeightsThreshold = 1e-9;
 
+    /** Export precisions */
+    double posPrecision = 1e9;
+    double dirPrecision = 1e9;
+    double colPrecision = 1e9;
+    double texPrecision = 1e9;
+    double sclPrecision = 1e9;
+    double matPrecision = 1e9;
+
     std::vector<AnimClipArg> animationClips;
 
     /** Copyright text of the exported file */
