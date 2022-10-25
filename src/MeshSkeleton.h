@@ -66,6 +66,10 @@ class MeshSkeleton {
 
     size_t vertexJointAssignmentSetCount() const;
 
+    MDagPath inputShapeDagPath() const { 
+        return m_inputShapeDagPath; 
+    }
+
   private:
     DISALLOW_COPY_MOVE_ASSIGN(MeshSkeleton);
 
@@ -74,6 +78,7 @@ class MeshSkeleton {
     std::vector<VertexJointAssignment> m_vertexJointAssignmentsVector;
     VertexJointAssignmentTable m_vertexJointAssignmentsTable;
     size_t m_maxVertexJointAssignmentCount;
+    MDagPath m_inputShapeDagPath;
 
     static MObject
     tryExtractSkinCluster(const MFnMesh &fnMesh,

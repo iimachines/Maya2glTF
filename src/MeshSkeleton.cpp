@@ -48,8 +48,14 @@ MeshSkeleton::MeshSkeleton(ExportableScene &scene, const ExportableNode &node,
 
         m_joints.reserve(jointCount);
 
+        // Gather the relevant input shape dag path
         const auto shapeDagPath = mesh.dagPath(&status);
         THROW_ON_FAILURE(status);
+        int inputShapeIndex = fnSkin.indexForOutputShape(mesh.object(), &status);
+        THROW_ON_FAILURE(status);
+        MObject inputShape = fnSkin.inputShapeAtIndex(inputShapeIndex, &status);
+        THROW_ON_FAILURE(status);
+        MDagPath::getAPathTo(inputShape, m_inputShapeDagPath);
 
         const auto bakeScaleFactor = args.getBakeScaleFactor();
         auto meshMatrix = shapeDagPath.inclusiveMatrix(&status);
@@ -60,13 +66,27 @@ MeshSkeleton::MeshSkeleton(ExportableScene &scene, const ExportableNode &node,
             auto &jointDagPath =
                 jointDagPaths[static_cast<unsigned int>(index)];
             auto *jointNode = scene.getNode(jointDagPath);
-            auto jointMatrix = jointDagPath.inclusiveMatrix(&status);
-            THROW_ON_FAILURE(status);
-            scaleTranslation(jointMatrix, bakeScaleFactor);
 
-            const auto inverseJointMatrix = jointMatrix.inverse();
+            MMatrix inverseBindMatrix;
+            if (args.skinUsePreBindMatrixAndMesh) {
+                // Use bindPreMatrix from skinCluster
+                MPlug plug = fnSkin.findPlug("bindPreMatrix", true, &status);
+                THROW_ON_FAILURE(status);
+                plug = plug.elementByPhysicalIndex(index, &status);
+                THROW_ON_FAILURE(status);
+                MObject matrixData = plug.asMObject();
+                MFnMatrixData fnMatrixData(matrixData, &status);
+                THROW_ON_FAILURE(status);
+                inverseBindMatrix = fnMatrixData.matrix(&status);
+                THROW_ON_FAILURE(status);
+            } else {
+                // Use initial values time joint position
+                auto inverseJointMatrix = jointDagPath.inclusiveMatrixInverse(&status);
+                inverseBindMatrix = meshMatrix * inverseJointMatrix;
+                THROW_ON_FAILURE(status);
+            }
+            scaleTranslation(inverseBindMatrix, bakeScaleFactor);
 
-            MMatrix inverseBindMatrix = meshMatrix * inverseJointMatrix;
 
             if (inverseBindMatrix.isSingular()) {
                 cerr << prefix << "WARNING: Inverse bind matrix of joint '"

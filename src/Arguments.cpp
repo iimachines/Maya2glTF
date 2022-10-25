@@ -40,6 +40,7 @@ const auto animationClipStartTime = "ast";
 const auto animationClipEndTime = "aet";
 
 const auto initialValuesTime = "ivt";
+const auto skinUsePreBindNatrixAndMesh = "pbm";
 
 const auto redrawViewport = "rvp";
 
@@ -165,6 +166,7 @@ SyntaxFactory::SyntaxFactory() {
     registerFlag(ss, flag::animationClipEndTime, "animationClipEndTime", true, kTime);
 
     registerFlag(ss, flag::initialValuesTime, "initialValuesTime", kTime);
+    registerFlag(ss, flag::skinUsePreBindNatrixAndMesh, "skinUsePreBindMatrixAndMesh", kNoArg);
 
     registerFlag(ss, flag::meshPrimitiveAttributes, "meshPrimitiveAttributes", kString);
     registerFlag(ss, flag::blendPrimitiveAttributes, "blendPrimitiveAttributes", kString);
@@ -544,6 +546,7 @@ Arguments::Arguments(const MArgList &args, const MSyntax &syntax) {
 
     initialValuesTime = clipCount > 0 ? MTime(0, MTime::kSeconds) : MAnimControl::currentTime();
     adb.optional(flag::initialValuesTime, initialValuesTime);
+    skinUsePreBindMatrixAndMesh = adb.isFlagSet(flag::skinUsePreBindNatrixAndMesh);
 
     const auto fpsCount = adb.flagUsageCount(flag::animationClipFrameRate);
 
