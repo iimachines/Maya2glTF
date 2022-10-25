@@ -21,8 +21,11 @@ void ExportableNode::load(ExportableScene &scene, NodeTransformCache &transformC
     bool maybeSegmentScaleCompensation = false;
     DagHelper::getPlugValue(obj, "segmentScaleCompensate", maybeSegmentScaleCompensation);
 
-    // Remember scale factor
+    // Remember scale factor and precision
     scaleFactor = args.getBakeScaleFactor();
+    posPrecision = args.posPrecision;
+    dirPrecision = args.dirPrecision;
+    sclPrecision = args.sclPrecision;
 
     // // Get name
     // const auto name = dagPath.partialPathName(&status);
@@ -103,7 +106,7 @@ void ExportableNode::load(ExportableScene &scene, NodeTransformCache &transformC
     }
 
     // Get transform
-    initialTransformState = transformCache.getTransform(this, scaleFactor);
+    initialTransformState = transformCache.getTransform(this, scaleFactor, posPrecision, sclPrecision, dirPrecision);
     m_glNodes[0].transform = &initialTransformState.localTransforms[0];
     m_glNodes[1].transform = &initialTransformState.localTransforms[1];
 
@@ -152,7 +155,7 @@ ExportableNode::createAnimation(const Arguments &args, const ExportableFrames &f
 }
 
 void ExportableNode::updateNodeTransforms(NodeTransformCache &transformCache) {
-    currentTransformState = transformCache.getTransform(this, scaleFactor);
+    currentTransformState = transformCache.getTransform(this, scaleFactor, posPrecision, sclPrecision, dirPrecision);
     m_glNodes[0].transform = &currentTransformState.localTransforms[0];
     m_glNodes[1].transform = &currentTransformState.localTransforms[1];
 

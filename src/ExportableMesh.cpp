@@ -154,7 +154,7 @@ ExportableMesh::ExportableMesh(ExportableScene &scene, ExportableNode &node, con
 
                 for (int i = 0; i < 4; ++i) {
                     for (int j = 0; j < 4; ++j) {
-                        inverseBindMatrix[i][j] = roundToFloat(ibm[i][j], matPrecision);
+                        inverseBindMatrix[i][j] = roundToFloat(ibm[i][j], args.matPrecision);
                     }
                 }
 

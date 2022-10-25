@@ -58,7 +58,7 @@ NodeAnimation::NodeAnimation(const ExportableNode &node, const ExportableFrames 
 }
 
 void NodeAnimation::sampleAt(const MTime &absoluteTime, const int frameIndex, const int superSampleIndex, NodeTransformCache &transformCache) {
-    auto &transformState = transformCache.getTransform(&node, m_scaleFactor);
+    auto &transformState = transformCache.getTransform(&node, m_scaleFactor, m_arguments.posPrecision, m_arguments.sclPrecision, m_arguments.dirPrecision);
     auto &pTRS = transformState.primaryTRS();
     auto &sTRS = transformState.secondaryTRS();
 

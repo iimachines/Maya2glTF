@@ -178,7 +178,9 @@ MeshVertices::MeshVertices(const MeshIndices &meshIndices, const MeshSkeleton *m
     for (int i = 0; i < numPoints; ++i) {
         const auto p = mPoints[i] * positionScale;
         m_positions.push_back(
-            {roundToFloat(p.x, posPrecision), roundToFloat(p.y, posPrecision), roundToFloat(p.z, posPrecision)});
+            {roundToFloat(p.x, args.posPrecision), 
+             roundToFloat(p.y, args.posPrecision), 
+             roundToFloat(p.z, args.posPrecision)});
     }
 
     const auto positionsSpan = floats(span(m_positions));
@@ -201,8 +203,9 @@ MeshVertices::MeshVertices(const MeshIndices &meshIndices, const MeshSkeleton *m
     m_normals.reserve(numNormals);
     for (int i = 0; i < numNormals; ++i) {
         auto n = mNormals[i];
-        m_normals.push_back({roundToFloat(normalSign * n.x, dirPrecision), roundToFloat(normalSign * n.y, dirPrecision),
-                             roundToFloat(normalSign * n.z, dirPrecision)});
+        m_normals.push_back({roundToFloat(normalSign * n.x, args.dirPrecision), 
+                             roundToFloat(normalSign * n.y, args.dirPrecision),
+                             roundToFloat(normalSign * n.z, args.dirPrecision)});
     }
 
     const auto normalsSpan = floats(span(m_normals));
@@ -221,8 +224,10 @@ MeshVertices::MeshVertices(const MeshIndices &meshIndices, const MeshSkeleton *m
         for (int i = 0; i < numColors; ++i) {
             const auto &c = mColors[i];
             ;
-            colors.push_back({roundToFloat(c.r, colPrecision), roundToFloat(c.g, colPrecision),
-                              roundToFloat(c.b, colPrecision), roundToFloat(c.a, colPrecision)});
+            colors.push_back({roundToFloat(c.r, args.colPrecision), 
+                              roundToFloat(c.g, args.colPrecision),
+                              roundToFloat(c.b, args.colPrecision), 
+                              roundToFloat(c.a, args.colPrecision)});
         }
 
         const auto colorsSpan = floats(span(colors));
@@ -242,8 +247,8 @@ MeshVertices::MeshVertices(const MeshIndices &meshIndices, const MeshSkeleton *m
         auto &uvSet = m_uvSets[semantic.setIndex] = Float2Vector(uCount);
         for (auto uIndex = 0; uIndex < uCount; uIndex++) {
             auto &uvArray = uvSet[uIndex];
-            uvArray[0] = roundToFloat(uArray[uIndex], texPrecision);
-            uvArray[1] = roundToFloat(1 - vArray[uIndex], texPrecision);
+            uvArray[0] = roundToFloat(uArray[uIndex], args.texPrecision);
+            uvArray[1] = roundToFloat(1 - vArray[uIndex], args.texPrecision);
         }
 
         const auto uvSpan = floats(span(uvSet));
@@ -307,9 +312,9 @@ MeshVertices::MeshVertices(const MeshIndices &meshIndices, const MeshSkeleton *m
                     auto t = mTangents[i];
                     const auto rht = 2 * mesh.isRightHandedTangent(i, &semantic.setName, &status) - 1.0f;
                     THROW_ON_FAILURE(status);
-                    tangentSet.push_back(roundToFloat(t.x, dirPrecision));
-                    tangentSet.push_back(roundToFloat(t.y, dirPrecision));
-                    tangentSet.push_back(roundToFloat(t.z, dirPrecision));
+                    tangentSet.push_back(roundToFloat(t.x, args.dirPrecision));
+                    tangentSet.push_back(roundToFloat(t.y, args.dirPrecision));
+                    tangentSet.push_back(roundToFloat(t.z, args.dirPrecision));
 
                     auto l = t.x * t.x + t.y * t.y + t.z * t.z;
                     if (abs(l - 1) > 1e-6) {
