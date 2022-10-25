@@ -49,7 +49,6 @@ MeshSkeleton::MeshSkeleton(ExportableScene &scene, const ExportableNode &node,
         m_joints.reserve(jointCount);
 
         // Gather the relevant input mesh data for the skinCluster
-        
         const auto shapeDagPath = mesh.dagPath(&status);
         THROW_ON_FAILURE(status);
         int inputShapeIndex = fnSkin.indexForOutputShape(mesh.object(), &status);
