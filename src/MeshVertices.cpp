@@ -168,11 +168,13 @@ MeshVertices::MeshVertices(const MeshIndices &meshIndices, const MeshSkeleton *m
 
     auto &semantics = meshIndices.semantics;
 
-    MFnMesh input_mesh(mesh.dagPath());
+    MFnMesh input_mesh;
     if (args.skinUsePreBindMatrixAndMesh && meshSkeleton && !meshSkeleton->inputShape().isNull()) {
-       // Retrieve point positions from the input mesh instead of the output of the 
-        std::cout << prefix << "Using skinCluster input geometry shape for base mesh poitn position (flag: skinUsePreBindMatrixAndMesh)" << endl;
+       // Use skincluster input mesh data to retrieve pre-bind point positions and normals
         input_mesh.setObject(meshSkeleton->inputShape());
+    } else {
+        // Use output mesh data at 'initialValuesTime' as bind pose point positions and normals
+        input_mesh.setObject(mesh.dagPath());
     }
 
     // Get points
