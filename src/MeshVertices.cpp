@@ -169,10 +169,10 @@ MeshVertices::MeshVertices(const MeshIndices &meshIndices, const MeshSkeleton *m
     auto &semantics = meshIndices.semantics;
 
     MFnMesh input_mesh(mesh.dagPath());
-    if (args.skinUsePreBindMatrixAndMesh && meshSkeleton) {
+    if (args.skinUsePreBindMatrixAndMesh && meshSkeleton && !meshSkeleton->inputShape().isNull()) {
        // Retrieve point positions from the input mesh instead of the output of the 
-        std::cout << prefix << "skinUsePreBindMatrixAndMesh - mesh: " << meshSkeleton->inputShapeDagPath().fullPathName() << endl;
-        input_mesh.setObject(meshSkeleton->inputShapeDagPath());
+        std::cout << prefix << "Using skinCluster input geometry shape for base mesh poitn position (flag: skinUsePreBindMatrixAndMesh)" << endl;
+        input_mesh.setObject(meshSkeleton->inputShape());
     }
 
     // Get points

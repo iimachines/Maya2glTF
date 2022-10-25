@@ -48,14 +48,24 @@ MeshSkeleton::MeshSkeleton(ExportableScene &scene, const ExportableNode &node,
 
         m_joints.reserve(jointCount);
 
-        // Gather the relevant input shape dag path
+        // Gather the relevant input mesh data for the skinCluster
+        
         const auto shapeDagPath = mesh.dagPath(&status);
         THROW_ON_FAILURE(status);
         int inputShapeIndex = fnSkin.indexForOutputShape(mesh.object(), &status);
         THROW_ON_FAILURE(status);
-        MObject inputShape = fnSkin.inputShapeAtIndex(inputShapeIndex, &status);
+
+        // Get the MPlug for input[index].inputGeometry
+        // Note: This is used over 'inputShapeAtIndex' so it includes any
+        // potential vertex tweaks after the shape but before the skinCluster
+        MPlug inputGeoPlug = fnSkin.findPlug("input", &status); // .input
         THROW_ON_FAILURE(status);
-        MDagPath::getAPathTo(inputShape, m_inputShapeDagPath);
+        inputGeoPlug = inputGeoPlug.elementByPhysicalIndex(inputShapeIndex, &status); // .input[0]
+        THROW_ON_FAILURE(status);
+        inputGeoPlug = inputGeoPlug.child(0, &status); // .input[0].inputGeometry
+        THROW_ON_FAILURE(status);
+        m_inputShape = inputGeoPlug.asMObject(&status);
+        THROW_ON_FAILURE(status);
 
         const auto bakeScaleFactor = args.getBakeScaleFactor();
         auto meshMatrix = shapeDagPath.inclusiveMatrix(&status);
@@ -72,7 +82,9 @@ MeshSkeleton::MeshSkeleton(ExportableScene &scene, const ExportableNode &node,
                 // Use bindPreMatrix from skinCluster
                 MPlug plug = fnSkin.findPlug("bindPreMatrix", true, &status);
                 THROW_ON_FAILURE(status);
-                plug = plug.elementByPhysicalIndex(index, &status);
+                size_t logical_index = fnSkin.indexForInfluenceObject(jointDagPath, &status);
+                THROW_ON_FAILURE(status);
+                plug = plug.elementByLogicalIndex(logical_index, &status);
                 THROW_ON_FAILURE(status);
                 MObject matrixData = plug.asMObject();
                 MFnMatrixData fnMatrixData(matrixData, &status);
@@ -82,11 +94,10 @@ MeshSkeleton::MeshSkeleton(ExportableScene &scene, const ExportableNode &node,
             } else {
                 // Use initial values time joint position
                 auto inverseJointMatrix = jointDagPath.inclusiveMatrixInverse(&status);
-                inverseBindMatrix = meshMatrix * inverseJointMatrix;
                 THROW_ON_FAILURE(status);
+                inverseBindMatrix = meshMatrix * inverseJointMatrix;
             }
             scaleTranslation(inverseBindMatrix, bakeScaleFactor);
-
 
             if (inverseBindMatrix.isSingular()) {
                 cerr << prefix << "WARNING: Inverse bind matrix of joint '"
