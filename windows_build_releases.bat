@@ -18,10 +18,14 @@ start "Maya2glTF_build_2024" call windows_build_release 2024 AUTO
 start "Maya2glTF_build_2025" call windows_build_release 2025 AUTO
 
 
-:loop
-echo Waiting for build processes to finish...
-timeout /t 10 >nul
-tasklist /v /fi "imagename eq cmd.exe" /fo csv | findstr /i "Maya2glTF_build" >nul && goto :loop
+@REM :loop
+@REM echo Waiting for build processes to finish...
+@REM does not work with Windows Terminal, commented out until workaround is found
+@REM timeout /t 10 >nul
+@REM tasklist /v /fi "imagename eq cmd.exe" /fo csv | findstr /i "Maya2glTF_build" >nul && goto :loop
+
+echo Press ENTER When build processes are finished
+pause
 
 pushd build
 echo Creating release ZIP file...
