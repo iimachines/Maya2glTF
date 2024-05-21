@@ -14,11 +14,9 @@ if exist %ZIP_PATH% (del %ZIP_PATH%)
 
 echo Creating release %ZIP_PATH%
 
-start "Maya2glTF_build_2017" call windows_build_release 2017 AUTO
-start "Maya2glTF_build_2018" call windows_build_release 2018 AUTO
-start "Maya2glTF_build_2019" call windows_build_release 2019 AUTO
-start "Maya2glTF_build_2020" call windows_build_release 2020 AUTO
-start "Maya2glTF_build_2022" call windows_build_release 2022 AUTO
+start "Maya2glTF_build_2024" call windows_build_release 2024 AUTO
+start "Maya2glTF_build_2025" call windows_build_release 2025 AUTO
+
 
 :loop
 echo Waiting for build processes to finish...

@@ -18,7 +18,7 @@ if exist "%BUILD%\CMakeCache.txt" (
     if errorlevel 1 goto :error
 )
 
-cmake -B "%BUILD%" -G "Visual Studio 16 2019" -T host=x64 -D MAYA_VERSION:string=%*
+cmake -B "%BUILD%" -G "Visual Studio 17 2022" -T host=x64 -D MAYA_VERSION:string=%*
 if errorlevel 1 goto :error
 
 :error
