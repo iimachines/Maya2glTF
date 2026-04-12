@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.13)
 
 project(maya2glTF)
 
@@ -21,12 +21,11 @@ ExternalProject_Add(COLLADA2GLTF
   SOURCE_SUBDIR GLTF
   INSTALL_DIR
   CMAKE_ARGS
-  -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
-  #CONFIGURE_COMMAND ${CMAKE_COMMAND} -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> <SOURCE_DIR>/GLTF
+    -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+    -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
   CMAKE_CACHE_ARGS
-  "-DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=true"
+    "-DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=true"
 )
-
 
 # cpp-linq
 ExternalProject_Add(linq
@@ -35,7 +34,7 @@ ExternalProject_Add(linq
   PREFIX linq
   INSTALL_DIR
   CMAKE_ARGS
-  -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+    -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
   CONFIGURE_COMMAND ""
   BUILD_COMMAND ""
   INSTALL_COMMAND ""
@@ -48,7 +47,9 @@ ExternalProject_Add(GSL
   PREFIX GSL
   INSTALL_DIR
   CMAKE_ARGS
-	-DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+    -DGSL_TEST=OFF
+    -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+    -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
 )
 
 # filesystem
@@ -58,7 +59,7 @@ ExternalProject_Add(filesystem
   PREFIX filesystem
   INSTALL_DIR
   CMAKE_ARGS
-	-DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+    -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
   CONFIGURE_COMMAND ""
   BUILD_COMMAND ""
   INSTALL_COMMAND ""
@@ -67,14 +68,11 @@ ExternalProject_Add(filesystem
 set(GLTF_INCLUDE_DIR          "${CMAKE_BINARY_DIR}/COLLADA2GLTF/src/COLLADA2GLTF/GLTF/include")
 set(DRACO_INCLUDE_DIR         "${CMAKE_BINARY_DIR}/COLLADA2GLTF/src/COLLADA2GLTF/GLTF/dependencies/draco/src")
 set(RAPIDJSON_INCLUDE_DIR     "${CMAKE_BINARY_DIR}/COLLADA2GLTF/src/COLLADA2GLTF/GLTF/dependencies/rapidjson/include")
-#set(COLLADA2GLTF_INCLUDE_DIR  "${CMAKE_BINARY_DIR}/COLLADA2GLTF/include")
 set(GSL_INCLUDE_DIR           "${CMAKE_BINARY_DIR}/GSL/include")
 set(LINQ_INCLUDE_DIR          "${CMAKE_BINARY_DIR}/linq/src/linq/lib")
 set(FS_INCLUDE_DIR            "${CMAKE_BINARY_DIR}/filesystem/src/filesystem/include")
 
-# TODO: It seems the gltf.lib is not installed by COLLADA2GLTF, although draco.lib is? Figure out why
 ExternalProject_Get_Property(COLLADA2GLTF binary_dir)
-#message("Using ${binary_dir}/${CMAKE_BUILD_TYPE} as GLTF target folder")
 set(GLTF_LIBRARY_DIR "${binary_dir}/${CMAKE_BUILD_TYPE}") 
 set(DRACO_LIBRARY_DIR "${binary_dir}/dependencies/draco/${CMAKE_BUILD_TYPE}") 
 
@@ -152,7 +150,6 @@ add_dependencies(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME} ${MAYA_LIBRARIES} GLTF draco)
 
 if(MSVC)
-
   GET_FILENAME_COMPONENT(USER_DOCUMENTS "[HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders;Personal]" ABSOLUTE CACHE)
   message("-- Found user documents folder = ${USER_DOCUMENTS}")
 
@@ -183,76 +180,11 @@ if(MSVC)
     COMMAND xcopy /y "$<SHELL_PATH:${CMAKE_CURRENT_BINARY_DIR}/maya2glTF_version.mel>" "$<SHELL_PATH:${MAYA_PACKAGE_DIR}/${MAYA_VERSION}/scripts/>"
     COMMAND xcopy /y "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/scripts/maya2glTF*.mel>" "$<SHELL_PATH:${MAYA_PACKAGE_DIR}/${MAYA_VERSION}/scripts/>"
     COMMAND xcopy /y /s /i "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/renderData/*.*>" "$<SHELL_PATH:${MAYA_PACKAGE_DIR}/maya2glTF/PBR/>"
-    COMMAND xcopy /y /s /i "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/prefs/*.*>" "$<SHELL_PATH:${MAYA_PACKAGE_DIR}/${MAYA_VERSION}/prefs/>"  
+    COMMAND xcopy /y /s /i "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/prefs/*.*>" "$<SHELL_PATH:${MAYA_PACKAGE_DIR}/${MAYA_VERSION}/prefs/>"
     COMMAND if exist "$<SHELL_PATH:$<TARGET_PDB_FILE:maya2glTF>>" (xcopy /y /c "$<SHELL_PATH:$<TARGET_PDB_FILE:maya2glTF>>" "$<SHELL_PATH:${MAYA_PACKAGE_DIR}/${MAYA_VERSION}/plug-ins/>")
     COMMAND xcopy /y "$<SHELL_PATH:${PROJECT_SOURCE_DIR}/maya/maya2glTFDeploy.bat>" "$<SHELL_PATH:${MAYA_OUTPUT_DIR}/>"
     COMMAND ${CMAKE_COMMAND} -E tar cfv ${CMAKE_BINARY_DIR}/maya2gltf_${ARCHIVE_VERSION}_maya_${MAYA_VERSION}.zip --format=zip "${MAYA_OUTPUT_DIR}"
   )
-elseif(APPLE)
-  install (
-    TARGETS maya2glTF 
-    DESTINATION "/Users/Shared/Autodesk/maya/${MAYA_VERSION}/plug-ins/"
-  )
-  
-  install (
-    FILES "${CMAKE_CURRENT_BINARY_DIR}/maya2glTF_version.mel" 
-    DESTINATION "/Users/Shared/Autodesk/maya/scripts"
-  )
-  
-  install (
-    DIRECTORY "${PROJECT_SOURCE_DIR}/maya/scripts/" 
-    DESTINATION "/Users/Shared/Autodesk/maya/scripts"
-    FILES_MATCHING PATTERN "maya2glTF*.mel"
-  )
-
-  install (
-    DIRECTORY "${CMAKE_BINARY_DIR}/generated/" 
-    DESTINATION "/Users/Shared/Autodesk/maya/scripts"
-    FILES_MATCHING PATTERN "maya2glTF*.mel"
-  )
-
-  install (
-    DIRECTORY "${PROJECT_SOURCE_DIR}/maya/renderData/"
-    DESTINATION "/Users/Shared/Autodesk/maya/maya2glTF/PBR"
-  )
-
-  install (
-    DIRECTORY "${PROJECT_SOURCE_DIR}/maya/prefs/"
-    DESTINATION "/Users/Shared/Autodesk/maya/${MAYA_VERSION}/prefs/"
-  )
-else(LINUX)
-  install (
-    TARGETS maya2glTF 
-    DESTINATION "/usr/autodesk/maya${MAYA_VERSION}/plug-ins"
-  )
-  
-  install (
-    FILES "${CMAKE_CURRENT_BINARY_DIR}/maya2glTF_version.mel" 
-    DESTINATION "/usr/autodesk/maya${MAYA_VERSION}/scripts"
-  )
-  
-  install (
-    DIRECTORY "${PROJECT_SOURCE_DIR}/maya/scripts/" 
-    DESTINATION "/usr/autodesk/maya${MAYA_VERSION}/scripts"
-    FILES_MATCHING PATTERN "maya2glTF*.mel"
-  )
-
-  install (
-    DIRECTORY "${CMAKE_BINARY_DIR}/generated/" 
-    DESTINATION "/usr/autodesk/maya${MAYA_VERSION}/scripts"
-    FILES_MATCHING PATTERN "maya2glTF*.mel"
-  )
-
-  install (
-    DIRECTORY "${PROJECT_SOURCE_DIR}/maya/renderData/"
-    DESTINATION "/usr/autodesk/maya${MAYA_VERSION}/maya2glTF/PBR"
-  )
-
-  install (
-    DIRECTORY "${PROJECT_SOURCE_DIR}/maya/prefs"
-    DESTINATION "/usr/autodesk/maya${MAYA_VERSION}"
-  )
-
 endif()
 
 MAYA_PLUGIN(${PROJECT_NAME})
